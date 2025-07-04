@@ -1,0 +1,2 @@
+C:/Users/Admin/StudioProjects/accu_chatapp/android/app/.cxx/RelWithDebInfo/2h421528/arm64-v8a/CMakeFiles/edit_cache.dir
+C:/Users/Admin/StudioProjects/accu_chatapp/android/app/.cxx/RelWithDebInfo/2h421528/arm64-v8a/CMakeFiles/rebuild_cache.dir

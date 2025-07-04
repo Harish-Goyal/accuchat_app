@@ -1,0 +1,48 @@
+{
+  "project_info": {
+    "project_number": "975726861063",
+    "firebase_url": "https://accuchat-d5e99-default-rtdb.firebaseio.com",
+    "project_id": "accuchat-d5e99",
+    "storage_bucket": "accuchat-d5e99.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:975726861063:android:b0f2917d0dbe74221083a2",
+        "android_client_info": {
+          "package_name": "com.app.accuChat"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "975726861063-f5logsvj2p758g4s5p07fkn2d68ei6r4.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.app.accuChat",
+            "certificate_hash": "d836b3cc1bd489aa5006831e913872998273e518"
+          }
+        },
+        {
+          "client_id": "975726861063-nf42hfnm2mad9uqvc9cn0sfkbee5h6bd.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDSAwm0Ro420zfkcBnViLU7xdy8SfU6ImA"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "975726861063-nf42hfnm2mad9uqvc9cn0sfkbee5h6bd.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
