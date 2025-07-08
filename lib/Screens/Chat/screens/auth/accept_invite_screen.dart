@@ -207,6 +207,7 @@ bool isLoading = false;
                           CustomCacheNetworkImage(
                             invite.company?.logoUrl ?? '',
                             height: 50,
+                            width: 50,
                             boxFit: BoxFit.cover,
                             radiusAll: 100,
                             borderColor: Colors.black54,

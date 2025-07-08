@@ -17,7 +17,7 @@ import '../../../Chat/screens/auth/login_screen.dart';
 import '../../../Chat/screens/chat_home_screen.dart';
 import '../../../Home/Presentation/View/main_screen.dart';
 
-
+import 'package:in_app_update/in_app_update.dart';
 class SplashController extends GetxController {
 
 
@@ -30,10 +30,26 @@ class SplashController extends GetxController {
     SystemChrome.setSystemUIOverlayStyle(const SystemUiOverlayStyle(
         systemNavigationBarColor: Colors.white,
         statusBarColor: Colors.white));
-    _navigateToNextScreen(Get.context!);
+
+       checkGooglePlayUpdate().then((v){
+        return _navigateToNextScreen(Get.context!);
+      }); // 🔁 run after screen is rendered
+
     super.onInit();
   }
 
+
+
+  Future<void> checkGooglePlayUpdate() async {
+    try {
+      final updateInfo = await InAppUpdate.checkForUpdate();
+      if (updateInfo.updateAvailability == UpdateAvailability.updateAvailable) {
+        await InAppUpdate.performImmediateUpdate();
+      }
+    }catch(e){
+      print(e.toString());
+    }
+  }
 
   // getIntialMessage() {
   //   // initBinding();

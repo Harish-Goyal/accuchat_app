@@ -62,6 +62,7 @@ class _ViewProfileScreenState extends State<ViewProfileScreen> {
                   CustomCacheNetworkImage(
                       widget.user.image,
                     height: mq.height * .2,
+                    width: mq.height * .2,
                     radiusAll: 100,
                     boxFit: BoxFit.cover,
                     defaultImage: userIcon,

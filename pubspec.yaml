@@ -44,6 +44,7 @@ dependencies:
   loading_indicator: ^3.1.1
   google_fonts:
   lottie: ^2.3.2
+  in_app_update: ^4.0.2
   flutter_contacts:
   logger:
   file_picker:

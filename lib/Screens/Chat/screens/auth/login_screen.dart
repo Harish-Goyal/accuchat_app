@@ -72,7 +72,7 @@ class _LoginScreenGState extends State<LoginScreenG> {
       if (secondsRemaining != 0) {
         secondsRemaining--;
         if(mounted) {
-          setState(() {});
+          setState(() {}) ;
         }
       } else {
         enableResend = true;
@@ -83,12 +83,16 @@ class _LoginScreenGState extends State<LoginScreenG> {
     });
   }
 
-  void resendCode() {
-    secondsRemaining = 30;
+  void resendCode(setState) {
+    SystemChannels.textInput.invokeMethod('TextInput.hide');
+    otpFieldController.clear();
+    otpVal='';
+    Get.back();
+    // secondsRemaining = 30;
     enableResend = false;
-    initTimer();
-    resentOTP();
-    setState(() {});
+    // initTimer();
+    resentOTP(setState);
+
   }
 
 
@@ -112,6 +116,8 @@ class _LoginScreenGState extends State<LoginScreenG> {
 
   void sendOTP() async {
     SystemChannels.textInput.invokeMethod('TextInput.hide');
+    otpFieldController.clear();
+    otpVal='';
     customLoader.show();
     if (isOtpInProgress) {
       Get.snackbar("Error", "OTP request is already in progress",backgroundColor: Colors.white,colorText: Colors.black);
@@ -130,10 +136,10 @@ class _LoginScreenGState extends State<LoginScreenG> {
           await FirebaseAuth.instance.signInWithCredential(credential);
         },
         verificationFailed: (FirebaseAuthException e) {
-          Get.snackbar("Error", e.message ?? "Verification failed",colorText: Colors.white,backgroundColor: Colors.red);
+          Get.snackbar("Error",  "Otp send failed please check number!",colorText: Colors.white,backgroundColor: Colors.red);
           customLoader.hide();
         },
-        codeSent: (String verId, int? resendToken) {
+        codeSent: (String verId, int? resendToken)  {
           customLoader.hide();
           verificationId = verId;
           otpSent = true;
@@ -175,9 +181,30 @@ class _LoginScreenGState extends State<LoginScreenG> {
     }
   }
 
-  resentOTP()async{
+  resentOTP(setState)async{
+    customLoader.show();
+    if (isOtpInProgress) {
+      Get.snackbar("Error", "OTP request is already in progress",backgroundColor: Colors.white,colorText: Colors.black);
+      return;
+    }
     try {
-      resendCode();
+      setState(() {
+        isOtpInProgress = true;
+        enableResend = false;
+      });
+      timer = Timer.periodic(const Duration(seconds: 1), (_) {
+        if (secondsRemaining != 0) {
+          secondsRemaining--;
+          if(mounted) {
+            setState(() {}) ;
+          }
+        } else {
+          enableResend = true;
+          if(mounted) {
+            setState(() {});
+          }
+        }
+      });
       await FirebaseAuth.instance.verifyPhoneNumber(
       phoneNumber: (countryCodeVal+phoneController.text.trim()),
       forceResendingToken: _resendToken,
@@ -188,20 +215,42 @@ class _LoginScreenGState extends State<LoginScreenG> {
       },
       codeSent: (String verificationId, int? forceResendingToken) {
         verificationId = verificationId;
-        _resendToken = forceResendingToken; // You can update it again if needed
+        _resendToken = forceResendingToken;
+        customLoader.hide();
+        otpSent = true;
+        Get.snackbar("Otp Sent", "Please check!",backgroundColor: Colors.white,colorText: Colors.black);
+        Get.bottomSheet(
+          _bottomSheetWidget(context),
+
+          backgroundColor: Colors.white,
+
+          // barrierColor: Colors.red[50],
+          isDismissible: false,
+          shape: const RoundedRectangleBorder(
+              borderRadius: BorderRadius.only(
+                  topLeft: Radius.circular(20), topRight: Radius.circular(20)),
+              side: BorderSide(width: 5, color: Colors.white)),
+          enableDrag: false,
+        );
+        setState(() {});
       },
       codeAutoRetrievalTimeout: (String verificationId) {
         verificationId = verificationId;
+        customLoader.hide();
       },
-    );
+    ).then((v){ customLoader.hide();});
       // Get.snackbar("OTP Sent", "Please check your sms!",backgroundColor: Colors.white,colorText: Colors.black87);
     }
     catch(e){
       errorDialog("Something wend wrong!");
+    }finally {
+      setState(() {
+        isOtpInProgress = false;
+      });
     }
   }
 
-  void verifyOTP() async {
+  void verifyOTP(setState) async {
     final credential = PhoneAuthProvider.credential(
       verificationId: verificationId!,
       smsCode: otpVal,
@@ -209,7 +258,6 @@ class _LoginScreenGState extends State<LoginScreenG> {
 
     try {
       await FirebaseAuth.instance.signInWithCredential(credential).then((userCredential) async {
-
         final user = userCredential.user;
         if (user != null) {
           // log('\nUser: ${user.displayName}');
@@ -317,6 +365,7 @@ class _LoginScreenGState extends State<LoginScreenG> {
         isFill = false;
       });
       Get.snackbar("Error", "Invalid OTP",backgroundColor: Colors.red,colorText: Colors.white);
+
     }
   }
 
@@ -670,7 +719,7 @@ class _LoginScreenGState extends State<LoginScreenG> {
                             otpVal = code;
                             isFill = true;
                             setState(() {});
-                            verifyOTP();
+                            verifyOTP(setState);
                           }
                         },
                       ).paddingSymmetric(horizontal: 5, vertical: 35),
@@ -705,7 +754,7 @@ class _LoginScreenGState extends State<LoginScreenG> {
                       ),
                     ).paddingSymmetric(horizontal: 5,vertical: 35),
 */
-                      resendOTPView(context),
+                      resendOTPView(context,setState),
                       // GetBuilder<LoginController>(
                       //   builder: (controller) {
                       //     return Center(
@@ -723,7 +772,7 @@ class _LoginScreenGState extends State<LoginScreenG> {
                           if (formGlobalKey.currentState?.validate() ?? false) {
                             SystemChannels.textInput.invokeMethod('TextInput.hide');
                             setState(() {isFill = true;});
-                            verifyOTP();
+                            verifyOTP(setState);
                           }
                         }
                             :() {},
@@ -850,7 +899,7 @@ class _LoginScreenGState extends State<LoginScreenG> {
 
   }
 
-  Widget resendOTPView(context) {
+  Widget resendOTPView(context,setState) {
     return Column(
       children: [
         Text.rich(
@@ -863,7 +912,7 @@ class _LoginScreenGState extends State<LoginScreenG> {
                   text: "Resend Now".tr,
                   recognizer: new TapGestureRecognizer()
                     ..onTap =
-                    enableResend ? resendCode : null,
+                    enableResend ?()=> resendCode(setState) : (){},
                   style: BalooStyles.balooregularTextStyle(color:  enableResend ? AppTheme.appColor : Colors.grey.shade400),
         
                 ),

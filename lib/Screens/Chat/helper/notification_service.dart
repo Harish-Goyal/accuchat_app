@@ -124,7 +124,7 @@ class NotificationService {
     Map<String, String>? data,
   }) async {
     if (_client == null || _projectId == null) {
-      await init(); // Lazy init if not already done
+      await init();
     }
 
     final url = Uri.parse('https://fcm.googleapis.com/v1/projects/$_projectId/messages:send');

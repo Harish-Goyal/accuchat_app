@@ -32,6 +32,8 @@ class ProfileDialog extends StatelessWidget {
                     width: mq.width * .5,
                     child: CustomCacheNetworkImage(
 
+                      width: mq.width * .5,
+                      height: mq.width * .5,
                       user.image,defaultImage: userIcon,
                       radiusAll: mq.height * .25,
                       boxFit: BoxFit.cover,

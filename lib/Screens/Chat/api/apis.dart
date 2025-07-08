@@ -90,10 +90,14 @@ class APIs {
       badge: true,
       sound: true,);
 
-    await fMessaging.getToken().then((t) {
+    await fMessaging.getToken().then((t) async {
       if (t != null) {
         me.pushToken = t;
         log('Push Token: $t');
+        await FirebaseFirestore.instance
+            .collection('users')
+            .doc(me.id)
+            .update({'push_token': t});
       }
     });
 
@@ -678,24 +682,29 @@ class APIs {
           .doc(chatUser.id)
           .update({'last_active': time});
 
-      final token = await getTargetTokenFromEmail(chatUser.id);
-      if (token != null) {
+      final token =chatUser.pushToken;
+      if (token != null && token != APIs.me.pushToken) {
         if(!isTask) {
-          await LocalNotificationService.showChatNotification(
-            title: '💬 New Message from ${APIs.me.name}',
-            body: msg??'',
-          );
+          // await LocalNotificationService.showChatNotification(
+          //   title: '💬 New Message from ${APIs.me.name}',
+          //   body: msg??'',
+          // );
           await NotificationService.sendMessageNotification(
             targetToken: token,
             senderName: APIs.me.name,
             message: msg??'',
           );
         }else{
+
           await NotificationService.sendTaskNotification(
             targetToken: token,
             assignerName: APIs.me.name,
             taskSummary: taskDetails?.title??'',
           );
+          // await LocalNotificationService.showTaskNotification(
+          //   title: '💬 New Task from ${APIs.me.name}',
+          //   body: taskDetails?.title??'',
+          // );
         }
       }
     } catch (e, stack) {
@@ -1821,7 +1830,7 @@ class APIs {
           .get();
 
       if (existingInvites.docs.isNotEmpty) {
-        errorDialog("❗ This member is already invited.");
+        // errorDialog("❗ This member is already invited.");
         return;
       }
 
@@ -1847,37 +1856,52 @@ class APIs {
       );
 
       await firestore.collection('invitations').doc(id).set(invite.toMap());
-      final token = await getTargetTokenFromEmail(invite.email);
+      final token = await getTargetToken(email:email.endsWith(".com") ? email : "",phone: email.startsWith("+91") ? email:'');
+      print("token");
+      print(token);
 
-      if (token != null) {
-
+      if (token != null && token != APIs.me.pushToken) {
         await NotificationService.sendInvitationNotification(
           targetToken: token,
           inviterName: APIs.me.name,
           companyName: company.name??"",
         );
-        await LocalNotificationService.showInviteNotification(
-          title: '📬 You got an invite',
-          body: 'Join ${company.name??""} now!',
-        );
+        // await LocalNotificationService.showInviteNotification(
+        //   title: '📬 You got an invite',
+        //   body: 'Join ${company.name??""} now!',
+        // );
+
+        print("🔔 Sending notification to token: $token");
+        print("🤖 My device token: ${me.pushToken}");
       }
     } catch (e) {
       print('❌ Error fetching sender: $e');
     }
   }
 
-  static Future<String?> getTargetTokenFromEmail(String email) async {
-    final snap = await FirebaseFirestore.instance
-        .collection('users')
-        .where('email', isEqualTo: email)
-        .limit(1)
-        .get();
+  static Future<String?> getTargetToken({String? email, String? phone}) async {
+    // if ((email == null || email == 'null' || email.isEmpty) &&
+    //     (phone == null || phone == 'null' || phone.isEmpty)) {
+    //   print("❌ Error: Provide either email or phone");
+    //   return null;
+    // }
 
+    Query<Map<String, dynamic>> query = FirebaseFirestore.instance.collection('users');
+
+    if (email != null && email != 'null' && email.isNotEmpty) {
+      query = query.where('email', isEqualTo: email);
+    } else if (phone != null && phone != 'null' && phone.isNotEmpty) {
+      query = query.where('phone', isEqualTo: phone);
+    }
+
+    final snap = await query.limit(1).get();
     if (snap.docs.isNotEmpty) {
       final data = snap.docs.first.data();
-      return data['push_token']; // ✅ This is the targetToken
+      print("✅ Target user found with token: ${data['push_token']}");
+      return data['push_token'];
     } else {
-      return null; // User not registered yet
+      print("❌ User not found for email/phone");
+      return null;
     }
   }
 

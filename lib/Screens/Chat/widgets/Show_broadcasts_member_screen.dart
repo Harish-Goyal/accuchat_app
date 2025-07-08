@@ -197,7 +197,7 @@ class _BroadcastsMembersScreenState extends State<BroadcastsMembersScreen> {
                   leading:
                   SizedBox(
                     width: 55,
-                    child: CustomCacheNetworkImage(user.image,radiusAll: 100,height: 75,defaultImage: userIcon,
+                    child: CustomCacheNetworkImage(user.image,radiusAll: 100,height: 75,width: 75,defaultImage: userIcon,
                       borderColor: greyColor,),
                   ),
                   title: Row(

@@ -15,6 +15,14 @@
       },
       "oauth_client": [
         {
+          "client_id": "975726861063-f52oqeebboj0lg1aqk8h6v56qenepprk.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.app.accuChat",
+            "certificate_hash": "bb57d2c8df024923b7b7f8e3fc7ec91faa323390"
+          }
+        },
+        {
           "client_id": "975726861063-f5logsvj2p758g4s5p07fkn2d68ei6r4.apps.googleusercontent.com",
           "client_type": 1,
           "android_info": {

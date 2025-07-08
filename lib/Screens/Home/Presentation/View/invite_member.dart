@@ -13,6 +13,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_contacts/flutter_contacts.dart';
 import 'package:get/get.dart';
 import 'package:permission_handler/permission_handler.dart';
+// import 'package:permission_handler/permission_handler.dart';
 import '../../../../utils/common_textfield.dart';
 import '../../../../utils/custom_flashbar.dart';
 
@@ -63,22 +64,29 @@ class _InviteMembersScreenState extends State<InviteMembersScreen> {
   }
 
   Future<List<Contact>> fetchContacts() async {
-    final permissionGranted = await FlutterContacts.requestPermission();
+    try {
+      final permissionStatus = await Permission.contacts.request();
 
-    if (!permissionGranted) {
-      errorDialog("Contact permission not granted");
-      throw Exception("Contact permission not granted");
+      if (!permissionStatus.isGranted) {
+        throw Exception("Contact permission not granted");
+      }
 
+      // Extra delay to give platform time
+      await Future.delayed(Duration(milliseconds: 200));
+
+      final contacts = await FlutterContacts.getContacts(
+        withProperties: true,
+        withAccounts: true,
+      );
+
+      return contacts;
+    } catch (e) {
+      print("❌ Error while fetching contacts: $e");
+      rethrow;
     }
-
-    // ✅ Delay avoids conflict with other permission requests
-    await Future.delayed(const Duration(milliseconds: 300));
-
-    return await FlutterContacts.getContacts(
-      withProperties: true,
-      withAccounts: true,
-    );
   }
+
+
 
 
   List<Map<String, dynamic>> contactItems = [];
@@ -416,7 +424,7 @@ class _InviteMembersScreenState extends State<InviteMembersScreen> {
 
       if (existingInvites.docs.isNotEmpty) {
         customLoader.hide();
-        errorDialog("❗ This member is already invited.");
+        // errorDialog("❗ This member is already invited.");
         return;
       }
 

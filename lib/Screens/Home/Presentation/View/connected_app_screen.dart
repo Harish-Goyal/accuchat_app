@@ -222,8 +222,9 @@ class _ConnectedAppsScreenState extends State<ConnectedAppsScreen> {
                                             ),
                                             /*companyData.id ==
                                                         APIs.me.selectedCompany
-                                                            ?.id &&*/
-                                                    isAdminOfCompany
+                                                            ?.id*/
+                                            companyData.adminUserId == APIs.me.id
+                                                    // isAdminOfCompany
                                                 ? Positioned(
                                                     right: 15,
                                                     top: 8,

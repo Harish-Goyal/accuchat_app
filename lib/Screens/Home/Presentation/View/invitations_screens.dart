@@ -59,9 +59,6 @@ class _InvitationsScreenState extends State<InvitationsScreen> {
             return const Center(child: CircularProgressIndicator());
           }
 
-          if (snapshot.hasError) {
-            return Center(child: Text('❌ Error: ${snapshot.error}'));
-          }
 
           if (!snapshot.hasData || snapshot.data!.isEmpty) {
             return const Center(child: Text('No invitations found.'));
@@ -128,13 +125,26 @@ class _InvitationsScreenState extends State<InvitationsScreen> {
                         Icons.person,
                         color: appColorYellow,
                       )),
-                  title: Text(
-                      invitation.name == '' ||
-                              invitation.name == null ||
-                              invitation.name == 'null'
-                          ? invitation.email!
-                          : invitation.name ?? '',
-                      style: BalooStyles.baloosemiBoldTextStyle()),
+                  title: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                          invitation.name == '' ||
+                                  invitation.name == null ||
+                                  invitation.name == 'null'
+                              ? invitation.email!
+                              : invitation.name ?? '',
+                          style: BalooStyles.baloosemiBoldTextStyle()),
+                      Text(
+                          invitation.email == '' ||
+                                  invitation.email == null ||
+                                  invitation.email == 'null'
+                              ? invitation.email!
+                              : invitation.email ?? '',
+                          style: BalooStyles.baloosemiBoldTextStyle()),
+                    ],
+                  ),
                   subtitle: Text(
                       'Status: ${invitation.isAccepted ? 'Accepted' : 'Pending'}',
                       style: BalooStyles.balooregularTextStyle(

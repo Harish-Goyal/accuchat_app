@@ -252,7 +252,7 @@ class _ChatUserCardState extends State<ChatUserCard>
 
                       //user name
                       title: Text(
-                       (_message?.fromId==APIs.me.id && _message?.toId==_message?.fromId)?"Me":  (widget.user.name =='null' ||widget.user.name==''||widget.user.name==null)?widget.user.phone:widget.user.name??'',
+                       (_message?.fromId==APIs.me.id&& _message?.toId==_message?.fromId)?"Me":  (widget.user.name =='null' ||widget.user.name==''||widget.user.name==null)?widget.user.phone:widget.user.name??'',
                         style: themeData.textTheme.titleMedium,
                       ),
 

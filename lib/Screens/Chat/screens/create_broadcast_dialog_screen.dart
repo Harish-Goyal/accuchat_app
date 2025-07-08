@@ -104,7 +104,7 @@ class _BroadcastCreateDialogState extends State<BroadcastCreateDialog> {
                     contentPadding: EdgeInsets.zero,
                     leading: SizedBox(
                       width: 55,
-                      child: CustomCacheNetworkImage(user.image,radiusAll: 100,height: 75,defaultImage: userIcon,
+                      child: CustomCacheNetworkImage(user.image,radiusAll: 100,height: 75,width: 75,defaultImage: userIcon,
                         borderColor: greyColor,),
                     ),
                     title: Text(user.name=='null'||user.name==''||user.name==null?

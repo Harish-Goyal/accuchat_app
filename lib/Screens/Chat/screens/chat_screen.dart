@@ -2,17 +2,14 @@ import 'dart:async';
 import 'dart:io';
 import 'package:AccuChat/utils/loading_indicator.dart';
 import 'package:AccuChat/utils/networl_shimmer_image.dart';
-import 'package:permission_handler/permission_handler.dart';
 import 'package:AccuChat/Constants/themes.dart';
 import 'package:AccuChat/Extension/text_field_extenstion.dart';
 import 'package:AccuChat/Screens/Chat/screens/task_treads_screen.dart';
 import 'package:AccuChat/Screens/Home/Presentation/Controller/home_controller.dart';
 import 'package:AccuChat/main.dart';
 import 'package:AccuChat/utils/helper_widget.dart';
-import 'package:cached_network_image/cached_network_image.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:firebase_storage/firebase_storage.dart';
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:image_picker/image_picker.dart';
@@ -495,6 +492,8 @@ class _ChatScreenState extends State<ChatScreen> {
                     preview = CustomCacheNetworkImage(
                       url,
                       radiusAll: 8,
+                      width: 75,
+                      height: 75,
                       boxFit: BoxFit.cover,
                       defaultImage: defaultGallery,
                     );
@@ -567,6 +566,7 @@ class _ChatScreenState extends State<ChatScreen> {
                 child: const Chip(
                   avatar: Icon(Icons.attach_file),
                   label: Text("Add Attachments"),
+                  backgroundColor: Colors.white,
                 ),
               ),
 
@@ -936,16 +936,13 @@ class _ChatScreenState extends State<ChatScreen> {
                                   color: Colors.black54)),
                       
                           //user profile picture
-                          SizedBox(
-                            width: mq.height * .055,
-                            child: CustomCacheNetworkImage(
-                              radiusAll: 100,
-                                          list.isNotEmpty ? list[0].image : widget.user.image,
-                              height: mq.height * .055,
-                            width: mq.height * .055,
-                            boxFit: BoxFit.cover,
-                            defaultImage: ICON_profile,
-                            ),
+                          CustomCacheNetworkImage(
+                            radiusAll: 100,
+                                        list.isNotEmpty ? list[0].image : widget.user.image,
+                            height: mq.height * .055,
+                          width: mq.height * .055,
+                          boxFit: BoxFit.cover,
+                          defaultImage: ICON_profile,
                           ),
                       
                           //for adding some space
@@ -1407,19 +1404,36 @@ class _ChatScreenState extends State<ChatScreen> {
                     _isUploadingTaskDoc =true;
                   });
                   Get.back();
-                  final ImagePicker picker = ImagePicker();
-                  // Pick an image
-                  final XFile? image = await picker.pickImage(source: ImageSource.camera, imageQuality: 50);
-                  if (image != null) {
-                    final file = File(image.path);
-                    final fileName = 'IMG_${DateTime.now().millisecondsSinceEpoch}.jpg';
-                    final ref = FirebaseStorage.instance.ref().child('media/tasks/$fileName');
 
-                    await ref.putFile(file, SettableMetadata(contentType: 'image/jpeg'));
-                    final url = await ref.getDownloadURL();
+                  try {
+                    final ImagePicker picker = ImagePicker();
+                    // Pick an image
+                    final XFile? image = await picker.pickImage(
+                        source: ImageSource.camera, imageQuality: 50);
+                    if (image != null) {
+                      final file = File(image.path);
+                      final fileName = 'IMG_${DateTime
+                          .now()
+                          .millisecondsSinceEpoch}.jpg';
+                      final ref = FirebaseStorage.instance.ref().child(
+                          'media/tasks/$fileName');
 
-                    setState(() {
-                      _attachedFiles.add({'url': url, 'type': 'image', 'name': fileName});
+                      await ref.putFile(
+                          file, SettableMetadata(contentType: 'image/jpeg'));
+                      final url = await ref.getDownloadURL();
+
+                      setState(() {
+                        _attachedFiles.add({
+                          'url': url,
+                          'type': 'image',
+                          'name': fileName
+                        });
+                      });
+                    }
+                  }catch(e){
+                    print(e.toString());
+                    setStateInside(() {
+                      _isUploadingTaskDoc =true;
                     });
                   }
                   setStateInside(() {
@@ -1434,28 +1448,42 @@ class _ChatScreenState extends State<ChatScreen> {
                   setStateInside(() {
                   _isUploadingTaskDoc = true; });
                   Get.back();
-                  final ImagePicker picker = ImagePicker();
+                  try {
+                    final ImagePicker picker = ImagePicker();
 
-                  final List<XFile> images = await picker.pickMultiImage(imageQuality: 50,limit: 3);
-                  final remainingSlots = 3 - _attachedFiles.length;
-                  if (images.length > remainingSlots) {
-                    images.removeRange(remainingSlots, images.length);
+                    final List<XFile> images = await picker.pickMultiImage(
+                        imageQuality: 50, limit: 3);
+                    final remainingSlots = 3 - _attachedFiles.length;
+                    if (images.length > remainingSlots) {
+                      images.removeRange(remainingSlots, images.length);
+                    }
+                    for (var i in images) {
+                      final file = File(i.path);
+
+                      final fileName = 'IMG_${DateTime
+                          .now()
+                          .millisecondsSinceEpoch}.jpg';
+                      final ref = FirebaseStorage.instance.ref().child(
+                          'media/tasks/$fileName');
+
+                      await ref.putFile(
+                          file, SettableMetadata(contentType: 'image/jpeg'));
+                      final url = await ref.getDownloadURL();
+
+                      setStateInside(() {
+                        _attachedFiles.add({
+                          'url': url,
+                          'type': 'image',
+                          'name': fileName
+                        });
+                      });
+                    }
+                  } catch(e){
+                  print(e.toString());
+                  setStateInside(() {
+                  _isUploadingTaskDoc =true;
+                  });
                   }
-                  for (var i in images) {
-                    final file = File(i.path);
-
-                    final fileName = 'IMG_${DateTime.now().millisecondsSinceEpoch}.jpg';
-                    final ref = FirebaseStorage.instance.ref().child('media/tasks/$fileName');
-
-                    await ref.putFile(file, SettableMetadata(contentType: 'image/jpeg'));
-                    final url = await ref.getDownloadURL();
-
-                    setStateInside(() {
-                      _attachedFiles.add({'url': url, 'type': 'image', 'name': fileName});
-                    });
-
-                  }
-
                   setStateInside(() {
                     _isUploadingTaskDoc = false;
                   });
