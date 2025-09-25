@@ -3,10 +3,11 @@ import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:get/get.dart';
 
+import '../../../routes/app_routes.dart';
 import '../../Home/Presentation/Controller/home_controller.dart';
 import '../api/apis.dart';
 import '../models/invite_model.dart';
-import '../screens/auth/accept_invite_screen.dart';
+import '../screens/auth/Presentation/Views/accept_invite_screen.dart';
 
 class LocalNotificationService {
   static final FlutterLocalNotificationsPlugin _plugin =
@@ -58,17 +59,17 @@ class LocalNotificationService {
           final invite = InvitationModel.fromMap(inviteSnap.docs.first.data());
           final inviteId = inviteSnap.docs.first.id;
 
-          Get.to(() => AcceptInvitationScreen(
-            inviteId: inviteId,
-            company: invite.company!,
-          ));
+          Get.toNamed(AppRoutes.accept_invite,arguments: {
+            'inviteId': inviteId,
+            'company': invite.company!,
+          });
         } else {
           print("⚠️ No pending invite found.");
         }
       } else if (type == 'task') {
-        Get.find<DashboardController>().updateIndex(2);
-      } else if (type == 'chat') {
         Get.find<DashboardController>().updateIndex(1);
+      } else if (type == 'chat') {
+        Get.find<DashboardController>().updateIndex(0);
       }
     });
 

@@ -1,164 +1,170 @@
 import 'package:AccuChat/Constants/assets.dart';
-import 'package:AccuChat/Constants/themes.dart';
-import 'package:AccuChat/Screens/Chat/api/apis.dart';
+import 'package:AccuChat/Constants/colors.dart';
 import 'package:AccuChat/Screens/Home/Presentation/Controller/home_controller.dart';
-import 'package:AccuChat/Screens/Home/Presentation/View/connected_app_screen.dart';
-import 'package:AccuChat/Screens/Home/Presentation/View/home_screen.dart';
-import 'package:AccuChat/utils/custom_flashbar.dart';
-import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:connectivity_plus/connectivity_plus.dart';
-import 'package:flutter/cupertino.dart';
+import 'package:AccuChat/utils/text_style.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:flutter_snake_navigationbar/flutter_snake_navigationbar.dart';
 import 'package:get/get.dart';
 import '../../../../main.dart';
-import '../../../../utils/helper_widget.dart';
-import '../../../Chat/models/message.dart';
-import '../../../Chat/screens/chat_home_screen.dart';
-import 'package:audioplayers/audioplayers.dart';
-class AccuChatDashboard extends StatefulWidget {
-  @override
-  State<AccuChatDashboard> createState() => _AccuChatDashboardState();
-}
 
-class _AccuChatDashboardState extends State<AccuChatDashboard> with WidgetsBindingObserver {
-  List<Widget> screens = [];
-  @override
-  void initState() {
-    callNetworkCheck();
-    WidgetsBinding.instance.addObserver(this);
-    screens = [
-      HomeScreen(),
-      ChatsHomeScreen(isTask: false,),
-      ChatsHomeScreen(isTask: true,),
-      ConnectedAppsScreen(),
-    ];
-    super.initState();
-  }
+class AccuChatDashboard extends StatelessWidget {
 
-
-  @override
-  void dispose() {
-    WidgetsBinding.instance.removeObserver(this);
-    super.dispose();
-  }
-
-
-  final player = AudioPlayer();
-
-/*  @override
-  void didChangeAppLifecycleState(AppLifecycleState state)async {
-    if (state == AppLifecycleState.resumed) {
-      await  _checkTasksFromFirestore();
-    }
-    if (state == AppLifecycleState.paused) {
-      await  _checkTasksFromFirestore();
-    }  if (state == AppLifecycleState.inactive) {
-      await  _checkTasksFromFirestore();
-    }
-  }*/
-
-  Future<void> _checkTasksFromFirestore() async {
-    final snapshot = await FirebaseFirestore.instance
-        .collection('chats/${APIs.getConversationID(APIs.me.id)}/messages')
-        .where('isTask', isEqualTo: true)
-        .get();
-
-    // for (var doc in snapshot.docs) {
-    //   final msg = Message.fromJson(doc.data());
-    //   if (msg.taskDetails != null && isTaskTimeExceeded(msg.taskDetails!)) {
-    //     await player.play(AssetSource('sounds/long-buzzer-38398.mp3'));
-    //     break;
-    //   }
-    // }
-  }
 
   final DashboardController controller = Get.put(DashboardController());
 
-  DateTime? _lastBackPressed;
 
-  Future<bool> _onWillPop() async {
-    final now = DateTime.now();
+  @override
+  Widget build(BuildContext context) {
+    bool isWideScreen = MediaQuery.of(context).size.width > 800;
 
-    if (_lastBackPressed == null ||
-        now.difference(_lastBackPressed!) > const Duration(seconds: 2)) {
-      _lastBackPressed = now;
-      toast("Press back again to exit the app");
-      return Future.value(false); // don't exit yet
-    }
-
-    return Future.value(true); // exit
-  }
-
-  callNetworkCheck()async{
-    await checkNetworkConnection(context);
-  }
-  Future<void> checkNetworkConnection(BuildContext context) async {
-    final List<ConnectivityResult> connectivityResult = await (Connectivity().checkConnectivity());
-
-// This condition is for demo purposes only to explain every connection type.
-// Use conditions which work for your requirements.
-    if (connectivityResult.contains(ConnectivityResult.mobile)) {
-      // Mobile network available.
-    } else if (connectivityResult.contains(ConnectivityResult.wifi)) {
-      // Wi-fi is available.
-      // Note for Android:
-      // When both mobile and Wi-Fi are turned on system will return Wi-Fi only as active network type
-    } else if (connectivityResult.contains(ConnectivityResult.ethernet)) {
-      // Ethernet connection available.
-    } else if (connectivityResult.contains(ConnectivityResult.vpn)) {
-      // Vpn connection active.
-      // Note for iOS and macOS:
-      // There is no separate network interface type for [vpn].
-      // It returns [other] on any device (also simulator)
-    } else if (connectivityResult.contains(ConnectivityResult.bluetooth)) {
-      // Bluetooth connection available.
-    } else if (connectivityResult.contains(ConnectivityResult.other)) {
-      // Connected to a network which is not in the above mentioned networks.
-    } else if (connectivityResult.contains(ConnectivityResult.none)) {
-      _showNoNetworkDialog(context);
-    }
-  }
-
-// Show a dialog if there's no network
-  void _showNoNetworkDialog(BuildContext context) {
-    showDialog(
-      context: context,
-      barrierDismissible: false,
-      builder: (BuildContext context) {
-        return AlertDialog(
-          backgroundColor: Colors.white,
-          title: const Text('No Network Connection'),
-          content: const Text('Your mobile data is off or you are not connected to Wi-Fi. Please turn it on to continue using the app.'),
-          actions: [
-            TextButton(
-              onPressed: () {
-                // Exit the app if the user presses 'Exit'
-                SystemNavigator.pop();
-              },
-              child: const Text('Exit'),
-            ),
-            TextButton(
-              onPressed: () {
-                // Just close the dialog if the user presses 'Cancel'
-                Navigator.pop(context);
-              },
-              child: const Text('Cancel'),
-            ),
-          ],
-        );
+    return WillPopScope(
+      onWillPop: ()async {
+        if (controller.currentIndex != 0) {
+          controller.updateIndex(0);
+          return false;
+        }
+        return true;
       },
+      child: GetBuilder<DashboardController>(
+        builder: (controller) {
+          return Scaffold(
+            drawer: isWideScreen ? null : _buildDrawer(), // for mobile
+            body: Row(
+              children: [
+                if (isWideScreen) _buildSideNav(), // For web/tablet
+                Expanded(
+                  child: Center(
+                    child:controller.screens.isEmpty?SizedBox(): ConstrainedBox(
+                      constraints: const BoxConstraints(maxWidth: 1000),
+                      child: AnimatedSwitcher(
+                        duration: const Duration(milliseconds: 300),
+                        child: controller.screens[controller.currentIndex],
+                      ),
+                    ),
+                  ),
+                ),
+              ],
+            ),
+            bottomNavigationBar:
+            isWideScreen ? null : controller.screens.isEmpty?SizedBox():_bottomNavigationBar(),
+          );
+        }
+      )
     );
   }
 
+  Widget _buildSideNav() {
+    return NavigationRail(
+      selectedIndex: controller.currentIndex,
+      onDestinationSelected: (index) {
+        controller.getCompany();
+        controller.updateIndex(index);
+
+          isTaskMode = index == 1;
+
+          controller.update();
+
+      },
+      labelType: NavigationRailLabelType.all,
+      backgroundColor: Colors.white,
+      elevation: 5,
+      destinations: [
+
+        NavigationRailDestination(
+            icon: Image.asset(
+              chatHome,
+              height: 22,
+            ),
+            label: Text(
+              'Chats',
+              style: BalooStyles.baloomediumTextStyle(),
+            )),
+        NavigationRailDestination(
+            icon: Image.asset(
+              tasksHome,
+              height: 22,
+            ),
+            label: Text('Tasks', style: BalooStyles.baloomediumTextStyle())),
+        NavigationRailDestination(
+            icon: Image.asset(
+              appHome,
+              height: 22,
+            ),
+            label: Text('Your Companies',
+                style: BalooStyles.baloomediumTextStyle())),
+      ],
+    );
+  }
+
+  Widget _buildDrawer() {
+    return Drawer(
+      backgroundColor: Colors.white,
+      elevation: 0,
+
+      child: ListView(
+        padding: EdgeInsets.zero,
+        children: [
+          DrawerHeader(
+            decoration: BoxDecoration(
+              gradient: LinearGradient(
+                colors: [
+                  appColorGreen.withOpacity(.8),
+                  appColorYellow.withOpacity(.8)
+                ],
+              ),
+            ),
+            child: const Text('AccuChat Menu',
+                style: TextStyle(color: Colors.white, fontSize: 20)),
+          ),
+
+          ListTile(
+            leading: Image.asset(
+              chatHome,
+              height: 22,
+            ),
+            title: const Text('Chats'),
+            onTap: () {
+              controller.updateIndex(0);
+              Get.back();
+                isTaskMode = false;
+              controller.update();
+            },
+          ),
+          ListTile(
+            leading: Image.asset(
+              tasksHome,
+              height: 22,
+            ),
+            title: const Text('Tasks'),
+            onTap: () {
+              controller.updateIndex(1);
 
 
+                isTaskMode = true;
+              Get.back();
+                controller.update();
+            },
+          ),
+          ListTile(
+            leading: Image.asset(
+              appHome,
+              height: 22,
+            ),
+            title: const Text('Your Companies'),
+            onTap: () {
+              controller.updateIndex(2);
+              Get.back();
 
+                isTaskMode = false;
+              controller.update();
+            },
+          ),
+        ],
+      ),
+    );
+  }
 
-
-
-
+/*
   @override
   Widget build(BuildContext context) {
     return Obx(() => Scaffold(
@@ -168,18 +174,18 @@ class _AccuChatDashboardState extends State<AccuChatDashboard> with WidgetsBindi
               child: screens[controller.currentIndex.value],
             ),
           ),
-          bottomNavigationBar: SnakeNavigationBar.color(
+          bottomNavigationBar: SnakeNavigationBar.gradient(
             behaviour: SnakeBarBehaviour.floating,
-            backgroundColor: AppTheme.appColor.withOpacity(.1),
+            backgroundGradient: LinearGradient(colors: [appColorGreen.withOpacity(.2),appColorYellow.withOpacity(.2)]) ,
             snakeShape: SnakeShape.circle,
             shape:
                 RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-            snakeViewColor: AppTheme.appColor,
-            selectedItemColor: Colors.white,
-            unselectedItemColor: Colors.grey,
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+            snakeViewGradient:LinearGradient(colors: [appColorGreen.withOpacity(.8),appColorYellow.withOpacity(.8)]) ,
+            selectedItemGradient: LinearGradient(colors: [Colors.white,Colors.white]) ,
             showSelectedLabels: true,
             currentIndex: controller.currentIndex.value,
+
             onTap: (v) {
               controller.updateIndex(v);
               // if(v==0){
@@ -230,5 +236,39 @@ class _AccuChatDashboardState extends State<AccuChatDashboard> with WidgetsBindi
             ],
           ),
         ));
+  }*/
+
+  SnakeNavigationBar _bottomNavigationBar() {
+    return SnakeNavigationBar.gradient(
+      behaviour: SnakeBarBehaviour.floating,
+      backgroundGradient: LinearGradient(colors: [
+        appColorGreen.withOpacity(.2),
+        appColorYellow.withOpacity(.2)
+      ]),
+      snakeShape: SnakeShape.circle,
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+      snakeViewGradient: LinearGradient(colors: [
+        appColorGreen.withOpacity(.8),
+        appColorYellow.withOpacity(.8)
+      ]),
+      selectedItemGradient:
+      LinearGradient(colors: [Colors.white, Colors.white]),
+      showSelectedLabels: true,
+      currentIndex: controller.currentIndex,
+      onTap: (v) {
+        controller.updateIndex(v);
+
+          if (v == 1) {
+            isTaskMode = true;
+          } else {
+            isTaskMode = false;
+          }
+
+        controller.update();
+      },
+      items: controller.barItems,
+
+    );
   }
 }

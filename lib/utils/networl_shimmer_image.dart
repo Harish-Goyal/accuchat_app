@@ -75,6 +75,7 @@ class CustomCacheNetworkImage extends StatelessWidget {
         child: CachedNetworkImage(
           fit: boxFit ?? BoxFit.contain ,
           width: width,
+          filterQuality: FilterQuality.low,
           height: height,
           // memCacheHeight: memCacheHeight ?? 500,
           // memCacheWidth: memCacheWidth ?? 500,
@@ -124,7 +125,7 @@ class CustomCacheNetworkImage extends StatelessWidget {
                   fit: (assetImageFitType ?? boxFit) ?? BoxFit.cover,
                 ));
           },
-          imageUrl: imageurl,
+          imageUrl: imageurl??'',
         ),
       ),
     );

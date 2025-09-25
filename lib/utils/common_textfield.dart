@@ -178,6 +178,7 @@ class CustomTextField extends StatelessWidget {
           style:  BalooStyles.balooregularTextStyle(),
         ).paddingOnly(left: 2, bottom: 5),
         Container(
+          // padding: EdgeInsets.symmetric(vertical: 4),
           decoration: BoxDecoration(
               borderRadius: BorderRadius.circular(corRadious??15),
             boxShadow: [
@@ -188,10 +189,9 @@ class CustomTextField extends StatelessWidget {
             ]
           ),
           child: TextFormField(
-            clipBehavior: Clip.none,
+            clipBehavior:Clip.hardEdge,
             controller: controller,
             cursorColor: AppTheme.appColor,
-
             focusNode: focusNode,
             onTap: onTap,
             readOnly: readOnly ?? false,

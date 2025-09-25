@@ -1,26 +1,16 @@
 import 'dart:async';
 
-import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:connectivity_plus/connectivity_plus.dart';
-import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:get/get.dart';
-import 'package:AccuChat/main.dart';
-
-import '../../../../Services/APIs/local_keys.dart';
+import '../../../../Services/storage_service.dart';
 import '../../../../routes/app_routes.dart';
-import '../../../Chat/api/apis.dart';
-import '../../../Chat/models/chat_user.dart';
-import '../../../Chat/screens/auth/landing_screen.dart';
-import '../../../Chat/screens/auth/login_screen.dart';
-import '../../../Chat/screens/chat_home_screen.dart';
-import '../../../Home/Presentation/View/main_screen.dart';
 
 import 'package:in_app_update/in_app_update.dart';
+
 class SplashController extends GetxController {
-
-
+  bool _navigated = false;
   @override
   void onInit() {
     callNetworkCheck();
@@ -28,17 +18,14 @@ class SplashController extends GetxController {
     update();
     SystemChrome.setEnabledSystemUIMode(SystemUiMode.edgeToEdge);
     SystemChrome.setSystemUIOverlayStyle(const SystemUiOverlayStyle(
-        systemNavigationBarColor: Colors.white,
-        statusBarColor: Colors.white));
+        systemNavigationBarColor: Colors.white, statusBarColor: Colors.white));
 
-       checkGooglePlayUpdate().then((v){
-        return _navigateToNextScreen(Get.context!);
-      }); // 🔁 run after screen is rendered
+    checkGooglePlayUpdate().then((v) {
+      return _navigateToNextScreen();
+    }); // 🔁 run after screen is rendered
 
     super.onInit();
   }
-
-
 
   Future<void> checkGooglePlayUpdate() async {
     try {
@@ -46,15 +33,12 @@ class SplashController extends GetxController {
       if (updateInfo.updateAvailability == UpdateAvailability.updateAvailable) {
         await InAppUpdate.performImmediateUpdate();
       }
-    }catch(e){
-      print(e.toString());
-    }
+    } catch (e) {}
   }
 
   // getIntialMessage() {
   //   // initBinding();
   //   FirebaseMessaging?.instance.getInitialMessage().then((RemoteMessage? message) async {
-  //
   //     if (message != null) {
   //       await   Get.find<GetLoginModalService>().updateFromAPI();
   //       PushNotificationsManager.notificationRedirection(message);
@@ -62,7 +46,6 @@ class SplashController extends GetxController {
   //     else{
   //       final PendingDynamicLinkData? initialLink = await FirebaseDynamicLinks.instance.getInitialLink();
   //       if (initialLink != null) {
-  //
   //       await   Get.find<GetLoginModalService>().updateFromAPI();
   //         Get.find<DynamicLinkService>().dynaLinkFunction(initialLink,
   //         onError: (){
@@ -73,65 +56,47 @@ class SplashController extends GetxController {
   //       else{
   //         _navigateToNextScreen();
   //       }
-  //
-  //
   //     }
   //   });
   // }
 
-  _navigateToNextScreen(context) =>
+  _navigateToNextScreen() =>
       Timer(Duration(milliseconds: 3500), () async {
-        checkUserNavigation(context);
+        Future.microtask(checkUserNavigation);
       });
 
-  Future<void> checkUserNavigation(BuildContext context) async {
-    final currentUser = FirebaseAuth.instance.currentUser;
+  Future<void> checkUserNavigation() async {
+    final String? token = StorageService.getToken();
+    final bool loggedIn = StorageService.isLoggedInCheck();
 
-    // If the user is not signed in
-    if (currentUser == null) {
-      Navigator.pushReplacement(context, MaterialPageRoute(builder: (_) => LoginScreenG()));
+    // prevent double navigation if this gets called multiple times
+    if (_navigated == true) return;
+    _navigated = true;
+
+    // 1) No token => Login
+    if (token == null) {
+      Get.offAllNamed(AppRoutes.login_r);
       return;
     }
 
-    final userDoc = await FirebaseFirestore.instance.collection('users').doc(currentUser.uid).get();
-
-    // If user document doesn't exist
-    if (!userDoc.exists) {
-      Navigator.pushReplacement(context, MaterialPageRoute(builder: (_) => LoginScreenG()));
-      return;
-    }
-
-    // Check if the user has logged in for the first time and hasn't created or joined a company
-    if (!((storage.read(isFirstTime) ?? true))) {
-      ChatUser me = ChatUser.fromJson(userDoc.data()!);
-
-      // Check if the user has a company assigned to them
-      if (me.selectedCompany == null||me.company == null) {
-        // If no company is connected, navigate to the landing page (to allow joining/creating a company)
-        Navigator.pushReplacement(context, MaterialPageRoute(builder: (_) => LandingPage()));
-        return;
-      } else {
-        // If the user is already connected to a company, navigate to the home screen
-        Navigator.pushReplacement(context, MaterialPageRoute(builder: (_) => AccuChatDashboard()));
-        return;
-      }
-    }
-
-    // If the user is logged in and doesn't need to go through the landing page, navigate to home
-    if (storage.read(isLoggedIn) ?? true) {
+    // 2) Token present + Logged in => Home
+    if (loggedIn) {
       Get.offAllNamed(AppRoutes.home);
-    } else {
-      // For any other case, navigate to the landing page
-      Navigator.pushReplacement(context, MaterialPageRoute(builder: (_) => LandingPage()));
+      return;
     }
+
+    // 3) Token present but not logged in (onboarding/landing)
+    Get.offAllNamed(AppRoutes.landing_r);
   }
 
 
-  callNetworkCheck()async{
+  callNetworkCheck() async {
     await checkNetworkConnection(Get.context!);
   }
+
   Future<void> checkNetworkConnection(BuildContext context) async {
-    final List<ConnectivityResult> connectivityResult = await (Connectivity().checkConnectivity());
+    final List<ConnectivityResult> connectivityResult =
+        await (Connectivity().checkConnectivity());
 
 // This condition is for demo purposes only to explain every connection type.
 // Use conditions which work for your requirements.
@@ -166,7 +131,8 @@ class SplashController extends GetxController {
         return AlertDialog(
           backgroundColor: Colors.white,
           title: const Text('No Network Connection'),
-          content: const Text('Your mobile data is off or you are not connected to Wi-Fi. Please turn it on to continue using the app.'),
+          content: const Text(
+              'Your mobile data is off or you are not connected to Wi-Fi. Please turn it on to continue using the app.'),
           actions: [
             TextButton(
               onPressed: () {
@@ -186,5 +152,38 @@ class SplashController extends GetxController {
         );
       },
     );
+  }
+}
+class StartupController extends GetxController {
+  bool _navigated = false;
+
+  @override
+  void onReady() {
+    super.onReady();
+    Future.microtask(checkUserNavigation);
+  }
+
+  Future<void> checkUserNavigation() async {
+    final String? token = StorageService.getToken();
+    final bool loggedIn = StorageService.isLoggedInCheck();
+
+    // prevent double navigation if this gets called multiple times
+    if (_navigated == true) return;
+    _navigated = true;
+
+    // 1) No token => Login
+    if (token == null) {
+      Get.offAllNamed(AppRoutes.login_r);
+      return;
+    }
+
+    // 2) Token present + Logged in => Home
+    if (loggedIn) {
+      Get.offAllNamed(AppRoutes.home);
+      return;
+    }
+
+    // 3) Token present but not logged in (onboarding/landing)
+    Get.offAllNamed(AppRoutes.landing_r);
   }
 }

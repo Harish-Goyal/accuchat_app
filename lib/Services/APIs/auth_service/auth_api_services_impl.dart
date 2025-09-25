@@ -4,6 +4,7 @@ import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get_state_manager/src/rx_flutter/rx_disposable.dart';
 import '../../../Screens/Authentication/AuthResponseModel/loginResModel.dart';
+import '../../../Screens/Chat/screens/auth/models/get_uesr_Res_model.dart';
 import '../../../main.dart';
 import '../../network_exception.dart';
 import '../api_ends.dart';
@@ -48,7 +49,7 @@ class AuthApiServiceImpl extends GetxService
 /*===================================================================== login API Call  ==========================================================*/
   @override
   Future<LoginResModel> loginApiCall(
-      {FormData? dataBody}) async {
+      {Map<String,dynamic>? dataBody}) async {
     try {
       final response = await dioClient!.post(ApiEnd.loginEnd,
           data: dataBody,
@@ -62,7 +63,6 @@ class AuthApiServiceImpl extends GetxService
 
 @override
 Future<LoginResModel> logoutApiCall({FormData? dataBody}) async {
-  var token = await storage.read(LOCALKEY_token);
   try {
     final response = await dioClient!
         .post(ApiEnd.logoutEnd, data: dataBody, skipAuth: false);
@@ -72,7 +72,62 @@ Future<LoginResModel> logoutApiCall({FormData? dataBody}) async {
   }
 }
 
+  @override
+  Future<LoginResModel> resentOtpApiCall({Map<String, dynamic>? dataBody}) {
+    // TODO: implement resentOtpApiCall
+    throw UnimplementedError();
+  }
 
+  @override
+  Future<LoginResModel> signupApiCall({Map<String, dynamic>? dataBody}) async{
+    try {
+      final response = await dioClient!.post(ApiEnd.signupEnd,
+        data: dataBody,
+        skipAuth: true
+      );
+      return LoginResModel.fromJson(response);
+    } catch (e) {
+      return Future.error(NetworkExceptions.getDioException(e));
+    }
+  }
+
+  @override
+  Future<LoginResModel> verifyOtpApiCall({Map<String, dynamic>? dataBody})async {
+    try {
+      final response = await dioClient!.post(ApiEnd.verifyOtpEnd,
+          data: dataBody,
+          skipAuth: true
+      );
+      return LoginResModel.fromJson(response);
+    } catch (e) {
+      return Future.error(NetworkExceptions.getDioException(e));
+    }
+  }
+  @override
+  Future<GetUserResModel> getUserApiCall({Map<String, dynamic>? dataBody,companyId}) async {
+    try {
+      final response = await dioClient!.get("${ApiEnd.getUserEnd}/$companyId",
+          skipAuth: false
+      );
+      return GetUserResModel.fromJson(response);
+    } catch (e) {
+      return Future.error(NetworkExceptions.getDioException(e));
+    }
+  }
+
+
+  @override
+  Future<GetUserResModel> updateUserApiCall({FormData? dataBody}) async {
+    try {
+      final response = await dioClient!.post(ApiEnd.updateUserEnd,
+          skipAuth: false,
+        data: dataBody
+      );
+      return GetUserResModel.fromJson(response);
+    } catch (e) {
+      return Future.error(NetworkExceptions.getDioException(e));
+    }
+  }
 
 
   // @override

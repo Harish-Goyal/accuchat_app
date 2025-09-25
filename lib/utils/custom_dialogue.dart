@@ -24,6 +24,8 @@ class CustomDialogue extends StatelessWidget {
     return BackdropFilter(
         filter: ImageFilter.blur(sigmaX: 5, sigmaY: 5),
         child: AlertDialog(
+          contentPadding: EdgeInsets.all(12),
+          insetPadding: EdgeInsets.all(12),
           shape:
               RoundedRectangleBorder(borderRadius: BorderRadius.circular(15)),
           backgroundColor: Colors.grey.shade100,

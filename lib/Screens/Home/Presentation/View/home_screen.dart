@@ -1,7 +1,9 @@
 import 'package:AccuChat/Constants/assets.dart';
 import 'package:AccuChat/Constants/themes.dart';
-import 'package:AccuChat/Screens/Chat/screens/profile_screen.dart';
+import 'package:AccuChat/Screens/Home/Presentation/View/profile_screen.dart';
 import 'package:AccuChat/Screens/Home/Presentation/Controller/home_controller.dart';
+import 'package:AccuChat/Services/APIs/api_ends.dart';
+import 'package:AccuChat/routes/app_routes.dart';
 import 'package:AccuChat/utils/custom_container.dart';
 import 'package:AccuChat/utils/helper_widget.dart';
 import 'package:AccuChat/utils/loading_indicator.dart';
@@ -15,68 +17,50 @@ import '../../../../Constants/colors.dart';
 import '../../../../main.dart';
 import '../../../../utils/custom_dialogue.dart';
 import '../../../../utils/custom_flashbar.dart';
+import '../../../../utils/data_not_found.dart';
 import '../../../Chat/api/apis.dart';
 import '../../../Chat/models/chat_user.dart';
-import '../../../Chat/widgets/chat_group_card.dart';
-import '../../../Chat/widgets/chat_user_card.dart';
+import '../../../Chat/screens/auth/Presentation/Controllers/accept_invite_controller.dart';
+import '../../../Chat/screens/chat_tasks/Presentation/Widgets/chat_group_card.dart';
+import '../../../Chat/screens/chat_tasks/Presentation/Widgets/chat_user_card.dart';
 import 'invite_member.dart';
-class HomeScreen extends StatefulWidget {
+
+class HomeScreen extends GetView<DashboardController> {
   HomeScreen({super.key});
 
-  @override
-  State<HomeScreen> createState() => _HomeScreenState();
-}
-
-class _HomeScreenState extends State<HomeScreen> {
-  final DashboardController controller = Get.find();
-
-  DateTime? currentBackPressTime;
-
-  Future<bool> onWillPop() {
-    DateTime now = DateTime.now();
-    if (currentBackPressTime == null ||
-        now.difference(currentBackPressTime??DateTime.now()) > Duration(seconds: 2)) {
-      currentBackPressTime = now;
-      toast( "Press again to exit the app!");
-      return Future.value(false);
-    }
-    return Future.value(true);
-  }
-
-
-
-
+  AcceptInviteController acceptInviteController = Get.put(AcceptInviteController());
   @override
   Widget build(BuildContext context) {
-    return WillPopScope( onWillPop: onWillPop,
+    Get.lazyPut(() => DashboardController(), fenix: true);
+    return WillPopScope(
+      onWillPop: controller.onWillPop,
       child: Scaffold(
         body: GetBuilder<DashboardController>(
             builder: (controller) {
-              return  SafeArea(
+              return SafeArea(
                 child: Padding(
-                  padding:
-                  const EdgeInsets.symmetric(horizontal: 16.0, vertical: 15.0),
+                  padding: const EdgeInsets.symmetric(
+                      horizontal: 16.0, vertical: 15.0),
                   child: SingleChildScrollView(
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        vGap(0),
+
                         Row(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
                             Expanded(
                               child: InkWell(
-                                onTap: (){
-                                  Get.to(()=>ProfileScreen(user: APIs.me));
+                                onTap: () {
+                                  Get.toNamed(AppRoutes.all_settings);
                                 },
                                 child: Row(
                                   children: [
-
                                     SizedBox(
-                                      width:mq.height * .06,
+                                      width: mq.height * .06,
                                       child: CustomCacheNetworkImage(
-
-                                        APIs.me.image,defaultImage: userIcon,
+                                        "${ApiEnd.baseUrlMedia}${controller.userData.userImage??''}",
+                                        defaultImage: userIcon,
                                         radiusAll: mq.height * .25,
                                         height: 50,
                                         boxFit: BoxFit.cover,
@@ -84,16 +68,20 @@ class _HomeScreenState extends State<HomeScreen> {
                                     ).paddingAll(4),
                                     const SizedBox(width: 8),
                                     Column(
-                                      crossAxisAlignment: CrossAxisAlignment.start,
+                                      crossAxisAlignment:
+                                          CrossAxisAlignment.start,
                                       children: [
                                         Text(
-                                          'Hello, ${APIs.me.name!='null'?APIs.me.name:'AccuChat User'}!',
-                                          style: BalooStyles.balooboldTextStyle(size: 15),
+                                          'Hello, ${controller.userData?.userName != null ?controller.userData?.userName : 'AccuChat User'}!',
+
+                                          style: BalooStyles.baloosemiBoldTextStyle(
+                                              ),
                                         ),
                                         vGap(5),
                                         Text(
                                           'Welcome back to AccuChat',
-                                          style: BalooStyles.balooregularTextStyle(),
+                                          style: BalooStyles
+                                              .balooregularTextStyle(),
                                         ),
                                       ],
                                     ),
@@ -101,19 +89,94 @@ class _HomeScreenState extends State<HomeScreen> {
                                 ),
                               ),
                             ),
+                            hGap(20),
                             CustomCacheNetworkImage(
                               height: 50,
-                              width:  50,
+                              width: 50,
                               boxFit: BoxFit.cover,
                               radiusAll: 100,
-                              APIs.me.selectedCompany?.logoUrl??"",
-                              defaultImage:appIcon,
+                              // APIs.me.selectedCompany?.logoUrl ?? "",
+                              "${ApiEnd.baseUrlMedia}${controller.myCompany?.logo??''}"
+                              ,
+                              defaultImage: appIcon,
                               borderColor: greyColor,
                             ),
                           ],
                         ),
-                        vGap(30),
+                        vGap(15),
                         // Chats Section
+
+                        GetBuilder<AcceptInviteController>(
+                            builder: (controller) {
+                              return controller.pendingInvitesList.isEmpty?Center(
+                                  child: SizedBox()):
+                              SizedBox(
+                                height: Get.height*.2,
+                                child: ListView.builder(
+                                  shrinkWrap: true,
+                                  itemCount: controller.pendingInvitesList.length,
+                                  itemBuilder: (context, i) {
+                                    final invites = controller.pendingInvitesList[i];
+
+                                    return SizedBox(
+                                      // height: MediaQuery.of(context).size.height * 0.8,
+                                      child: CustomContainer(
+                                        color: Colors.white,
+                                        vPadding: 15,
+                                        childWidget: Row(
+                                          mainAxisSize: MainAxisSize.min,
+                                          children: [
+                                            SizedBox(
+                                                width:50,
+                                                child:
+
+                                                CustomCacheNetworkImage(
+                                                  invites.company?.logo ?? '',
+                                                  height: 50,
+                                                  width: 50,
+                                                  boxFit: BoxFit.cover,
+                                                  radiusAll: 100,
+                                                  borderColor: Colors.black54,
+                                                )),
+                                            hGap(10),
+                                            Expanded(
+                                              child: Column(
+                                                crossAxisAlignment: CrossAxisAlignment.start,
+                                                children: [
+                                                  Text(
+                                                    "Invited via, ",
+                                                    style: BalooStyles.balooregularTextStyle(),
+                                                  ),
+                                                  vGap(4),
+                                                  Text(
+                                                    (invites.company?.companyName ?? '').toUpperCase(),
+                                                    maxLines: 1,
+                                                    overflow: TextOverflow.ellipsis,
+                                                    style: BalooStyles.baloosemiBoldTextStyle(),
+                                                  ),
+                                                ],
+                                              ),
+                                            ),
+                                            dynamicButton(
+                                              btnColor: appColorGreen,
+                                              onTap: () async=> await controller.hitAPIToAcceptInvite(invites.inviteId,invites.company?.companyId),
+                                              gradient: buttonGradient,
+                                              vPad: 8,
+                                              name: "Accept",
+                                              isShowText: true,
+                                              isShowIconText: false,
+                                              leanIcon: null,
+                                            ).paddingSymmetric(vertical: 8)
+                                          ],
+                                        ),
+                                      ).paddingSymmetric(horizontal: 15, vertical: 12),
+                                    );
+                                  },
+                                ),
+                              );
+                            }
+                        ),
+
                         Row(
                           children: [
                             InkWell(
@@ -121,70 +184,65 @@ class _HomeScreenState extends State<HomeScreen> {
                               child: const SectionHeader(
                                 title: 'Recents ',
                                 icon: chaticon,
-                                // coloricon: Colors.blue,
-                              ).paddingSymmetric(vertical: 4,),
+                              ).paddingSymmetric(
+                                vertical: 4,
+                              ),
                             ),
                             InkWell(
-                              onTap: (){
-                                controller.updateIndex(1);
-                                setState(() {
-                                  isTaskMode =false;
-                                });
-                              },
-                                child: Text("Chats",style: BalooStyles.baloosemiBoldTextStyle(),)),
+                                onTap: () {
+                                  controller.updateIndex(0);
+                                  isTaskMode = false;
+                                  controller.update();
+                                },
+                                child: Text(
+                                  "Chats",
+                                  style: BalooStyles.baloosemiBoldTextStyle(),
+                                )),
                             InkWell(
-                              onTap: (){
-                                controller.updateIndex(2);
-                                setState(() {
-                                  isTaskMode =true;
-                                });
-                              },
-                              child: Text(" /Tasks",style: BalooStyles.baloosemiBoldTextStyle())),
+                                onTap: () {
+                                  controller.updateIndex(1);
+
+                                  isTaskMode = true;
+                                  controller.update();
+                                },
+                                child: Text(" /Tasks",
+                                    style:
+                                        BalooStyles.baloosemiBoldTextStyle())),
                           ],
                         ),
                         vGap(10),
-                        RefreshIndicator(
+                       //TODO
+                       /* RefreshIndicator(
                           onRefresh: controller.refreshChats,
                           child: SizedBox(
-                            height: Get.height*.5,
+                            height: Get.height * .5,
                             child: FutureBuilder<List<Map<String, dynamic>>>(
                               future: controller.futureChats,
                               initialData: controller.initData,
                               builder: (context, snapshot) {
-                                if (snapshot.connectionState == ConnectionState.waiting) {
-                                  return const Center(child: IndicatorLoading());
+                                if (snapshot.connectionState ==
+                                    ConnectionState.waiting) {
+                                  return const Center(
+                                      child: IndicatorLoading());
                                 }
 
                                 final chats = snapshot.data ?? [];
                                 controller.length = chats.length;
 
-
-
                                 if (chats.isEmpty) {
-                                  return const Center(child: Text("No recent chats"));
+                                  return const Center(
+                                      child: Text("No recent chats"));
                                 }
 
                                 return ListView.builder(
                                   padding: EdgeInsets.zero,
                                   itemCount: chats.length,
                                   itemBuilder: (context, index) {
-                                    // final chat = chats[index];
-                                    // final ChatUser user = chat['user'];
-                                    // final msg = chat['lastMessage'];
-
                                     final chat = chats[index];
                                     final msg = chat['lastMessage'];
-
                                     if (chat['type'] == 'user') {
                                       final ChatUser user = chat['user'];
-                                      // return ListTile(
-                                      //   title: Text(user.name),
-                                      //   subtitle: Text(msg.msg, maxLines: 1),
-                                      //   onTap: () => Navigator.push(
-                                      //     context,
-                                      //     MaterialPageRoute(builder: (_) => ChatScreen(user: user)),
-                                      //   ),
-                                      // );
+
                                       return ChatUserCard(user: user);
                                     } else if (chat['type'] == 'group') {
                                       final ChatGroup group = chat['group'];
@@ -195,9 +253,9 @@ class _HomeScreenState extends State<HomeScreen> {
                               },
                             ),
                           ),
-                        ),
+                        ),*/
                         // vGap(25),
-                      /*  Row(
+                        /*  Row(
                           children: [
 
                             (controller.initData !=null)?SizedBox():  Expanded(
@@ -216,7 +274,7 @@ class _HomeScreenState extends State<HomeScreen> {
                                   leanIcon: chaticon).paddingOnly(top: 20),
                             ),
                             // APIs.me?.role.toString()=='admin'?   hGap(20):SizedBox(),
-                            *//*APIs.me?.role.toString()=='admin'?
+                            */ /*APIs.me?.role.toString()=='admin'?
                             Expanded(
                               child: dynamicButton(
                                   name: "Add Member",
@@ -232,11 +290,11 @@ class _HomeScreenState extends State<HomeScreen> {
                                   gradient: buttonGradient,
                                   iconColor: Colors.white,
                                   leanIcon: addUserIcon).paddingOnly(top: 20),
-                            ):SizedBox(),*//*
+                            ):SizedBox(),*/ /*
                           ],
                         ),*/
 
-                       /* const SizedBox(height: 40),
+                        /* const SizedBox(height: 40),
                         // Connected Apps Section
                         const SectionHeader(
                           title: 'Connected Apps',
@@ -267,7 +325,7 @@ class _HomeScreenState extends State<HomeScreen> {
                                 name: "Connect New App",
                                 onTap:  () {
                                   errorDialog("Under Development");
-                                  *//*Get.dialog(
+                                  */ /*Get.dialog(
                                     AlertDialog(
                                       title: const Text('Connect New App'),
                                       content: TextField(
@@ -284,24 +342,20 @@ class _HomeScreenState extends State<HomeScreen> {
                                         ),
                                       ],
                                     ),
-                                  );*//*
+                                  );*/ /*
                                 },
                                 isShowText: true,
                                 isShowIconText: true,
                                 gradient: buttonGradient,
                                 iconColor: Colors.white,
-
                                 leanIcon: connectedAppIcon)
-
-
                         ),*/
                       ],
                     ),
                   ),
                 ),
               );
-            }
-        ),
+            }),
       ),
     );
   }
@@ -344,44 +398,48 @@ class ChatCard extends StatelessWidget {
   Color? cardColor;
   final Widget? trailWidget;
 
-   ChatCard(
-      { this.leadIcon,
-        required this.title,
-        this.trailWidget,
-        this.cardColor,
-        this.iconWidget,
-        required this.subtitle,
-        this.subtitleTap,
-        required this.onTap
-      });
+  ChatCard(
+      {this.leadIcon,
+      required this.title,
+      this.trailWidget,
+      this.cardColor,
+      this.iconWidget,
+      required this.subtitle,
+      this.subtitleTap,
+      required this.onTap});
 
   @override
   Widget build(BuildContext context) {
     return CustomContainer(
       vPadding: 8,
       hPadding: 10,
-      color: cardColor??Colors.white,
+      color: cardColor ?? Colors.white,
       childWidget: ListTile(
-        leading: iconWidget??Image.asset(
-          leadIcon??'',
-          height: 18,
-        ),
+        leading: iconWidget ??
+            Image.asset(
+              leadIcon ?? '',
+              height: 18,
+            ),
         // trailing: trailWidget??SizedBox(),
         title: title == ""
             ? Align(alignment: Alignment.centerLeft, child: trailWidget)
             : Text(
-          title,
-          style: BalooStyles.baloosemiBoldTextStyle(),
-        ),
+                title,
+                style: BalooStyles.baloosemiBoldTextStyle(),
+              ),
         subtitle: InkWell(
-          onTap: subtitleTap ??(){},
-          child: Text(
-            subtitle,
-            style: BalooStyles.baloonormalTextStyle(),
-          )
-        ).paddingOnly(top: 8,right: 5,bottom: 5,left: 5),
+            onTap: subtitleTap ?? () {},
+            child: Container(
+              padding: const EdgeInsets.all(7),
+              child: Text(
+                subtitle,
+                style: BalooStyles.baloonormalTextStyle(
+                    underLineNeeded: true,
+                    color: Colors.blueAccent,
+                    deccolor: Colors.blueAccent),
+              ),
+            )),
         contentPadding: EdgeInsets.zero,
-
         onTap: onTap,
       ),
     ).marginOnly(bottom: 8, left: 8, right: 8);

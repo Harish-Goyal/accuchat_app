@@ -11,6 +11,7 @@ class ChatUser {
     required this.createdAt,
     required this.isOnline,
     required this.company,
+    required this.companyIds,
     this.selectedCompany,
     required this.id,
     required this.role,
@@ -25,6 +26,7 @@ class ChatUser {
   var about;
   var name;
   List<CompanyModel>? company;
+  List<String>? companyIds;
   CompanyModel? selectedCompany;
   var phone;
   var createdAt;
@@ -62,6 +64,12 @@ class ChatUser {
         company!.add(CompanyModel.fromJson(v));
       });
     }
+  if (json['companyIds'] != null) {
+    companyIds = <String>[];
+      json['companyIds'].forEach((v) {
+        companyIds!.add(v);
+      });
+    }
 
     selectedCompany =
         json['selectedCompany'] != null ? CompanyModel.fromJson(json['selectedCompany']) : null;
@@ -87,6 +95,11 @@ class ChatUser {
 
     if (this.company != null) {
       data['company'] = this.company!.map((v) => v.toJson()).toList();
+    }
+    else {
+      data['companyIds'] = null;
+    } if (this.companyIds != null) {
+      data['companyIds'] = this.companyIds;
     }
     else {
       data['company'] = null;

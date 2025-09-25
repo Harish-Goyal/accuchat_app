@@ -1,5 +1,5 @@
 import 'dart:convert';
-import 'package:AccuChat/Screens/Chat/screens/auth/accept_invite_screen.dart';
+import 'package:AccuChat/Screens/Chat/screens/auth/Presentation/Views/accept_invite_screen.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/cupertino.dart';
@@ -7,8 +7,14 @@ import 'package:flutter/services.dart' show rootBundle;
 import 'package:get/get.dart';
 import 'package:googleapis_auth/auth_io.dart';
 import 'package:googleapis_auth/googleapis_auth.dart';
+import '../../../Services/APIs/local_keys.dart';
+import '../../../Services/APIs/post/post_api_service_impl.dart';
+import '../../../main.dart';
+import '../../../routes/app_routes.dart';
 import '../../Home/Presentation/Controller/home_controller.dart';
 import '../api/apis.dart';
+import '../models/company_model.dart';
+import '../models/get_company_res_model.dart';
 import '../models/invite_model.dart';
 import 'local_notification_channel.dart';
 
@@ -56,30 +62,13 @@ class NotificationService {
       print('🔔 Notification tapped. Type: $type');
 
       if (type == 'invite') {
-        final inviteSnap = await FirebaseFirestore.instance
-            .collection('invitations')
-            .where('email', isEqualTo: APIs.me.phone == 'null' || APIs.me.phone == null || APIs.me.phone == ''
-            ? APIs.me.email
-            : APIs.me.phone)
-            .where('isAccepted', isEqualTo: false)
-            .limit(1)
-            .get();
 
-        if (inviteSnap.docs.isNotEmpty) {
-          final invite = InvitationModel.fromMap(inviteSnap.docs.first.data());
-          final inviteId = inviteSnap.docs.first.id;
+          Get.toNamed(AppRoutes.home);
 
-          Get.to(() => AcceptInvitationScreen(
-            inviteId: inviteId,
-            company: invite.company!,
-          ));
-        } else {
-          print("⚠️ No pending invite found.");
-        }
       } else if (type == 'task') {
-        Get.find<DashboardController>().updateIndex(2);
-      } else if (type == 'chat') {
         Get.find<DashboardController>().updateIndex(1);
+      } else if (type == 'chat') {
+        Get.find<DashboardController>().updateIndex(0);
       }
     });
 
@@ -92,27 +81,12 @@ class NotificationService {
   static void handleNotificationTap(String? payload)async {
     if (payload == 'invite') {
       // Navigate to pending invite screen
-      final inviteSnap = await FirebaseFirestore.instance
-          .collection('invitations')
-          .where('email', isEqualTo: APIs.me.phone=='null' || APIs.me.phone==null||
-          APIs.me.phone==''? APIs.me.email:APIs.me.phone)
-          .where('isAccepted', isEqualTo: false)
-          .limit(1)
-          .get();
-      final invite = InvitationModel.fromMap(inviteSnap.docs.first.data());
-      final inviteId = inviteSnap.docs.first.id;
-
-
-      // ✅ Proceed to Accept Invitation Screen
-      Get.to(()=>AcceptInvitationScreen(
-        inviteId: inviteId,
-        company: invite.company!,
-      )); // or use Navigator.push if not using GetX
+      Get.toNamed(AppRoutes.home);
     } else if (payload == 'task') {
-      Get.find<DashboardController>().updateIndex(2);
+      Get.find<DashboardController>().updateIndex(1);
 
     } else if (payload == 'chat') {
-      Get.find<DashboardController>().updateIndex(1);
+      Get.find<DashboardController>().updateIndex(0);
     }
   }
 
@@ -121,7 +95,7 @@ class NotificationService {
     required String targetToken,
     required String title,
     required String body,
-    Map<String, String>? data,
+    Map<String, dynamic>? data,
   }) async {
     if (_client == null || _projectId == null) {
       await init();
@@ -159,8 +133,8 @@ class NotificationService {
   }) async {
     await _sendNotification(
       targetToken: targetToken,
-      title: "📬 Invitation Received",
-      body: "$inviterName invited you to join $companyName.",
+      title: "Invitation!",
+      body: "$companyName invited you.",
       data: {
         "type": "invite",
         "company": companyName,
@@ -172,35 +146,39 @@ class NotificationService {
 
       if (payload == 'invite') {
         // Navigate to pending invite screen
-        final inviteSnap = await FirebaseFirestore.instance
-            .collection('invitations')
-            .where('email', isEqualTo: APIs.me.phone=='null' || APIs.me.phone==null||
-            APIs.me.phone==''? APIs.me.email:APIs.me.phone)
-            .where('isAccepted', isEqualTo: false)
-            .limit(1)
-            .get();
-        final invite = InvitationModel.fromMap(inviteSnap.docs.first.data());
-        final inviteId = inviteSnap.docs.first.id;
-
-
-        // ✅ Proceed to Accept Invitation Screen
-        Get.to(()=>AcceptInvitationScreen(
-          inviteId: inviteId,
-          company: invite.company!,
-        )); // or use Navigator.push if not using GetX
+        Get.toNamed(AppRoutes.home);
       } else if (payload == 'task') {
-        Get.find<DashboardController>().updateIndex(2);
-
-      } else if (payload == 'chat') {
         Get.find<DashboardController>().updateIndex(1);
+      } else if (payload == 'chat') {
+        Get.find<DashboardController>().updateIndex(0);
       }
     });
+  }
+
+  ///Accept Invitation Notification
+  static Future<void> sendAcceptInvitationNotification({
+    required String targetToken,
+    required String inviterName,
+    required String number,
+    required String companyName,
+  }) async {
+    await _sendNotification(
+      targetToken: targetToken,
+      title: "Invitation Accepted",
+      body: "${inviterName==''?number:inviterName} accepted your Invitation for $companyName.",
+      data: {
+        "type": "acceptinvite",
+        "company": companyName,
+      },
+    );
+
   }
 
   /// Chat Message Notification
   static Future<void> sendMessageNotification({
     required String targetToken,
     required String senderName,
+    CompanyData? company,
     required String message,
   }) async {
     await _sendNotification(
@@ -209,35 +187,33 @@ class NotificationService {
       body: message,
       data: {
         "type": "chat",
+        "companyId": company?.companyId,
       },
     );
 
     FirebaseMessaging.onMessageOpenedApp.listen((RemoteMessage message) async {
       final payload = message.data['type'];
+      final payloadC = message.data['companyId'];
 
       if (payload == 'invite') {
-        // Navigate to pending invite screen
-        final inviteSnap = await FirebaseFirestore.instance
-            .collection('invitations')
-            .where('email', isEqualTo: APIs.me.phone=='null' || APIs.me.phone==null||
-            APIs.me.phone==''? APIs.me.email:APIs.me.phone)
-            .where('isAccepted', isEqualTo: false)
-            .limit(1)
-            .get();
-        final invite = InvitationModel.fromMap(inviteSnap.docs.first.data());
-        final inviteId = inviteSnap.docs.first.id;
+
+          Get.offAllNamed(AppRoutes.home);
 
 
-        // ✅ Proceed to Accept Invitation Screen
-        Get.to(()=>AcceptInvitationScreen(
-          inviteId: inviteId,
-          company: invite.company!,
-        )); // or use Navigator.push if not using GetX
       } else if (payload == 'task') {
-        Get.find<DashboardController>().updateIndex(2);
+        Get.find<DashboardController>().updateIndex(1);
+        if(payloadC != APIs.me.userCompany?.userCompanyId){
+
+          await APIs.getSelfInfo();
+        }
+
 
       } else if (payload == 'chat') {
-        Get.find<DashboardController>().updateIndex(1);
+        Get.find<DashboardController>().updateIndex(0);
+        if(payloadC != APIs.me.userCompany?.userCompanyId){
+
+          await APIs.getSelfInfo();
+        }
       }
     });
   }
@@ -247,6 +223,7 @@ class NotificationService {
     required String targetToken,
     required String assignerName,
     required String taskSummary,
+     CompanyData? company,
   }) async {
     await _sendNotification(
       targetToken: targetToken,
@@ -254,35 +231,28 @@ class NotificationService {
       body: taskSummary,
       data: {
         "type": "task",
+        "companyId": company?.companyId??0,
       },
     );
 
     FirebaseMessaging.onMessageOpenedApp.listen((RemoteMessage message) async {
       final payload = message.data['type'];
-
+      final payloadC = message.data['companyId'];
       if (payload == 'invite') {
-        // Navigate to pending invite screen
-        final inviteSnap = await FirebaseFirestore.instance
-            .collection('invitations')
-            .where('email', isEqualTo: APIs.me.phone=='null' || APIs.me.phone==null||
-            APIs.me.phone==''? APIs.me.email:APIs.me.phone)
-            .where('isAccepted', isEqualTo: false)
-            .limit(1)
-            .get();
-        final invite = InvitationModel.fromMap(inviteSnap.docs.first.data());
-        final inviteId = inviteSnap.docs.first.id;
-
-
-        // ✅ Proceed to Accept Invitation Screen
-        Get.to(()=>AcceptInvitationScreen(
-          inviteId: inviteId,
-          company: invite.company!,
-        )); // or use Navigator.push if not using GetX
+        Get.toNamed(AppRoutes.home);
       } else if (payload == 'task') {
-        Get.find<DashboardController>().updateIndex(2);
+        Get.find<DashboardController>().updateIndex(1);
+        if(payloadC != APIs.me.userCompany?.userCompanyId){
+
+          await APIs.getSelfInfo();
+        }
 
       } else if (payload == 'chat') {
-        Get.find<DashboardController>().updateIndex(1);
+        Get.find<DashboardController>().updateIndex(0);
+        if(payloadC != APIs.me.userCompany?.userCompanyId){
+
+          await APIs.getSelfInfo();
+        }
       }
     });
   }

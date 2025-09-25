@@ -5,6 +5,7 @@ import 'package:device_info_plus/device_info_plus.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:get/get.dart';
+import 'package:intl/intl.dart';
 import 'package:media_scanner/media_scanner.dart';
 import 'package:shimmer/shimmer.dart';
 import '../Constants/assets.dart';
@@ -14,7 +15,7 @@ import 'package:dio/dio.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'custom_flashbar.dart';
 import 'dart:io';
-
+import 'package:path/path.dart' as p;
 
 
 Future<bool> requestStoragePermission() async {
@@ -46,7 +47,7 @@ Future<void> saveImageToDownloads(String imageUrl) async {
     final granted = await requestStoragePermission();
 
     if (!granted) {
-      print('❌ Storage permission denied');
+      toast('❌ Storage permission denied');
       return;
     }
 
@@ -81,7 +82,7 @@ Future<void> saveImageToDownloads(String imageUrl) async {
       toast('❌ Failed to download image');
     }*/
   } catch (e) {
-    print('❌ Error: $e');
+
   }
 }
 
@@ -102,12 +103,19 @@ Widget divider({Color? color, thikness}) {
   );
 }
 
+ String getFileNameFromUrl(String url) {
+  return (url)
+      .split('/')
+      .last
+      .replaceAll(RegExp(r'^DOC_\d+_'), '');
+}
+
 
 Future<void> saveImageToGallery(String imageUrl) async {
   // Step 1: Request storage permission
   final permission = await requestStoragePermission();
   if (!permission) {
-    print("❌ Storage permission denied");
+    toast("❌ Storage permission denied");
     return;
   }
 
@@ -125,8 +133,6 @@ Future<void> saveImageToGallery(String imageUrl) async {
   try {
     final response = await Dio().download(imageUrl, filePath);
     if (response.statusCode == 200) {
-      print("✅ Image downloaded to $filePath");
-
       // Step 5: Trigger media scan to show in Gallery
       await MediaScanner.loadMedia(path: filePath);
 
@@ -135,7 +141,6 @@ Future<void> saveImageToGallery(String imageUrl) async {
       toast("❌ Failed to download image");
     }
   } catch (e) {
-    print("❌ Error saving image: $e");
   }
 }
 
@@ -267,6 +272,40 @@ bool isTaskTimeExceeded(TaskDetails task) {
   ).isAfter(estimatedDateTime);
 }
 
+
+/// Estimate label between createdOn and deadlineOn.
+/// - If same calendar day: "Xh Ym"
+/// - Else: "Xd"
+/// - Uses local time for day comparison.
+/// - Returns "Expired" if deadline < created.
+String estimateLabel({
+  required String createdIso,
+  required String deadlineIso,
+}) {
+  final created = DateTime.parse(createdIso).toLocal();
+  final deadline = DateTime.parse(deadlineIso).toLocal();
+
+  if (deadline.isBefore(created)) return "Expired";
+
+  // Date-only (midnight) to compare calendar days
+  final cDay = DateTime(created.year, created.month, created.day);
+  final dDay = DateTime(deadline.year, deadline.month, deadline.day);
+
+  if (cDay == dDay) {
+    final diff = deadline.difference(created);
+    final h = diff.inHours;
+    final m = diff.inMinutes % 60;
+    if (h <= 0 && m <= 0) return "0m";
+    if (h > 0 && m > 0) return "${h}h ${m}m";
+    if (h > 0) return "${h}h";
+    return "${m}m";
+  } else {
+    final days = dDay.difference(cDay).inDays; // whole days
+    return "${days}d";
+  }
+}
+
+
 String formatTaskTime(String timestamp,sentTime) {
   var dateString;
   final sent = DateTime.fromMillisecondsSinceEpoch(int.parse(sentTime));
@@ -296,7 +335,6 @@ String formatTaskTime(String timestamp,sentTime) {
   }else{
     return "$hrs hrs $mins mins • $dateString";
   }
-
 }
 String monthName(int month) {
   const months = [
@@ -352,6 +390,16 @@ Color getTaskStatusColor(String? status) {
 }
 
 
+String convertUtcToIndianTime(String utcTimeString) {
+  // Parse UTC string
+  DateTime utcTime = DateTime.parse(utcTimeString);
+
+  // Always convert to IST (+5:30)
+  DateTime indianTime = utcTime.add(const Duration(hours: 5, minutes: 30));
+
+  // Format like "9:00 AM"
+  return DateFormat.jm().format(indianTime);
+}
 
 
 bool isTaskExpired(String startTime, String estimate) {
@@ -377,6 +425,16 @@ bool isTaskExpired(String startTime, String estimate) {
     toast("❌ Failed to save image");
   }
 }*/
+
+
+
+
+
+
+
+
+
+
 
 
 

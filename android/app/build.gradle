@@ -59,8 +59,8 @@ android {
         // For more information, see: https://flutter.dev/to/review-gradle-config.
         minSdk = 23
         targetSdk = 35
-        versionCode = 58
-        versionName = "1.1.7"
+        versionCode = 62
+        versionName = "1.1.11"
     }
 
     signingConfigs {
@@ -75,7 +75,7 @@ android {
     buildTypes {
         release {
 //          signingConfig signingConfigs.debug
-            signingConfig signingConfigs.release
+            signingConfig signingConfigs.debug
         }
     }
 }
@@ -85,6 +85,9 @@ flutter {
 }
 
 dependencies {
+    implementation platform("com.google.firebase:firebase-bom:34.3.0") // or newer
+//     Remove versions from individual Firebase deps
+    implementation "com.google.firebase:firebase-appcheck-playintegrity"
     implementation "org.jetbrains.kotlin:kotlin-stdlib-jdk7:$kotlin_version"
     implementation group: 'com.google.android.material', name: 'material', version: '1.1.0-alpha05'
     implementation 'com.google.android.material:material:1.1.0-alpha05'

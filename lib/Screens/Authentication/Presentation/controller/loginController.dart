@@ -83,7 +83,7 @@ class LoginController extends GetxController {
   }
 
   //login api
-  hitAPIToLogin() async{
+ /* hitAPIToLogin() async{
     FocusManager.instance.primaryFocus!.unfocus();
     customLoader.show();
     var loginReq = multi.FormData.fromMap({
@@ -112,7 +112,7 @@ class LoginController extends GetxController {
       customLoader.hide();
       errorDialog(error.toString());
     });
-  }
+  }*/
 
   hitGoogleAPIToLogin(
       {firstName, lastName, email, profile, dob, address, phone}) {

@@ -1,8 +1,13 @@
 import 'package:AccuChat/utils/text_style.dart';
+import 'package:AccuChat/utils/web_file_picekr.dart';
+import 'package:dio/dio.dart' as dio;
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:http_parser/http_parser.dart';
 import 'package:intl/intl.dart';
-
+import 'package:mime/mime.dart';
+import 'package:mime/mime.dart' as mime;
+import 'package:path/path.dart' as p;
 import '../Constants/themes.dart';
 import 'helper_widget.dart';
 
@@ -251,4 +256,96 @@ Widget titleRow({String? leadIcon, title, value,Color? leadColor,bool isExpanded
       ),
     ],
   );
+}
+
+String buildAbsoluteUrl(String baseUrl, String? fileName) {
+  final file = (fileName ?? '').trim();
+  if (file.isEmpty) return '';
+  if (file.startsWith('http')) return file;
+  // Ensure there’s exactly one slash
+  if (baseUrl.endsWith('/') && file.startsWith('/')) {
+    return baseUrl + file.substring(1);
+  } else if (!baseUrl.endsWith('/') && !file.startsWith('/')) {
+    return '$baseUrl/$file';
+  }
+  return '$baseUrl$file';
+}
+
+IconData iconForFile(String? fileName) {
+  final f = (fileName ?? '').toLowerCase();
+  if (f.endsWith('.pdf')) return Icons.picture_as_pdf;
+  if (f.endsWith('.doc') || f.endsWith('.docx')) return Icons.description;
+  if (f.endsWith('.xls') || f.endsWith('.xlsx')) return Icons.grid_on;
+  if (f.endsWith('.ppt') || f.endsWith('.pptx')) return Icons.slideshow;
+  if (f.endsWith('.txt')) return Icons.note;
+  if (f.endsWith('.zip') || f.endsWith('.rar') || f.endsWith('.7z')) return Icons.archive;
+  return Icons.insert_drive_file;
+}
+
+Future<dio.MultipartFile> pickedToMultipart(PickedFileData f) async {
+  final mime = lookupMimeType(f.name, headerBytes: f.bytes) ?? 'application/octet-stream';
+  final mediaType = MediaType.parse(mime); // e.g. image/jpeg, application/pdf
+  return dio.MultipartFile.fromBytes(
+    f.bytes,
+    filename: f.name,
+    contentType: mediaType,
+  );
+}
+
+String ext(String pathOrName) {
+  final ext = p.extension(pathOrName).toLowerCase();
+  return ext.startsWith('.') ? ext.substring(1) : ext; // 'jpg'
+}
+
+MediaType mediaTypeForExt(String ext) {
+  // try package:mime first (optional)
+  final guessed = mime.lookupMimeType('x.$ext'); // trick to use ext
+  if (guessed != null && guessed.contains('/')) {
+    final parts = guessed.split('/');
+    return MediaType(parts.first, parts.last);
+  }
+
+  // fallback mapping
+  switch (ext) {
+    case 'jpg':
+    case 'jpeg':
+      return MediaType('image', 'jpeg');
+    case 'png':
+      return MediaType('image', 'png');
+    case 'webp':
+      return MediaType('image', 'webp');
+    case 'pdf':
+      return MediaType('application', 'pdf');
+    case 'doc':
+      return MediaType('application', 'msword');
+    case 'docx':
+      return MediaType('application', 'vnd.openxmlformats-officedocument.wordprocessingml.document');
+    case 'xls':
+      return MediaType('application', 'vnd.ms-excel');
+    case 'xlsx':
+      return MediaType('application', 'vnd.openxmlformats-officedocument.spreadsheetml.sheet');
+    case 'ppt':
+      return MediaType('application', 'vnd.ms-powerpoint');
+    case 'pptx':
+      return MediaType('application', 'vnd.openxmlformats-officedocument.presentationml.presentation');
+    case 'csv':
+      return MediaType('text', 'csv');
+    case 'txt':
+      return MediaType('text', 'plain');
+    case 'json':
+      return MediaType('application', 'json');
+    case 'xml':
+      return MediaType('application', 'xml');
+    case 'zip':
+      return MediaType('application', 'zip');
+    case 'rar':
+      return MediaType('application', 'x-rar-compressed');
+    default:
+      return MediaType('application', 'octet-stream');
+  }
+}
+
+String safeName(String name) {
+  // remove odd chars that may break multipart on some backends/CDNs
+  return name.replaceAll(RegExp(r'[^\w\.\-\(\) ]+'), '_');
 }

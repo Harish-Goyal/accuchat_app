@@ -26,6 +26,7 @@ class UserDataAdapter extends TypeAdapter<UserData> {
       userAbbr: fields[6] as dynamic,
       empName: fields[7] as dynamic,
       empImage: fields[8] as dynamic,
+      otp: fields[13] as dynamic,
       empDob: fields[9] as dynamic,
       isCollection: fields[12] as dynamic,
       isGroup: fields[11] as dynamic,
@@ -36,7 +37,7 @@ class UserDataAdapter extends TypeAdapter<UserData> {
   @override
   void write(BinaryWriter writer, UserData obj) {
     writer
-      ..writeByte(13)
+      ..writeByte(14)
       ..writeByte(0)
       ..write(obj.userId)
       ..writeByte(1)
@@ -62,7 +63,9 @@ class UserDataAdapter extends TypeAdapter<UserData> {
       ..writeByte(11)
       ..write(obj.isGroup)
       ..writeByte(12)
-      ..write(obj.isCollection);
+      ..write(obj.isCollection)
+      ..writeByte(13)
+      ..write(obj.otp);
   }
 
   @override

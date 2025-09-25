@@ -5,7 +5,7 @@ class MyDateUtil {
   // for getting formatted time from milliSecondsSinceEpochs String
   static String getFormattedTime(
       {required BuildContext context, required String time}) {
-    final date = DateTime.fromMillisecondsSinceEpoch(int.parse(time));
+    final date = DateTime.parse(time);
 
     return TimeOfDay.fromDateTime(date).format(context);
   }
@@ -29,19 +29,37 @@ class MyDateUtil {
   }
 
   // get last message time (used in chat user card)
-  static String getLastMessageTime(
-      {required BuildContext context,
-      required String time,
-      bool showYear = false}) {
-    final DateTime sent = DateTime.fromMillisecondsSinceEpoch(int.parse(time));
+  static String getLastMessageTime({
+    required BuildContext context,
+    required String time,
+    bool showYear = false,
+  }) {
+    DateTime? sent;
+
+    try {
+      // Safely parse ISO8601 or UTC string
+      sent = DateTime.tryParse(time);
+
+      if (sent == null) {
+        return ''; // return empty if parsing fails
+      }
+
+      // Convert UTC → local time
+      sent = sent.toLocal();
+    } catch (e) {
+      return ''; // fallback in case of unexpected format
+    }
+
     final DateTime now = DateTime.now();
 
+    // Same day
     if (now.day == sent.day &&
         now.month == sent.month &&
         now.year == sent.year) {
       return TimeOfDay.fromDateTime(sent).format(context);
     }
 
+    // Return formatted date
     return showYear
         ? '${sent.day} ${_getMonth(sent)} ${sent.year}'
         : '${sent.day} ${_getMonth(sent)}';

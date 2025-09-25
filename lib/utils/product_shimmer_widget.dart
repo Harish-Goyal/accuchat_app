@@ -1,13 +1,11 @@
 
 import 'dart:math';
 
-import 'package:AccuChat/Screens/chat_module/models/chat_history_model.dart';
-import 'package:AccuChat/Screens/chat_module/presentation/views/chatting_deatail_screen.dart';
+import 'package:AccuChat/Screens/Chat/models/chat_history_response_model.dart';
 import 'package:AccuChat/utils/text_style.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import 'package:shimmer/shimmer.dart';
 
 import '../Constants/assets.dart';
 import '../Constants/colors.dart';
@@ -384,7 +382,7 @@ class ChatUserListShimmer extends StatelessWidget {
 
 class ChatHistoryShimmer extends StatelessWidget {
    ChatHistoryShimmer({Key? key,required this.chatData}) : super(key: key);
-  ChatHistoryData chatData;
+  ChatHisList chatData;
   bool getRandomBool() {
     Random random = Random();
     return random.nextBool();
@@ -447,11 +445,11 @@ class ChatHistoryShimmer extends StatelessWidget {
     ).marginOnly(bottom: 20, left: 20);
   }
 
-   _messageTypeView(ChatHistoryData data, {required bool sentByMe}) {
+   _messageTypeView(ChatHisList data, {required bool sentByMe}) {
      return Container(
        padding: EdgeInsets.symmetric(horizontal: 20),
 
-       child: Text(data.msg ?? '',
+       child: Text(data.message ?? '',
            textAlign: TextAlign.start,
            style: BalooStyles.baloonormalTextStyle(
              color: Colors.black87,

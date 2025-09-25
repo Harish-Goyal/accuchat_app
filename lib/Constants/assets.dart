@@ -24,6 +24,7 @@ const String noDataFoundPng = "assets/images/no_data_found.png";
 const String workInProgressPng = "assets/images/work-in-progress.png";
 const String approvedPng = "assets/images/approved.png";
 const String pendingPng = "assets/images/pending.png";
+const String emptyRecentPng = "assets/images/empty_recent.png";
 
 
 

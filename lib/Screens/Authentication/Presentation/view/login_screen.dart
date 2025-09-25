@@ -118,7 +118,7 @@ class LoginScreen extends GetView<LoginController> {
                         onTap: () {
                           if (formLoginKey.currentState!.validate()) {
                             // NavigationServices(context).gotoTabScreen();
-                            controller.hitAPIToLogin();
+                            // controller.hitAPIToLogin();
                           }
                         },
                         name: 'Login',

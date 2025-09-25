@@ -7,13 +7,15 @@ class BalooStyles {
     double size = 14,
     double height = 1.2,
     Color? color,
+    FontStyle? fontstyle,
     bool underLineNeeded = false,
   }) {
     return GoogleFonts.inter(
       fontSize: size,
       height: height,
-      fontWeight: FontWeight.w100,
-      color:color?? AppTheme.primaryTextColor,
+      fontWeight: FontWeight.w200,
+      fontStyle: fontstyle,
+      color:color?? AppTheme.secondaryTextColor,
       decoration:
           underLineNeeded ? TextDecoration.underline : TextDecoration.none,
     );
@@ -23,6 +25,8 @@ class BalooStyles {
     double size = 14,
     double height = 1.2,
     Color? color,
+    Color? deccolor,
+    FontStyle? fontstyle,
     FontWeight weight = FontWeight.w400,
     bool underLineNeeded = false,
     List<Shadow>? shadows,
@@ -32,8 +36,10 @@ class BalooStyles {
       height: height,
       fontWeight: weight,
       color:color?? AppTheme.primaryTextColor,
+        fontStyle: fontstyle,
       decoration:
           underLineNeeded ? TextDecoration.underline : TextDecoration.none,
+        decorationColor: deccolor,
         shadows: shadows
     );
   }

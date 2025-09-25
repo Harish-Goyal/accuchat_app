@@ -5,6 +5,7 @@ import 'package:AccuChat/Constants/assets.dart';
 import 'package:AccuChat/Extension/text_field_extenstion.dart';
 import 'package:AccuChat/Screens/Chat/models/company_model.dart';
 import 'package:AccuChat/Screens/Home/Presentation/View/invite_member.dart';
+import 'package:AccuChat/routes/app_routes.dart';
 import 'package:AccuChat/utils/custom_flashbar.dart';
 import 'package:AccuChat/utils/gradient_button.dart';
 import 'package:AccuChat/utils/helper_widget.dart';
@@ -20,507 +21,342 @@ import 'package:image_picker/image_picker.dart';
 
 import '../../../../Constants/colors.dart';
 import '../../../../Constants/themes.dart' show AppTheme;
+import '../../../../Services/APIs/api_ends.dart';
 import '../../../../main.dart';
 import '../../../../utils/common_textfield.dart';
 import '../../../../utils/custom_container.dart';
 import '../../../../utils/custom_dialogue.dart';
 import '../../../../utils/text_style.dart';
+import '../../../../utils/web_file_picekr.dart';
 import '../../../Chat/api/apis.dart';
-import '../../../Chat/screens/auth/landing_screen.dart';
+import '../../../Chat/screens/auth/Presentation/Views/landing_screen.dart';
+import '../Controller/update_comapny_controller.dart';
 
-class UpdateCompanyScreen extends StatefulWidget {
-  UpdateCompanyScreen({super.key,this.company});
+import 'dart:io';
+import 'package:flutter/foundation.dart' show kIsWeb; // for minor web guards
 
-  CompanyModel? company;
-
-  @override
-  State<UpdateCompanyScreen> createState() => _UpdateCompanyScreenState();
-}
-
-class _UpdateCompanyScreenState extends State<UpdateCompanyScreen> {
-  final _formKey = GlobalKey<FormState>();
-
-  late TextEditingController nameController;
-  late TextEditingController emailController;
-  late TextEditingController phoneController;
-  late TextEditingController addressController;
-  late TextEditingController websiteController;
-
-  final FocusNode nameFocus = FocusNode();
-  final FocusNode emailFocus = FocusNode();
-  final FocusNode phoneFocus = FocusNode();
-  final FocusNode addressFocus = FocusNode();
-  final FocusNode websiteFocus = FocusNode();
-
-  // Placeholder for file picker result
-  String? companyLogoUrl;
-  String? filecompanyLogoUrl;
-
-  bool isLoading=false;
-
-  @override
-  void initState() {
-    initData();
-    super.initState();
-  }
-
-
-  initData(){
-    companyLogoUrl = widget.company?.logoUrl??'';
-    nameController = TextEditingController(text: widget.company?.name??'');
-    emailController = TextEditingController(text: widget.company?.email??'');
-    phoneController = TextEditingController(text: widget.company?.phone??'');
-    addressController = TextEditingController(text: widget.company?.address??'');
-    websiteController = TextEditingController(text: widget.company?.websiteURL??'');
-  }
-
-  Future<bool> doesCollectionExist(String collectionPath) async {
-    final querySnapshot = await FirebaseFirestore.instance
-        .collection(collectionPath)
-        .limit(1) // We limit the result to one document
-        .get();
-
-    return querySnapshot.docs.isNotEmpty;
-  }
-
-  Future<void> deleteCompany(BuildContext context, CompanyModel company) async {
-    final confirm = await showDialog<bool>(
-      context: context,
-      builder: (_) => AlertDialog(
-        title: const Text("Delete Company"),
-        backgroundColor: Colors.white,
-        content: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.center,
-          children: [
-            vGap(20),
-            Text(
-              "⚠️ Are you sure you want to delete this company?",
-              style: BalooStyles.balooboldTextStyle(color: AppTheme.redErrorColor, size: 16),
-            ),
-            vGap(20),
-            Text(
-              "All related members, invitations, and references will be permanently removed. You cannot retrieve it again in future, make sure before delete!",
-              style: BalooStyles.baloomediumTextStyle(color: AppTheme.redErrorColor),
-            ),
-            vGap(20),
-          ],
-        ),
-        actions: [
-          TextButton(onPressed: () => Navigator.pop(context, false), child: const Text("Cancel")),
-          ElevatedButton(onPressed: () => Navigator.pop(context, true), child: const Text("Delete")),
-        ],
-      ),
-    );
-
-    if (confirm != true) return;
-
-    final companyId = company.id;
-    final firestore = FirebaseFirestore.instance;
-    final batch = firestore.batch();
-
-    try {
-      customLoader.show();
-      // 1. Delete all invitations related to this company
-      final invitesSnap = await firestore.collection('invitations').where('companyId', isEqualTo: companyId).get();
-      for (var doc in invitesSnap.docs) {
-        batch.delete(doc.reference);
-      }
-
-      // 2. Delete all member subcollection docs under the company
-      final membersSnap = await firestore.collection('companies').doc(companyId).collection('members').get();
-      for (var doc in membersSnap.docs) {
-        batch.delete(doc.reference);
-      }
-
-      // 3. Remove company from all users (from `company` list and `selectedCompany` if matched)
-      final userSnap = await firestore.collection('users').get();
-
-      for (var userDoc in userSnap.docs) {
-        final data = userDoc.data();
-
-        // Get the current list of companies the user is part of
-        final List<dynamic> joinedCompanies = List.from(data['company'] ?? []);
-
-        // Remove company from the joined list if it's present
-        joinedCompanies.removeWhere((comp) => comp is Map && comp['id'] == companyId);
-
-        final Map<String, dynamic> updateData = {
-          'company': joinedCompanies,
-        };
-
-        // Check if the company to be deleted is the selected company
-        final selectedCompany = data['selectedCompany'];
-        final isSelectedCompanyDeleted = selectedCompany != null &&
-            selectedCompany is Map &&
-            selectedCompany['id'] == companyId;
-
-        if (isSelectedCompanyDeleted) {
-          // If the selected company is being deleted, remove it from selectedCompany
-          updateData['selectedCompany'] = FieldValue.delete();
-        }
-
-        // Apply the update to the user's document
-        batch.update(userDoc.reference, updateData);
-      }
-
-      // 4. Delete associated group chats, broadcasts, and groups related to this company
-      final chatsSnap = await firestore.collection('chats').where('companyId', isEqualTo: companyId).get();
-      for (var chatDoc in chatsSnap.docs) {
-        batch.delete(chatDoc.reference);
-      }
-
-      final broadcastSnap = await firestore.collection('broadcasts').where('companyId', isEqualTo: companyId).get();
-      for (var broadcastDoc in broadcastSnap.docs) {
-        batch.delete(broadcastDoc.reference);
-      }
-
-      final groupSnap = await firestore.collection('groups').where('companyId', isEqualTo: companyId).get();
-      for (var groupDoc in groupSnap.docs) {
-        batch.delete(groupDoc.reference);
-      }
-
-      // 5. Delete the actual company document
-      batch.delete(firestore.collection('companies').doc(companyId));
-
-      await batch.commit();
-
-      toast("✅ Company and related data deleted successfully.");
-      customLoader.hide();
-      Get.offAll(() => LandingPage());
-      setState(() {});
-    } catch (e) {
-      customLoader.hide();
-      print("❌ Error deleting company: $e");
-      errorDialog("Something went wrong while deleting the company.");
-    }
-  }
-
-/*  Future<void> deleteCompany(BuildContext context, CompanyModel company) async {
-    final confirm = await showDialog<bool>(
-      context: context,
-      builder: (_) => AlertDialog(
-        title: const Text("Delete Company"),
-        backgroundColor: Colors.white,
-        content: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.center,
-          children: [
-            vGap(20),
-            Text(
-              "⚠️ Are you sure you want to delete this company?",style: BalooStyles.balooboldTextStyle(color: AppTheme.redErrorColor,size: 16),),
-            vGap(20),
-            Text(
-              "All related members, invitations, and references will be permanently removed. You cannot retrieve it again in future, make sure before delete!",style: BalooStyles.baloomediumTextStyle(color: AppTheme.redErrorColor),),
-            vGap(20),
-          ],
-        ),
-        actions: [
-          TextButton(onPressed: () => Navigator.pop(context, false), child: const Text("Cancel")),
-          ElevatedButton(onPressed: () => Navigator.pop(context, true), child: const Text("Delete")),
-        ],
-      ),
-    );
-
-    if (confirm != true) return;
-
-    final companyId = company.id;
-    final firestore = FirebaseFirestore.instance;
-    final batch = firestore.batch();
-
-    try {
-      // 1. Delete all invitations related to this company
-      final invitesSnap = await firestore
-          .collection('invitations')
-          .where('companyId', isEqualTo: companyId)
-          .get();
-
-      for (var doc in invitesSnap.docs) {
-        batch.delete(doc.reference);
-      }
-
-      // 2. Delete all member subcollection docs under the company
-      final membersSnap = await firestore
-          .collection('companies')
-          .doc(companyId)
-          .collection('members')
-          .get();
-
-      for (var doc in membersSnap.docs) {
-        batch.delete(doc.reference);
-      }
-
-      // 3. Remove company from all users (from `companies` list and `selectedCompany` if matched)
-      final userSnap = await firestore.collection('users').get();
-
-      for (var userDoc in userSnap.docs) {
-        final data = userDoc.data();
-
-        // Step 1: Remove from user's joined company list
-        final List<dynamic> joinedCompanies = List.from(data['company'] ?? []);
-        joinedCompanies.removeWhere((comp) => comp is Map && comp['id'] == companyId);
-
-        // Step 2: Clear selectedCompany if it matches the one being deleted
-        final selectedCompany = data['selectedCompany'];
-        final isSelectedCompanyDeleted = selectedCompany != null &&
-            selectedCompany is Map &&
-            selectedCompany['id'] == companyId;
-
-        final updateData = <String, dynamic>{
-          'company': joinedCompanies,
-        };
-
-        print("selectedCompany");
-        print(selectedCompany);
-        print(selectedCompany['id']);
-        print("updateData['selectedCompany']");
-        print(updateData['selectedCompany']);
-
-        if (isSelectedCompanyDeleted) {
-          updateData['company'] = FieldValue.delete();
-        }
-        batch.update(userDoc.reference, updateData);
-      }
-
-// 5. Remove associated group chats and broadcasts related to this company
-      final chatsSnap = await firestore
-          .collection('chats')
-          .where('companyId', isEqualTo: companyId)
-          .get();
-
-      final isChat =await doesCollectionExist('chats');
-
-      if(isChat) {
-        for (var chatDoc in chatsSnap.docs) {
-          // If you have separate collections for group chats or broadcasts, delete them here
-          batch.delete(chatDoc.reference);
-        }
-      }
-      // 6. Delete associated broadcast data (if any)
-      final broadcastSnap = await firestore
-          .collection('broadcasts')
-          .where('companyId', isEqualTo: companyId)
-          .get();
-      final isBroad =await doesCollectionExist('broadcasts');
-      if(isBroad) {
-        for (var broadcastDoc in broadcastSnap.docs) {
-          batch.delete(broadcastDoc.reference);
-        }
-      }
-      // 6. Delete associated groups data (if any)
-      final group = await firestore
-          .collection('groups')
-          .where('companyId', isEqualTo: companyId)
-          .get();
-      final isGroup =await doesCollectionExist('groups');
-      if(isGroup) {
-      for (var g in group.docs) {
-        batch.delete(g.reference);
-      }}
-      // 4. Delete the actual company doc
-      batch.delete(firestore.collection('companies').doc(companyId));
-
-      await batch.commit();
-
-      toast("✅ Company and related data deleted successfully.");
-      Get.offAll(()=>LandingPage()); // Or your preferred route
-    } catch (e) {
-      print("❌ Error deleting company: $e");
-      errorDialog("Something went wrong while deleting the company.");
-    }
-  }*/
-
+class UpdateCompanyScreen extends GetView<UpdateCompanyController> {
+  UpdateCompanyScreen({super.key});
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(title:  Text("Update Company",style: BalooStyles.balooboldTitleTextStyle(),),
-        actions: [
-          dynamicButton(
-              name: "Add",
-              onTap: () {
-                // controller.updateIndex(1);
-                // setState(() {
-                //   isTaskMode =false;
-                // });
-                Get.to(() => InviteMembersScreen(
-                  company: widget.company,
-                  invitedBy: APIs.me.id,
-                ));
-              },
-              isShowText: true,
-              isShowIconText: true,
-              // gradient: buttonGradient,
-              vPad: 5,
-              color: Colors.black,
-              iconColor: Colors.black,
-              leanIcon: addUserIcon)
-              .paddingOnly(top: 0)
-        ],
-       ),
-      body: SafeArea(
-        child: SingleChildScrollView(
-          padding: const EdgeInsets.all(16.0),
-          child: Form(
-            key: _formKey,
-            child: Column(
-              children: [
+    return GetBuilder<UpdateCompanyController>(builder: (controller) {
+      return Scaffold(
+        backgroundColor: const Color(0xFFF6F7F9),
+        appBar: AppBar(
+          title: Text(
+            "Update Company",
+            style: BalooStyles.balooboldTitleTextStyle(),
+          ),
+          centerTitle: true,
+          elevation: 0,
+        ),
+        body: SafeArea(
+          child: LayoutBuilder(
+            builder: (context, constraints) {
+              final isWide = constraints.maxWidth >= 900;
+              final fieldWidth = isWide ? 420.0 : double.infinity;
+              final cardMargin = EdgeInsets.symmetric(
+                horizontal: isWide ? 32 : 16,
+                vertical: isWide ? 24 : 12,
+              );
+              final cardPadding = EdgeInsets.all(isWide ? 28 : 18);
+              final avatarSize = isWide ? 140.0 : 120.0;
 
-                Stack(
-                  children: [
-                    //profile picture
-                    APIs.me.selectedCompany?.logoUrl != '' || APIs.me.selectedCompany?.logoUrl!=null
-                        ?
+              return Center(
+                child: ConstrainedBox(
+                  constraints: const BoxConstraints(maxWidth: 1100),
+                  child: Card(
+                    margin: cardMargin,
+                    color: Colors.white,
+                    elevation: 2,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(16),
+                    ),
+                    child: Padding(
+                      padding: cardPadding,
+                      child: SingleChildScrollView(
+                        child: Form(
+                          key: controller.formKey,
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              // Header
+                              Text(
+                                "Company Details",
+                                style: BalooStyles.balooboldTitleTextStyle(),
+                              ),
+                              vGap(4),
+                              Text(
+                                "Update your company profile and contact info.",
+                                style: BalooStyles.baloonormalTextStyle(
+                                  color: Colors.black54,
+                                ),
+                              ),
+                              vGap(isWide ? 24 : 16),
 
-                    //local image
+                              // Responsive layout: Row on wide, Column on narrow
+                              isWide
+                                  ? Row(
+                                crossAxisAlignment:
+                                CrossAxisAlignment.start,
+                                children: [
+                                  // Left: Logo block
+                                  SizedBox(
+                                    width: 300,
+                                    child: _LogoPickerBlock(
+                                      controller: controller,
+                                      avatarSize: avatarSize,
+                                      onEditTap: _showBottomSheet,
+                                    ),
+                                  ),
+                                  const SizedBox(width: 24),
 
-                    //image from server
-                    Container(
-                      decoration: BoxDecoration(
-                          shape: BoxShape.circle,
-                          border: Border.all(color: appColorGreen,width: 1)
+                                  // Right: Form fields as a two-column Wrap
+                                  Expanded(
+                                    child: Wrap(
+                                      spacing: 18,
+                                      runSpacing: 18,
+                                      children: [
+                                        SizedBox(
+                                          width: fieldWidth,
+                                          child: CustomTextField(
+                                            hintText: "Company Name",
+                                            labletext: "Company Name",
+                                            controller: controller
+                                                .nameController,
+                                            focusNode:
+                                            controller.nameFocus,
+                                            validator: (value) => value
+                                                ?.isEmptyField(
+                                                messageTitle:
+                                                "Company Name"),
+                                            onFieldSubmitted: (_) =>
+                                                FocusScope.of(context)
+                                                    .requestFocus(controller
+                                                    .emailFocus),
+                                          ),
+                                        ),
+                                        SizedBox(
+                                          width: fieldWidth,
+                                          child: CustomTextField(
+                                            hintText: "Email (optional)",
+                                            labletext: "Email",
+                                            controller: controller
+                                                .emailController,
+                                            focusNode:
+                                            controller.emailFocus,
+                                            onFieldSubmitted: (_) =>
+                                                FocusScope.of(context)
+                                                    .requestFocus(controller
+                                                    .phoneFocus),
+                                          ),
+                                        ),
+                                        SizedBox(
+                                          width: fieldWidth,
+                                          child: CustomTextField(
+                                            hintText: "Phone (optional)",
+                                            labletext: "Phone",
+                                            controller: controller
+                                                .phoneController,
+                                            focusNode:
+                                            controller.phoneFocus,
+                                            onFieldSubmitted: (_) =>
+                                                FocusScope.of(context)
+                                                    .requestFocus(controller
+                                                    .addressFocus),
+                                          ),
+                                        ),
+                                        SizedBox(
+                                          width: fieldWidth,
+                                          child: CustomTextField(
+                                            hintText:
+                                            "Company Address (optional)",
+                                            labletext: "Address",
+                                            controller: controller
+                                                .addressController,
+                                            focusNode:
+                                            controller.addressFocus,
+                                            onFieldSubmitted: (_) =>
+                                                FocusScope.of(context)
+                                                    .requestFocus(controller
+                                                    .websiteFocus),
+                                          ),
+                                        ),
+                                        SizedBox(
+                                          width: fieldWidth,
+                                          child: CustomTextField(
+                                            hintText: "Website (optional)",
+                                            labletext: "Website",
+                                            controller: controller
+                                                .websiteController,
+                                            focusNode:
+                                            controller.websiteFocus,
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                  ),
+                                ],
+                              )
+                                  : Column(
+                                crossAxisAlignment:
+                                CrossAxisAlignment.center,
+                                children: [
+                                  // Top: Logo block
+                                  _LogoPickerBlock(
+                                    controller: controller,
+                                    avatarSize: avatarSize,
+                                    onEditTap: _showBottomSheet,
+                                  ),
+                                  vGap(18),
+
+                                  // Fields stack full width
+                                  CustomTextField(
+                                    hintText: "Company Name",
+                                    labletext: "Company Name",
+                                    controller:
+                                    controller.nameController,
+                                    focusNode: controller.nameFocus,
+                                    validator: (value) => value
+                                        ?.isEmptyField(
+                                        messageTitle:
+                                        "Company Name"),
+                                    onFieldSubmitted: (_) =>
+                                        FocusScope.of(context)
+                                            .requestFocus(controller
+                                            .emailFocus),
+                                  ),
+                                  vGap(18),
+                                  CustomTextField(
+                                    hintText: "Email (optional)",
+                                    labletext: "Email",
+                                    controller:
+                                    controller.emailController,
+                                    focusNode: controller.emailFocus,
+                                    onFieldSubmitted: (_) =>
+                                        FocusScope.of(context)
+                                            .requestFocus(controller
+                                            .phoneFocus),
+                                  ),
+                                  vGap(18),
+                                  CustomTextField(
+                                    hintText: "Phone (optional)",
+                                    labletext: "Phone",
+                                    controller:
+                                    controller.phoneController,
+                                    focusNode: controller.phoneFocus,
+                                    onFieldSubmitted: (_) =>
+                                        FocusScope.of(context)
+                                            .requestFocus(controller
+                                            .addressFocus),
+                                  ),
+                                  vGap(18),
+                                  CustomTextField(
+                                    hintText:
+                                    "Company Address (optional)",
+                                    labletext: "Address",
+                                    controller:
+                                    controller.addressController,
+                                    focusNode: controller.addressFocus,
+                                    onFieldSubmitted: (_) =>
+                                        FocusScope.of(context)
+                                            .requestFocus(controller
+                                            .websiteFocus),
+                                  ),
+                                  vGap(18),
+                                  CustomTextField(
+                                    hintText: "Website (optional)",
+                                    labletext: "Website",
+                                    controller:
+                                    controller.websiteController,
+                                    focusNode: controller.websiteFocus,
+                                  ),
+                                ],
+                              ),
+
+                              vGap(isWide ? 28 : 22),
+
+                              // Actions row
+                              isWide?  Row(
+                                mainAxisAlignment: MainAxisAlignment.end,
+                                children: [
+                                  Expanded(
+                                    child: OutlinedButton(
+                                      style: OutlinedButton.styleFrom(
+                                        foregroundColor: AppTheme.redErrorColor,
+                                        side: BorderSide(
+                                            color: AppTheme.redErrorColor),
+                                        shape: RoundedRectangleBorder(
+                                          borderRadius: BorderRadius.circular(10),
+                                        ),
+                                        padding: EdgeInsets.symmetric(vertical: 8)
+                                      ),
+                                      onPressed: () async {
+                                        await controller.deleteCompany(context);
+                                      },
+                                      child: Text(
+                                        "Delete Company",
+                                        style: BalooStyles.baloomediumTextStyle(
+                                          color: AppTheme.redErrorColor,
+                                        ),
+                                      ),
+                                    ),
+                                  ),
+                                  const SizedBox(width: 30),
+                                  Expanded(
+                                    child: GradientButton(
+                                      onTap: () async {
+                                        controller.updateCompanyApi(
+                                          companyId: controller
+                                              .companyResponse?.companyId,
+                                        );
+                                      },
+                                      name: "Update Company",
+                                    ),
+                                  ),
+                                ],
+                              ):
+
+                              Column(
+                                children: [
+                                  GradientButton(
+                                    onTap: () async {
+                                      controller.updateCompanyApi(
+                                        companyId: controller
+                                            .companyResponse?.companyId,
+                                      );
+                                    },
+                                    name: "Update Company",
+                                  ),vGap(25),
+                                  TextButton(
+                                    onPressed: ()async{
+                                      await controller.deleteCompany(context);
+                                    }, child:Text(
+                                    "Delete Company",
+                                    style: BalooStyles.baloomediumTextStyle(
+                                      color: AppTheme.redErrorColor,
+                                    ),
+                                  ),
+                                  ),
+                                ],
+                              ),
+
+                            ],
+                          ),
+                        ),
                       ),
-                      child:  CustomCacheNetworkImage(
-                        APIs.me.selectedCompany?.logoUrl??'',
-                        height: mq.height * .18,
-                        width: mq.height * .18,
-                        boxFit: BoxFit.cover,
-                        radiusAll: 100,
-                      ),
-                    ):
-                    filecompanyLogoUrl!=''?
-
-
-                    ClipRRect(
-                        borderRadius:
-                        BorderRadius.circular(mq.height * .1),
-                        child: Image.file(File(companyLogoUrl!),
-                            width: mq.height * .18,
-                            height: mq.height * .18,
-                            fit: BoxFit.cover)):
-
-                    Container(
-                      decoration: BoxDecoration(
-                          shape: BoxShape.circle,
-                          border: Border.all(color: appColorGreen,width: 1)
-                      ),
-                      child: CustomCacheNetworkImage(
-                        companyLogoUrl??'',
-                        height: mq.height * .18,
-                        width: mq.height * .18,
-                        boxFit: BoxFit.cover,
-                        radiusAll: 100,
-                      ),
-                    )
-                        ,
-
-                    //edit image button
-                    Positioned(
-                      bottom: 0,
-                      right: 0,
-                      child: MaterialButton(
-                        elevation: 1,
-                        onPressed: () {
-                          _showBottomSheet();
-                        },
-                        shape: const CircleBorder(),
-                        color: Colors.white,
-                        child: const Icon(Icons.edit, color: Colors.blue),
-                      ),
-                    )
-                  ],
+                    ),
+                  ),
                 ),
-
-                CustomTextField(
-                  hintText: "Company Name",
-                  labletext: "Company Name",
-                  controller: nameController,
-                  focusNode: nameFocus,
-                  validator: (value) =>
-                      value?.isEmptyField(messageTitle: "Company Name"),
-                  onFieldSubmitted: (_) =>
-                      FocusScope.of(context).requestFocus(emailFocus),
-                ),
-                vGap(18),
-                CustomTextField(
-                  hintText: "Email (optional)",
-                  labletext: "Email",
-                  controller: emailController,
-                  focusNode: emailFocus,
-                  onFieldSubmitted: (_) =>
-                      FocusScope.of(context).requestFocus(phoneFocus),
-                ),
-                vGap(18),
-                CustomTextField(
-                  hintText: "Phone (optional)",
-                  labletext: "Phone",
-                  controller: phoneController,
-                  focusNode: phoneFocus,
-                  onFieldSubmitted: (_) =>
-                      FocusScope.of(context).requestFocus(addressFocus),
-                ),
-                vGap(18),
-                CustomTextField(
-                  hintText: "Company Address (optional)",
-                  labletext: "Address",
-                  controller: addressController,
-                  focusNode: addressFocus,
-                  onFieldSubmitted: (_) =>
-                      FocusScope.of(context).requestFocus(websiteFocus),
-                ),
-                vGap(18),
-                CustomTextField(
-                  hintText: "Website (optional)",
-                  labletext: "Website",
-                  controller: websiteController,
-                  focusNode: websiteFocus,
-                ),
-                vGap(25),
-                GradientButton(
-                  onTap: ()async {
-                    if (_formKey.currentState!.validate()) {
-                      SystemChannels.textInput.invokeMethod('TextInput.hide');
-                      customLoader.show();
-                      CompanyModel company = CompanyModel(
-                        id: widget.company?.id,
-                        name: nameController.text.trim(),
-                        address: addressController.text.trim(),
-                        logoUrl: companyLogoUrl,
-                        email: emailController.text.trim() ?? '',
-                        phone: phoneController.text.trim() ?? '',
-                        websiteURL: websiteController.text.trim()??'',
-                        members: widget.company?.members??[],
-                        adminUserId: widget.company?.adminUserId,
-                        allowedCompany: widget.company?.allowedCompany,
-                        createdBy: widget.company?.createdBy,
-                        createdAt: widget.company?.createdAt,
-                      );
-
-                     await APIs.updateCompany(company).onError((e,v){
-                       customLoader.hide();
-                     });
-                      customLoader.hide();
-                      // Get.back();
-                    }
-                  },
-                  name: "Update Company",
-                ),
-                vGap(30),
-                TextButton(child: Text("Delete Company",
-                style: BalooStyles.baloomediumTextStyle(color: AppTheme.redErrorColor),), onPressed: ()async{
-
-                  await deleteCompany(context, widget.company!);
-
-                })
-
-
-              ],
-            ),
+              );
+            },
           ),
         ),
-      ),
-    );
+      );
+    });
   }
+
   void _showBottomSheet() {
     showModalBottomSheet(
         context: Get.context!,
@@ -542,7 +378,40 @@ class _UpdateCompanyScreenState extends State<UpdateCompanyScreen> {
                 //for adding some space
                 vGap(30),
                 //buttons
-                Row(
+              kIsWeb?Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  CustomContainer(
+                    radius: 36,
+                    color: AppTheme.appColor.withOpacity(.2),
+                    childWidget: Material(
+                      color: Colors.transparent,
+                      child: InkWell(
+                        borderRadius:
+                        const BorderRadius.all(Radius.circular(24.0)),
+                        onTap: () async {
+
+                          pickImageSingleWeb();
+
+
+                        },
+                        child: Padding(
+                          padding: const EdgeInsets.all(8.0),
+                          child: Icon(
+                            Icons.file_copy_outlined,
+                            color: AppTheme.appColor,
+                            size: 22,
+                          ),
+                        ),
+                      ),
+                    ),
+                  ),
+                  vGap(10),
+                  Text('File',
+                      textAlign: TextAlign.center,
+                      style: BalooStyles.baloonormalTextStyle()),
+                ],
+              ):  Row(
                   mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                   children: [
                     //pick from gallery button
@@ -558,16 +427,19 @@ class _UpdateCompanyScreenState extends State<UpdateCompanyScreen> {
                               borderRadius:
                               const BorderRadius.all(Radius.circular(24.0)),
                               onTap: () async {
-                                final ImagePicker picker = ImagePicker();
-                                // Pick an image
-                                final XFile? image = await picker.pickImage(
-                                    source: ImageSource.camera,
-                                    imageQuality: 100);
-                                if (image != null) {
-                                  await _cropImage(image.path);
-                                  // for hiding bottom sheet
-                                  Get.back();
-                                }
+
+                                  final ImagePicker picker = ImagePicker();
+                                  // Pick an image
+                                  final XFile? image = await picker.pickImage(
+                                      source: ImageSource.camera,
+                                      imageQuality: 100);
+                                  if (image != null) {
+                                    await _cropImage(image.path);
+                                    // for hiding bottom sheet
+                                    Get.back();
+                                  }
+
+
                               },
                               child: Padding(
                                 padding: const EdgeInsets.all(8.0),
@@ -636,6 +508,27 @@ class _UpdateCompanyScreenState extends State<UpdateCompanyScreen> {
         });
   }
 
+  Future<void> pickImageSingleWeb() async {
+    if (!UniversalPicker.isWeb) {
+      controller.lastMessage = 'Web-only picker. Mobile flow untouched.';
+      controller.update();
+      return;
+    }
+    final img = await UniversalPicker.pickImageSingleWeb();
+    if (img != null) {
+      controller.filecompanyWeb = img;
+      print("controller.filecompanyLogoUrl");
+      print(controller.filecompanyWeb);
+      Get.back();
+
+    } else {
+      controller.filecompanyWeb = null;
+      controller.lastMessage = 'No image selected';
+    }
+    controller.update();
+  }
+
+
   Future _cropImage(String pickedFile) async {
     final croppedFile = await ImageCropper().cropImage(
       sourcePath: pickedFile,
@@ -668,18 +561,121 @@ class _UpdateCompanyScreenState extends State<UpdateCompanyScreen> {
     );
     if (croppedFile != null) {
 
-      customLoader.show();
+      // customLoader.show();
 
-      setState(() {
-        filecompanyLogoUrl = croppedFile.path ?? '';
-      });
 
-      await APIs.updateCompanyLogo(File(filecompanyLogoUrl??''));
-      customLoader.hide();
-      Get.back();
+      controller.filecompanyLogoUrl = croppedFile.path ?? '';
+      controller.update();
 
-      // controller.hitApiToUpdateProfileLogo();
+      // await APIs.updateCompanyLogo(File(controller.filecompanyLogoUrl??''));
+      // customLoader.hide();
+      // Get.back();
+
     }
   }
 }
+
+/// Small, reusable block for the logo + edit button.
+/// Keeps your original logic but makes it consistent & web-safe visually.
+class _LogoPickerBlock extends StatelessWidget {
+  const _LogoPickerBlock({
+    required this.controller,
+    required this.avatarSize,
+    required this.onEditTap,
+  });
+
+  final UpdateCompanyController controller;
+  final double avatarSize;
+  final VoidCallback onEditTap;
+
+  @override
+  Widget build(BuildContext context) {
+    final border = Border.all(color: appColorGreen, width: 1);
+    final hasSelLogo =
+    (controller.companyLogoUrl != null && (controller.companyLogoUrl ?? '').isNotEmpty);
+    final hasLocalLogo = (controller.filecompanyLogoUrl?.isNotEmpty ?? false);
+    final hasWebLocalLogo = (controller.filecompanyWeb!=null);
+    final fallbackUrl = controller.companyLogoUrl ?? '';
+
+    Widget image;
+    if (hasLocalLogo && !kIsWeb) {
+      // NOTE: For web you may later switch to Image.memory with bytes.
+      image = ClipRRect(
+        borderRadius: BorderRadius.circular(avatarSize),
+        child: Image.file(
+          File(controller.filecompanyLogoUrl ?? ''),
+          width: avatarSize,
+          height: avatarSize,
+          fit: BoxFit.cover,
+        ),
+      );
+    } else if (hasSelLogo) {
+      image = Container(
+        decoration: BoxDecoration(shape: BoxShape.circle, border: border),
+        child: CustomCacheNetworkImage(
+          "${ApiEnd.baseUrlMedia}${controller.companyLogoUrl ?? ''}",
+          height: avatarSize,
+          width: avatarSize,
+          boxFit: BoxFit.cover,
+          radiusAll: avatarSize,
+        ),
+      );
+    } else {
+      image = Container(
+        decoration: BoxDecoration(shape: BoxShape.circle, border: border),
+        child: CustomCacheNetworkImage(
+          fallbackUrl,
+          height: avatarSize,
+          width: avatarSize,
+          boxFit: BoxFit.cover,
+          radiusAll: avatarSize,
+        ),
+      );
+    }
+    if(hasWebLocalLogo){
+      image = Container(
+        decoration: BoxDecoration(shape: BoxShape.circle, border: border),
+        child:  ClipRRect(
+          borderRadius: BorderRadius.circular(avatarSize),
+          child: Image.memory(
+            controller.filecompanyWeb!.bytes,
+            height: avatarSize,
+            width: avatarSize,
+            fit: BoxFit.cover,
+          ),
+        ),
+      );
+    }
+
+    return Column(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        Stack(
+          alignment: Alignment.center,
+          children: [
+            image,
+            Positioned(
+              bottom: 0,
+              right: 0,
+              child: MaterialButton(
+                elevation: 1,
+                onPressed: onEditTap,
+                shape: const CircleBorder(),
+                color: Colors.white,
+                child: const Icon(Icons.edit, color: Colors.blue),
+              ),
+            ),
+          ],
+        ),
+        vGap(10),
+        Text(
+          "Select Your Company Logo",
+          style: BalooStyles.baloomediumTextStyle(),
+        ),
+
+      ],
+    );
+  }
+}
+
 

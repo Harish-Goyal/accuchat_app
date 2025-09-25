@@ -1,296 +1,340 @@
+import 'package:AccuChat/Constants/assets.dart';
 import 'package:AccuChat/Constants/colors.dart';
 import 'package:AccuChat/Screens/Chat/api/apis.dart';
+import 'package:AccuChat/Screens/Home/Presentation/Controller/company_members_controller.dart';
+import 'package:AccuChat/Screens/Home/Presentation/Controller/home_controller.dart';
+import 'package:AccuChat/Screens/Home/Presentation/View/home_screen.dart';
+import 'package:AccuChat/Services/APIs/api_ends.dart';
 import 'package:AccuChat/main.dart';
 import 'package:AccuChat/utils/loading_indicator.dart';
 import 'package:AccuChat/utils/text_style.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:swipe_to/swipe_to.dart';
+import 'package:flutter/foundation.dart' show kIsWeb; // added for web checks
 
+import '../../../../routes/app_routes.dart';
 import '../../../../utils/custom_flashbar.dart';
 import '../../../../utils/data_not_found.dart';
 import '../../../../utils/helper_widget.dart';
+import '../../../../utils/networl_shimmer_image.dart';
 import '../../../Chat/models/chat_user.dart';
 import '../../../Chat/models/company_model.dart';
 import '../../../Chat/models/invite_model.dart';
+import '../../../Chat/screens/chat_tasks/Presentation/Views/chat_screen.dart';
 
-class CompanyMembers extends StatefulWidget {
-  @override
-  _CompanyMembersState createState() => _CompanyMembersState();
+class CompanyMembers extends GetView<CompanyMemberController> {
+  CompanyMembers({super.key});
 
-  String comapnyID;
-  String comapnyName;
-
-  CompanyMembers({super.key,required this.comapnyID,required this.comapnyName});
-}
-
-class _CompanyMembersState extends State<CompanyMembers> {
-  late Future<List<InvitationModel>> invitationsFuture;
-
-  @override
-  void initState() {
-    super.initState();
-    initData();
-    // Assuming you have selectedCompanyId available from your APIs or state management
-  }
-
-  bool isLoading = true;
-  initData() async {
-    invitationsFuture = APIs.getInvitations(widget.comapnyID);
-    setState(() {
-      isLoading = false;
-    });
-  }
+  DashboardController dcController =
+  Get.put<DashboardController>(DashboardController());
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        leadingWidth: 30,
-        title: Text(
-          '${widget.comapnyName} Members',
-          style: BalooStyles.balooboldTitleTextStyle(),
+    final size = MediaQuery.of(context).size;
+    final bool isWide = size.width >= 900; // responsive breakpoint
+    final double maxContentWidth = 900; // center content on large screens
 
+    return GetBuilder<CompanyMemberController>(builder: (controller) {
+      return Scaffold(
+        appBar: AppBar(
+          leadingWidth: 30,
+          title: Text(
+            ("${(controller.companyName ?? '').toUpperCase()}'s Members"),
+            style: BalooStyles.balooboldTitleTextStyle(),
+          ),
+          toolbarHeight: isWide ? 64 : kToolbarHeight, // a bit taller on web
         ),
-      ),
-      body: buildCompanyMembersList(),
-    );
+        // Responsive wrapper: keeps your original list centered and with comfy width on web
+        body: Center(
+          child: ConstrainedBox(
+            constraints: BoxConstraints(
+              maxWidth: isWide ? maxContentWidth : double.infinity,
+            ),
+            child: Padding(
+              padding: EdgeInsets.symmetric(horizontal: isWide ? 16 : 0),
+              child: buildCompanyMembersList(),
+            ),
+          ),
+        ),
+      );
+    });
   }
-
 
   Widget buildCompanyMembersList() {
     return Container(
       height: Get.height,
-      padding: EdgeInsets.symmetric(horizontal: 10),
-      child: SingleChildScrollView(
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            FutureBuilder<List<ChatUser>>(
-              future: APIs.getCompanyMembers2(widget.comapnyID),
-              builder: (context, snapshot) {
-                if (!snapshot.hasData) {
-                  return const SizedBox(height: 40, child: SizedBox());
-                }
-                if (snapshot.connectionState == ConnectionState.waiting) {
-                  return IndicatorLoading();
-                }
+      padding: const EdgeInsets.symmetric(horizontal: 10),
+      child:controller.isLoading?const IndicatorLoading():
+      (controller.members??[]).isEmpty?DataNotFoundText(): ListView.separated(
+        shrinkWrap: true,
+        itemCount: controller.members?.length??0,
+        itemBuilder: (context, index) {
+          final memData = controller.members?[index];
+          final bool isWide = MediaQuery.of(context).size.width >= 900; // web-aware inside the row
+          return SwipeTo(
+            iconOnLeftSwipe: Icons.delete_outline,
+            iconColor: Colors.red,
+            onLeftSwipe: /*(((APIs.me.selectedCompany!.createdBy == user.id) ))
+                              ? (de) {
+                            if(user.role
+                                != 'admin') {
+                              errorDialog("Not Allowed Delete!");
+                            }else{
+                              errorDialog("You cannot delete company here!");
+                            }
+                          }
+                              :*/
+                (detail) async {
+              final meId = controller.me?.userId;
+              final creatorId = controller.myCompany?.createdBy;
+              final targetId = memData?.userId;
 
-                if (snapshot.hasError) {
-                  return SizedBox(
-                      height: 40, child: Text(snapshot.error.toString()));
-                }
+              // Basic null-guards
+              if (meId == null || creatorId == null || targetId == null) {
+                toast("Something went wrong. Please try again.");
+                return;
+              }
 
-                final members = snapshot.data!;
-                print( members.length);
-                print(widget.comapnyID);
-                return members.isEmpty
-                    ? DataNotFoundText()
-                    : FutureBuilder<List<CompanyModel>>(
-                    future: APIs.fetchJoinedCompanies(),
-                    builder: (context, snapshot) {
-                      if (!snapshot.hasData) return SizedBox();
-                      final companies = snapshot.data!;
-                      return ListView.separated(
-                        itemCount: members.length,
-                        shrinkWrap: true,
-                        physics: const NeverScrollableScrollPhysics(),
-                        itemBuilder: (context, index) {
-                          final user = members[index];
-                          return SwipeTo(
-                            iconOnLeftSwipe: Icons.delete_outline,
-                            iconColor: Colors.red,
-                            onLeftSwipe: /*(((APIs.me.selectedCompany!.createdBy == user.id) ))
-                                    ? (de) {
-                                  if(user.role
-                                      != 'admin') {
-                                    errorDialog("Not Allowed Delete!");
-                                  }else{
-                                    errorDialog("You cannot delete company here!");
-                                  }
-                                }
-                                    :*/
-                                (detail) async {
-                              if (APIs.me.role != 'admin') {
-                                // Show message that the user is not allowed to remove members if they are not admin
-                                toast(
-                                  "You don't have permission to remove members.",
-                                );
-                                return; // Exit if the user is not an admin
-                              }
+              final isCreator = meId == creatorId;
+              final removingCreator = targetId == creatorId;
+              final removingSelf = targetId == meId;
 
-                              // 2. Check if the logged-in user is trying to remove themselves
-                              if (APIs.me.id == user.id) {
-                                // Show message that the admin cannot remove themselves
-                                toast(
-                                  "You cannot remove yourself from the company.",
-                                );
-                                return; // Exit if the user is trying to remove themselves
-                              }
-                              // Step 3: Check if the logged-in user is an admin of the selected company
-                              bool isAdminOfCompany = false;
-                              CompanyModel selectedCompany;
+              // 1) Never allow removing the company creator
+              if (removingCreator) {
+                toast("You cannot remove the company creator.");
+                return;
+              }
 
-                              // Check if the logged-in user is an admin of the selected company
-                              for (var company in companies) {
-                                if (company.id == widget.comapnyID) {
-                                  selectedCompany = company;
-                                  if (company.adminUserId == APIs.me.id) {
-                                    isAdminOfCompany = true;
-                                  }
-                                  break;
-                                }
-                              }
+              // 2) Block creator from removing themself (if you want this rule)
+              if (isCreator && removingSelf) {
+                toast("You are not allowed to remove yourself. Transfer ownership or delete the company.");
+                return;
+              }
 
-                              if (!isAdminOfCompany) {
-                                // Logged-in user is not an admin of the selected company
-                                toast(
-                                  "You must be an admin of the company to remove members.",
-                                );
-                                return;
-                              }
+              // 3) Only creator can remove members (adjust if you add roles later)
+              if (!isCreator) {
+                // Option A: block non-creator from removing anyone (including self)
+                toast("You don't have permission to remove members.");
+                return;
 
-                              // Step 4: If the logged-in user is an admin, ensure they are not trying to remove the company creator
-                              if (APIs.me.selectedCompany?.adminUserId ==
-                                  user.id) {
-                                // You cannot remove the creator (admin) of the company
-                                toast(
-                                  "You cannot remove the company creator.",
-                                );
-                                return;
-                              }
+                // Option B (if you want self-leave for non-creator):
+                // if (removingSelf) {
+                //   final confirmLeave = await showDialog(
+                //     context: context,
+                //     builder: (_) => AlertDialog(
+                //       backgroundColor: Colors.white,
+                //       title: const Text("Leave company"),
+                //       content: const Text("Are you sure you want to leave this company?"),
+                //       actions: [
+                //         TextButton(onPressed: () => Navigator.pop(context, false), child: const Text("Cancel")),
+                //         TextButton(onPressed: () => Navigator.pop(context, true), child: const Text("Leave")),
+                //       ],
+                //     ),
+                //   );
+                //   if (confirmLeave == true) {
+                //     controller.hitAPIToRemoveMember(targetId);
+                //   }
+                //   return;
+                // }
+                // return;
+              }
 
-                              final confirm = await showDialog(
-                                context: context,
-                                builder: (_) => AlertDialog(
-                                  backgroundColor: Colors.white,
-                                  title: Text(
-                                      "Remove ${user.email == 'null' || user.email == null || user.email == '' ? user.phone : user.email}"),
-                                  content: const Text(
-                                      "Are you sure you want to remove this member?"),
-                                  actions: [
-                                    TextButton(
-                                        onPressed: () =>
-                                            Navigator.pop(context, false),
-                                        child: const Text("Cancel")),
-                                    TextButton(
-                                        onPressed: () =>
-                                            Navigator.pop(context, true),
-                                        child: Text(
-                                          "Remove",
-                                          style: BalooStyles
-                                              .baloosemiBoldTextStyle(
-                                              color: Colors.red),
-                                        )),
-                                  ],
-                                ),
-                              );
+              // 4) Creator removing a normal member → confirm dialog
+              final who = (memData?.email == null || memData?.email == '' || memData?.email == 'null')
+                  ? memData?.phone
+                  : memData?.email;
 
-                              if (confirm == true) {
-                                await APIs.removeCompanyMember(
-                                    userId: user.id,
-                                    companyId: widget.comapnyID,
-                                    currentUserId: APIs.me.id,
-                                    role: APIs.me.role);
-                                setState(() {});
+              final confirm = await showDialog(
+                context: context,
+                builder: (_) => AlertDialog(
+                  backgroundColor: Colors.white,
+                  title: Text("Remove $who"),
+                  content: const Text("Are you sure you want to remove this member?"),
+                  actions: [
+                    TextButton(onPressed: () => Navigator.pop(context, false), child: const Text("Cancel")),
+                    TextButton(
+                      onPressed: () => Navigator.pop(context, true),
+                      child: Text("Remove", style: BalooStyles.baloosemiBoldTextStyle(color: Colors.red)),
+                    ),
+                  ],
+                ),
+              );
+
+              if (confirm == true) {
+                controller.hitAPIToRemoveMember(targetId);
+              }
+            },
+
+              child: ListTile(
+              onTap: () {
+                // Get.back();
+                // dcController.updateIndex(1);
+                // setState(() {
+                //     isTaskMode = false;
+                // });
+              },
+              dense: true,
+              visualDensity: kIsWeb ? const VisualDensity(vertical: -1) : VisualDensity.standard, // tighter on web
+              contentPadding:
+              const EdgeInsets.symmetric(horizontal: 10, vertical: 0),
+              leading:memData?.userName == 'null' ||
+                  memData?.userName == '' ||
+                  memData?.userName == null
+                  ? CircleAvatar(
+                  radius: isWide ? 22 : 20, // slightly larger on wide
+                  backgroundColor: appColorGreen.withOpacity(.1),
+                  child: Icon(
+                    Icons.person,
+                    size: isWide ? 18 : 15,
+                    color: appColorGreen,
+                  ))
+                  : CircleAvatar(
+                  radius: isWide ? 22 : 20,
+                  backgroundColor: appColorGreen.withOpacity(.1),
+                  child: SizedBox(
+                    width: 50,
+                    child: CustomCacheNetworkImage(
+                      radiusAll: 100,
+                      boxFit: BoxFit.cover,
+                      "${ApiEnd.baseUrlMedia}${memData?.userImage ?? ''}",
+                    ),
+                  )),
+              title: memData?.userName == 'null' ||
+                  memData?.userName == '' ||
+                  memData?.userName == null
+                  ? Text(
+                (memData?.email != null)
+                    ? memData?.email ?? ''
+                    : memData?.phone ?? '',
+                style: BalooStyles.balooregularTextStyle(),
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+              )
+                  : Text(
+                memData?.userName ?? '',
+                style: BalooStyles.baloosemiBoldTextStyle(),
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+              ),
+              subtitle: memData?.userName == 'null' ||
+                  memData?.userName == '' ||
+                  memData?.userName == null
+                  ? const SizedBox(
+                height: 0,
+              )
+                  : Text(
+                memData?.email != null
+                    ?memData?.email ?? ''
+                    : memData?.phone ?? '',
+                style: BalooStyles.balooregularTextStyle(),
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+              ),
+              trailing: Column(
+                  crossAxisAlignment: CrossAxisAlignment.end,
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+
+                    // (user.userId == APIs.me.id && user.userId != APIs.me.selectedCompany?.adminUserId)
+                    //  ? Text(
+                    //                     //   "You",
+                    //                     //   style: BalooStyles
+                    //                     //       .baloonormalTextStyle(),
+                    //                     // )
+                    //     :(user.userId == APIs.me.selectedCompany?.adminUserId)?Text(
+                    //   "Creator",
+                    //   style: BalooStyles
+                    //       .baloonormalTextStyle(color:appColorGreen),
+                    // ): const SizedBox(),
+
+                    Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        TextButton(
+                            onPressed: () {
+
+                              dcController.updateIndex(0);
+
+                              isTaskMode = false;
+                              controller.update();
+                              // APIs.updateActiveStatus(true);
+
+
+                              if(isTaskMode) {
+                                Get.toNamed(AppRoutes.tasks_li_r,
+                                    arguments: {'user': memData});
+                              }else{
+                                Get.toNamed(AppRoutes.chats_li_r,
+                                    arguments: {'user': memData});
                               }
                             },
-                            child: ListTile(
-                              dense: true,
-                              contentPadding: const EdgeInsets.symmetric(
-                                  horizontal: 10, vertical: 0),
-                              leading: user.name == 'null' ||
-                                  user.name == '' ||
-                                  user.name == null
-                                  ? CircleAvatar(
-                                  radius: 15,
-                                  backgroundColor:
-                                  appColorGreen.withOpacity(.1),
-                                  child: Icon(
-                                    Icons.person,
-                                    size: 15,
-                                    color: appColorGreen,
-                                  ))
-                                  : CircleAvatar(
-                                  radius: 15,
-                                  backgroundColor:
-                                  appColorGreen.withOpacity(.1),
-                                  child: Text(user.name[0] ?? '')),
-                              title: user.name == 'null' ||
-                                  user.name == '' ||
-                                  user.name == null
-                                  ? Text(
-                                user.email.isEmpty ||
-                                    user.email == null ||
-                                    user.email == 'null'
-                                    ? user.phone
-                                    : user.email,
-                                style:
-                                BalooStyles.balooregularTextStyle(),
-                              )
-                                  : Text(
-                                user.name ?? '',
-                                style: BalooStyles
-                                    .baloosemiBoldTextStyle(),
-                              ),
-                              subtitle: user.name == 'null' ||
-                                  user.name == '' ||
-                                  user.name == null
-                                  ? const SizedBox(
-                                height: 0,
-                              )
-                                  : Text(
-                                user.email.isEmpty ||
-                                    user.email == null ||
-                                    user.email == 'null'
-                                    ? user.phone
-                                    : user.email,
-                                style:
-                                BalooStyles.balooregularTextStyle(),
-                              ),
-                              trailing: (user.id == APIs.me.id && user.id != APIs.me.selectedCompany?.adminUserId)
-                                  ? Text(
-                                "You",
-                                style: BalooStyles
-                                    .baloonormalTextStyle(),
-                              )
-                                  :(user.id == APIs.me.selectedCompany?.adminUserId)?Text(
-                                "Creator",
-                                style: BalooStyles
-                                    .baloonormalTextStyle(color:appColorGreen),
-                              ): const SizedBox(),
-                              /*trailing: IconButton(
-                              icon: Icon(Icons.delete, color: Colors.red),
-                              onPressed: () async {
-                                final confirm = await showDialog(
-                                  context: context,
-                                  builder: (_) => AlertDialog(
-                                    title: Text("Remove ${user.name}?"),
-                                    content: Text("Are you sure you want to remove this member?"),
-                                    actions: [
-                                      TextButton(onPressed: () => Navigator.pop(context, false), child: Text("Cancel")),
-                                      TextButton(onPressed: () => Navigator.pop(context, true), child: Text("Remove")),
-                                    ],
-                                  ),
-                                );
+                            style: TextButton.styleFrom(
+                              // backgroundColor: appColorGreen.withOpacity(.1), // Button background color
+                              foregroundColor: appColorGreen,
+                              padding: const EdgeInsets.symmetric(
+                                  horizontal: 7.0,
+                                  vertical: 3.0), // reduce as needed
+                              minimumSize: const Size(0,
+                                  0), // optional: allows tighter sizing
+                              tapTargetSize: MaterialTapTargetSize
+                                  .shrinkWrap, // optional: reduces touch target
+                            ),
+                            child: Image.asset(chatHome,color: appColorGreen,height: 20,)),
+                        TextButton(
+                            onPressed: () {
 
-                                if (confirm == true) {
-                                  await APIs.removeCompanyMember(user.id, companyId);
-                                }
-                              },
-                            ),*/
+                              dcController.updateIndex(1);
+
+                              isTaskMode = true;
+                              controller.update();
+                              if(isTaskMode) {
+                                Get.toNamed(AppRoutes.tasks_li_r,
+                                    arguments: {'user': memData});
+                              }else{
+                                Get.toNamed(AppRoutes.chats_li_r,
+                                    arguments: {'user': memData});
+                              }
+                            },
+                            style: TextButton.styleFrom(
+                              padding: const EdgeInsets.symmetric(
+                                  horizontal: 6.0,
+                                  vertical: 3.0), // reduce as needed
+                              minimumSize: const Size(0,
+                                  0), // optional: allows tighter sizing
+                              tapTargetSize: MaterialTapTargetSize
+                                  .shrinkWrap, // optional: reduces touch target
+                            ),
+                            child: Image.asset(tasksHome,color: appColorYellow,height: 20,)),
+                      ],
+                    )
+                  ]),
+              /*trailing: IconButton(
+                        icon: Icon(Icons.delete, color: Colors.red),
+                        onPressed: () async {
+                          final confirm = await showDialog(
+                            context: context,
+                            builder: (_) => AlertDialog(
+                              title: Text("Remove ${user.name}?"),
+                              content: Text("Are you sure you want to remove this member?"),
+                              actions: [
+                                TextButton(onPressed: () => Navigator.pop(context, false), child: Text("Cancel")),
+                                TextButton(onPressed: () => Navigator.pop(context, true), child: Text("Remove")),
+                              ],
                             ),
                           );
+
+                          if (confirm == true) {
+                            await APIs.removeCompanyMember(user.id, companyId);
+                          }
                         },
-                        separatorBuilder: (BuildContext context, int index) {
-                          return divider().marginSymmetric(horizontal: 20);
-                        },
-                      );
-                    });
-              },
+                      ),*/
             ),
-          ],
-        ),
+          );
+        },
+        separatorBuilder: (BuildContext context, int index) {
+          return divider().marginSymmetric(horizontal: 20);
+        },
       ),
     );
   }

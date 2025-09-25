@@ -2,7 +2,7 @@ import 'package:AccuChat/Screens/Chat/models/company_model.dart';
 
 class InvitationModel {
   final String id;
-  final String companyId;
+  final int companyId;
   CompanyModel? company;
   final String email;
    String? name;

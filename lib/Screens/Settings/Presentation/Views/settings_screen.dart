@@ -1,6 +1,7 @@
 import 'package:AccuChat/Constants/themes.dart';
 import 'package:AccuChat/Screens/Settings/Presentation/Controllers/settings_controller.dart';
 import 'package:AccuChat/Screens/Settings/Presentation/Views/static_page.dart';
+import 'package:AccuChat/main.dart';
 import 'package:AccuChat/utils/backappbar.dart';
 import 'package:AccuChat/utils/helper_widget.dart';
 import 'package:AccuChat/utils/text_style.dart';
@@ -198,13 +199,8 @@ class SettingsScreen extends StatelessWidget {
             ),
 
         vGap(15),
+        //TODO
 
-       !(APIs.me.role=='admin')?  TextButton(child: Text("Delete Account",
-          style: BalooStyles.baloomediumTextStyle(color: AppTheme.redErrorColor),), onPressed: ()async{
-         await showDeleteAccountDialog(context,APIs.me.id);
-          // await deleteCompany(context, widget.company!);
-
-        }):SizedBox()
       ],
     );
   }
@@ -213,55 +209,6 @@ class SettingsScreen extends StatelessWidget {
 
 
 
-   Future<void> showDeleteAccountDialog(BuildContext context, String userId) async {
-     final shouldDelete = await showDialog<bool>(
-       context: context,
-       builder: (context) => AlertDialog(
-         backgroundColor: Colors.white,
-         actionsAlignment: MainAxisAlignment.center,
-         title:  Text('Delete Account',style:BalooStyles.balooboldTitleTextStyle(color: AppTheme.redErrorColor),),
-         content: Column(
-           mainAxisSize: MainAxisSize.min,
-           crossAxisAlignment: CrossAxisAlignment.center,
-           children: [
-              Text(
-                 'Are you sure you want to permanently delete your account?',
-                style: BalooStyles.balooregularTextStyle(),
-
-             ),
-              vGap(15),
-
-              Text(
-                     'All your messages, group participation, and data will be deleted and cannot be recovered.'
-                 ,style: BalooStyles.baloomediumTextStyle(color: AppTheme.redErrorColor),
-             ),
-           ],
-         ),
-         actions: [
-           TextButton(
-             onPressed: () => Navigator.pop(context, false),
-             child:  Text('Cancel',style:BalooStyles.baloomediumTextStyle(),),
-           ),
-           ElevatedButton(
-             style: ElevatedButton.styleFrom(backgroundColor: Colors.red),
-             onPressed: () => Navigator.pop(context, true),
-             child: const Text('Delete'),
-           ),
-         ],
-       ),
-     );
-
-     if (shouldDelete == true) {
-       // ✅ Call delete function here
-       await APIs.deleteUserAccountChunked(userId);
-
-       // Optional: Navigate or show a success snackbar
-
-       // Optional: Sign out and redirect
-       // await FirebaseAuth.instance.signOut();
-       // Navigator.pushReplacement(context, MaterialPageRoute(builder: (_) => LoginScreen()));
-     }
-   }
 
 
 }

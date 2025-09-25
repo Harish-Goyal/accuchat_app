@@ -7,9 +7,7 @@ import 'package:dio/dio.dart';
 import 'package:dio/io.dart';
 import 'package:flutter/foundation.dart';
 import 'package:get/get.dart';
-
-import '../../main.dart';
-import 'local_keys.dart';
+import '../storage_service.dart';
 
 const _defaultConnectTimeout = Duration.millisecondsPerMinute;
 const _defaultReceiveTimeout = Duration.millisecondsPerMinute;
@@ -45,26 +43,25 @@ class DioClient {
       _dio.interceptors.addAll(interceptors!);
     }
     if (kDebugMode) {
-      _dio.interceptors.add(
-          LogInterceptor.LogInterceptor(responseBody: true,
+      _dio.interceptors.add(LogInterceptor.LogInterceptor(
+          responseBody: true,
           error: true,
           requestHeader: true,
           responseHeader: false,
-request: false,
-          requestBody: true)
-      );
+          request: false,
+          requestBody: true));
     }
-    /*if(kIsWeb){
+   /* if(kIsWeb){
       HttpClient client = HttpClient();
       client.badCertificateCallback =((X509Certificate cert, String  host, int port) => true);
 
-      */ /*(_dio.httpClientAdapter as DefaultHttpClientAdapter).createHttpClient!()
+       (_dio.httpClientAdapter as DefaultHttpClientAdapter).createHttpClient!()
         .badCertificateCallback = ((X509Certificate cert, String host, int port) {
-          final isValidHost = ["192.168.1.67"].contains(host); // <-- allow only hosts in array
+          final isValidHost = ["192.168.1.21"].contains(host); // <-- allow only hosts in array
+          // final isValidHost = ["192.168.1.67"].contains(host); // <-- allow only hosts in array
           return isValidHost;
-        });*/ /*
-   }
-*/
+        });
+   }*/
     if (!kIsWeb) {
       (_dio.httpClientAdapter as DefaultHttpClientAdapter).onHttpClientCreate =
           (HttpClient client) {
@@ -80,7 +77,6 @@ request: false,
       ((X509Certificate cert, String host, int port) => true);
       return dioClient;
     };*/
-
   }
 
   Future<dynamic> get(String uri,
@@ -91,10 +87,13 @@ request: false,
       bool? skipAuth}) async {
     try {
       if (skipAuth == false) {
-        var token = await storage.read(LOCALKEY_token);
+        var token = StorageService.getToken();
         debugPrint("Authorization token is ******* $token");
         if (token != null) {
-          options = Options(headers: {"Authorization": "Bearer $token"});
+          options = Options(headers: {
+            "Authorization": "Bearer $token",
+            "Content-Type": "application/json"
+          });
         }
       }
       var response = await _dio.get(
@@ -127,19 +126,22 @@ request: false,
   }) async {
     try {
       if (skipAuth == false) {
-        var token = await storage.read(LOCALKEY_token);
+        var token =  StorageService.getToken();
         debugPrint("authorization token is ********* $token");
 
-        /* if (token != null) {
+        if (token != null) {
           if (options == null) {
-            options = Options(headers: {"Authorization": "Bearer $token"});
+            options = Options(headers: {
+              "Authorization": "Bearer $token",
+              "Content-Type": "application/json"
+            });
           }
-        }*/
+        }
       }
 
-      if (options == null) {
-        options = Options(headers: {"Content-Type": "multipart/form-data"});
-      }
+      /*if (options == null) {
+        options = Options(headers: {"Content-Type": "application/json"});
+      }*/
       var response = await _dio.post(
         uri,
         data: data,
@@ -167,11 +169,14 @@ request: false,
       bool? skipAuth}) async {
     try {
       if (skipAuth == false) {
-        var token = await storage.read(LOCALKEY_token);
+        var token =  StorageService.getToken();
         debugPrint("Authorization token is *********  $token");
 
         if (token != null) {
-          options ??= Options(headers: {"Authorization": "Bearer $token"});
+          options ??= Options(headers: {
+            "Authorization": "Bearer $token",
+            "Content-Type": "application/json"
+          });
         }
       }
       var response = await _dio.put(
@@ -182,6 +187,41 @@ request: false,
         cancelToken: cancelToken,
         onSendProgress: onSendProgress,
         onReceiveProgress: onReceiveProgress,
+      );
+      return response.data;
+    } on FormatException catch (_) {
+      throw const FormatException("Unable to process the data");
+    } catch (e) {
+      throw e;
+    }
+  }
+
+  Future<dynamic> delete(String uri,
+      {data,
+      Map<String, dynamic>? queryParameters,
+      Options? options,
+      CancelToken? cancelToken,
+      ProgressCallback? onSendProgress,
+      ProgressCallback? onReceiveProgress,
+      bool? skipAuth}) async {
+    try {
+      if (skipAuth == false) {
+        var token =  StorageService.getToken();
+        debugPrint("Authorization token is *********  $token");
+
+        if (token != null) {
+          options ??= Options(headers: {
+            "Authorization": "Bearer $token",
+            "Content-Type": "application/json"
+          });
+        }
+      }
+      var response = await _dio.delete(
+        uri,
+        data: data,
+        queryParameters: queryParameters,
+        options: options,
+        cancelToken: cancelToken,
       );
       return response.data;
     } on FormatException catch (_) {

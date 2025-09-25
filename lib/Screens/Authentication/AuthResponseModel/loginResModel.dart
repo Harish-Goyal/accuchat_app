@@ -73,12 +73,16 @@ class UserData {
   @HiveField(12)
   var isCollection;
 
+  @HiveField(13)
+  var otp;
+
 
   var accessEmailCheckBox;
   var canViewClientContact;
   var canViewAll;
   var canEditAll;
   var canAddAll;
+  var token;
   var password;
   UserData(
       {this.userId,
@@ -92,10 +96,12 @@ class UserData {
         this.canEditAll,
         this.canAddAll,
         this.userAbbr,
+        this.token,
         this.accessEmailCheckBox,
         this.canViewClientContact,
         this.empName,
         this.empImage,
+        this.otp,
         this.empDob,
         this.isCollection,
         this.isGroup,
@@ -105,9 +111,11 @@ class UserData {
     userId = json['user_id'];
     regdDate = json['regd_date'];
     userName = json['user_name'];
+    otp = json['otp'];
     password = json['password'];
     status = json['status'];
     userRoleId = json['user_role_id'];
+    token = json['token'];
     empId = json['emp_id'];
     canViewAll = json['can_view_all'];
     canEditAll = json['can_edit_all'];
@@ -130,7 +138,9 @@ class UserData {
     data['user_name'] = this.userName;
     data['password'] = this.password;
     data['status'] = this.status;
+    data['otp'] = this.otp;
     data['user_role_id'] = this.userRoleId;
+    data['token'] = this.token;
     data['emp_id'] = this.empId;
     data['can_view_all'] = this.canViewAll;
     data['can_edit_all'] = this.canEditAll;

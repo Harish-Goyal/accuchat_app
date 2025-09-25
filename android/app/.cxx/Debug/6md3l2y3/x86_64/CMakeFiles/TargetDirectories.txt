@@ -1,0 +1,2 @@
+C:/Users/Admin/Desktop/accuchat_firebase/accu_chatapp/android/app/.cxx/Debug/6md3l2y3/x86_64/CMakeFiles/edit_cache.dir
+C:/Users/Admin/Desktop/accuchat_firebase/accu_chatapp/android/app/.cxx/Debug/6md3l2y3/x86_64/CMakeFiles/rebuild_cache.dir
