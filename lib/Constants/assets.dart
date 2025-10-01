@@ -1,20 +1,20 @@
 
 //app icon
-const String  appIconAccutech = "assets/images/accutecherp.png";
-const String  appIconsuffix = "assets/icons/accutask_logo_suffix.png";
-const String  appIcon = "assets/icons/chat_logo_transparent.png";
-const String  logoMain = "assets/icons/chat_logo_transparent.png";
-const String  emptyTask = "assets/icons/empty_task.png";
-const String  calendarPng = "assets/images/calendar.png";
-const String  categoryPng = "assets/images/category.png";
-const String  descriptionPng = "assets/images/description.png";
-const String  loginPng = "assets/images/login_icon.png";
-const String  assignedtobyPng = "assets/images/assignedtoby.png";
-const String  assignedByPng = "assets/images/assignedBy.png";
-const String  assignedToPng = "assets/images/assignedTo.png";
-const String  companyGroupPng = "assets/images/layers.png";
-const String  forwardPng = "assets/images/forward_msg.png";
-const String  ticketPng = "assets/images/ticket.png";
+const String appIconAccutech = "assets/images/accutecherp.png";
+const String appIconsuffix = "assets/icons/accutask_logo_suffix.png";
+const String appIcon = "assets/icons/chat_logo_transparent.png";
+const String logoMain = "assets/icons/chat_logo_transparent.png";
+const String emptyTask = "assets/icons/empty_task.png";
+const String calendarPng = "assets/images/calendar.png";
+const String categoryPng = "assets/images/category.png";
+const String descriptionPng = "assets/images/description.png";
+const String loginPng = "assets/images/login_icon.png";
+const String assignedtobyPng = "assets/images/assignedtoby.png";
+const String assignedByPng = "assets/images/assignedBy.png";
+const String assignedToPng = "assets/images/assignedTo.png";
+const String companyGroupPng = "assets/images/layers.png";
+const String forwardPng = "assets/images/forward_msg.png";
+const String ticketPng = "assets/images/ticket.png";
 const String ICON_profile = "assets/images/user.png";
 const String connectedAppIcon = "assets/icons/connectApp.png";
 const String addUserIcon = "assets/icons/add-user.png";
