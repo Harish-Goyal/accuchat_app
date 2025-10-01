@@ -1,0 +1,123 @@
+dependencies:
+  flutter:
+    sdk: flutter
+  get:
+  dio:
+  flutter_easyloading: ^3.0.5
+  intl:
+  shared_preferences_web: ^2.3.0
+  flutter_snake_navigationbar:
+  internet_connection_checker_plus: ^2.5.1
+  get_storage: ^2.0.3
+  font_awesome_flutter: ^10.7.0
+  flutter_rating_bar: ^4.0.1
+  smooth_page_indicator: ^1.0.0+2
+  shared_preferences: ^2.2.2
+  google_maps_flutter: ^2.5.3
+  loading_indicator: ^3.1.1
+  google_fonts:
+  gal: ^2.3.0
+  photo_view: ^0.15.0
+  in_app_update: ^4.0.2
+  flutter_contacts:
+  logger:
+  file_picker:
+  mime: ^1.0.4
+
+  permission_handler:
+  flutter_svg:
+  googleapis_auth: ^1.4.0
+  otp_text_field: ^1.1.3
+  connectivity_plus: ^6.0.3
+  http_parser:
+  image_picker:
+  image_cropper:
+  pinch_zoom:
+  cached_network_image:
+  shimmer:
+  audioplayers:
+  device_info_plus: ^10.1.0
+  flutter_slidable: ^3.1.1
+  carousel_slider: ^5.0.0
+  flutter_screenutil:
+  flutter_staggered_animations: ^1.1.1
+  flutter_animate: ^4.5.0
+  animated_text_kit: ^4.2.2
+  grouped_list: ^6.0.0
+  firebase_storage: ^12.4.5
+#  emoji_picker_flutter: ^1.5.1
+  firebase_messaging: ^15.2.5
+  flutter_notification_channel: ^3.1.1
+  chewie: ^1.3.1
+  flutter_local_notifications:
+  video_player: ^2.3.0
+#  gallery_saver:
+  firebase_auth: ^5.5.2
+  media_scanner: ^2.1.0
+  firebase_core: ^3.13.0
+  google_sign_in: ^6.2.1
+  sms_autofill: ^2.3.0
+#  gallery_saver:
+  tim_ui_kit_sticker_plugin: ^4.0.2
+  flutter_html:
+  hive: ^2.2.3
+  open_filex:
+#  firebase_core: ^2.25.0
+#  firebase_auth: ^4.16.0
+#  google_sign_in:
+  cloud_firestore:
+  socket_io_client: ^2.0.0
+  hive_flutter: ^1.1.0
+  timeago:
+  swipe_to: ^1.0.6
+  animated_search_bar: ^2.7.2
+  url_launcher: ^6.3.0
+#  build_runner:
+# smooth_star_rating_null_safety: ^1.0.4+2
+
+# animated_text_kit: ^4.2.2
+# phonepe_payment_sdk: ^2.0.2
+# crypto:
+# googleapis_auth: ^1.6.0
+  http:
+  country_code_picker:
+  otp_text_field_v2:
+
+  # The following adds the Cupertino Icons font to your application.
+  # Use with the CupertinoIcons class for iOS style icons.
+  cupertino_icons: ^1.0.8
+
+dependency_overrides:
+  firebase_core_platform_interface:
+  firebase_auth_platform_interface:
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  hive_generator: ^1.1.1
+  build_runner: ^2.1.2
+  # The "flutter_lints" package below contains a set of recommended lints to
+  # encourage good coding practices. The lint set provided by the package is
+  # activated in the `analysis_options.yaml` file located at the root of your
+  # package. See that file for information about deactivating specific lint
+  # rules and activating additional ones.
+  flutter_lints: ^4.0.0
+
+# For information on the generic Dart part of this file, see the
+# following page: https://dart.dev/tools/pub/pubspec
+
+# The following section is specific to Flutter packages.
+flutter:
+
+  # The following line ensures that the Material Icons font is
+  # included with your application, so that you can use the icons in
+  # the material Icons class.
+  uses-material-design: true
+
+  # To add assets to your application, add an assets section, like this:
+  assets:
+    - assets/images/
+    - assets/icons/
+    - assets/icons/setting_icon/
+    - assets/sounds/
+    - assets/service-account.json

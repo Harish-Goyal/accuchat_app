@@ -1,6 +1,7 @@
 import 'package:AccuChat/Screens/Chat/screens/chat_tasks/Presentation/Controllers/task_home_controller.dart';
 import 'package:AccuChat/Screens/Home/Presentation/Controller/compnaies_controller.dart';
 import 'package:AccuChat/Services/APIs/api_ends.dart';
+import 'package:AccuChat/Services/subscription/billing_controller.dart';
 import 'package:AccuChat/main.dart';
 import 'package:AccuChat/utils/helper_widget.dart';
 import 'package:AccuChat/utils/loading_indicator.dart';
@@ -11,6 +12,7 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import '../../../../Constants/assets.dart';
 import '../../../../Constants/colors.dart';
+import '../../../../Services/subscription/billing_service.dart';
 import '../../../../routes/app_routes.dart';
 import '../Controller/company_service.dart';
 import '../Controller/home_controller.dart';
@@ -19,6 +21,7 @@ import 'home_screen.dart';
 class CompaniesScreen extends GetView<CompaniesController> {
    CompaniesScreen({super.key});
   final dash = Get.put(DashboardController());
+
   @override
   Widget build(BuildContext context) => SafeArea(
         child: Scaffold(
@@ -28,13 +31,25 @@ class CompaniesScreen extends GetView<CompaniesController> {
                   onPressed: () {
 
                     if(kIsWeb){
-                      Get.toNamed(
-                        "${AppRoutes.create_company}?isHome='1'",
+                      // Get.toNamed(
+                      //   "${AppRoutes.create_company}?isHome='1'",
+                      // );
+                      final service = BillingService(
+                        baseUrl: 'https://api.accuchat.example',
+                        authTokenProvider: () async => '<JWT>',
                       );
+                      final billingCtrl = Get.put(BillingController(service));
+                      controller.onCreateCompanyPressed(billingCtrl);
                     }else {
-                      Get.toNamed(
-                          AppRoutes.create_company,
-                          arguments: {'isHome': true});
+                      final service = BillingService(
+                        baseUrl: 'https://api.accuchat.example',
+                        authTokenProvider: () async => '<JWT>',
+                      );
+                      final billingCtrl = Get.put(BillingController(service));
+                      controller.onCreateCompanyPressed(billingCtrl);
+                      // Get.toNamed(
+                      //     AppRoutes.create_company,
+                      //     arguments: {'isHome': true});
                     }
                   },
                   backgroundColor: appColorGreen,

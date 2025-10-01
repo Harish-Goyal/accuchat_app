@@ -26,44 +26,56 @@ abstract class PostApiService {
   Future<SuccessResponseModel> changePasswordApiCall({FormData? dataBody});
   Future<CompanyResModel> getJoinedCompanyListApiCall();
   Future<PendingInvitesResModel> pendingInviteListApiCall({userInput});
-  Future<CreateCompanyResModel> createCompanyAPICall({required FormData dataBody});
-  Future<SuccessResponseModel> sendInvitesToJoinCompanyAPI({required Map<String, dynamic> dataBody});
+  Future<CreateCompanyResModel> createCompanyAPICall(
+      {required FormData dataBody});
+  Future<SuccessResponseModel> sendInvitesToJoinCompanyAPI(
+      {required Map<String, dynamic> dataBody});
   Future<AcceptInviteRes> acceptInviteApiCall({id});
-  Future<SuccessResponseModel> createRoleApiCall({Map<String,dynamic>? dataBody});
+  Future<SuccessResponseModel> createRoleApiCall(
+      {Map<String, dynamic>? dataBody});
   Future<NavPermissionResModel> getNavigationPermissionApiCall();
   Future<GetCompanyRolesResModel> getCompanyRolesApiCall(companyId);
-  Future<SuccessResponseModel> removeComMemberApiCall({compId,memberId});
+  Future<SuccessResponseModel> removeComMemberApiCall({compId, memberId});
   Future<PendingSentInvitesResModel> getPendingSentInvitesApiCall();
   Future<MediaResModel> uploadMediaApiCall({FormData? dataBody});
   Future<SuccessResponseModel> deleteSentInvitesApiCall(inviteID);
-  Future<GroupResModel> addEditGroupBroadcastApiCall({required FormData dataBody});
+  Future<GroupResModel> addEditGroupBroadcastApiCall(
+      {required FormData dataBody});
   Future<ComMemResModel> getComMemApiCall(comId);
   Future<RecentChatsUserResModel> getRecentChatUserApiCall({comId, page});
-  Future<ChatHisResModelAPI> getChatHistoryApiCall({userComId, page,searchText});
-  Future<SuccessResponseModel> updateRoleApiCall({Map<String,dynamic>? dataBody,roleId});
-  Future<GroupMemberAPIRes> getGrBrMemberApiCall({id,mode});
-  Future<SuccessResponseModel> addMemberToGrBrApiCall({Map<String, dynamic>? dataBody});
-  Future<SuccessResponseModel> deleteGrBrApiCall({Map<String, dynamic>? dataBody});
+  Future<ChatHisResModelAPI> getChatHistoryApiCall(
+      {userComId, page, searchText});
+  Future<SuccessResponseModel> updateRoleApiCall(
+      {Map<String, dynamic>? dataBody, roleId});
+  Future<GroupMemberAPIRes> getGrBrMemberApiCall({id, mode});
+  Future<SuccessResponseModel> addMemberToGrBrApiCall(
+      {Map<String, dynamic>? dataBody});
+  Future<SuccessResponseModel> deleteGrBrApiCall(
+      {Map<String, dynamic>? dataBody});
   Future<SuccessResponseModel> deleteUserAccountApiCall({userID});
   Future<TaskStatusResModel> getTaskStatusApiCall();
-  Future<NavPermissionResModel> getNavPerUSerApiCall({required int comId, required int  userComId});
+  Future<NavPermissionResModel> getNavPerUSerApiCall(
+      {required int comId, required int userComId});
   Future<SuccessResponseModel> deleteCompanyApiCall({compId});
   Future<TaskAttachmentResModel> uplaodTaskAttachmentsAPICall(
       {required FormData dataBody});
-  Future<TaskHisResModel> getTaskHistoryApiCall(
-      {userComId, page,statusId});
+  Future<TaskHisResModel> getTaskHistoryApiCall({userComId, page, statusId});
 
   Future<RecentTaskUserData> getRecentTaskUserApiCall(
-      {comId, page,searchText});
+      {comId, page, searchText});
 
   Future<TaskCommentsResModel> getCommentsOnTaskApiCall(
-      {taskId, page,companyId});
+      {taskId, page, companyId});
 
   Future<GetSingleCompanyRes> getCompanyByIdApiCall(comId);
 
-  Future<SingleUserResModel> getUserByApiCall({userID,comid});
+  Future<SingleUserResModel> getUserByApiCall({userID, comid});
 
   Future<SingleTaskRes> getTaskByIdApiCall(taskId);
 
   Future<ComMemResModel> getTaskMemberApiCall(taskId);
+  Future<SuccessResponseModel> registerPushTokenApiCall(
+      {Map<String, dynamic>? dataBody});
+  Future<SuccessResponseModel> unregisterPushTokenApiCall(
+      {Map<String, dynamic>? dataBody});
 }

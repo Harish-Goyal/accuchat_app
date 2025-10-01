@@ -1,15 +1,15 @@
 class ApiEnd {
   // https://app.accutask.com/
-  static const String baseUrl = "http://192.168.1.111:3001/api/";
-  static const String baseUrlMedia = "http://192.168.1.111:3001";
-  // static const String baseUrl = "https://www.api.accuchat.in:3001/api/";
-  // static const String baseUrlMedia = "https://www.api.accuchat.in:3001/";
-
-
+  // static const String baseUrl = "http://192.168.1.111:3001/api/";
+  // static const String baseUrlMedia = "http://192.168.1.111:3001";
+  static const String baseUrl = "http://www.api.accuchat.in:3001/api/";
+  static const String baseUrlMedia = "http://www.api.accuchat.in:3001";
   static const String authKEy = "rEgAnAmTrOppUsHcEtIgId";
   static const String loginEnd = "api/user_login";
   static const String signupEnd = "auth/signup";
   static const String verifyOtpEnd = "auth/verify-otp";
+  static const String pushRegisterEnd = "/push/register";
+  static const String pushUnregisterEnd = "/push/unregister";
   static const String logoutEnd = "api/logout";
   static const String ticketsDataListEnd = "api/get_tickets_data";
   static const String companyListEnd = "companies";
@@ -40,7 +40,6 @@ class ApiEnd {
   static const String getTicketStatusEnd = "api/get_ticket_status_by_action";
   static const String getTicketActionEnd = "api/get_ticket_actions";
   static const String getTicketAssignToEnd = "api/checkAssignTo";
-  // static const String getTicketStatusEnd = "api/get_ticket_status";
   static const String getTaskGroupEnd = "api/get_task_group";
   static const String getUpdateTicketStatusEnd = "api/update_ticket_status";
   static const String startPauseEnd = "api/start_pause_process";

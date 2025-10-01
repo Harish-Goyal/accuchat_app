@@ -12,8 +12,11 @@ import 'package:get/get.dart';
 import '../../../../Services/APIs/auth_service/auth_api_services_impl.dart';
 import '../../../../Services/APIs/local_keys.dart';
 import '../../../../Services/APIs/post/post_api_service_impl.dart';
+import '../../../../Services/subscription/billing_controller.dart';
+import '../../../../Services/subscription/billing_service.dart';
 import '../../../../main.dart';
 import '../../../../utils/custom_flashbar.dart';
+import '../../../Chat/api/apis.dart';
 import '../../../Chat/screens/auth/models/get_uesr_Res_model.dart';
 import '../../../Chat/screens/chat_tasks/Presentation/Views/chat_home_screen.dart';
 import '../../../Chat/screens/chat_tasks/Presentation/Views/task_home_screen.dart';
@@ -68,6 +71,7 @@ class DashboardController extends GetxController with WidgetsBindingObserver{
         return Container();  // fallback
     }
   }
+
 
 
   String iconFor(NavigationItem nav) {
@@ -232,6 +236,7 @@ class DashboardController extends GetxController with WidgetsBindingObserver{
         .getUserApiCall(companyId: myCompany?.companyId??0)
         .then((value) async {
       userData = value.data!;
+      await APIs.getFirebaseMessagingToken();
       saveUser(userData);
       storage.write(userId, userData.userId);
       storage.write(user_mob, userData.phone??'');

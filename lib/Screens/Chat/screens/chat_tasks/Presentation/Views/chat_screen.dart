@@ -106,6 +106,7 @@ class ChatScreen extends GetView<ChatScreenController> {
             //if emojis are shown & back button is pressed then hide emojis
             //or else simple close current screen on back button click
             onWillPop: () {
+              Get.find<ChatHomeController>().hitAPIToGetRecentChats();
               return Future.value(true);
             },
             child: SafeArea(
@@ -689,6 +690,7 @@ class ChatScreen extends GetView<ChatScreenController> {
                 IconButton(
                     onPressed: () {
                       Get.back();
+                      Get.find<ChatHomeController>().hitAPIToGetRecentChats();
                       if (isTaskMode) {
                         Get.find<DashboardController>().updateIndex(1);
                       } else {
@@ -1030,13 +1032,14 @@ class ChatScreen extends GetView<ChatScreenController> {
                     alreadySave: false,
                     replyToId: controller.replyToMessage
                         ?.chatId,
+
                   );
                   controller.textController.clear();
                   controller.replyToMessage = null;
                   controller.update();
                 }
 
-                Get.find<ChatHomeController>().hitAPIToGetRecentChats();
+
 
                 // APIs.updateTypingStatus(false);
               }

@@ -15,6 +15,14 @@
       },
       "oauth_client": [
         {
+          "client_id": "975726861063-c99qkseb9iqi6s8nl9h9hnghkvmdesse.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.app.accuChat",
+            "certificate_hash": "092cd4156c3ba150822cb91a7f80bd960f7e9af1"
+          }
+        },
+        {
           "client_id": "975726861063-f52oqeebboj0lg1aqk8h6v56qenepprk.apps.googleusercontent.com",
           "client_type": 1,
           "android_info": {
@@ -46,6 +54,13 @@
             {
               "client_id": "975726861063-nf42hfnm2mad9uqvc9cn0sfkbee5h6bd.apps.googleusercontent.com",
               "client_type": 3
+            },
+            {
+              "client_id": "975726861063-2tup6bmqf9gmbl6k0ckb94tftjpg9jmf.apps.googleusercontent.com",
+              "client_type": 2,
+              "ios_info": {
+                "bundle_id": "com.app.accuChat"
+              }
             }
           ]
         }

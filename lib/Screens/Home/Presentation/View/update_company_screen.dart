@@ -5,6 +5,7 @@ import 'package:AccuChat/Constants/assets.dart';
 import 'package:AccuChat/Extension/text_field_extenstion.dart';
 import 'package:AccuChat/Screens/Chat/models/company_model.dart';
 import 'package:AccuChat/Screens/Home/Presentation/View/invite_member.dart';
+import 'package:AccuChat/Screens/Home/Presentation/View/upgrade_company_users_banner.dart';
 import 'package:AccuChat/routes/app_routes.dart';
 import 'package:AccuChat/utils/custom_flashbar.dart';
 import 'package:AccuChat/utils/gradient_button.dart';
@@ -33,7 +34,9 @@ import '../../../Chat/screens/auth/Presentation/Views/landing_screen.dart';
 import '../Controller/update_comapny_controller.dart';
 
 import 'dart:io';
-import 'package:flutter/foundation.dart' show kIsWeb; // for minor web guards
+import 'package:flutter/foundation.dart' show kIsWeb;
+
+import 'buy_users_dialog.dart'; // for minor web guards
 
 class UpdateCompanyScreen extends GetView<UpdateCompanyController> {
   UpdateCompanyScreen({super.key});
@@ -81,6 +84,20 @@ class UpdateCompanyScreen extends GetView<UpdateCompanyController> {
                           child: Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
+                             /* UpgradeUsersBanner(
+                                currentUsers: 40,          // bind from your usage state
+                                includedUsers: 20,
+                                softLimit: 20,// per company free seats
+                                onTap: () {
+                                  // open whichever dialog you prefer
+                                  showDialog(
+                                    context: context,
+                                    builder: (_) => const BuyCompanyPackDialog(),
+                                    // or: builder: (_) => const BuyMultipleCompaniesDialog(),
+                                  );
+                                },),
+
+                              vGap(12),*/
                               // Header
                               Text(
                                 "Company Details",

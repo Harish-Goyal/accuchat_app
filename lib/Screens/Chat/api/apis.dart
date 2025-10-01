@@ -97,6 +97,8 @@ class APIs {
     await fMessaging.getToken().then((t) async {
       if (t != null) {
         me.pushToken = t;
+        debugPrint("push token==============");
+        debugPrint(me.pushToken);
       }
     });
 

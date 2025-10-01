@@ -451,4 +451,32 @@ class PostApiServiceImpl extends GetxService implements PostApiService {
   }
 
 
+
+
+  @override
+  Future<SuccessResponseModel> registerPushTokenApiCall({Map<String, dynamic>? dataBody}) async {
+    try {
+      final response = await dioClient!.post(ApiEnd.pushRegisterEnd,
+          skipAuth: false,
+        data: dataBody
+      );
+      return SuccessResponseModel.fromJson(response);
+    } catch (e) {
+      return Future.error(NetworkExceptions.getDioException(e));
+    }
+  }
+  @override
+  Future<SuccessResponseModel> unregisterPushTokenApiCall({Map<String, dynamic>? dataBody}) async {
+    try {
+      final response = await dioClient!.post(ApiEnd.pushUnregisterEnd,
+          skipAuth: false,
+        data: dataBody
+      );
+      return SuccessResponseModel.fromJson(response);
+    } catch (e) {
+      return Future.error(NetworkExceptions.getDioException(e));
+    }
+  }
+
+
 }

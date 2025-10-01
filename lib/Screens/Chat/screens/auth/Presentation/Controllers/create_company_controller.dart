@@ -1,13 +1,19 @@
+import 'dart:convert';
+
 import 'package:AccuChat/Screens/Chat/models/get_company_res_model.dart';
 import 'package:AccuChat/Services/APIs/post/post_api_service_impl.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/foundation.dart';
+import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:get/get.dart';
 import 'package:http_parser/http_parser.dart';
 
 import '../../../../../../Services/APIs/local_keys.dart';
 import '../../../../../../Services/storage_service.dart';
+import '../../../../../../Services/subscription/billing_controller.dart';
+import '../../../../../../Services/subscription/billing_service.dart';
+import '../../../../../../Services/subscription/payment_method.dart';
 import '../../../../../../main.dart';
 import '../../../../../../routes/app_routes.dart';
 import '../../../../../../utils/custom_flashbar.dart';
@@ -180,4 +186,13 @@ class CreateCompanyController extends GetxController {
     companyLogoUrl = '';
     update();
   }
+
+
+
+
 }
+
+
+
+
+

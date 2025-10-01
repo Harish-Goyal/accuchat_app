@@ -130,11 +130,13 @@ class LandingPage extends GetView<LandingScreenController> {
                                   final company = controller.joinedCompaniesList[i];
                                   return InkWell(
                                     onTap: () async {
+                                      customLoader.show();
                                       final svc = Get.find<CompanyService>();
                                       await svc.select(company);
                                       storage.write(isLoggedIn,true);
                                       StorageService.setLoggedIn(true);
                                       storage.write(companyIDKey, company.companyId);
+                                      customLoader.hide();
                                       Get.toNamed(AppRoutes.home);
                                     } ,
                                     child: ChatCard(
@@ -152,12 +154,15 @@ class LandingPage extends GetView<LandingScreenController> {
                                         subtitle: 'Tap to enter this company',
                                         onTap: () async {
                                           // saveCompany(company);
+                                          customLoader.show();
                                           final svc = Get.find<CompanyService>();
                                           await svc.select(company);
                                           storage.write(isLoggedIn,true);
                                           StorageService.setLoggedIn(true);
                                           storage.write(companyIDKey, company.companyId);
+                                          customLoader.hide();
                                           Get.offAllNamed(AppRoutes.home);
+
                                         }
                                     ),
                                   );
