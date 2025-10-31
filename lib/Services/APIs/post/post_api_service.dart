@@ -2,6 +2,7 @@ import 'package:AccuChat/Screens/Chat/models/chat_history_response_model.dart';
 import 'package:AccuChat/Screens/Chat/models/recent_chat_user_res_model.dart';
 import 'package:dio/dio.dart';
 import '../../../Screens/Chat/models/accept_invite_res.dart';
+import '../../../Screens/Chat/models/all_media_res_model.dart';
 import '../../../Screens/Chat/models/get_single_company_res.dart';
 import '../../../Screens/Chat/models/group_mem_api_res.dart';
 import '../../../Screens/Chat/models/group_res_model.dart';
@@ -16,14 +17,15 @@ import '../../../Screens/Chat/models/task_commets_res_model.dart';
 import '../../../Screens/Chat/models/task_res_model.dart';
 import '../../../Screens/Chat/models/task_status_res_model.dart';
 import '../../../Screens/Chat/screens/auth/models/pending_invites_res_model.dart';
+import '../../../Screens/Home/Models/all_member_res_model.dart';
 import '../../../Screens/Home/Models/company_mem_res_model.dart';
 import '../../../Screens/Home/Models/get_pending_sent_invites_res_model.dart';
+import '../../../Screens/Home/Models/push_register_res_model.dart';
 import '../../../Screens/Settings/Model/get_company_roles_res_moel.dart';
 import '../../../Screens/Settings/Model/get_nav_permission_res_model.dart';
 import '../success_res_model.dart';
 
 abstract class PostApiService {
-  Future<SuccessResponseModel> changePasswordApiCall({FormData? dataBody});
   Future<CompanyResModel> getJoinedCompanyListApiCall();
   Future<PendingInvitesResModel> pendingInviteListApiCall({userInput});
   Future<CreateCompanyResModel> createCompanyAPICall(
@@ -36,7 +38,7 @@ abstract class PostApiService {
   Future<NavPermissionResModel> getNavigationPermissionApiCall();
   Future<GetCompanyRolesResModel> getCompanyRolesApiCall(companyId);
   Future<SuccessResponseModel> removeComMemberApiCall({compId, memberId});
-  Future<PendingSentInvitesResModel> getPendingSentInvitesApiCall();
+  Future<PendingSentInvitesResModel> getPendingSentInvitesApiCall(comId);
   Future<MediaResModel> uploadMediaApiCall({FormData? dataBody});
   Future<SuccessResponseModel> deleteSentInvitesApiCall(inviteID);
   Future<GroupResModel> addEditGroupBroadcastApiCall(
@@ -74,8 +76,11 @@ abstract class PostApiService {
   Future<SingleTaskRes> getTaskByIdApiCall(taskId);
 
   Future<ComMemResModel> getTaskMemberApiCall(taskId);
-  Future<SuccessResponseModel> registerPushTokenApiCall(
+  Future<PushResgisterResModel> registerPushTokenApiCall(
       {Map<String, dynamic>? dataBody});
   Future<SuccessResponseModel> unregisterPushTokenApiCall(
       {Map<String, dynamic>? dataBody});
+  Future<AllMemberResModel> getAllMembersApiCall({comid});
+
+  Future<AllMediaResModel> getAllMediaAPI({int? page,String? mediaType,String? source});
 }

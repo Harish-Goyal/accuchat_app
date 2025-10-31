@@ -1,3 +1,5 @@
+import 'dart:convert';
+
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
@@ -34,10 +36,43 @@ class LocalNotificationService {
 
       final title = message.notification?.title ?? '';
       final body = message.notification?.body ?? '';
+      final data = message.data;
 
-      LocalNotificationService.showInviteNotification(
-        title: title,
-        body: body,
+      final meId = APIs.me.userId?.toString().trim();
+      final senderId = (data['sender_id'] ?? '').toString().trim();
+      final receiverId = (data['receiver_id'] ?? '').toString().trim();
+
+      print('🔔 FCM received: sender=$senderId, receiver=$receiverId, me=$meId');
+
+      // 1️⃣ Skip if self not logged in properly
+      if (meId == null || meId.isEmpty) return;
+
+      // 2️⃣ Skip if missing sender info
+      if (senderId.isEmpty) return;
+
+      // 3️⃣ Skip if message is from self OR to self
+      if (senderId == meId || receiverId == meId && senderId == meId) {
+        print('🔕 Skipping self-message notification');
+        return;
+      }
+
+      // ✅ Safe to show notification
+      final senderName = (data['sender_name'] ?? '').toString().trim();
+      final messageText = (data['title'] ?? '').toString(); // your payload uses "title" as text
+      final companyId = data['company_id'];
+      final channelId = data['channel_id']??'';
+
+      LocalNotificationService.showNotification(
+        title: senderName.isNotEmpty ? senderName : title,
+        body: messageText,
+        channelId: channelId,
+        // put useful navigation data in payload (to open chat on tap)
+        payload: jsonEncode({
+          'type': data['type'],
+          'sender_id': senderId,
+          'receiver_id': receiverId,
+          'company_id': companyId,
+        }),
       );
     });
 
@@ -46,26 +81,7 @@ class LocalNotificationService {
       print('🔔 Notification tapped. Type: $type');
 
       if (type == 'invite') {
-        final inviteSnap = await FirebaseFirestore.instance
-            .collection('invitations')
-            .where('email', isEqualTo: APIs.me.phone == 'null' || APIs.me.phone == null || APIs.me.phone == ''
-            ? APIs.me.email
-            : APIs.me.phone)
-            .where('isAccepted', isEqualTo: false)
-            .limit(1)
-            .get();
-
-        if (inviteSnap.docs.isNotEmpty) {
-          final invite = InvitationModel.fromMap(inviteSnap.docs.first.data());
-          final inviteId = inviteSnap.docs.first.id;
-
-          Get.toNamed(AppRoutes.accept_invite,arguments: {
-            'inviteId': inviteId,
-            'company': invite.company!,
-          });
-        } else {
-          print("⚠️ No pending invite found.");
-        }
+        Get.toNamed(AppRoutes.accept_invite);
       } else if (type == 'task') {
         Get.find<DashboardController>().updateIndex(1);
       } else if (type == 'chat') {
@@ -95,6 +111,12 @@ class LocalNotificationService {
         'invite_channel',
         'Invitations',
         description: 'Notifications for company or group invites.',
+        importance: Importance.high,
+
+      ),AndroidNotificationChannel(
+        'any_channel',
+        'Notification',
+        description: 'You  got a Notifications from AccuChat',
         importance: Importance.high,
 
       ),
@@ -147,6 +169,31 @@ class LocalNotificationService {
       body,
       const NotificationDetails(android: androidDetails),
       payload: 'task',
+    );
+  }
+
+  static Future<void> showNotification({
+    required String title,
+    required String body,
+    String? payload,           // <— allow custom payload
+    String channelId = 'chat_channel',
+    String channelName = 'AccuChat Messages',
+  }) async {
+    final androidDetails = AndroidNotificationDetails(
+      channelId,
+      channelName,
+      importance: Importance.high,
+      priority: Priority.high,
+      styleInformation: BigTextStyleInformation(body),
+      category: AndroidNotificationCategory.message,
+      ticker: 'msg',
+    );
+    await _plugin.show(
+      DateTime.now().millisecondsSinceEpoch ~/ 1000,
+      title,
+      body,
+      NotificationDetails(android: androidDetails),
+      payload: payload ?? '',
     );
   }
 

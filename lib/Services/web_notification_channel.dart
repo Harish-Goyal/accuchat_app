@@ -1,7 +1,8 @@
 // // lib/notifications/web_notifications.dart
 // // Only call on web
 // import 'dart:js_util' as js;
-//
+// import 'Services/web_notication_stub.dart'
+// if (dart.library.html) 'Services/web_notofication_local.dart';
 // Future<void> showWebNotification({
 //   required String title,
 //   required String body,

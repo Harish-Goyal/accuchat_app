@@ -1,5 +1,6 @@
 import 'package:AccuChat/Screens/Chat/api/apis.dart';
 import 'package:AccuChat/Screens/Chat/models/get_company_res_model.dart';
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/foundation.dart';
 import 'package:get/get.dart';
 
@@ -39,13 +40,14 @@ class InviteUserRoleController extends GetxController {
   List<InviteUser> users = [];
   var companyId;
 
+  List<TextEditingController> nameControllers =[];
+
 
   @override
   void onInit() {
     _getCom();
     initData();
     hitAPIToGetAllRolesAPI();
-
     super.onInit();
   }
 
@@ -77,21 +79,34 @@ class InviteUserRoleController extends GetxController {
 
   List<String> phoneList = [];
   initData(){
-      if (Get.arguments != null) {
-        users = Get.arguments['selectedUser'];
-        companyId = Get.arguments['companyId'];
-        phoneList = Get.arguments['contactList'];
-        selectedInvitesContacts.addAll([ReqInviteModel()]);
-      }
+    if (Get.arguments != null) {
+      users = Get.arguments['selectedUser'];
+      companyId = Get.arguments['companyId'];
+      phoneList = Get.arguments['contactList'];
+      selectedInvitesContacts.addAll([ReqInviteModel()]);
+      ensureInviteFormKeysLength(users.length);
+      nameControllers= List.generate(users.length, (i)=>TextEditingController(text:users[i].name??'' ));
+    }
 
   }
 
+  // in your <some>Controller (the same 'controller' you use in the builder)
+  final List<GlobalKey<FormState>> inviteFormKeys = [];
+
+// Call this whenever users list length can change (e.g., after fetch/filter)
+  void ensureInviteFormKeysLength(int len) {
+    while (inviteFormKeys.length < len) {
+      inviteFormKeys.add(GlobalKey<FormState>());
+    }
+    // optional: if list shrinks, you can keep extra keys (no harm), or trim:
+    // if (inviteFormKeys.length > len) inviteFormKeys.removeRange(len, inviteFormKeys.length);
+  }
 
   CompanyData? myCompany =CompanyData();
   _getCom(){
     final svc = Get.find<CompanyService>();
     myCompany = svc.selected;
-}
+  }
 
   List<ReqInviteModel> selectedInvitesContacts = [];
 
@@ -99,7 +114,7 @@ class InviteUserRoleController extends GetxController {
     customLoader.show();
     Map<String, dynamic> postData = {
       "companyId": myCompany?.companyId,
-      "companyUserInvites": selectedInvitesContacts
+      "companyUserInvites": selectedInvitesContacts.map((v)=>v.toJson()).toList()
     };
     Get.find<PostApiServiceImpl>()
         .sendInvitesToJoinCompanyAPI(dataBody: postData)
@@ -154,19 +169,22 @@ class InviteUserRoleController extends GetxController {
   }
 
 
-  void updateRoleForUser(String mobile, int roleId,name) {
+  void updateRoleForUser(String mobile, int roleId,name ,i) {
     final index = selectedInvitesContacts.indexWhere((e) => e.toPhone == mobile);
     if (index != -1) {
       selectedInvitesContacts[index].roleId = roleId;
+      // ✅ added: keep latest text-field name in payload
+      selectedInvitesContacts[index].name = nameControllers[i].text.trim();
     } else {
       selectedInvitesContacts.add(ReqInviteModel(
         toPhone: mobile,
-        name: name,
+        name: nameControllers[i].text.trim(),
         roleId: roleId,
       ));
     }
     update();
   }
+
 
   int? getRoleIdForUser(String mobile) {
     return selectedInvitesContacts
@@ -185,7 +203,6 @@ class InviteUserRoleController extends GetxController {
 
 
 class ReqInviteModel{
-
   String? toPhone;
   String? name;
   int? roleId;
@@ -196,7 +213,7 @@ class ReqInviteModel{
     final Map<String, dynamic> data = new Map<String, dynamic>();
     data['to_phone_email'] = this.toPhone;
     data['user_company_role_id'] = this.roleId;
-    data['user_name'] = this.name;
+    data['contact_name'] = this.name;
     return data;
   }
 

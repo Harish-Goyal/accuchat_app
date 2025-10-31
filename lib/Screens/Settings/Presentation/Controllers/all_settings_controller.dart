@@ -125,7 +125,7 @@ class AllSettingsController extends GetxController {
   <p><strong>Contact Us:</strong><br>
   📧 <a href="mailto:accuchat@gmail.com">accuchat@gmail.com</a></p>
 
-  <p style="color: grey;">© 2024 accuchat.in. All rights reserved.</p>
+  <p style="color: grey;">©2025 accuchat.in. All rights reserved.</p>
   </body>
   </html>
 

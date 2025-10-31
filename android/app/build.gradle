@@ -2,6 +2,7 @@ plugins {
     id "com.android.application"
     id "kotlin-android"
     id "dev.flutter.flutter-gradle-plugin"
+    id "org.jetbrains.kotlin.android"
 }
 
 def localProperties = new Properties()
@@ -37,9 +38,8 @@ apply plugin: 'com.google.gms.google-services'
 
 android {
     namespace "com.app.accuChat"
-    compileSdk = 35
-    ndkVersion = "25.1.8937393"
-
+    compileSdk = 36
+    ndkVersion = "28.0.12433566"
     compileOptions {
         sourceCompatibility JavaVersion.VERSION_1_8
         targetCompatibility JavaVersion.VERSION_1_8
@@ -58,9 +58,9 @@ android {
         // You can update the following values to match your application needs.
         // For more information, see: https://flutter.dev/to/review-gradle-config.
         minSdk = 23
-        targetSdk = 35
-        versionCode = 63
-        versionName = "1.1.12"
+        targetSdk = 36
+        versionCode = 67
+        versionName = "1.1.16"
     }
 
     signingConfigs {
@@ -92,4 +92,5 @@ dependencies {
     implementation group: 'com.google.android.material', name: 'material', version: '1.1.0-alpha05'
     implementation 'com.google.android.material:material:1.1.0-alpha05'
     coreLibraryDesugaring 'com.android.tools:desugar_jdk_libs:2.1.5'
+    implementation "com.squareup.okhttp3:okhttp:4.12.0"
 }

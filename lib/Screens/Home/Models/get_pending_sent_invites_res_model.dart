@@ -40,6 +40,7 @@ class SentInvitesData {
   String? toPhoneEmail;
   String? sentOn;
   String? acceptedOn;
+  String? contactName;
   int? userCompanyRoleId;
   Sender? sender;
   CompanyData? company;
@@ -50,6 +51,7 @@ class SentInvitesData {
         this.companyId,
         this.toPhoneEmail,
         this.sentOn,
+        this.contactName,
         this.acceptedOn,
         this.userCompanyRoleId,
         this.sender,
@@ -60,6 +62,7 @@ class SentInvitesData {
     senderId = json['sender_id'];
     companyId = json['company_id'];
     toPhoneEmail = json['to_phone_email'];
+    contactName = json['contact_name'];
     sentOn = json['sent_on'];
     acceptedOn = json['accepted_on'];
     userCompanyRoleId = json['user_company_role_id'];
@@ -76,6 +79,7 @@ class SentInvitesData {
     data['company_id'] = this.companyId;
     data['to_phone_email'] = this.toPhoneEmail;
     data['sent_on'] = this.sentOn;
+    data['contact_name'] = this.contactName;
     data['accepted_on'] = this.acceptedOn;
     data['user_company_role_id'] = this.userCompanyRoleId;
     if (this.sender != null) {

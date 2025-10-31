@@ -10,6 +10,7 @@ import 'package:hive/hive.dart';
 import '../../Screens/Authentication/AuthResponseModel/loginResModel.dart';
 import '../../Screens/Chat/models/get_company_res_model.dart';
 import '../../Screens/Settings/Model/get_company_roles_res_moel.dart';
+import '../../Screens/hive_boot.dart';
 import '../../main.dart';
 import '../../utils/shares_pref_web.dart';
 import '../storage_service.dart';
@@ -75,7 +76,7 @@ const String selected_company_box = "selected_company_box";
 // }
 
 void saveRoles(RolesData data) {
-  storage.write(roles_data_key, data.toJson());
+  StorageService.writeJson(roles_data_key, data.toJson());
 }
 
 // CompanyData? getCompany() {
@@ -87,7 +88,7 @@ void saveRoles(RolesData data) {
 // }
 
 RolesData? getRolesData() {
-  final json = storage.read(roles_data_key);
+  final json = StorageService.readJson(roles_data_key);
   if (json != null) {
     return RolesData.fromJson(Map<String, dynamic>.from(json));
   }
@@ -97,47 +98,52 @@ RolesData? getRolesData() {
 logoutLocal() async {
   // Get.find<CompanyService>().clear();
   // await Get.delete<CompanyService>(force: true);
-  storage.remove(isFirstTime);
-  storage.remove(isFirstTimeChatKey);
-  storage.remove(selectedCompany);
-  storage.remove(navigation_item_key);
-  storage.remove(user_key);
-  storage.remove(user_mob);
-  storage.remove(userId);
-  clearHiveCompletely();
+  customLoader.show();
+  await HiveBoot.closeAndDeleteAll(deleteFromDisk: true);
+  // await HiveBoot.init();
   StorageService.remove(isFirstTime);
+  StorageService.remove(isFirstTimeChatKey);
+  StorageService.remove(user_mob);
   StorageService.remove(LOCALKEY_token);
+  StorageService.remove(navigation_item_key);
+  StorageService.remove(roles_data_key);
+  StorageService.remove(bottom_nav_key);
   StorageService.remove(isLoggedIn);
+  StorageService.remove(user_key);
+  StorageService.clear();
+  AppStorage().remove(LOCALKEY_token);
+  AppStorage().remove(user_key);
   AppStorage().clear();
   Future.delayed(const Duration(milliseconds: 600),
       () => Get.offAllNamed(AppRoutes.login_r));
+  customLoader.hide();
 }
 
 void saveNavigation(List<NavigationItem> data) {
   final navJson = data
       .map((nav) => nav.toJson()) // Map<String,dynamic>
       .toList();
-  storage.write(navigation_item_key, navJson);
+  StorageService.writeJsonList(navigation_item_key, navJson);
 }
 
 List<NavigationItem>? getNavigation() {
-  final json = storage.read<List<dynamic>>(navigation_item_key);
+  final json = StorageService.readJsonList(navigation_item_key);
   if (json != null) {
     final storedNavs = (json)
-        .map((e) => NavigationItem.fromJson(e as Map<String, dynamic>))
+        .map((e) => NavigationItem.fromJson(e))
         .toList();
     return storedNavs;
   }
   return null;
 }
 
-RememberMeModal? getRememberMe() {
-  String? email = storage.read(emailKey);
-  String? password = storage.read(passwordKey);
-  if ((email ?? "").isNotEmpty && (password ?? "").isNotEmpty) {
-    return RememberMeModal(email: email, password: password);
-  }
-}
+// RememberMeModal? getRememberMe() {
+//   String? email = storage.read(emailKey);
+//   String? password = storage.read(passwordKey);
+//   if ((email ?? "").isNotEmpty && (password ?? "").isNotEmpty) {
+//     return RememberMeModal(email: email, password: password);
+//   }
+// }
 
 Future<void> saveUser(UserDataAPI? user) async {
   if (user == null) {
@@ -177,55 +183,7 @@ UserDataAPI? getUser() {
   return null;
 }
 
-SaveUser getUserData() {
-  String? firstName = storage.read(keyfirstName);
-  String? ids = storage.read(keyId);
-  String? lastname = storage.read(keylastName);
-  String? email = storage.read(keyemail);
-  String? phone = storage.read(keyphone);
-  String? address = storage.read(keyaddress);
-  String? dob = storage.read(keybirthday);
-  String? photo = storage.read(keyprofileUrl);
-  String? userGender = storage.read(keyGender);
 
-  return SaveUser(
-      userid: ids,
-      firstName: firstName,
-      lastName: lastname,
-      email: email,
-      phone: phone,
-      address: address,
-      birthday: dob,
-      profileUrl: photo,
-      gender: userGender);
-}
-
-setUserData({
-  required String id,
-  required String firstName,
-  required String lastname,
-  required String email,
-  required String phone,
-  required String gender,
-  required String address,
-  required String dob,
-  required String photo,
-}) {
-  storage.write(keyId, id);
-  storage.write(keyfirstName, firstName);
-  storage.write(keylastName, lastname);
-  storage.write(keyemail, email);
-  storage.write(keyphone, phone);
-  storage.write(keyaddress, address);
-  storage.write(keybirthday, dob);
-  storage.write(keyprofileUrl, photo);
-  storage.write(keyGender, gender);
-}
-
-removeRememberData() {
-  storage.remove(emailKey);
-  storage.remove(passwordKey);
-}
 
 class RememberMeModal {
   String? email;

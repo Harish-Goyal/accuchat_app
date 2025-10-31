@@ -3,6 +3,7 @@ import 'package:AccuChat/Services/APIs/post/post_api_service_impl.dart';
 import 'package:AccuChat/main.dart';
 import 'package:AccuChat/utils/custom_flashbar.dart';
 import 'package:flutter/cupertino.dart';
+import 'package:flutter/foundation.dart';
 import 'package:get/get.dart';
 import '../../../Chat/models/invite_model.dart';
 
@@ -12,16 +13,27 @@ class InvitationsController extends GetxController {
 
   @override
   void onInit() {
-    hitAPIToGetSentInvites();
+
     getArguments();
+
+    hitAPIToGetSentInvites();
     super.onInit();
-    initData();
   }
 
   getArguments(){
-    if(Get.arguments!=null){
-      comapnyID = Get.arguments['companyID'];
+
+    if(kIsWeb){
+      if (Get.parameters != null) {
+        comapnyID = Get.parameters['companyID'];
+      }
+    }else{
+      if(Get.arguments!=null){
+        comapnyID = Get.arguments['companyID'];
+        print("comapnyID");
+        print(comapnyID);
+      }
     }
+
   }
 
 
@@ -31,7 +43,7 @@ class InvitationsController extends GetxController {
     isLoading =true;
     update();
     Get.find<PostApiServiceImpl>()
-        .getPendingSentInvitesApiCall()
+        .getPendingSentInvitesApiCall(comapnyID)
         .then((value) async {
       sentInviteList = value.data ?? [];
       isLoading =false;

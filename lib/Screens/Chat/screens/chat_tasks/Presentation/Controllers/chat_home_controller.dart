@@ -1,4 +1,5 @@
 import 'package:AccuChat/Screens/Chat/models/recent_chat_user_res_model.dart';
+import 'package:AccuChat/Screens/Home/Presentation/Controller/socket_controller.dart';
 import 'package:get/get.dart';
 import 'package:AccuChat/Screens/Home/Presentation/Controller/home_controller.dart';
 import 'package:flutter/cupertino.dart';
@@ -25,10 +26,7 @@ class ChatHomeController extends GetxController{
 
   List<ChatUser> list = [];
   List<ChatGroup> grouplist = [];
-
-  // for storing searched items
   final List<ChatUser> searchList = [];
-  // for storing search status
   bool isSearching = false;
   TextEditingController seacrhCon = TextEditingController();
   String searchQuery = '';
@@ -39,9 +37,9 @@ class ChatHomeController extends GetxController{
   @override
   void onInit() {
 
-    _getCompany();
+    getCompany();
 
-    Future.delayed(const Duration(milliseconds: 600),(){
+    Future.delayed(const Duration(milliseconds: 800),(){
       hitAPIToGetRecentChats();
     }
     );
@@ -64,14 +62,9 @@ class ChatHomeController extends GetxController{
   }
 
   CompanyData? myCompany = CompanyData();
-  _getCompany(){
-    print("myCompany?.companyName");
-    print(Get.isRegistered<CompanyService>());
+  getCompany(){
     if(Get.isRegistered<CompanyService>()) {
       final svc = Get.find<CompanyService>();
-      print("myCompany?.companyName");
-      print(Get.isRegistered<CompanyService>());
-      print(myCompany?.companyName);
       myCompany = svc.selected;
       update();
     }
@@ -105,10 +98,11 @@ class ChatHomeController extends GetxController{
         .getRecentChatUserApiCall(comId:myCompany?.companyId,page: page)
         .then((value) async {
       isLoading = false;
+      update();
       recentChatsUserResModel=value;
       recentChatUserList=value.data?.rows??[];
       filteredList = recentChatUserList??[];
-      update();
+
       final List<UserDataAPI> newItems = [];
 
       if (newItems.isNotEmpty) {
@@ -142,6 +136,7 @@ class ChatHomeController extends GetxController{
         .addEditGroupBroadcastApiCall(dataBody: reqData)
         .then((value) {
       customLoader.hide();
+      Get.find<SocketController>().connectUserEmitter();
       Get.back();
       groupResModel = value;
       groupController.clear();
@@ -167,8 +162,9 @@ class ChatHomeController extends GetxController{
 
     filteredList = recentChatUserList!.where((item) {
 
-        return (item.userName??'').toLowerCase().contains(searchQuery) ||
+        return (item.displayName??'').toLowerCase().contains(searchQuery) ||
             (item.email??'').toLowerCase().contains(searchQuery)||
+            (item.userName??'').toLowerCase().contains(searchQuery)||
             (item.phone??'').contains(searchQuery)
         ;
 
@@ -185,6 +181,10 @@ class AuthGuard extends GetMiddleware {
 
     final String? token = StorageService.getToken();
     final bool loggedIn = StorageService.isLoggedInCheck();
+
+    print("token=======================");
+    print(token);
+    print(loggedIn);
 
     if (token == null) return const RouteSettings(name: AppRoutes.login_r);
     if (!loggedIn)   return const RouteSettings(name: AppRoutes.landing_r);

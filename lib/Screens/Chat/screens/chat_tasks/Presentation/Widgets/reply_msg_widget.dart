@@ -82,15 +82,15 @@ class ReplyMessageWidget extends StatelessWidget {
             children: [
               isCancel! ?     Expanded(
                 child:chatdata?.isGroupChat==1? Text(
-                  (chatdata?.fromUser?.userName!=null?
-                  chatdata?.fromUser?.userName??'':chatdata?.fromUser?.phone??''),
+                  (chatdata?.fromUser?.displayName!=null?
+                  chatdata?.fromUser?.displayName??'':chatdata?.fromUser?.phone??''),
                   style: BalooStyles.baloonormalTextStyle(color: appColorYellow),
                   overflow: TextOverflow.ellipsis,
                   maxLines: 1,
                   textAlign: TextAlign.start,
                 ).paddingOnly(left: 8,right: 8):Text(
-                  isSendByME?(chatdata?.fromUser?.userName!=null?
-                  chatdata?.fromUser?.userName??'':chatdata?.fromUser?.phone??''):(chatdata?.toUser?.userName!=null?chatdata?.toUser?.userName??'':chatdata?.toUser?.phone??''),
+                  isSendByME?(chatdata?.fromUser?.displayName!=null?
+                  chatdata?.fromUser?.displayName??'':chatdata?.fromUser?.phone??''):(chatdata?.toUser?.displayName!=null?chatdata?.toUser?.displayName??'':chatdata?.toUser?.phone??''),
                   style: BalooStyles.baloonormalTextStyle(color: appColorYellow),
                   overflow: TextOverflow.ellipsis,
                   maxLines: 1,
@@ -98,15 +98,15 @@ class ReplyMessageWidget extends StatelessWidget {
                 ).paddingOnly(left: 8,right: 8),
               ): Flexible(
                 child:chatdata?.isGroupChat==1? Text(
-                  (chatdata?.fromUser?.userName!=null?
-                  chatdata?.fromUser?.userName??'':chatdata?.fromUser?.phone??''),
+                  (chatdata?.fromUser?.displayName!=null?
+                  chatdata?.fromUser?.displayName??'':chatdata?.fromUser?.phone??''),
                   style: BalooStyles.baloonormalTextStyle(color: appColorYellow),
                   overflow: TextOverflow.ellipsis,
                   maxLines: 1,
                   textAlign: TextAlign.start,
                 ).paddingOnly(left: 8,right: 8): Text(
-                  isSendByME?(chatdata?.fromUser?.userName!=null?
-                  chatdata?.fromUser?.userName??'':chatdata?.fromUser?.phone??''):(chatdata?.toUser?.userName!=null?chatdata?.toUser?.userName??'':chatdata?.toUser?.phone??''),
+                  isSendByME?(chatdata?.fromUser?.displayName!=null?
+                  chatdata?.fromUser?.displayName??'':chatdata?.fromUser?.phone??''):(chatdata?.toUser?.displayName!=null?chatdata?.toUser?.displayName??'':chatdata?.toUser?.phone??''),
                   style: BalooStyles.baloonormalTextStyle(color: appColorYellow),
                   overflow: TextOverflow.ellipsis,
                   maxLines: 1,

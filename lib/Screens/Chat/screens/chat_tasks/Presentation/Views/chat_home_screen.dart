@@ -26,6 +26,7 @@ import '../Widgets/chat_group_card.dart';
 import '../Widgets/chat_user_card.dart';
 import '../Controllers/chat_home_controller.dart';
 import 'chat_groups.dart';
+import 'chat_task_shimmmer.dart';
 import 'chats_broadcasts.dart';
 import 'create_broadcast_dialog_screen.dart';
 
@@ -34,7 +35,7 @@ class ChatsHomeScreen extends GetView<ChatHomeController> {
 
   ChatHomeController chatHomeController =
       Get.put<ChatHomeController>(ChatHomeController());
-
+  // 5678568900
   @override
   Widget build(BuildContext context) {
     return GetBuilder<ChatHomeController>(
@@ -57,7 +58,7 @@ class ChatsHomeScreen extends GetView<ChatHomeController> {
                 // }
                 return Future.value(true);
               },
-              child: Scaffold(
+              child:controller.isLoading?ChatHomeShimmer(itemCount: 12): Scaffold(
                   //app bar
                   // backgroundColor: isTaskMode?appColorYellow.withOpacity(.05):Colors.white,
                   appBar: AppBar(
@@ -81,45 +82,49 @@ class ChatsHomeScreen extends GetView<ChatHomeController> {
                             },
                           ).marginSymmetric(vertical: 10)
                         : InkWell(
-                      onTap: (){
-                        Get.toNamed(AppRoutes.all_settings);
-                      },
-                          child: Row(
+                            onTap: () {
+                              Get.toNamed(AppRoutes.all_settings);
+                            },
+                            child: Row(
                               children: [
                                 SizedBox(
-                                  width: 45,
+                                  width: 40,
                                   child: CustomCacheNetworkImage(
                                     "${ApiEnd.baseUrlMedia}${controller.myCompany?.logo ?? ''}",
-
-                                    radiusAll:100,
-                                    height: 45,
+                                    radiusAll: 100,
+                                    height: 40,
                                     defaultImage: appIcon,
                                     boxFit: BoxFit.cover,
                                   ),
-                                ).paddingAll(4),
-                                Column(
-                                  mainAxisAlignment: MainAxisAlignment.end,
-                                  mainAxisSize: MainAxisSize.min,
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  children: [
-                                    Text(
-                                      'Chats',
-                                      style: BalooStyles.balooboldTitleTextStyle(
-                                          color: AppTheme.appColor,
-                                          size: 18),
-                                    ).paddingOnly(left: 8, top: 4),
-                                    Text(
-                                      (controller.myCompany?.companyName ?? '').toUpperCase(),
-                                      style:
-                                          BalooStyles.baloosemiBoldTextStyle(
-                                        color: appColorYellow,
-                                      ),
-                                    ).paddingOnly(left: 8, top: 2),
-                                  ],
+                                ).paddingAll(3),
+                                Expanded(
+                                  child: Column(
+                                    mainAxisAlignment: MainAxisAlignment.end,
+                                    mainAxisSize: MainAxisSize.min,
+                                    crossAxisAlignment: CrossAxisAlignment.start,
+                                    children: [
+                                      Text(
+                                        'Chats',
+                                        style:
+                                            BalooStyles.balooboldTitleTextStyle(
+                                                color: AppTheme.appColor,
+                                                size: 18),
+                                      ).paddingOnly(left: 4, top: 4),
+                                      Text(
+                                        (controller.myCompany?.companyName ?? '')
+                                            .toUpperCase(),
+                                        style: BalooStyles.baloosemiBoldTextStyle(
+                                          color: appColorYellow,
+                                        ),
+                                        maxLines: 1,
+                                        overflow: TextOverflow.ellipsis,
+                                      ).paddingOnly(left: 4, top: 2),
+                                    ],
+                                  ),
                                 ),
                               ],
                             ),
-                        ),
+                          ),
                     actions: [
                       //search user button
                       IconButton(
@@ -133,59 +138,58 @@ class ChatsHomeScreen extends GetView<ChatHomeController> {
                               .paddingOnly(top: 0, right: 10)),
 
                       PopupMenuButton<String>(
-                              padding: EdgeInsets.zero,
-                              menuPadding: EdgeInsets.zero,
-                              onSelected: (value) {
-                                if (value == 'new_group') {
-                                  showDialog(
-                                      context: Get.context!,
-                                      builder: (_) => _groupDialogWidget());
-                                } else if (value == 'new_broadcast') {
-                                  showDialog(
-                                      context: Get.context!,
-                                      builder: (_) => BroadcastCreateDialog());
-                                }
-                              },
-                              itemBuilder: (context) => [
-                                PopupMenuItem(
-                                  value: 'new_group',
-                                  child: Row(
-                                    mainAxisSize: MainAxisSize.min,
-                                    children: [
-                                      Icon(
-                                        Icons.group,
-                                        size: 17,
-                                        color: appColorGreen,
-                                      ),
-                                      hGap(5),
-                                      Text(
-                                        'Create Group',
-                                        style: themeData.textTheme.bodySmall,
-                                      ),
-                                    ],
-                                  ),
+                        padding: EdgeInsets.zero,
+                        menuPadding: EdgeInsets.zero,
+                        onSelected: (value) {
+                          if (value == 'new_group') {
+                            showDialog(
+                                context: Get.context!,
+                                builder: (_) => _groupDialogWidget());
+                          } else if (value == 'new_broadcast') {
+                            showDialog(
+                                context: Get.context!,
+                                builder: (_) => BroadcastCreateDialog());
+                          }
+                        },
+                        itemBuilder: (context) => [
+                          PopupMenuItem(
+                            value: 'new_group',
+                            child: Row(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                Icon(
+                                  Icons.group,
+                                  size: 17,
+                                  color: appColorGreen,
                                 ),
-                                PopupMenuItem(
-                                  value: 'new_broadcast',
-                                  child: Row(
-                                      mainAxisSize: MainAxisSize.min,
-                                      children: [
-                                        Image.asset(
-                                          broadcastIcon,
-                                          height: 15,
-                                          color: appColorYellow,
-                                        ),
-                                        hGap(5),
-                                        Text(
-                                          'Create Broadcast',
-                                          style: themeData.textTheme.bodySmall,
-                                        )
-                                      ]),
+                                hGap(5),
+                                Text(
+                                  'Create Group',
+                                  style: themeData.textTheme.bodySmall,
                                 ),
                               ],
-                              color: Colors.white,
-                              icon: const Icon(Icons.more_vert),
                             ),
+                          ),
+                          PopupMenuItem(
+                            value: 'new_broadcast',
+                            child:
+                                Row(mainAxisSize: MainAxisSize.min, children: [
+                              Image.asset(
+                                broadcastIcon,
+                                height: 15,
+                                color: appColorYellow,
+                              ),
+                              hGap(5),
+                              Text(
+                                'Create Broadcast',
+                                style: themeData.textTheme.bodySmall,
+                              )
+                            ]),
+                          ),
+                        ],
+                        color: Colors.white,
+                        icon: const Icon(Icons.more_vert),
+                      ),
                       //more features button
                       /*IconButton(
                       onPressed: () {
@@ -204,110 +208,111 @@ class ChatsHomeScreen extends GetView<ChatHomeController> {
                     child: FloatingActionButton(
                         onPressed: () {
                           // _addChatUserDialog();
-                          if(kIsWeb){
-                            Get.toNamed("${AppRoutes.all_users}?isRecent='false'");
-                          }else{
+                          if (kIsWeb) {
+                            Get.toNamed(
+                                "${AppRoutes.all_users}?isRecent='false'");
+                          } else {
                             Get.toNamed(AppRoutes.all_users,
                                 arguments: {"isRecent": 'false'});
                           }
-
                         },
-                        backgroundColor:appColorGreen,
+                        backgroundColor: appColorGreen,
                         child: const Icon(
                           Icons.add,
                           color: Colors.white,
                         )),
                   ),
-                  body:
-                      (controller.filteredList ?? []).isNotEmpty
-                          ? RefreshIndicator(
-                        backgroundColor: Colors.white,
-                        color: appColorGreen,
+                  body: (controller.filteredList ?? []).isNotEmpty
+                      ? RefreshIndicator(
+                          backgroundColor: Colors.white,
+                          color: appColorGreen,
+                          onRefresh: () async =>
+                              controller.hitAPIToGetRecentChats(),
+                          child: ListView.builder(
+                            physics: const AlwaysScrollableScrollPhysics(),
+                            itemCount: controller.filteredList.length,
+                            controller: controller.scrollController,
+                            itemBuilder: (context, index) {
+                              final item = controller.filteredList[index];
+                              return SwipeTo(
+                                  iconOnLeftSwipe: Icons.delete_outline,
+                                  iconColor: Colors.red,
+                                  onLeftSwipe: (detail) async {
+                                    if ((item.userCompany?.isGroup == 1) ||
+                                        (item.userCompany?.isBroadcast == 1)) {
+                                    } else {
+                                      final confirm = await showDialog(
+                                        context: context,
+                                        builder: (_) => AlertDialog(
+                                          backgroundColor: Colors.white,
+                                          title: Text(
+                                              "Remove ${item?.email == null || item?.email == '' ? item?.phone : item?.email}"),
+                                          content: const Text(
+                                              "Are you sure you want to remove this member from recants?"),
+                                          actions: [
+                                            TextButton(
+                                                onPressed: () => Navigator.pop(
+                                                    context, false),
+                                                child: const Text("Cancel")),
+                                            TextButton(
+                                                onPressed: () => Navigator.pop(
+                                                    context, true),
+                                                child: Text(
+                                                  "Remove",
+                                                  style: BalooStyles
+                                                      .baloosemiBoldTextStyle(
+                                                          color: Colors.red),
+                                                )),
+                                          ],
+                                        ),
+                                      );
 
-                        onRefresh: () async => controller.hitAPIToGetRecentChats(),
-                            child: ListView.builder(
-                              physics: const AlwaysScrollableScrollPhysics(),
-                                itemCount: controller.filteredList.length,
-                                controller: controller.scrollController,
-                                itemBuilder: (context, index) {
-                                  final item = controller.filteredList[index];
-                                  return SwipeTo(
-                                      iconOnLeftSwipe: Icons.delete_outline,
-                                      iconColor: Colors.red,
-                                      onLeftSwipe: (detail) async {
-          if ((item.userCompany?.isGroup == 1) || (item.userCompany?.isBroadcast == 1)) {
-          }
+                                      if (confirm == true) {
+                                        customLoader.show();
 
-                                        else{
-                                          final confirm = await showDialog(
-                                            context: context,
-                                            builder: (_) =>
-                                                AlertDialog(
-                                                  backgroundColor: Colors.white,
-                                                  title: Text(
-                                                      "Remove ${item?.email ==
-                                                          null ||
-                                                          item?.email == ''
-                                                          ? item?.phone
-                                                          : item?.email}"),
-                                                  content: const Text(
-                                                      "Are you sure you want to remove this member from recants?"),
-                                                  actions: [
-                                                    TextButton(
-                                                        onPressed: () =>
-                                                            Navigator.pop(
-                                                                context, false),
-                                                        child: const Text(
-                                                            "Cancel")),
-                                                    TextButton(
-                                                        onPressed: () =>
-                                                            Navigator.pop(
-                                                                context, true),
-                                                        child: Text(
-                                                          "Remove",
-                                                          style: BalooStyles
-                                                              .baloosemiBoldTextStyle(
-                                                              color: Colors
-                                                                  .red),
-                                                        )),
-                                                  ],
-                                                ),
-                                          );
-
-                                          if (confirm == true) {
-                                            customLoader.show();
-
-                                            // await APIs.deleteRecantUserAndChat(item.id);
-                                            customLoader.hide();
-                                            controller.update();
-                                          }
-                                        }
-                                      },
-                                      child: ChatUserCard(user: item));
-                                },
-                              ),
-                          )
-                          : InkWell(
-                              onTap: () {
+                                        // await APIs.deleteRecantUserAndChat(item.id);
+                                        customLoader.hide();
+                                        controller.update();
+                                      }
+                                    }
+                                  },
+                                  child: ChatUserCard(user: item));
+                            },
+                          ),
+                        )
+                      : Center(
+                          child: InkWell(
+                            onTap: () {
+                              if (kIsWeb) {
+                                Get.toNamed(
+                                    "${AppRoutes.all_users}?isRecent='false'");
+                              } else {
                                 Get.toNamed(AppRoutes.all_users,
                                     arguments: {"isRecent": 'false'});
-                              },
-                              child: Center(
-                                  child: Column(
-                                mainAxisAlignment: MainAxisAlignment.center,
-                                children: [
-                                  Image.asset(
-                                    emptyRecentPng,
-                                    height: 90,
-                                  ),
-                                  Text('Click to Start new Chat 👋',
-                                          style: BalooStyles
-                                              .baloosemiBoldTextStyle(
-                                                  color: appColorGreen))
-                                      .paddingAll(12),
-                                ],
-                              )),
-                            )),
+                              }
+                            },
+                            child: Column(
+                              mainAxisSize: MainAxisSize.min,
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              crossAxisAlignment: CrossAxisAlignment.center,
+                              children: [
+                                Image.asset(
+                                  emptyRecentPng,
+                                  height: 90,
+                                ),
+                                Text('Click to Start new Chat 👋',
+                                        style:
+                                            BalooStyles.baloosemiBoldTextStyle(
+                                                color: appColorGreen))
+                                    .paddingAll(12),
+
+                                vGap(12),
+                                IconButton(onPressed: () async => controller.hitAPIToGetRecentChats(), icon: Icon(Icons.refresh,size: 35,color: appColorGreen,)).paddingOnly(right: 8)
+
+                              ],
+                            ),
+                          ),
+                        )),
             ),
           );
         });

@@ -1,5 +1,6 @@
 import 'dart:convert';
 
+import 'package:AccuChat/Screens/Chat/api/apis.dart';
 import 'package:AccuChat/Screens/Chat/models/get_company_res_model.dart';
 import 'package:AccuChat/Services/APIs/post/post_api_service_impl.dart';
 import 'package:flutter/cupertino.dart';
@@ -134,21 +135,21 @@ class CreateCompanyController extends GetxController {
     Get.find<PostApiServiceImpl>()
         .createCompanyAPICall(dataBody: reqData)
         .then((value) async {
-      Get.back();
       companyResponse = value.data!;
       _clearFields();
       customLoader.hide();
-      storage.write(isLoggedIn, true);
       StorageService.setLoggedIn(true);
       toast(value.message??'');
       update();
-      storage.write(isCompanyCreated, true);
+      StorageService.setCompanyCreated(true);
       final svc = Get.find<CompanyService>();
       await svc.select(companyResponse);
-      storage.write(companyIDKey, companyResponse.companyId);
+
+      await APIs.refreshMe(companyId: companyResponse.companyId??0);
       if (isHome) {
         if (kIsWeb) {
-          Get.offAllNamed('${AppRoutes.invite_member}?companyId=${companyResponse.companyId.toString()}&invitedBy=${companyResponse.createdBy}&companyName=${companyResponse.companyName}');
+          Get.toNamed(AppRoutes.home);
+          // Get.offAllNamed('${AppRoutes.invite_member}?companyId=${companyResponse.companyId.toString()}&invitedBy=${companyResponse.createdBy}&companyName=${companyResponse.companyName}');
         } else {
         Get.offAllNamed(AppRoutes.invite_member, arguments: {
           'companyName': companyResponse.companyName,
@@ -158,7 +159,7 @@ class CreateCompanyController extends GetxController {
       }
       } else {
         if (kIsWeb) {
-          Get.offAllNamed('${AppRoutes.invite_member}?companyId=${companyResponse.companyId.toString()}&invitedBy=${companyResponse.createdBy}&companyName=${companyResponse.companyName}');
+          Get.offAllNamed(AppRoutes.home);
         } else {
           Get.offAllNamed(AppRoutes.invite_member, arguments: {
             'companyName': companyResponse.companyName,

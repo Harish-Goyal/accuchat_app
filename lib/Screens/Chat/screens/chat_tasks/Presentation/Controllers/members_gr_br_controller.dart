@@ -87,6 +87,7 @@ class GrBrMembersController extends GetxController{
         .then((value) async {
       isLoading = false;
       members = value.data?.members??[];
+
       update();
     }).onError((error, stackTrace) {
       isLoading = false;

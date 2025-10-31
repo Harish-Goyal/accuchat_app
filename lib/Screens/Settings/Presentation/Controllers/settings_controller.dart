@@ -163,7 +163,7 @@ class SettingsController extends GetxController {
   <p><strong>Contact Us:</strong><br>
   📧 <a href="mailto:support@AccuChat.app">support@AccuChat.app</a></p>
 
-  <p style="color: grey;">© 2024 AccuChat. All rights reserved.</p>
+  <p style="color: grey;">©2025 AccuChat. All rights reserved.</p>
   </body>
   </html>
 

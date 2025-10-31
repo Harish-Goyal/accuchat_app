@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'dart:io';
+import 'dart:math';
 import 'package:AccuChat/Screens/Chat/models/chat_his_res_model.dart';
 import 'package:AccuChat/Screens/Chat/models/chat_history_response_model.dart';
 import 'package:file_picker/file_picker.dart';
@@ -21,6 +22,7 @@ import '../../../../../../utils/helper_widget.dart';
 import '../../../../../Home/Presentation/Controller/company_service.dart';
 import '../../../../../Home/Presentation/Controller/socket_controller.dart';
 import '../../../../api/apis.dart';
+import '../../../../models/gallery_create.dart';
 import '../../../../models/message.dart';
 import '../../../../models/get_company_res_model.dart';
 import '../../../auth/models/get_uesr_Res_model.dart';
@@ -29,8 +31,11 @@ import 'package:path/path.dart' as p;
 import 'dart:typed_data';
 
 import '../Widgets/all_users_dialog.dart';
+import '../Widgets/create_custom_folder.dart';
 
 class ChatScreenController extends GetxController {
+
+  final formKeyDoc = GlobalKey<FormState>();
   UserDataAPI? user;
   // Message? forwardMessage;
   final _alreadyEmitted = <int>{};
@@ -51,6 +56,104 @@ class ChatScreenController extends GetxController {
   var userNameSender;
   var userIDReceiver;
   var refIdis;
+
+  TextEditingController docNameController = TextEditingController();
+  final TextEditingController newFolderCtrl = TextEditingController();
+  final FocusNode newFolderFocus = FocusNode();
+
+
+  // Gallery
+  List<GalleryFolder> folders = [
+    GalleryFolder(id: 'fld_1', name: 'Invoices', createdAt: DateTime.now().subtract(const Duration(days: 10))),
+    GalleryFolder(id: 'fld_2', name: 'Design Assets', createdAt: DateTime.now().subtract(const Duration(days: 6))),
+    GalleryFolder(id: 'fld_3', name: 'Client Docs', createdAt: DateTime.now().subtract(const Duration(days: 1))),
+  ];
+
+  String? selectedFolderId;
+  bool showCreateNew = false;
+  String? validationError;
+
+  void selectFolder(String? id) {
+    selectedFolderId = id;
+    update();
+  }
+
+  void toggleCreateNew(bool value) {
+    showCreateNew = value;
+    validationError = null;
+    if (value) {
+      // If user wants to create new, unselect existing
+      selectedFolderId = null;
+    }
+    update();
+  }
+
+  bool _isUniqueName(String name) {
+    return !folders.any((f) => f.name.toLowerCase() == name.trim().toLowerCase());
+  }
+
+  /// Validator used by CustomTextField
+  String? validateFolderName(String? value) {
+    final v = (value ?? '').trim();
+
+    // Use your extension for the empty case:
+    if (v.isEmpty) {
+      // Your extension needs a messageTitle; pass "Folder name"
+      // Since we can't call the extension here, just return the final message directly:
+      return "Folder name can't be empty";
+    }
+
+    if (v.length < 2) {
+      return 'Folder name must be at least 2 characters';
+    }
+
+    if (!_isUniqueName(v)) {
+      return 'Folder name already exists';
+    }
+
+    return null;
+  }
+
+  GalleryFolder? createFolder() {
+    // Run validators
+    final valid = formKeyDoc.currentState?.validate() ?? false;
+    if (!valid) return null;
+
+    final name = newFolderCtrl.text.trim();
+    final id = 'fld_${Random().nextInt(999999)}';
+    final folder = GalleryFolder(id: id, name: name, createdAt: DateTime.now());
+    folders.insert(0, folder);
+
+    // Auto-select the newly created folder
+    selectedFolderId = folder.id;
+
+    // Reset create-new UI
+    showCreateNew = false;
+    newFolderCtrl.clear();
+    update();
+    return folder;
+  }
+
+  GalleryFolder? get selectedFolder {
+    if (selectedFolderId == null) return null;
+    return folders.firstWhereOrNull((f) => f.id == selectedFolderId);
+  }
+
+
+  void onTapSaveToFolder(BuildContext context) async {
+    final chosen = await showSaveToCustomFolderDialog(context);
+    if (chosen != null) {
+      Get.back();
+      // Do your save logic here using chosen.id / chosen.name
+      // For example:
+      // await api.saveFileToFolder(fileId: fileId, folderId: chosen.id);
+      Get.snackbar('Saved', 'Item saved to "${chosen.name}"',
+          snackPosition: SnackPosition.BOTTOM,backgroundColor: Colors.white,colorText: Colors.black87);
+    }
+  }
+
+  // Gallery
+
   Future<void> receivePickedDocuments(List<PlatformFile> files) async {
     webDocs.clear();
     webDocs.addAll(files);
@@ -101,6 +204,7 @@ class ChatScreenController extends GetxController {
 
   @override
   void onClose() {
+    newFolderCtrl.dispose();
     imageCache.clearLiveImages();
     imageCache.clear();
     super.onClose();
@@ -698,10 +802,17 @@ class ChatScreenController extends GetxController {
           Get.isRegistered<ChatScreenController>()) {
         Get.find<ChatScreenController>().openConversation(selectedUser);
       } else {
-        Get.offNamed(
-          AppRoutes.chats_li_r,
-          arguments: {'user': selectedUser},
-        );
+        if(kIsWeb){
+          Get.offNamed(
+            "${AppRoutes.chats_li_r}?userId=${selectedUser.userId.toString()}",
+          );
+        }else{
+          Get.offNamed(
+            AppRoutes.chats_li_r,
+            arguments: {'user': selectedUser},
+          );
+        }
+
       }
     }
 

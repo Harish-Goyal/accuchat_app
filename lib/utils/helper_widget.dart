@@ -2,22 +2,27 @@ import 'package:AccuChat/Constants/colors.dart';
 import 'package:AccuChat/utils/text_style.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:device_info_plus/device_info_plus.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:get/get.dart';
 import 'package:intl/intl.dart';
 import 'package:media_scanner/media_scanner.dart';
+import 'package:open_filex/open_filex.dart';
 import 'package:shimmer/shimmer.dart';
+import 'package:url_launcher/url_launcher_string.dart';
 import '../Constants/assets.dart';
 import '../Constants/themes.dart';
 import '../Screens/Chat/models/message.dart';
 import 'package:dio/dio.dart';
 import 'package:permission_handler/permission_handler.dart';
+import '../main.dart';
 import 'custom_flashbar.dart';
 import 'dart:io';
 import 'package:path/path.dart' as p;
-
-
+import 'dart:async';
+import 'dart:math' as math;
+import 'package:path_provider/path_provider.dart';
 Future<bool> requestStoragePermission() async {
   if (Platform.isAndroid) {
     final sdkInt = (await DeviceInfoPlugin().androidInfo).version.sdkInt;
@@ -410,6 +415,35 @@ bool isTaskExpired(String startTime, String estimate) {
   final deadline = start.add(Duration(hours: estimateDuration));
   return DateTime.now().isAfter(deadline);
 }
+
+
+Future<void> openDocumentFromUrl(String url) async {
+  customLoader.show();
+  if (kIsWeb) {
+    // Web: just open in a new tab (downloads or previews based on file type/server headers)
+    customLoader.hide();
+    final ok = await launchUrlString(
+      url,
+      mode: LaunchMode.externalApplication, // opens new tab
+    );
+    if (!ok) throw 'Could not open $url';
+    return;
+  }
+  try {
+    final dir = await getTemporaryDirectory();
+    final fileName = url.split('/').last.split('?').first;
+    final filePath = '${dir.path}/$fileName';
+
+    // Download using Dio
+    await Dio().download(url, filePath);
+    customLoader.hide();
+    await OpenFilex.open(filePath);
+  } catch (e) {
+    print("❌ Failed to open document: $e");
+    customLoader.hide();
+  }
+}
+
 
 /*Future<void> saveImageWithGallerySaver(String imageUrl) async {
   final status = await requestStoragePermission();

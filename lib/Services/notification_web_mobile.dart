@@ -16,8 +16,11 @@ import 'package:googleapis_auth/googleapis_auth.dart';
 
 
 class NotificationServicess {
-  static final NotificationServicess _instance = NotificationServicess._internal();
+  static final NotificationServicess _instance =
+  NotificationServicess._internal();
+
   factory NotificationServicess() => _instance;
+
   NotificationServicess._internal();
 
   // ---- Non-web (mobile/desktop) server-auth pieces ----
@@ -40,7 +43,8 @@ class NotificationServicess {
 
     // ====== MOBILE / DESKTOP path (what you had) ======
     // Loads service-account from assets and prepares HTTP client to send via FCM v1
-    final serviceAccountJson = await rootBundle.loadString('assets/service-account.json');
+    final serviceAccountJson =
+    await rootBundle.loadString('assets/service-account.json');
     final jsonMap = json.decode(serviceAccountJson);
     _projectId = jsonMap['project_id'];
     _credentials = ServiceAccountCredentials.fromJson(serviceAccountJson);
@@ -53,13 +57,39 @@ class NotificationServicess {
     // Foreground notifications while app is open
     FirebaseMessaging.onMessage.listen((RemoteMessage message) {
       final title = message.notification?.title ?? '';
-      final body  = message.notification?.body ?? '';
-      LocalNotificationService.showInviteNotification(title: title, body: body);
+      final body = message.notification?.body ?? '';
+      final type = message.data['type'];
+
+      final data = message.data;
+
+      final meId = APIs.me.userId?.toString().trim();
+      final senderId = (data['sender_id'] ?? '').toString().trim();
+      final receiverId = (data['receiver_id'] ?? '').toString().trim();
+
+      print('🔔 FCM received: sender=$senderId, receiver=$receiverId, me=$meId');
+
+      // 1️⃣ Skip if self not logged in properly
+      if (meId == null || meId.isEmpty) return;
+
+      // 2️⃣ Skip if missing sender info
+      if (senderId.isEmpty) return;
+
+      // 3️⃣ Skip if message is from self OR to self
+      if (senderId == meId || receiverId == meId && senderId == meId) {
+        print('🔕 Skipping self-message notification');
+        return;
+      }
+
+      // ✅ Safe to show notification
+      LocalNotificationService.showNotification(
+        title: title,
+        body: body,
+      );
     });
 
     // When user taps a notification
     FirebaseMessaging.onMessageOpenedApp.listen((RemoteMessage message) async {
-      _handleTapByType(message.data['type'], message.data['companyId']);
+      _handleTapByType(message.data['type'], message.data['company_id']);
     });
   }
 
@@ -68,12 +98,12 @@ class NotificationServicess {
     // Foreground: tab open
     FirebaseMessaging.onMessage.listen((RemoteMessage message) {
       final title = message.notification?.title ?? 'New message';
-      final body  = message.notification?.body ?? '';
+      final body = message.notification?.body ?? '';
+      final click = message.data['click_action'];
       // Show your in-app banner/snackbar (system toast is handled by SW only in bg)
-      LocalNotificationService.showInviteNotification(title: title, body: body);
+      // showBrowserNotification(title, body, clickUrl: click);
       debugPrint('📩 (WEB) Foreground: $title — $body');
     });
-
     // User clicked a notification (navigates via data.type)
     FirebaseMessaging.onMessageOpenedApp.listen((RemoteMessage message) async {
       _handleTapByType(message.data['type'], message.data['companyId']);
@@ -86,21 +116,25 @@ class NotificationServicess {
       Get.toNamed(AppRoutes.home);
       return;
     }
-    if (type == 'task') {
+    else if (type == 'task') {
       Get.find<DashboardController>().updateIndex(1);
       if (companyId != APIs.me.userCompany?.userCompanyId) {
         await APIs.getSelfInfo();
       }
       return;
     }
-    if (type == 'chat') {
+   else if (type == 'chat') {
       Get.find<DashboardController>().updateIndex(0);
       if (companyId != APIs.me.userCompany?.userCompanyId) {
         await APIs.getSelfInfo();
       }
       return;
+    }  else{
+      Get.toNamed(AppRoutes.home);
     }
   }
+}
+/*
 
   // ================== SENDING (Server -> Device) ==================
   // ❗ DO NOT call these from web; call from server or non-web clients only.
@@ -119,12 +153,13 @@ class NotificationServicess {
       await init();
     }
 
-    final url = Uri.parse('https://fcm.googleapis.com/v1/projects/$_projectId/messages:send');
+    final url = Uri.parse(
+        'https://fcm.googleapis.com/v1/projects/$_projectId/messages:send');
     final message = {
       "message": {
         "token": targetToken,
-        "notification": { "title": title, "body": body },
-        "data": data ?? { "click_action": "FLUTTER_NOTIFICATION_CLICK" }
+        "notification": {"title": title, "body": body},
+        "data": data ?? {"click_action": "FLUTTER_NOTIFICATION_CLICK"}
       }
     };
 
@@ -147,7 +182,7 @@ class NotificationServicess {
       targetToken: targetToken,
       title: "Invitation!",
       body: "$companyName invited you.",
-      data: { "type": "invite", "company": companyName },
+      data: {"type": "invite", "company": companyName},
     );
   }
 
@@ -160,8 +195,9 @@ class NotificationServicess {
     await _sendNotification(
       targetToken: targetToken,
       title: "Invitation Accepted",
-      body: "${inviterName==''?number:inviterName} accepted your Invitation for $companyName.",
-      data: { "type": "acceptinvite", "company": companyName },
+      body:
+          "${inviterName == '' ? number : inviterName} accepted your Invitation for $companyName.",
+      data: {"type": "acceptinvite", "company": companyName},
     );
   }
 
@@ -175,7 +211,7 @@ class NotificationServicess {
       targetToken: targetToken,
       title: "💬 New Message from $senderName",
       body: message,
-      data: { "type": "chat", "companyId": company?.companyId?.toString() ?? '' },
+      data: {"type": "chat", "companyId": company?.companyId?.toString() ?? ''},
     );
   }
 
@@ -189,7 +225,8 @@ class NotificationServicess {
       targetToken: targetToken,
       title: "📝 Task Assigned by $assignerName",
       body: taskSummary,
-      data: { "type": "task", "companyId": company?.companyId?.toString() ?? '' },
+      data: {"type": "task", "companyId": company?.companyId?.toString() ?? ''},
     );
   }
 }
+*/

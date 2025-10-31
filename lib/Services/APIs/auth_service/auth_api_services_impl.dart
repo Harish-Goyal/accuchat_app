@@ -12,12 +12,37 @@ import '../dio_client.dart';
 import '../local_keys.dart';
 import '../success_res_model.dart';
 import 'auth_api_services.dart';
+import 'package:flutter/foundation.dart' show kIsWeb;
+import 'dart:io' show Platform;
 class AuthApiServiceImpl extends GetxService
     implements AuthenticationApi {
   late DioClient? dioClient;
-  var deviceName, deviceType, deviceID;
+  // var deviceName, deviceType, deviceID;
 
-  getDeviceData() async {
+  Future<Map<String, dynamic>> getDeviceData() async {
+    if (kIsWeb) {
+      // ✅ No dart:io calls here
+      return {
+        'platform': 'web',
+        'os': 'web',
+        'device': 'browser',
+        // keep keys your backend expects, but fill with web-safe values
+      };
+    }
+
+    // ✅ Mobile/desktop only
+    final os = Platform.operatingSystem;         // 'android', 'ios', 'windows', etc.
+    final isAndroid = Platform.isAndroid;
+    final isIOS = Platform.isIOS;
+
+    return {
+      'platform': isAndroid ? 'android' : (isIOS ? 'ios' : os),
+      'os': os,
+      'device': isAndroid ? 'android-phone' : (isIOS ? 'iphone' : 'desktop'),
+    };
+  }
+
+/*  getDeviceData() async {
     DeviceInfoPlugin info = DeviceInfoPlugin();
     if (Platform.isAndroid) {
       AndroidDeviceInfo androidDeviceInfo = await info.androidInfo;
@@ -36,7 +61,7 @@ class AuthApiServiceImpl extends GetxService
       debugPrint("deviceID ===== ${deviceID}");
       debugPrint("deviceType ===== ${deviceType}");
     }
-  }
+  }*/
 
   @override
   void onInit() {
@@ -61,16 +86,6 @@ class AuthApiServiceImpl extends GetxService
     }
   }
 
-@override
-Future<LoginResModel> logoutApiCall({FormData? dataBody}) async {
-  try {
-    final response = await dioClient!
-        .post(ApiEnd.logoutEnd, data: dataBody, skipAuth: false);
-    return LoginResModel.fromJson(response);
-  } catch (e) {
-    return Future.error(NetworkExceptions.getDioException(e));
-  }
-}
 
   @override
   Future<LoginResModel> resentOtpApiCall({Map<String, dynamic>? dataBody}) {
@@ -127,6 +142,12 @@ Future<LoginResModel> logoutApiCall({FormData? dataBody}) async {
     } catch (e) {
       return Future.error(NetworkExceptions.getDioException(e));
     }
+  }
+
+  @override
+  Future<LoginResModel> logoutApiCall({FormData? dataBody}) {
+    // TODO: implement logoutApiCall
+    throw UnimplementedError();
   }
 
 

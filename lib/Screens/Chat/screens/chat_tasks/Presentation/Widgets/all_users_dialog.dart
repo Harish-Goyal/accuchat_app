@@ -27,7 +27,7 @@ class AllUserScreenDialog extends GetView<AllUserController> {
             margin: const EdgeInsets.symmetric(horizontal: 20, vertical: 30),
             decoration: BoxDecoration(
               borderRadius: BorderRadius.circular(12),
-              color: Colors.white.withOpacity(.9),
+              color: Colors.white,
             ),
             child: Column(
               children: [
@@ -98,8 +98,8 @@ class AllUserScreenDialog extends GetView<AllUserController> {
                         ),
                       ),
                       title:
-                      listToShow[i].userName!=null?  Text(
-                         listToShow[i].userName ?? '',
+                      listToShow[i].displayName!=null?  Text(
+                         listToShow[i].displayName ?? '',
 
                         style: themeData.textTheme.bodySmall,
                       ):Text(
@@ -109,7 +109,7 @@ class AllUserScreenDialog extends GetView<AllUserController> {
                         style: themeData.textTheme.bodySmall
                             ?.copyWith(color: Colors.black87),
                       ),
-                      subtitle:listToShow[i].userName!=null? Text(
+                      subtitle:listToShow[i].displayName!=null||listToShow[i].displayName!=""? Text(
                         listToShow[i].email != null
                             ? listToShow[i].email ?? ''
                             : listToShow[i].phone ?? '',

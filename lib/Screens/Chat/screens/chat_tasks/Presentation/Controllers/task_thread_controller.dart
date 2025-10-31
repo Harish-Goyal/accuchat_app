@@ -86,7 +86,7 @@ class TaskThreadController extends GetxController {
 
   String get joined {
     final names = allUsersList
-        .map((v) => (v.userName ?? '').trim())
+        .map((v) => (v.displayName ?? '').trim())
         .where((s) => s.isNotEmpty)
         .toList();
 

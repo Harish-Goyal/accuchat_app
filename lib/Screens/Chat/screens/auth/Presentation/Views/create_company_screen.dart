@@ -1,4 +1,5 @@
 import 'dart:io';
+import 'package:AccuChat/Constants/colors.dart';
 import 'package:AccuChat/Extension/text_field_extenstion.dart';
 import 'package:AccuChat/Screens/Chat/screens/auth/Presentation/Controllers/create_company_controller.dart';
 import 'package:AccuChat/utils/helper_widget.dart';
@@ -296,7 +297,16 @@ class CreateCompanyScreen extends GetView<CreateCompanyController> {
       child: GetBuilder<CreateCompanyController>(
         builder: (controller) {
           return Scaffold(
-            body: LayoutBuilder(
+            backgroundColor: const Color(0xFFF6F7F9),
+            appBar: AppBar(
+              title: Text(
+                "Create Company",
+                style: BalooStyles.balooboldTitleTextStyle(),
+              ),
+              centerTitle: true,
+              elevation: 0,
+            ),
+            /*body: LayoutBuilder(
               builder: (context, constraints) {
                 final isWide = constraints.maxWidth > 600;
                 return Center(
@@ -401,6 +411,135 @@ class CreateCompanyScreen extends GetView<CreateCompanyController> {
 
                             vGap(50),
                           ],
+                        ),
+                      ),
+                    ),
+                  ),
+                );
+              },
+            ),*/
+
+
+            body:  LayoutBuilder(
+              builder: (context, constraints) {
+                final isWide = constraints.maxWidth >= 900;
+                final fieldWidth = isWide ? 420.0 : double.infinity;
+                final cardMargin = EdgeInsets.symmetric(
+                  horizontal: isWide ? 32 : 16,
+                  vertical: isWide ? 24 : 12,
+                );
+                final cardPadding = EdgeInsets.all(isWide ? 28 : 18);
+                final avatarSize = isWide ? 140.0 : 120.0;
+
+                return Center(
+                  child: ConstrainedBox(
+                    constraints: const BoxConstraints(maxWidth: 1100),
+                    child: Card(
+                      margin: cardMargin,
+                      color: Colors.white,
+                      elevation: 2,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(16),
+                      ),
+                      child: Padding(
+                        padding: cardPadding,
+                        child: SingleChildScrollView(
+                          child: Form(
+                            key: controller.formKey,
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.center,
+                              children: [
+                                AnimatedDefaultTextStyle(child: Text(
+                                  "Create Your Company",
+                                ), style:  BalooStyles.baloomediumTextStyle(color: appColorYellow,size: 20), duration: Duration(seconds: 1))
+                                ,
+                                vGap(12),
+                                if (controller.companyLogoUrl?.isNotEmpty == true)
+                                  ClipRRect(
+                                    borderRadius: BorderRadius.circular(100),
+                                    child: Image.file(
+                                      File(controller.companyLogoUrl!),
+                                      width: 120,
+                                      height: 120,
+                                      fit: BoxFit.cover,
+                                    ),
+                                  ),
+                                vGap(20),
+
+                                // Form fields
+                                CustomTextField(
+                                  hintText: "Company Name",
+                                  labletext: "Company Name",
+                                  controller: controller.nameController,
+                                  focusNode: controller.nameFocus,
+                                  validator: (value) =>
+                                      value?.isEmptyField(messageTitle: "Company Name"),
+                                  onFieldSubmitted: (_) => FocusScope.of(context)
+                                      .requestFocus(controller.emailFocus),
+                                ),
+                                vGap(18),
+                                CustomTextField(
+                                  hintText: "Email (optional)",
+                                  labletext: "Email",
+                                  controller: controller.emailController,
+                                  focusNode: controller.emailFocus,
+                                  onFieldSubmitted: (_) => FocusScope.of(context)
+                                      .requestFocus(controller.phoneFocus),
+                                ),
+                                vGap(18),
+                                CustomTextField(
+                                  hintText: "Phone (optional)",
+                                  labletext: "Phone",
+                                  controller: controller.phoneController,
+                                  focusNode: controller.phoneFocus,
+                                  inputFormatters: <TextInputFormatter>[
+                                    FilteringTextInputFormatter.digitsOnly,
+                                    LengthLimitingTextInputFormatter(10),
+                                  ]
+                                  ,
+                                  onFieldSubmitted: (_) => FocusScope.of(context)
+                                      .requestFocus(controller.addressFocus),
+                                  validator: (value){
+                                    return (value?.isEmpty??true)?"":value?.validateMobile(controller.phoneController.text);
+                                  },
+                                ),
+                                vGap(18),
+                                CustomTextField(
+                                  hintText: "Company Address (optional)",
+                                  labletext: "Address",
+                                  controller: controller.addressController,
+                                  focusNode: controller.addressFocus,
+                                  onFieldSubmitted: (_) => FocusScope.of(context)
+                                      .requestFocus(controller.websiteFocus),
+                                ),
+                                vGap(18),
+                                CustomTextField(
+                                  hintText: "Website (optional)",
+                                  labletext: "Website",
+                                  controller: controller.websiteController,
+                                  focusNode: controller.websiteFocus,
+                                ),
+                                vGap(30),
+
+                                // Upload logo button
+                                ElevatedButton.icon(
+                                  icon: const Icon(Icons.cloud_upload_outlined),
+                                  label: const Text("Upload Logo (optional)"),
+                                  onPressed: _showBottomSheet,
+                                ),
+                                vGap(18),
+
+                                // Create button
+                                ElevatedButton(
+                                  onPressed: controller.createCompanyApi,
+                                  child: const Text("Create Company"),
+                                ),
+
+                                vGap(50),
+
+                              ],
+                            ).paddingSymmetric(horizontal: 8),
+                          ),
                         ),
                       ),
                     ),

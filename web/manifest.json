@@ -30,6 +30,9 @@
             "sizes": "512x512",
             "type": "image/png",
             "purpose": "maskable"
+        },
+        {
+            "gcm_sender_id": "103953800507"
         }
     ]
 }

@@ -9,6 +9,7 @@ import 'package:get/get.dart';
 import '../../../../Services/APIs/post/post_api_service_impl.dart';
 import '../../../../main.dart';
 import '../../../../utils/custom_flashbar.dart';
+import '../../../Home/Presentation/Controller/company_service.dart';
 
 class CreateRoleController extends GetxController {
   final roleNameController = TextEditingController();
@@ -19,7 +20,7 @@ class CreateRoleController extends GetxController {
   bool isLoading = true;
   bool? isPerNotSelected;
 
-  CompanyData company = CompanyData();
+  CompanyData? company = CompanyData();
 
 
 
@@ -33,11 +34,9 @@ class CreateRoleController extends GetxController {
 
 
   CompanyData? getCompany() {
-    final json = storage.read(selectedCompany);
-    if (json != null) {
-      company = CompanyData.fromJson(Map<String, dynamic>.from(json));
-      return company;
-    }
+    final svc     = Get.find<CompanyService>();
+    company =svc.selected;
+    update();
     return null;
   }
 
@@ -65,7 +64,7 @@ class CreateRoleController extends GetxController {
     SystemChannels.textInput.invokeMethod('TextInput.hide');
     customLoader.show();
     var reqData = {
-      "company_id": company.companyId,
+      "company_id": company?.companyId,
       "user_role":roleNameController.text.trim(),
       "is_admin": 0,
       "navigation_items": selectedPermissionsIds

@@ -48,13 +48,22 @@ class NotificationService {
     FirebaseMessaging.onMessage.listen((RemoteMessage message) {
       print('📬 Foreground message: ${message.notification?.title}');
 
+
       final title = message.notification?.title ?? '';
       final body = message.notification?.body ?? '';
 
-      LocalNotificationService.showInviteNotification(
-        title: title,
-        body: body,
-      );
+      final data = message.data;
+      print("APIs.me.userId ========= ");
+      print(APIs.me.userId);
+      print(data['sender_id']);
+      if(APIs.me.userId == data['sender_id']){
+
+      }else{
+        LocalNotificationService.showNotification(
+          title: title,
+          body: body,
+        );
+      }
     });
 
     FirebaseMessaging.onMessageOpenedApp.listen((RemoteMessage message) async {
@@ -69,6 +78,8 @@ class NotificationService {
         Get.find<DashboardController>().updateIndex(1);
       } else if (type == 'chat') {
         Get.find<DashboardController>().updateIndex(0);
+      } else if(type =='task_comments'){
+
       }
     });
 

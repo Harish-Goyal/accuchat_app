@@ -79,15 +79,16 @@ class _ChatUserCardState extends State<ChatUserCard>
 
   @override
   Widget build(BuildContext context) {
+    print(widget.user?.displayName);
     return Container(
       padding: EdgeInsets.zero,
-      margin: EdgeInsets.symmetric(horizontal: mq.width * .04, vertical: 5),
+      margin: EdgeInsets.symmetric(horizontal: mq.width * .04, vertical: 0),
       decoration: BoxDecoration(
           borderRadius: BorderRadius.circular(15),
-          border: Border.all(color: appColorYellow.withOpacity(.1)),
+          border: Border.all(color:isTaskMode? appColorYellow.withOpacity(.06):appColorGreen.withOpacity(.04)),
           color: Colors.white,
           boxShadow: [
-            BoxShadow(color: appColorYellow.withOpacity(.1), blurRadius: 8)
+            BoxShadow(color:isTaskMode? appColorYellow.withOpacity(.06):appColorGreen.withOpacity(.04), blurRadius: 8)
           ]),
       child: InkWell(
           onTap: () {
@@ -157,8 +158,11 @@ class _ChatUserCardState extends State<ChatUserCard>
             ),
 
             //user name
-            title: Text(
-              (widget.user?.userId==APIs.me.userId)?"Me":  (widget.user?.userName =='null' ||widget.user?.userName==''||widget.user?.userName==null)?widget.user?.phone??'':widget.user?.userName??'',
+            title:(widget.user?.userCompany?.isGroup==1|| widget.user?.userCompany?.isBroadcast==1)? Text(
+              (widget.user?.userId==APIs.me.userId)?"Me":  (widget.user?.userName==''||widget.user?.userName==null)?widget.user?.phone??'':widget.user?.userName??'',
+              style: themeData.textTheme.titleMedium,
+            ):Text(
+              (widget.user?.userId==APIs.me.userId)?"Me":  (widget.user?.displayName==''||widget.user?.displayName==null)?widget.user?.phone??'':widget.user?.displayName??'',
               style: themeData.textTheme.titleMedium,
             ),
 

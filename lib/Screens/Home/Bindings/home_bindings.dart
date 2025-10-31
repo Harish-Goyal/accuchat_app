@@ -23,12 +23,12 @@ class ConnectAPPBinding extends Bindings{
     Get.put<CompaniesController>(CompaniesController());
   }
 
-}class InviteMemBinding extends Bindings{
+}
+class InviteMemBinding extends Bindings{
   @override
   void dependencies() {
     Get.put<InviteMemberController>(InviteMemberController());
   }
-
 }
 
 

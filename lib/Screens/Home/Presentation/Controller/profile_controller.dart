@@ -51,7 +51,6 @@ class HProfileController extends GetxController {
     myCompany =svc.selected;
     update();
     hitAPIToGetUser();
-
   }
 
   hitAPIToGetUser() async {
@@ -59,7 +58,6 @@ class HProfileController extends GetxController {
     Get.find<AuthApiServiceImpl>().getUserApiCall(companyId: myCompany?.companyId??0).then((value) async {
       isLoading = false;
       userData = value.data!;
-      storage.write(user_mob, userData.phone ?? '');
       saveUser(userData);
       _initData(userData);
       update();
@@ -111,9 +109,12 @@ class HProfileController extends GetxController {
     ).then((value) async {
       customLoader.hide();
       userData = value.data!;
-      storage.write(user_mob, userData.phone ?? '');
-      _initData(userData);
+
       toast(value.message);
+
+      hitAPIToGetUser();
+      await APIs.refreshMe(companyId: myCompany?.companyId ?? 0);
+
       update();
     }).onError((error, stackTrace) {
       customLoader.hide();

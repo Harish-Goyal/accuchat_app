@@ -1,10 +1,14 @@
+import 'package:AccuChat/Screens/Chat/api/session_alive.dart';
 import 'package:AccuChat/Screens/Chat/models/get_company_res_model.dart';
 import 'package:AccuChat/Screens/Home/Presentation/Controller/company_service.dart';
 import 'package:AccuChat/Services/APIs/post/post_api_service_impl.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import '../../../../../../Services/APIs/auth_service/auth_api_services_impl.dart';
 import '../../../../../../main.dart';
 import '../../../../../../routes/app_routes.dart';
+import '../../../../../../utils/shares_pref_web.dart';
 import '../../models/pending_invites_res_model.dart';
 
 class LandingScreenController extends GetxController {
@@ -17,8 +21,10 @@ class LandingScreenController extends GetxController {
   }
 
   initWhenl() async {
-    final c =Get.put(CompanyService());
-    c.init();
+    // final c =Get.put(CompanyService());
+    // final d =Get.put(Session(Get.find<AuthApiServiceImpl>(), Get.find<AppStorage>()));
+    // c.init();
+    // d.initSafe();
 
   }
 
@@ -74,11 +80,7 @@ class LandingScreenController extends GetxController {
         );
         return;
       }else{
-        Get.toNamed(AppRoutes.accept_invite,arguments: {
-          // 'inviteId': inviteId,
-          // 'company': invite.company!,
-          'pendingInvites': pendingInvites,
-        });
+        Get.toNamed(AppRoutes.accept_invite);
       }
 
 

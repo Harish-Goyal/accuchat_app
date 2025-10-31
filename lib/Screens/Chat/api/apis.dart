@@ -1,6 +1,7 @@
 import 'dart:convert';
 import 'dart:developer';
 import 'dart:io';
+import 'package:AccuChat/Screens/Chat/api/session_alive.dart';
 import 'package:AccuChat/Screens/Chat/screens/auth/Presentation/Views/accept_invite_screen.dart';
 import 'package:AccuChat/Screens/Chat/screens/auth/Presentation/Views/landing_screen.dart';
 import 'package:AccuChat/Screens/Chat/screens/auth/Presentation/Views/login_screen.dart';
@@ -8,12 +9,17 @@ import 'package:AccuChat/Screens/Chat/screens/auth/models/get_uesr_Res_model.dar
 import 'package:AccuChat/routes/app_routes.dart';
 import 'package:AccuChat/utils/custom_flashbar.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:device_info_plus/device_info_plus.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:http/http.dart';
+import '../../../Extension/user_Ext.dart';
 import '../../../Services/APIs/auth_service/auth_api_services_impl.dart';
 import '../../../Services/APIs/local_keys.dart';
+import '../../../Services/APIs/post/post_api_service_impl.dart';
+import '../../../main.dart';
 import '../../Home/Presentation/Controller/company_service.dart';
 import '../../Home/Presentation/View/invite_member.dart';
 import '../helper/notification_service.dart';
@@ -35,7 +41,7 @@ class APIs {
   // for accessing cloud firestore database
   static FirebaseFirestore firestore = FirebaseFirestore.instance;
 
-  // for accessing firebase storage
+/*  // for accessing firebase storage
   // static FirebaseStorage storage = FirebaseStorage.instance;
 
   // to return current user
@@ -68,19 +74,30 @@ class APIs {
       invitedOn: user?.invitedOn,
       joinedOn: user?.joinedOn,
       pushToken: user?.pushToken,
-  );
+  );*/
+  // ---- NEW: everything reads from Session ----
+  static Session get _session => Get.find<Session>();
 
-  // streams in firebase cloud firestore
-  // static Future<void> getSelfInfoProfile() async {
-  //   final user = FirebaseAuth.instance.currentUser;
-  //   if (user != null) {
-  //     final doc = await firestore.collection('users').doc(user.uid).get();
-  //
-  //     if (doc.exists) {
-  //       APIs.me = ChatUser.fromJson(doc.data()!);
-  //     }
-  //   }
-  // }
+  /// Old: `static UserDataAPI? get user => getUser();`
+  /// New: live user (nullable)
+  static UserDataAPI? get user => _session.user;
+
+  /// Keep your existing usage: `APIs.me.userName`
+  /// But make it a *getter* that returns the *current* user,
+  /// falling back to an empty safe object (never null).
+  static UserDataAPI get me => _session.user ?? UserDataAPIEmpty.empty();
+
+  /// If you want reactive UI with Obx:
+  static Rxn<UserDataAPI> get meRx => _session.rxUser;
+
+  /// Easy way to force refresh from server anywhere:
+  static Future<UserDataAPI?> refreshMe({required int companyId}) =>
+      _session.refreshUser(companyId: companyId);
+
+  /// If some screen edits the profile and you want instant local reflect:
+  static void patchMe(UserDataAPI updated) => _session.patchUserLocally(updated);
+
+
 
 /*  static String getConversationIDTask(String id1, String id2) =>
       id1.hashCode <= id2.hashCode ? '${id1}_$id2' : '${id2}_$id1';*/
@@ -99,10 +116,11 @@ class APIs {
         me.pushToken = t;
         debugPrint("push token==============");
         debugPrint(me.pushToken);
+        hitAPIToPushRegister(me.pushToken);
       }
     });
 
-    // for handling foreground messages
+   /* // for handling foreground messages
     FirebaseMessaging.onMessage.listen((RemoteMessage message) {
       log('Got a message whilst in the foreground!');
       log('Message data: ${message.data}');
@@ -110,6 +128,61 @@ class APIs {
       if (message.notification != null) {
         log('Message also contained a notification: ${message.notification}');
       }
+    });*/
+  }
+
+
+
+  static var deviceName, deviceType, deviceID;
+
+  // To getting device type (Android or IOS)
+  static getDeviceData() async {
+    DeviceInfoPlugin info = DeviceInfoPlugin();
+    if (Platform.isAndroid) {
+      AndroidDeviceInfo androidDeviceInfo = await info.androidInfo;
+      deviceName = androidDeviceInfo.model;
+      deviceID = androidDeviceInfo.device;
+      deviceType = "1";
+    } else if (Platform.isIOS) {
+      IosDeviceInfo iosDeviceInfo = await info.iosInfo;
+      deviceName = iosDeviceInfo.model;
+      deviceID = iosDeviceInfo.identifierForVendor;
+      deviceType = "2";
+    }
+  }
+
+
+  static Future<void> hitAPIToPushRegister(pushToken) async {
+
+    if(!kIsWeb){
+      DeviceInfoPlugin info = DeviceInfoPlugin();
+      if (Platform.isAndroid) {
+        AndroidDeviceInfo androidDeviceInfo = await info.androidInfo;
+        deviceName = androidDeviceInfo.model;
+        deviceID = androidDeviceInfo.device;
+        deviceType = "1";
+      } else if (Platform.isIOS) {
+        IosDeviceInfo iosDeviceInfo = await info.iosInfo;
+        deviceName = iosDeviceInfo.model;
+        deviceID = iosDeviceInfo.identifierForVendor;
+        deviceType = "2";
+      }
+    }
+    Map<String, dynamic> dataBody = {
+      "token": pushToken,
+      "platform": kIsWeb
+          ? "web"
+          : Platform.isAndroid
+          ? "android"
+          : 'ios', //android,ios,web
+      "device_id": deviceID,
+      // "device_name": deviceName,
+    };
+     Get.find<PostApiServiceImpl>()
+        .registerPushTokenApiCall(dataBody: dataBody)
+        .then((value) async {})
+        .onError((error, stackTrace) {
+      // errorDialog(error.toString());
     });
   }
 
@@ -146,7 +219,7 @@ class APIs {
       final body = {
         "to": chatUser.pushToken ,
         "notification": {
-          "title": me.userName??'', //our name should be send
+          "title": me.displayName??'', //our name should be send
           "body": msg,
           "android_channel_id": "chats"
         },
@@ -162,10 +235,10 @@ class APIs {
             'key=BJt_tuDwKCr6OR8Gibo9KMKsJfSjB3rje9fn7Q31qGPyxAi9SKF11kf8HYOd__Zo7Wubg_xgbhkZzykxRojmN9g'
           },
           body: jsonEncode(body));
-      log('Response status: ${res.statusCode}');
-      log('Response body: ${res.body}');
+      // log('Response status: ${res.statusCode}');
+      // log('Response body: ${res.body}');
     } catch (e) {
-      log('\nsendPushNotificationE: $e');
+      //log('\nsendPushNotificationE: $e');
     }
   }
 
@@ -189,10 +262,11 @@ class APIs {
   static Future<void> getSelfInfo() async {
     final svc = Get.find<CompanyService>();
     final myCompany =svc.selected;
+    print("APIS self user");
     Get.find<AuthApiServiceImpl>()
         .getUserApiCall(companyId: myCompany?.companyId??0)
         .then((value) async {
-      me = value.data!;
+      // me = value.data!;
       await getFirebaseMessagingToken();
     }).onError((error, stackTrace) {
 

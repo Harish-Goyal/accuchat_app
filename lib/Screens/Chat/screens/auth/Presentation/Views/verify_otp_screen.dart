@@ -59,9 +59,9 @@ class VerifyOtpScreen extends GetView<VerifyOtpController> {
                                 onCodeChanged: (code) {
                                   if (code != null && code.length == 6) {
                                     SystemChannels.textInput.invokeMethod('TextInput.hide');
-                                    controller.otpValue = code;
+                                    controller.otpFieldController.text = code;
                                     controller.isFill = true;
-                                    setState(() {});
+                                    controller.update();
                                     controller.hitAPIToVerifyOtp();
                                   }
                                 },

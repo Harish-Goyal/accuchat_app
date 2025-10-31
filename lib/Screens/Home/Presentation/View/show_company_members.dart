@@ -86,7 +86,8 @@ class CompanyMembers extends GetView<CompanyMemberController> {
                           }
                               :*/
                 (detail) async {
-              final meId = controller.me?.userId;
+                  controller.removeCompanyMember(memData);
+              /*final meId = controller.me?.userId;
               final creatorId = controller.myCompany?.createdBy;
               final targetId = memData?.userId;
 
@@ -163,24 +164,20 @@ class CompanyMembers extends GetView<CompanyMemberController> {
 
               if (confirm == true) {
                 controller.hitAPIToRemoveMember(targetId);
-              }
+              }*/
             },
 
               child: ListTile(
               onTap: () {
-                // Get.back();
-                // dcController.updateIndex(1);
-                // setState(() {
-                //     isTaskMode = false;
-                // });
+                controller.removeCompanyMember(memData);
               },
               dense: true,
               visualDensity: kIsWeb ? const VisualDensity(vertical: -1) : VisualDensity.standard, // tighter on web
               contentPadding:
               const EdgeInsets.symmetric(horizontal: 10, vertical: 0),
-              leading:memData?.userName == 'null' ||
-                  memData?.userName == '' ||
-                  memData?.userName == null
+              leading:
+                  memData?.displayName == '' ||
+                  memData?.displayName == null
                   ? CircleAvatar(
                   radius: isWide ? 22 : 20, // slightly larger on wide
                   backgroundColor: appColorGreen.withOpacity(.1),
@@ -193,16 +190,18 @@ class CompanyMembers extends GetView<CompanyMemberController> {
                   radius: isWide ? 22 : 20,
                   backgroundColor: appColorGreen.withOpacity(.1),
                   child: SizedBox(
-                    width: 50,
+                    width: 60,
                     child: CustomCacheNetworkImage(
                       radiusAll: 100,
+                      width: 60,
+                      height: 60,
                       boxFit: BoxFit.cover,
                       "${ApiEnd.baseUrlMedia}${memData?.userImage ?? ''}",
                     ),
                   )),
-              title: memData?.userName == 'null' ||
-                  memData?.userName == '' ||
-                  memData?.userName == null
+              title:
+                  memData?.displayName == '' ||
+                  memData?.displayName == null
                   ? Text(
                 (memData?.email != null)
                     ? memData?.email ?? ''
@@ -212,14 +211,14 @@ class CompanyMembers extends GetView<CompanyMemberController> {
                 overflow: TextOverflow.ellipsis,
               )
                   : Text(
-                memData?.userName ?? '',
+                memData?.displayName ?? '',
                 style: BalooStyles.baloosemiBoldTextStyle(),
                 maxLines: 1,
                 overflow: TextOverflow.ellipsis,
               ),
-              subtitle: memData?.userName == 'null' ||
-                  memData?.userName == '' ||
-                  memData?.userName == null
+              subtitle:
+                  memData?.displayName == '' ||
+                  memData?.displayName == null
                   ? const SizedBox(
                 height: 0,
               )
@@ -262,11 +261,27 @@ class CompanyMembers extends GetView<CompanyMemberController> {
 
 
                               if(isTaskMode) {
-                                Get.toNamed(AppRoutes.tasks_li_r,
-                                    arguments: {'user': memData});
+                                if(kIsWeb){
+                                  Get.toNamed(
+                                    "${AppRoutes.tasks_li_r}?userId=${memData?.userId.toString()}",
+                                  );
+                                }else{
+                                  Get.toNamed(
+                                    AppRoutes.tasks_li_r,
+                                    arguments: {'user': memData},
+                                  );
+                                }
                               }else{
-                                Get.toNamed(AppRoutes.chats_li_r,
-                                    arguments: {'user': memData});
+                                if(kIsWeb){
+                                  Get.toNamed(
+                                    "${AppRoutes.chats_li_r}?userId=${memData?.userId.toString()}",
+                                  );
+                                }else{
+                                  Get.toNamed(
+                                    AppRoutes.chats_li_r,
+                                    arguments: {'user': memData},
+                                  );
+                                }
                               }
                             },
                             style: TextButton.styleFrom(
@@ -289,11 +304,29 @@ class CompanyMembers extends GetView<CompanyMemberController> {
                               isTaskMode = true;
                               controller.update();
                               if(isTaskMode) {
-                                Get.toNamed(AppRoutes.tasks_li_r,
-                                    arguments: {'user': memData});
+
+
+                                if(kIsWeb){
+                                  Get.toNamed(
+                                    "${AppRoutes.tasks_li_r}?userId=${memData?.userId.toString()}",
+                                  );
+                                }else{
+                                  Get.toNamed(
+                                    AppRoutes.tasks_li_r,
+                                    arguments: {'user': memData},
+                                  );
+                                }
                               }else{
-                                Get.toNamed(AppRoutes.chats_li_r,
-                                    arguments: {'user': memData});
+                                if(kIsWeb){
+                                  Get.toNamed(
+                                    "${AppRoutes.chats_li_r}?userId=${memData?.userId.toString()}",
+                                  );
+                                }else{
+                                  Get.toNamed(
+                                    AppRoutes.chats_li_r,
+                                    arguments: {'user': memData},
+                                  );
+                                }
                               }
                             },
                             style: TextButton.styleFrom(

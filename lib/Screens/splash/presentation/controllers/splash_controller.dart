@@ -9,13 +9,37 @@ import '../../../../routes/app_routes.dart';
 
 import 'package:in_app_update/in_app_update.dart';
 
+import '../../../Chat/api/session_alive.dart';
+
 class SplashController extends GetxController {
   bool _navigated = false;
+
+
+  @override
+  Future<void> onReady() async {
+    // Give web a frame so GetX bindings finish
+    await Future.delayed(const Duration(milliseconds: 1));
+
+    final session = Get.find<Session>();
+
+    // 1) Wait until Session has loaded cache / set up SWR
+    await session.whenReady();
+
+    // 2) Give SWR a short window (optional) to fetch user if needed
+    final ok = await session.waitForAuth(timeout: const Duration(milliseconds: 600));
+
+    if (ok) {
+      Get.offAllNamed(AppRoutes.home);
+    } else {
+      Get.offAllNamed(AppRoutes.login_r);
+    }
+  }
+
   @override
   void onInit() {
     callNetworkCheck();
     SystemChannels.textInput.invokeMethod('TextInput.hide');
-    update();
+
     SystemChrome.setEnabledSystemUIMode(SystemUiMode.edgeToEdge);
     SystemChrome.setSystemUIOverlayStyle(const SystemUiOverlayStyle(
         systemNavigationBarColor: Colors.white, statusBarColor: Colors.white));
@@ -61,7 +85,7 @@ class SplashController extends GetxController {
   // }
 
   _navigateToNextScreen() =>
-      Timer(Duration(milliseconds: 3500), () async {
+      Timer(Duration(milliseconds: 2000), () async {
         Future.microtask(checkUserNavigation);
       });
 

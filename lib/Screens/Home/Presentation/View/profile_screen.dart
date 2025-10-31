@@ -3,6 +3,7 @@ import 'dart:io';
 
 import 'package:AccuChat/Constants/assets.dart';
 import 'package:AccuChat/Constants/colors.dart';
+import 'package:AccuChat/Extension/text_field_extenstion.dart';
 import 'package:AccuChat/Screens/Home/Presentation/Controller/profile_controller.dart';
 import 'package:AccuChat/Services/APIs/api_ends.dart';
 import 'package:AccuChat/utils/gradient_button.dart';
@@ -205,7 +206,7 @@ class ProfileScreen extends GetView<HProfileController> {
                               labletext: "Username",
 
                               validator: (value) {
-                                // return value?.isEmptyField(messageTitle: "Username");
+                                return value?.isEmptyField(messageTitle: "Username");
                               },
                             ),
                             vGap(10),
@@ -224,7 +225,6 @@ class ProfileScreen extends GetView<HProfileController> {
                               labletext: "Phone or Email",
 
                               validator: (value) {
-                                // return value?.isEmptyField(messageTitle: "Username");
                               },
                             ),
 

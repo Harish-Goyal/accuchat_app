@@ -19,6 +19,7 @@ class PrefsStorage implements IStorage {
 
   @override
   Future<void> init() async {
+
     _prefs = await SharedPreferences.getInstance();
   }
 

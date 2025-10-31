@@ -10,16 +10,20 @@ import '../../../../../../Constants/assets.dart';
 import '../../../../../../Constants/colors.dart';
 import '../../../../../../Constants/themes.dart';
 import '../../../../../../Services/APIs/api_ends.dart';
+import '../../../../../../Services/APIs/auth_service/auth_api_services_impl.dart';
 import '../../../../../../Services/storage_service.dart';
 import '../../../../../../routes/app_routes.dart';
 import '../../../../../../utils/custom_dialogue.dart';
 import '../../../../../../utils/gradient_button.dart';
 import '../../../../../../utils/networl_shimmer_image.dart';
+import '../../../../../../utils/shares_pref_web.dart';
 import '../../../../../../utils/text_style.dart';
 import '../../../../../Home/Presentation/Controller/company_service.dart';
 import '../../../../../Home/Presentation/View/home_screen.dart';
 import '../../../../api/apis.dart';
+import '../../../../api/session_alive.dart';
 import '../../../../models/company_model.dart';
+import '../../../../models/get_company_res_model.dart';
 
 class LandingPage extends GetView<LandingScreenController> {
   LandingPage({Key? key}) : super(key: key);
@@ -35,58 +39,7 @@ class LandingPage extends GetView<LandingScreenController> {
             actions: [
               InkWell(
                   onTap: ()async {
-                    showDialog(
-                        context: Get.context!,
-                        builder: (_) => CustomDialogue(
-                          title: "Logout",
-                          isShowAppIcon: false,
-                          content: Column(
-                            crossAxisAlignment: CrossAxisAlignment.center,
-                            mainAxisSize: MainAxisSize.min,
-                            children: [
-                              vGap(20),
-                              Text(
-                                "Do you really want to Logout?",
-                                style: BalooStyles.baloonormalTextStyle(),
-                                textAlign: TextAlign.center,
-                              ),
-
-                              vGap(30),
-
-                              Row(
-                                children: [
-                                  Expanded(
-                                    child: GradientButton(
-                                      name: "Yes",
-                                      btnColor: AppTheme.redErrorColor,
-
-                                      gradient: LinearGradient(colors: [AppTheme.redErrorColor,AppTheme.redErrorColor]),
-                                      vPadding: 6,
-                                      onTap: () async{
-                                        logoutLocal();
-                                      },
-                                    ),
-                                  ),
-                                  hGap(15),
-                                  Expanded(
-                                    child: GradientButton(
-                                      name: "Cancel",
-                                      btnColor: Colors.black,
-                                      color: Colors.black,
-                                      gradient: LinearGradient(colors: [AppTheme.whiteColor,AppTheme.whiteColor]),
-                                      vPadding: 6,
-                                      onTap: () {
-                                        Get.back();
-                                      },
-                                    ),
-                                  ),
-                                ],
-                              )
-                              // Text(STRING_logoutHeading,style: BalooStyles.baloomediumTextStyle(),),
-                            ],
-                          ),
-                          onOkTap: () {},
-                        ));
+                    showResponsiveLogoutDialog();
 
 
                   },
@@ -131,13 +84,36 @@ class LandingPage extends GetView<LandingScreenController> {
                                   return InkWell(
                                     onTap: () async {
                                       customLoader.show();
+
+                                     /* Get.putAsync<Session>(() async {
+                                        final s = Session(Get.find<AuthApiServiceImpl>(), Get.find<AppStorage>());
+
+                                        CompanyData? selCompany;
+                                        try {
+                                          final svc = Get.find<CompanyService>();
+                                          // OPTIONAL: if you add a `Future<void> ready` in CompanyService, await it here:
+                                          // await svc.ready;
+                                          selCompany = svc.selected; // may be null on clean install
+                                        } catch (_) {}
+                                        // company may not exist yet on fresh install:
+                                        await s.initSafe(companyId: selCompany?.companyId??0); // <-- works with null/0
+                                        return s;
+                                      });
+
+
+
+
+*/
                                       final svc = Get.find<CompanyService>();
                                       await svc.select(company);
-                                      storage.write(isLoggedIn,true);
+                                      // storage.write(isLoggedIn,true);
                                       StorageService.setLoggedIn(true);
-                                      storage.write(companyIDKey, company.companyId);
+                                      // storage.write(companyIDKey, company.companyId);
                                       customLoader.hide();
+                                      final session = Get.find<Session>();
+                                      await session.reinitWithCompany(company.companyId ?? 0);
                                       Get.toNamed(AppRoutes.home);
+
                                     } ,
                                     child: ChatCard(
                                         iconWidget: SizedBox(
@@ -154,12 +130,13 @@ class LandingPage extends GetView<LandingScreenController> {
                                         subtitle: 'Tap to enter this company',
                                         onTap: () async {
                                           // saveCompany(company);
+
                                           customLoader.show();
-                                          final svc = Get.find<CompanyService>();
-                                          await svc.select(company);
-                                          storage.write(isLoggedIn,true);
+                                          final svc = Get.put<CompanyService>(CompanyService());
+
+                                          await svc.init().then((v) async =>await svc.select(company));
+
                                           StorageService.setLoggedIn(true);
-                                          storage.write(companyIDKey, company.companyId);
                                           customLoader.hide();
                                           Get.offAllNamed(AppRoutes.home);
 
@@ -198,7 +175,7 @@ class LandingPage extends GetView<LandingScreenController> {
                                       }*/
                                       if(kIsWeb){
                                         Get.toNamed(
-                                          "${AppRoutes.create_company}?isHome='0'",
+                                          "${AppRoutes.create_company}?isHome=${0}",
                                         );
                                       }else {
                                         Get.toNamed(
@@ -229,7 +206,7 @@ class LandingPage extends GetView<LandingScreenController> {
                                       );*/
                                       //TODO
 
-                                      var mob = storage.read(user_mob);
+                                      var mob = StorageService.getMobile();
                                       controller.hitAPIToGetPendingInvites(mob);
                                     },
                                     isShowText: true,
@@ -591,5 +568,111 @@ class LandingPage extends GetView<LandingScreenController> {
         ),*/
     );
   }
+
+  void showResponsiveLogoutDialog() {
+    final ctx = Get.context!;
+    final size = MediaQuery.of(ctx).size;
+
+    // Responsive width breakpoints (desktop / tablet / large phone / phone)
+    double targetWidth;
+    if (size.width >= 1280) {
+      targetWidth = size.width * 0.28; // desktop
+    } else if (size.width >= 992) {
+      targetWidth = size.width * 0.38; // laptop / large tablet
+    } else if (size.width >= 768) {
+      targetWidth = size.width * 0.52; // tablet
+    } else {
+      targetWidth = size.width * 0.90; // phones / small windows
+    }
+    // Keep width within reasonable min/max
+    targetWidth = targetWidth.clamp(360.0, 560.0);
+
+    final maxHeight = size.height * 0.90;
+
+    Get.dialog(
+      // Keeps dialog within safe areas and nicely centered
+      SafeArea(
+        child: Center(
+          child: ConstrainedBox(
+            constraints: BoxConstraints(
+              maxWidth: targetWidth,
+              maxHeight: maxHeight,
+            ),
+            child: Material(
+              color: Colors.transparent,
+              child: ClipRRect(
+                borderRadius: BorderRadius.circular(16),
+                child: Container(
+                  // Subtle background & padding to look good on web
+                  color: Colors.grey.shade100,
+                  padding: EdgeInsets.symmetric(
+                    horizontal: size.width >= 768 ? 24 : 16,
+                    vertical: 16,
+                  ),
+                  child: SingleChildScrollView(
+                    // 👇 Your dialog code is untouched and placed as-is
+                    child: CustomDialogue(
+                      title: "Logout",
+                      isShowAppIcon: false,
+                      content: Column(
+                        crossAxisAlignment: CrossAxisAlignment.center,
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          vGap(20),
+                          Text(
+                            "Do you really want to Logout?",
+                            style: BalooStyles.baloonormalTextStyle(),
+                            textAlign: TextAlign.center,
+                          ),
+                          vGap(30),
+                          Row(
+                            children: [
+                              Expanded(
+                                child: GradientButton(
+                                  name: "Yes",
+                                  btnColor: AppTheme.redErrorColor,
+                                  gradient: LinearGradient(
+                                    colors: [AppTheme.redErrorColor, AppTheme.redErrorColor],
+                                  ),
+                                  vPadding: 6,
+                                  onTap: () async {
+                                    logoutLocal();
+                                  },
+                                ),
+                              ),
+                              hGap(15),
+                              Expanded(
+                                child: GradientButton(
+                                  name: "Cancel",
+                                  btnColor: Colors.black,
+                                  color: Colors.black,
+                                  gradient: LinearGradient(
+                                    colors: [AppTheme.whiteColor, AppTheme.whiteColor],
+                                  ),
+                                  vPadding: 6,
+                                  onTap: () {
+                                    Get.back();
+                                  },
+                                ),
+                              ),
+                            ],
+                          ),
+                          // Text(STRING_logoutHeading,style: BalooStyles.baloomediumTextStyle(),),
+                        ],
+                      ),
+                      onOkTap: () {},
+                    ),
+                  ),
+                ),
+              ),
+            ),
+          ),
+        ),
+      ),
+      barrierColor: Colors.black54, // nice dim on web
+      name: 'logout_dialog',
+    );
+  }
+
 
 }

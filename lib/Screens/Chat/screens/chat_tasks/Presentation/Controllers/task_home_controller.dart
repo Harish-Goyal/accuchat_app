@@ -190,11 +190,10 @@ class TaskHomeController extends GetxController{
 
   void onSearch(String query) {
     searchQuery = query.toLowerCase();
-
     filteredList = (recentTaskUserList??[]).where((item) {
-
-      return (item.userName??'').toLowerCase().contains(searchQuery) ||
+      return (item.displayName??'').toLowerCase().contains(searchQuery) ||
           (item.email??'').toLowerCase().contains(searchQuery)||
+          (item.userName??'').toLowerCase().contains(searchQuery)||
           (item.phone??'').contains(searchQuery)
       ;
 

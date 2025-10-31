@@ -28,6 +28,7 @@ import '../Widgets/chat_group_card.dart';
 import '../Widgets/chat_user_card.dart';
 import '../Controllers/chat_home_controller.dart';
 import 'chat_groups.dart';
+import 'chat_task_shimmmer.dart';
 import 'chats_broadcasts.dart';
 import 'create_broadcast_dialog_screen.dart';
 
@@ -58,7 +59,7 @@ class TaskHomeScreen extends GetView<TaskHomeController> {
                 // }
                 return Future.value(true);
               },
-              child: Scaffold(
+              child: controller.isLoading?ChatHomeShimmer(itemCount: 12):Scaffold(
                 //app bar
                 // backgroundColor: isTaskMode?appColorYellow.withOpacity(.05):Colors.white,
                   appBar: AppBar(
@@ -94,25 +95,29 @@ class TaskHomeScreen extends GetView<TaskHomeController> {
                                 boxFit: BoxFit.cover,
                               ),
                             ).paddingAll(4),
-                            Column(
-                                                  mainAxisAlignment: MainAxisAlignment.end,
-                                                  mainAxisSize: MainAxisSize.min,
-                                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                                  children: [
-                            Text(
-                             "Tasks",
-                              style: BalooStyles.balooboldTitleTextStyle(
-                                  color:appColorYellow,size: 18),
-                            ).paddingOnly(left: 8, top: 4),
-                            Text(
-                              controller.myCompany?.companyName??'',
-                              style: BalooStyles.baloosemiBoldTextStyle(
-                                color: appColorYellow,),
-                            ).paddingOnly(left: 8, top: 2),
-
-
-                                                  ],
-                                                ),
+                            Expanded(
+                              child: Column(
+                                                    mainAxisAlignment: MainAxisAlignment.end,
+                                                    mainAxisSize: MainAxisSize.min,
+                                                    crossAxisAlignment: CrossAxisAlignment.start,
+                                                    children: [
+                              Text(
+                               "Tasks",
+                                style: BalooStyles.balooboldTitleTextStyle(
+                                    color:appColorYellow,size: 18),
+                              ).paddingOnly(left: 8, top: 4),
+                              Text(
+                               ( controller.myCompany?.companyName??'').toUpperCase(),
+                                style: BalooStyles.baloosemiBoldTextStyle(
+                                  color: appColorYellow,),
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
+                              ).paddingOnly(left: 8, top: 2),
+                              
+                              
+                                                    ],
+                                                  ),
+                            ),
                           ],
                         ),
                     actions: [
@@ -154,24 +159,31 @@ class TaskHomeScreen extends GetView<TaskHomeController> {
 
 
                   body:
-                 (controller.filteredList??[]).isEmpty?InkWell(
-                   onTap: (){
-                     if(kIsWeb){
-                       Get.toNamed("${AppRoutes.all_users}?isRecent='false'");
-                     }else{
-                       Get.toNamed(AppRoutes.all_users,
-                           arguments: {"isRecent": 'false'});
-                     }
-                   },
-                   child: Center(
-                       child: Column(
-                         mainAxisAlignment: MainAxisAlignment.center,
-                         children: [
-                           Image.asset(emptyRecentPng,height: 90,),
-                           Text('Click to Start New Task ✍️',
-                               style: BalooStyles.baloosemiBoldTextStyle(color: appColorGreen)).paddingAll(12),
-                         ],
-                       )),
+                 (controller.filteredList??[]).isEmpty?Center(
+                   child: InkWell(
+                     onTap: (){
+                       if(kIsWeb){
+                         Get.toNamed("${AppRoutes.all_users}?isRecent='false'");
+                       }else{
+                         Get.toNamed(AppRoutes.all_users,
+                             arguments: {"isRecent": 'false'});
+                       }
+                     },
+                     child: Column(
+                       mainAxisSize: MainAxisSize.min,
+                       mainAxisAlignment: MainAxisAlignment.center,
+                       crossAxisAlignment: CrossAxisAlignment.center,
+                       children: [
+
+                         Image.asset(emptyRecentPng,height: 90,),
+                         Text('Click to Start New Task ✍️',
+                             style: BalooStyles.baloosemiBoldTextStyle(color: appColorGreen)).paddingAll(12),
+                         vGap(12),
+                         IconButton(onPressed: () async => controller.hitAPIToGetRecentTasksUser(), icon: Icon(Icons.refresh,size: 35,color: appColorGreen,)).paddingOnly(right: 8)
+
+                       ],
+                     ),
+                   ),
                  ) : RefreshIndicator(
           backgroundColor: Colors.white,
           color: appColorGreen,

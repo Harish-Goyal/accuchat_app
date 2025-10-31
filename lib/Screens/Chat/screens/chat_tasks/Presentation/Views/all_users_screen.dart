@@ -7,6 +7,7 @@ import 'package:AccuChat/utils/networl_shimmer_image.dart';
 import 'package:AccuChat/utils/text_style.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/cupertino.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import '../../../../../../Constants/app_theme.dart';
@@ -84,12 +85,12 @@ class AllUserScreen extends GetView<AllUserController> {
                 title: Text(
                   controller.filteredList[i].userId == controller.me?.userId
                       ? "Me"
-                      : (controller.filteredList[i].userName.toString() == 'null'||controller.filteredList[i].userName.toString() == ''||controller.filteredList[i].userName == null)
+                      : (controller.filteredList[i].displayName.toString() == ''||controller.filteredList[i].displayName == null)
                       ? controller.filteredList[i].phone??""
-                      : controller.filteredList[i].userName??'',
+                      : controller.filteredList[i].displayName??'',
                   style: themeData.textTheme.bodySmall,
                 ),
-                subtitle: ((controller.filteredList[i].userName.toString() == 'null'||controller.filteredList[i].userName.toString() == ''||controller.filteredList[i].userName == null) &&
+                subtitle: ((controller.filteredList[i].displayName.toString() == ''||controller.filteredList[i].displayName == null) &&
                     controller.filteredList[i].userId != controller.me?.userId)
                     ? SizedBox()
                     : Text(
@@ -102,19 +103,31 @@ class AllUserScreen extends GetView<AllUserController> {
                 onTap: () {
 
                   if(isTaskMode)  {
-                    Get.toNamed(AppRoutes.tasks_li_r,arguments:
-                    {
-                      'user': controller.filteredList[i]
+                    if(kIsWeb){
+                      Get.toNamed(
+                        "${AppRoutes.tasks_li_r}?userId=${controller.filteredList[i].userId.toString()}",
+                      );
+                    }else{
+                      Get.toNamed(AppRoutes.tasks_li_r,arguments:
+                      {
+                        'user': controller.filteredList[i]
+                      }
+                      );
                     }
-                    );
-                  }else{
-                    Get.toNamed(AppRoutes.chats_li_r,arguments:
-                    {
-                      'user': controller.filteredList[i]
+                  }else {
+                    if (kIsWeb) {
+                      Get.toNamed(
+                        "${AppRoutes.chats_li_r}?userId=${controller
+                            .filteredList[i].userId.toString()}",
+                      );
+                    } else {
+                      Get.toNamed(AppRoutes.chats_li_r, arguments:
+                      {
+                        'user': controller.filteredList[i]
+                      }
+                      );
                     }
-                    );
                   }
-
                 },
               ),
             ),

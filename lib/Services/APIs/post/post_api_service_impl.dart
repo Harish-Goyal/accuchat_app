@@ -1,3 +1,4 @@
+import 'package:AccuChat/Screens/Chat/models/all_media_res_model.dart';
 import 'package:AccuChat/Screens/Chat/models/group_mem_api_res.dart';
 import 'package:AccuChat/Screens/Chat/models/task_res_model.dart';
 import 'package:AccuChat/Screens/Chat/models/task_status_res_model.dart';
@@ -20,8 +21,10 @@ import '../../../Screens/Chat/models/single_task_response.dart';
 import '../../../Screens/Chat/models/single_user_by_id_res_model.dart';
 import '../../../Screens/Chat/models/task_attachment_res_model.dart';
 import '../../../Screens/Chat/models/task_commets_res_model.dart';
+import '../../../Screens/Home/Models/all_member_res_model.dart';
 import '../../../Screens/Home/Models/company_mem_res_model.dart';
 import '../../../Screens/Home/Models/get_pending_sent_invites_res_model.dart';
+import '../../../Screens/Home/Models/push_register_res_model.dart';
 import '../../../Screens/Settings/Model/get_company_roles_res_moel.dart';
 import '../../../Screens/Settings/Model/get_nav_permission_res_model.dart';
 import '../../../main.dart';
@@ -33,23 +36,7 @@ import '../local_keys.dart';
 
 class PostApiServiceImpl extends GetxService implements PostApiService {
   late DioClient? dioClient;
-  var deviceName, deviceType, deviceID;
 
-  // To getting device type (Android or IOS)
-  // getDeviceData() async {
-  //   DeviceInfoPlugin info = DeviceInfoPlugin();
-  //   if (Platform.isAndroid) {
-  //     AndroidDeviceInfo androidDeviceInfo = await info.androidInfo;
-  //     deviceName = androidDeviceInfo.model;
-  //     deviceID = androidDeviceInfo.device;
-  //     deviceType = "1";
-  //   } else if (Platform.isIOS) {
-  //     IosDeviceInfo iosDeviceInfo = await info.iosInfo;
-  //     deviceName = iosDeviceInfo.model;
-  //     deviceID = iosDeviceInfo.identifierForVendor;
-  //     deviceType = "2";
-  //   }
-  // }
 
   @override
   void onInit() {
@@ -59,17 +46,7 @@ class PostApiServiceImpl extends GetxService implements PostApiService {
     // getDeviceData();
   }
 
-  @override
-  Future<SuccessResponseModel> changePasswordApiCall(
-      {httpdio.FormData? dataBody}) async {
-    try {
-      final response = await dioClient!
-          .post(ApiEnd.changePassEnd, data: dataBody, skipAuth: false);
-      return SuccessResponseModel.fromJson(response);
-    } catch (e) {
-      return Future.error(NetworkExceptions.getDioException(e));
-    }
-  }
+
 
   @override
   Future<CompanyResModel> getJoinedCompanyListApiCall() async {
@@ -105,10 +82,21 @@ class PostApiServiceImpl extends GetxService implements PostApiService {
   }
 
   @override
-  Future<PendingSentInvitesResModel> getPendingSentInvitesApiCall() async {
+  Future<AllMemberResModel> getAllMembersApiCall({comid}) async {
+    try {
+      final response = await dioClient!.get("api/company/$comid/members",
+          skipAuth: false);
+      return AllMemberResModel.fromJson(response);
+    } catch (e) {
+      return Future.error(NetworkExceptions.getDioException(e));
+    }
+  }
+
+  @override
+  Future<PendingSentInvitesResModel> getPendingSentInvitesApiCall(comId) async {
     try {
       final response = await dioClient!.get(ApiEnd.sentInviteListEnd,
-          skipAuth: false);
+          skipAuth: false,queryParameters: {"company_id":comId});
       return PendingSentInvitesResModel.fromJson(response);
     } catch (e) {
       return Future.error(NetworkExceptions.getDioException(e));
@@ -242,7 +230,7 @@ class PostApiServiceImpl extends GetxService implements PostApiService {
   Future<SuccessResponseModel> removeComMemberApiCall({compId,memberId}) async {
     try {
       final response = await dioClient!
-          .delete('company/$compId/member/$memberId', skipAuth: false);
+          .delete('api/company/$compId/member/$memberId', skipAuth: false);
       return SuccessResponseModel.fromJson(response);
     } catch (e) {
       return Future.error(NetworkExceptions.getDioException(e));
@@ -256,7 +244,7 @@ class PostApiServiceImpl extends GetxService implements PostApiService {
   Future<SuccessResponseModel> deleteCompanyApiCall({compId}) async {
     try {
       final response = await dioClient!
-          .delete('company/delete/$compId', skipAuth: false);
+          .delete('api/company/delete/$compId', skipAuth: false);
       return SuccessResponseModel.fromJson(response);
     } catch (e) {
       return Future.error(NetworkExceptions.getDioException(e));
@@ -268,7 +256,7 @@ class PostApiServiceImpl extends GetxService implements PostApiService {
   Future<ComMemResModel> getComMemApiCall(compId) async {
     try {
       final response = await dioClient!
-          .get('company/active-members/$compId', skipAuth: false);
+          .get('api/company/active-members/$compId', skipAuth: false);
       return ComMemResModel.fromJson(response);
     } catch (e) {
       return Future.error(NetworkExceptions.getDioException(e));
@@ -279,7 +267,7 @@ class PostApiServiceImpl extends GetxService implements PostApiService {
   Future<ComMemResModel> getTaskMemberApiCall(taskId) async {
     try {
       final response = await dioClient!
-          .get('/tasks/members/$taskId', skipAuth: false);
+          .get('api/tasks/members/$taskId', skipAuth: false);
       return ComMemResModel.fromJson(response);
     } catch (e) {
       return Future.error(NetworkExceptions.getDioException(e));
@@ -291,7 +279,7 @@ class PostApiServiceImpl extends GetxService implements PostApiService {
       {comId, page}) async {
     try {
       final response = await dioClient!
-          .get('recent?company_id=$comId&page=$page&limit=40', skipAuth: false);
+          .get('api/recent?company_id=$comId&page=$page&limit=40', skipAuth: false);
       return RecentChatsUserResModel.fromJson(response);
     } catch (e) {
       return Future.error(NetworkExceptions.getDioException(e));
@@ -303,7 +291,7 @@ class PostApiServiceImpl extends GetxService implements PostApiService {
       {comId, page,searchText}) async {
     try {
       final response = await dioClient!
-          .get('taskslist/recent?company_id=$comId&page=$page&limit=20', skipAuth: false);
+          .get('api/taskslist/recent?company_id=$comId&page=$page&limit=20', skipAuth: false);
       return RecentTaskUserData.fromJson(response);
     } catch (e) {
       return Future.error(NetworkExceptions.getDioException(e));
@@ -315,7 +303,7 @@ class PostApiServiceImpl extends GetxService implements PostApiService {
       {userComId, page,searchText}) async {
     try {
       final response = await dioClient!
-          .get('chat-history/$userComId?page=$page&limit=20&text=', skipAuth: false);
+          .get('api/chat-history/$userComId?page=$page&limit=20&text=', skipAuth: false);
       return ChatHisResModelAPI.fromJson(response);
     } catch (e) {
       return Future.error(NetworkExceptions.getDioException(e));
@@ -327,7 +315,7 @@ class PostApiServiceImpl extends GetxService implements PostApiService {
       {taskId, page,companyId}) async {
     try {
       final response = await dioClient!
-          .get('tasks/$taskId/comments?company_id=$companyId', skipAuth: false);
+          .get('api/tasks/$taskId/comments?company_id=$companyId', skipAuth: false);
       return TaskCommentsResModel.fromJson(response);
     } catch (e) {
       return Future.error(NetworkExceptions.getDioException(e));
@@ -336,10 +324,19 @@ class PostApiServiceImpl extends GetxService implements PostApiService {
 
   @override
   Future<TaskHisResModel> getTaskHistoryApiCall(
-      {userComId, page,statusId}) async {
+      {userComId, page,statusId,String? fromDate, String? toDate}) async {
     try {
       final response = await dioClient!
-          .get('task-history/$userComId?page=$page&limit=20&statusId=$statusId', skipAuth: false);
+          .get('api/task-history/$userComId',
+          queryParameters: {
+            'page':page,
+            'limit':20,
+            'statusId':statusId,
+            'from_date':fromDate,
+            'to_date':toDate,
+
+          },
+          skipAuth: false);
       return TaskHisResModel.fromJson(response);
     } catch (e) {
       return Future.error(NetworkExceptions.getDioException(e));
@@ -438,7 +435,7 @@ class PostApiServiceImpl extends GetxService implements PostApiService {
   @override
   Future<SingleUserResModel> getUserByApiCall({userID,comid}) async {
     try {
-      final response = await dioClient!.get("users/$userID",
+      final response = await dioClient!.get("api/users/$userID",
           skipAuth: false,
         queryParameters: {
         "company_id":comid
@@ -454,13 +451,13 @@ class PostApiServiceImpl extends GetxService implements PostApiService {
 
 
   @override
-  Future<SuccessResponseModel> registerPushTokenApiCall({Map<String, dynamic>? dataBody}) async {
+  Future<PushResgisterResModel> registerPushTokenApiCall({Map<String, dynamic>? dataBody}) async {
     try {
       final response = await dioClient!.post(ApiEnd.pushRegisterEnd,
           skipAuth: false,
         data: dataBody
       );
-      return SuccessResponseModel.fromJson(response);
+      return PushResgisterResModel.fromJson(response);
     } catch (e) {
       return Future.error(NetworkExceptions.getDioException(e));
     }
@@ -473,6 +470,25 @@ class PostApiServiceImpl extends GetxService implements PostApiService {
         data: dataBody
       );
       return SuccessResponseModel.fromJson(response);
+    } catch (e) {
+      return Future.error(NetworkExceptions.getDioException(e));
+    }
+  }
+
+  @override
+  Future<AllMediaResModel> getAllMediaAPI({int? page,int? userCId,String? mediaType,String? source}) async {
+    try {
+      final response = await dioClient!.get("api/user-media",
+          skipAuth: false,
+       queryParameters: {
+        "page":page,
+         "page_size":20,
+         "media_type":mediaType,
+         "source":source,
+         "peer_user_company_id":userCId,
+       }
+      );
+      return AllMediaResModel.fromJson(response);
     } catch (e) {
       return Future.error(NetworkExceptions.getDioException(e));
     }

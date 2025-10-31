@@ -69,10 +69,8 @@ class TaskController extends GetxController {
 
   @override
   void onInit() {
-    getUserNavigation();
-
     getArguments();
-
+    getUserNavigation();
     super.onInit();
   }
 
@@ -120,8 +118,7 @@ class TaskController extends GetxController {
   void openConversation(UserDataAPI? useriii) {
     user = useriii;
     update();
-    print("ysrfer");
-    print(useriii?.userName??"");
+
     _getMe();
     _getCompany();
 
@@ -132,8 +129,6 @@ class TaskController extends GetxController {
     scrollListener();
   }
 
-  List<Message> allTasks = [];
-  List<Message> filteredTasks = [];
   String selectedFilter = 'all';
 
   UserDataAPI? me = UserDataAPI();
@@ -161,6 +156,35 @@ class TaskController extends GetxController {
       isLoadings = false;
       update();
     });
+  }
+
+  goToTaskThread(GroupTaskElement element){
+    Get.find<SocketController>().joinTaskEmitter(taskId: element.taskMsg.taskId??0);
+
+    // Set the message being replied to
+    refIdis = element.taskMsg.taskId;
+    userIDSender = element.taskMsg.fromUser?.userId;
+    userNameReceiver =
+        element.taskMsg.toUser?.displayName ?? '';
+    userNameSender =
+        element.taskMsg.fromUser?.displayName ?? '';
+    userIDReceiver = element.taskMsg.toUser?.userId;
+    // controller.replyToMessage = element.taskMsg;
+
+    update();
+
+    if(kIsWeb){
+      Get.toNamed("${AppRoutes.task_threads}?currentUserId=${user?.userId.toString()}&taskMsgId=${element.taskMsg.taskId.toString()}"
+      );
+
+    }else{
+      Get.toNamed(AppRoutes.task_threads,
+          arguments: {
+            'taskMsg':  element.taskMsg, 'currentUser': user!
+          });
+    }
+
+
   }
 
   /*Future<void> sendTaskApiCall() async {
@@ -714,12 +738,15 @@ class TaskController extends GetxController {
     });
   }
 
-  hitAPIToGetTaskHistory({int? statusId,isFilter= false,isForward= false}) async {
+  hitAPIToGetTaskHistory({int? statusId,isFilter= false,isForward= false,fromDate,toDate}) async {
     Get.find<PostApiServiceImpl>()
         .getTaskHistoryApiCall(
             userComId: user?.userCompany?.userCompanyId,
             page: page,
-            statusId:statusId!=null? statusId:'')
+            statusId:statusId!=null? statusId:'',
+      fromDate: fromDate,
+      toDate: toDate
+    )
         .then((value) async {
       showPostShimmer = false;
       taskHisRes = value;
@@ -765,46 +792,6 @@ class TaskController extends GetxController {
     });
   }
 
-  void applyTaskFilter(String filter, {bool fromStream = false}) {
-    if (!fromStream) customLoader.show();
-    selectedFilter = filter;
-    filteredTasks.clear();
-
-    if (filter == 'all') {
-      filteredTasks = allTasks;
-    } else if (['Pending', 'Running', 'Done', 'Cancelled', 'Completed']
-        .contains(filter)) {
-      filteredTasks = allTasks
-          .where((msg) => msg.taskDetails?.taskStatus == filter)
-          .toList();
-    } else {
-      final now = DateTime.now();
-
-      filteredTasks = allTasks.where((msg) {
-        final createdAt = msg.createdAt ?? '0';
-        final dt =
-            DateTime.fromMillisecondsSinceEpoch(int.tryParse(createdAt) ?? 0);
-        if (dt == null) return false;
-
-        if (filter == 'today') {
-          return dt.year == now.year &&
-              dt.month == now.month &&
-              dt.day == now.day;
-        } else if (filter == 'week') {
-          final startOfWeek = now.subtract(Duration(days: now.weekday - 1));
-          final endOfWeek = startOfWeek.add(const Duration(days: 6));
-          return dt.isAfter(startOfWeek) && dt.isBefore(endOfWeek);
-        } else if (filter == 'month') {
-          return dt.year == now.year && dt.month == now.month;
-        }
-        return false;
-      }).toList();
-    }
-    if (!fromStream) {
-      customLoader.hide();
-      update();
-    }
-  }
 
   timeExceed(taskDetails) {
     Timer.periodic(const Duration(seconds: 15), (timer) {
@@ -1137,10 +1124,17 @@ class TaskController extends GetxController {
       Get.find<TaskController>().update();
       Get.find<TaskController>().openConversation(selectedUser);
     } else {
-      Get.offNamed(
-        AppRoutes.tasks_li_r,
-        arguments: {'user': selectedUser},
-      );
+
+      if(kIsWeb){
+        Get.offNamed(
+          "${AppRoutes.tasks_li_r}?userId=${selectedUser.userId.toString()}",
+        );
+      }else{
+        Get.offNamed(
+          AppRoutes.tasks_li_r,
+          arguments: {'user': selectedUser},
+        );
+      }
     }
   }
 

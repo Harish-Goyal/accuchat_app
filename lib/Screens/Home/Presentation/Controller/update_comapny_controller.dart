@@ -1,5 +1,7 @@
 import 'package:AccuChat/Screens/Chat/models/company_model.dart';
+import 'package:AccuChat/Screens/Chat/screens/chat_tasks/Presentation/Controllers/chat_home_controller.dart';
 import 'package:AccuChat/Screens/Home/Presentation/Controller/compnaies_controller.dart';
+import 'package:AccuChat/Screens/Home/Presentation/Controller/home_controller.dart';
 import 'package:AccuChat/routes/app_routes.dart';
 import 'package:AccuChat/utils/shares_pref_web.dart';
 import 'package:AccuChat/utils/web_file_picekr.dart';
@@ -19,6 +21,7 @@ import '../../../../main.dart';
 import '../../../../utils/custom_flashbar.dart';
 import '../../../../utils/helper_widget.dart';
 import '../../../../utils/text_style.dart';
+import '../../../Chat/api/apis.dart';
 import '../../../Chat/models/get_company_res_model.dart';
 import 'package:dio/dio.dart' as multi;
 
@@ -97,15 +100,6 @@ class UpdateCompanyController extends GetxController {
       toast(value.message);
       toast("✅ Company and related data deleted successfully.");
       customLoader.hide();
-      AppStorage().clear();
-      StorageService.clear();
-      storage.remove(isFirstTimeChatKey);
-      storage.remove(selectedCompany);
-      storage.remove(navigation_item_key);
-      storage.remove(user_key);
-      storage.remove(user_mob);
-      storage.remove(userId);
-      clearHiveCompletely();
       update();
       Get.offAllNamed(AppRoutes.landing_r);
 
@@ -157,17 +151,20 @@ class UpdateCompanyController extends GetxController {
     Get.find<PostApiServiceImpl>()
         .createCompanyAPICall(dataBody: reqData)
         .then((value) async {
-
+      toast(value.message ?? '');
       companyResponse = value.data!;
       final svc = Get.find<CompanyService>();
       await svc.select(companyResponse!);
+      await APIs.refreshMe(companyId: svc.id!);
+      Get.find<ChatHomeController>().getCompany();
+      Get.find<CompaniesController>().hitAPIToGetCompanies();
       customLoader.hide();
-      toast(value.message ?? '');
+
       update();
 
       Get.back();
 
-      Get.find<CompaniesController>().hitAPIToGetCompanies();
+
     }).onError((error, stackTrace) {
       update();
       Get.back();

@@ -14,11 +14,11 @@ import 'helper_widget.dart';
 import 'networl_shimmer_image.dart';
 
 Widget shimmerlistView(
-    {required Widget child, Axis scrollDirection = Axis.vertical}) {
+    {required Widget child, Axis scrollDirection = Axis.vertical,int count = 15}) {
   return ListView.builder(
     shrinkWrap: true,
     scrollDirection: scrollDirection,
-    itemCount: 15,
+    itemCount: count,
     padding: EdgeInsets.symmetric(vertical: 0, horizontal: 2),
     physics: NeverScrollableScrollPhysics(),
     itemBuilder: (BuildContext context, int index) {
@@ -66,10 +66,13 @@ Widget shimmerlistItem(
     child: Row(
       children: [
         Expanded(
-          child: Image.asset(
-            appIcon,
-            height: height ?? 150,
-            width: 100,
+          child: ClipRRect(
+            borderRadius: BorderRadius.circular(30),
+            child: Image.asset(
+              appIcon,
+              height: height ?? 150,
+              width: 100,
+            ),
           ),
         ),
         Expanded(

@@ -41,7 +41,7 @@ class TaskThreadScreen extends GetView<TaskThreadController> {
               children: [
                 Expanded(
                   child: Text(
-                    controller.currentUser?.userName==null?controller.currentUser?.phone??'':controller.currentUser?.userName??'',
+                    controller.currentUser?.displayName==null?controller.currentUser?.phone??'':controller.currentUser?.displayName??'',
                     style: BalooStyles.balooboldTitleTextStyle(),
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
@@ -178,9 +178,9 @@ class TaskThreadScreen extends GetView<TaskThreadController> {
                 controller.userIDSender =
                     element.comments.fromUser?.userId;
                 controller.userNameReceiver =
-                    element.comments.toUser?.userName ?? '';
+                    element.comments.toUser?.displayName ?? '';
                 controller.userNameSender =
-                    element.comments.fromUser?.userName ?? '';
+                    element.comments.fromUser?.displayName ?? '';
                 controller.userIDReceiver =
                     element.comments.toUser?.userId;
                 controller.replyToMessage = element.comments;
@@ -482,13 +482,13 @@ class TaskThreadScreen extends GetView<TaskThreadController> {
                             ),
                           ),
 
-                          /*Visibility(
+                          Visibility(
                               visible: controller.isVisibleUpload,
                               child: InkWell(
                                 onTap: ()=>showUploadOptions(Get.context!),
                                 child: Icon(Icons.upload_outlined,color: Colors.black54,),
                               ).paddingAll(3)
-                          )*/
+                          )
                         ],
                       ),
                     ),
@@ -585,6 +585,8 @@ class TaskThreadScreen extends GetView<TaskThreadController> {
     );
   }
 
+
+
   void _sendThreadMessage() async {
     final text = controller.msgController.text;
     if (text.isEmpty) return;
@@ -666,9 +668,9 @@ class TaskThreadScreen extends GetView<TaskThreadController> {
                       controller.userIDSender =
                           data.fromUser?.userId;
                       controller.userNameReceiver =
-                          data.toUser?.userName ?? '';
+                          data.toUser?.displayName ?? '';
                       controller.userNameSender =
-                          data.fromUser?.userName ?? '';
+                          data.fromUser?.displayName ?? '';
                       controller.userIDReceiver =
                           data.toUser?.userId;
                       controller.replyToMessage = data;

@@ -63,15 +63,15 @@ class LoginGController extends GetxController {
       Get.snackbar("Otp Sent", value.message??'',
           backgroundColor: Colors.white, colorText: Colors.black);
       if(kIsWeb) {
-        Get.toNamed(AppRoutes.verify_otp,
-            arguments: {
-              'otpValue': value.data?.otp,
-              'emailOrPhone': phoneController.text.trim()
-            });
-      }else{
         Get.toNamed(
           "${AppRoutes.verify_otp}?emailOrPhone=${phoneController.text.trim()}",
         );
+
+      }else{
+        Get.toNamed(AppRoutes.verify_otp,
+            arguments: {
+              'emailOrPhone': phoneController.text.trim()
+            });
       }
       update();
       // openBottomSheet();

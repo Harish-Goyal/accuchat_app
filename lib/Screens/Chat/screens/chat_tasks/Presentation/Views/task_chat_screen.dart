@@ -1,6 +1,8 @@
 import 'dart:async';
 import 'dart:io';
 import 'dart:math' as math;
+import 'package:AccuChat/Screens/Chat/screens/chat_tasks/Presentation/Controllers/task_home_controller.dart';
+import 'package:AccuChat/Services/storage_service.dart';
 import 'package:url_launcher/url_launcher_string.dart';
 import 'package:AccuChat/Screens/Chat/models/chat_history_response_model.dart';
 import 'package:AccuChat/Services/APIs/api_ends.dart';
@@ -32,6 +34,7 @@ import '../../../../../../utils/common_textfield.dart';
 import '../../../../../../utils/custom_dialogue.dart';
 import '../../../../../../utils/custom_flashbar.dart';
 import '../../../../../../utils/gradient_button.dart';
+import '../../../../../../utils/helper.dart';
 import '../../../../../../utils/product_shimmer_widget.dart';
 import '../../../../../../utils/text_style.dart';
 import '../../../../../Home/Presentation/Controller/socket_controller.dart';
@@ -109,6 +112,7 @@ class TaskScreen extends GetView<TaskController> {
             //if emojis are shown & back button is pressed then hide emojis
             //or else simple close current screen on back button click
             onWillPop: () {
+              Get.find<TaskHomeController>().hitAPIToGetRecentTasksUser();
               return Future.value(true);
             },
             child: SafeArea(
@@ -160,7 +164,7 @@ class TaskScreen extends GetView<TaskController> {
                                     const SizedBox(width: 8),
                                     Expanded(
                                       child: Text(
-                                        "${controller.replyToMessage?.fromUser?.userId == controller.me?.userId ? 'You' : controller.user?.userName ?? ''}: ${controller.replyToMessage?.message ?? ''}",
+                                        "${controller.replyToMessage?.fromUser?.userId == controller.me?.userId ? 'You' : controller.user?.displayName ?? ''}: ${controller.replyToMessage?.message ?? ''}",
                                         maxLines: 1,
                                         overflow: TextOverflow.ellipsis,
                                         style: themeData.textTheme.bodySmall
@@ -286,34 +290,36 @@ class TaskScreen extends GetView<TaskController> {
                 index: index,
                 child: SwipeTo(
                   onRightSwipe: (detail) {
-                    Get.find<SocketController>().joinTaskEmitter(taskId: element.taskMsg.taskId??0);
-
-                    // Set the message being replied to
-                    controller.refIdis = element.taskMsg.taskId;
-                    controller.userIDSender = element.taskMsg.fromUser?.userId;
-                    controller.userNameReceiver =
-                        element.taskMsg.toUser?.userName ?? '';
-                    controller.userNameSender =
-                        element.taskMsg.fromUser?.userName ?? '';
-                    controller.userIDReceiver = element.taskMsg.toUser?.userId;
-                    // controller.replyToMessage = element.taskMsg;
-
-                    controller.update();
-
-                    if(kIsWeb){
-                      Get.toNamed("${AppRoutes.task_threads}?currentUserId=${controller.user?.userId.toString()}&taskMsgId=${element.taskMsg.taskId.toString()}"
-                        );
-
-                    }else{
-                      Get.toNamed(AppRoutes.task_threads,
-                          arguments: {
-                            'taskMsg':  element.taskMsg, 'currentUser': controller.user!
-                          });
-                    }
+                    controller.goToTaskThread(element);
+                    // Get.find<SocketController>().joinTaskEmitter(taskId: element.taskMsg.taskId??0);
+                    //
+                    // // Set the message being replied to
+                    // controller.refIdis = element.taskMsg.taskId;
+                    // controller.userIDSender = element.taskMsg.fromUser?.userId;
+                    // controller.userNameReceiver =
+                    //     element.taskMsg.toUser?.userName ?? '';
+                    // controller.userNameSender =
+                    //     element.taskMsg.fromUser?.userName ?? '';
+                    // controller.userIDReceiver = element.taskMsg.toUser?.userId;
+                    // // controller.replyToMessage = element.taskMsg;
+                    //
+                    // controller.update();
+                    //
+                    // if(kIsWeb){
+                    //   Get.toNamed("${AppRoutes.task_threads}?currentUserId=${controller.user?.userId.toString()}&taskMsgId=${element.taskMsg.taskId.toString()}"
+                    //     );
+                    //
+                    // }else{
+                    //   Get.toNamed(AppRoutes.task_threads,
+                    //       arguments: {
+                    //         'taskMsg':  element.taskMsg, 'currentUser': controller.user!
+                    //       });
+                    // }
 
 
                   },
                   child: _chatMessageTile(
+                  element,
                       data: element.taskMsg,
                       sentByMe: (userid.toString() ==
                               element.taskMsg.fromUser?.userId?.toString()
@@ -341,11 +347,12 @@ class TaskScreen extends GetView<TaskController> {
     );
   }
 
-  Widget _chatMessageTile({
+  Widget _chatMessageTile(GroupTaskElement element,{
     required TaskData data,
     required bool sentByMe,
     formatedTime,
     required BuildContext contexts,
+
   }) {
     return GestureDetector(
       behavior: HitTestBehavior.opaque, // makes the whole area tappable
@@ -359,7 +366,7 @@ class TaskScreen extends GetView<TaskController> {
       },
       onLongPress: () {
         SystemChannels.textInput.invokeMethod('TextInput.hide');
-        _showBottomSheet(sentByMe, data: data);
+        _showBottomSheet(sentByMe,element ,data: data);
       },
       child: Stack(
         clipBehavior: Clip.none,
@@ -448,7 +455,7 @@ class TaskScreen extends GetView<TaskController> {
                 ],
               ),
               vGap(3),
-              if (storage.read(isFirstTimeChatKey) ?? true && isTaskMode)
+              if ((StorageService.checkFirstTimeTask()) && isTaskMode)
                 AnimatedOpacity(
                   opacity: 1.0,
                   duration: const Duration(milliseconds: 2000),
@@ -498,7 +505,7 @@ class TaskScreen extends GetView<TaskController> {
       offset: const Offset(0, 8),
       color: Colors.white,
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-      itemBuilder: (_) => _buildMenuItems(statusHis??[], APIs.me.userName??''),
+      itemBuilder: (_) => _buildMenuItems(statusHis??[], APIs.me.displayName??''),
       child: Container(
         // alignment: Alignment.center,
         padding:
@@ -691,7 +698,7 @@ class TaskScreen extends GetView<TaskController> {
       controller.updateTaskApiCall(taskStatusId: result,task:task);
       isFirstTimeChat = false;
       controller.update();
-      storage.write(isFirstTimeChatKey, isFirstTimeChat);
+      StorageService.setFirstTimeTask(isFirstTimeChat);
     }
   }
   DashboardController dashboardController = Get.put(DashboardController());
@@ -705,11 +712,26 @@ class TaskScreen extends GetView<TaskController> {
             onTap: () {
               if (!(controller.user?.userCompany?.isGroup == 1 ||
                   controller.user?.userCompany?.isBroadcast == 1)) {
-                Get.toNamed(AppRoutes.view_profile,
-                    arguments: {'user': controller.user});
+
+                if(kIsWeb){
+                  Get.toNamed(
+                    "${AppRoutes.view_profile}?userId=${controller.user?.userId.toString()}",
+                  );
+                }
+                else{
+                  Get.toNamed(AppRoutes.view_profile,
+                      arguments: {'user': controller.user});
+                }
               } else {
-                Get.toNamed(AppRoutes.member_sr,
-                    arguments: {'user': controller.user});
+                if(kIsWeb){
+                  Get.toNamed(
+                    "${AppRoutes.member_sr}?userId=${controller.user?.userId.toString()}",
+                  );
+                }
+                else{
+                  Get.toNamed(AppRoutes.member_sr,
+                      arguments: {'user': controller.user});
+                }
               }
               // APIs.updateActiveStatus(false);
             },
@@ -719,6 +741,8 @@ class TaskScreen extends GetView<TaskController> {
                 IconButton(
                     onPressed: () {
                       Get.back();
+                      Get.find<TaskHomeController>().hitAPIToGetRecentTasksUser();
+
                       if (isTaskMode) {
                         dashboardController.updateIndex(1);
                       } else {
@@ -752,9 +776,9 @@ class TaskScreen extends GetView<TaskController> {
                   children: [
                     //user name
 
-                    controller.user?.userName != null
+                    controller.user?.displayName != null
                         ? Text(
-                            controller.user?.userName ?? "",
+                            controller.user?.displayName ?? "",
                             maxLines: 1,
                             overflow: TextOverflow.ellipsis,
                             style: themeData.textTheme.titleMedium,
@@ -804,8 +828,16 @@ class TaskScreen extends GetView<TaskController> {
                 iconColor: Colors.black87,
                 onSelected: (value) {
                   if (value == 'AddMember') {
-                    Get.toNamed(AppRoutes.add_group_member,
-                        arguments: {'groupChat': controller.user});
+                    if(kIsWeb){
+                      Get.toNamed(
+                        "${AppRoutes.add_group_member}?groupChatId=${controller.user?.userId.toString()}",
+                      );
+                    }else{
+                      Get.toNamed(
+                        AppRoutes.add_group_member,
+                        arguments: {'groupChat': controller.user},
+                      );
+                    }
                   }
                   if (value == 'Exit') {
                     toast("Under development");
@@ -887,26 +919,40 @@ class TaskScreen extends GetView<TaskController> {
               icon:
                   const Icon(Icons.filter_alt_outlined, color: Colors.black87),
               onSelected: (v) {
+                final taskcon = Get.find<TaskController>();
+                taskcon.page=1;
+                taskcon.update();
                 if(v=='all'){
                   Get.find<TaskController>().hitAPIToGetTaskHistory(isFilter: true);
+                }else if(v==TimeFilter.today || v==TimeFilter.thisMonth||v==TimeFilter.thisWeek){
+                  final now = DateTime.now();
+                  final r = rangeFor(v);
+                  Get.find<TaskController>().hitAPIToGetTaskHistory(isFilter: true
+                  ,
+                  fromDate: r.fromUtc.toIso8601String(),
+                  toDate: r.toUtc.toIso8601String());
+
+
                 }else{
                   Get.find<TaskController>().hitAPIToGetTaskHistory(statusId: v,isFilter: true);
                 }
               },
               itemBuilder: (context) {
                 final items = <PopupMenuEntry<dynamic>>[
-                  const PopupMenuItem(value: 'all', child: Text('All Tasks')),
+                   PopupMenuItem(value: 'all', child: Text('All Tasks',style: BalooStyles.baloonormalTextStyle())),
                   const PopupMenuDivider(),
                   // --- Dynamic statuses from API ---
                   ...controller.taskStatus.map((s) => PopupMenuItem(
                         value: s.taskStatusId, // pass ID to onSelected
-                        child: Text(s.status ?? 'Unknown'),
+                        child: Text(s.status ?? 'Unknown',style: BalooStyles.baloonormalTextStyle()),
                       )),
-              /*    const PopupMenuDivider(),
-                  const PopupMenuItem(value: 'today', child: Text('Today')),
-                  const PopupMenuItem(value: 'week', child: Text('This Week')),
-                  const PopupMenuItem(
-                      value: 'month', child: Text('This Month')),*/
+                 const PopupMenuDivider(),
+
+
+
+                  PopupMenuItem(value: TimeFilter.today,     child: Text('Today',style: BalooStyles.baloonormalTextStyle(),)),
+                  PopupMenuItem(value: TimeFilter.thisWeek,  child: Text('This Week',style: BalooStyles.baloonormalTextStyle())),
+                  PopupMenuItem(value: TimeFilter.thisMonth, child: Text('This Month',style: BalooStyles.baloonormalTextStyle())),
                 ];
                 return items;
               },
@@ -991,7 +1037,7 @@ class TaskScreen extends GetView<TaskController> {
                                             context: Get.context!,
                                             builder: (_) =>
                                                 _createTasksDialogWidget(
-                                                    controller.user?.userName ??
+                                                    controller.user?.displayName ??
                                                         '')).then((pickedTime) {
                                           if (pickedTime != null) {
                                             controller.update();
@@ -1278,7 +1324,7 @@ class TaskScreen extends GetView<TaskController> {
   }
 
   // bottom sheet for modifying message details
-  void _showBottomSheet(bool isMe, {required TaskData data}) async {
+  void _showBottomSheet(bool isMe,GroupTaskElement element, {required TaskData data}) async {
     await showModalBottomSheet(
         context: Get.context!,
         backgroundColor: Colors.white,
@@ -1305,7 +1351,7 @@ class TaskScreen extends GetView<TaskController> {
                   name: 'Reply',
                   onTap: () async {
                     Get.back();
-
+                    controller.goToTaskThread(element);
                     // Dialogs.showSnackbar(context, 'Text Copied!');
                   }),
 
@@ -1602,6 +1648,7 @@ class TaskScreen extends GetView<TaskController> {
                           spacing: 8,
                           runSpacing: 8,
                           children: controller.attachedFiles.map((file) {
+                            print(controller.attachedFiles.map((v)=>v));
                             final String type = file['type'];
                             final String name = file['name'];
                             final url = file['url'];
@@ -1611,27 +1658,43 @@ class TaskScreen extends GetView<TaskController> {
                             if (type == 'image') {
                               // On mobile: we stored a File in 'file'
                               // On web: we stored Uint8List in 'bytes'
-                              final fileis = file['file'];          // File? (mobile)
+                              final fileis = file['url'];          // File? (mobile)
                               final bytes = file['bytes'];        // Uint8List? (web)
 
                               if (kIsWeb && bytes != null) {
-                                preview = ClipRRect(
-                                  borderRadius: BorderRadius.circular(8),
-                                  child: Image.memory(
-                                    bytes,
-                                    width: 75,
-                                    height: 75,
-                                    fit: BoxFit.cover,
+                                preview =Container(
+                                  width: 75,
+                                  height: 75,
+                                  decoration: BoxDecoration(
+                                    border: Border.all(color: Colors.grey.shade400),
+                                    borderRadius: BorderRadius.circular(8),
+                                  ),
+                                  child: ClipRRect(
+                                    borderRadius: BorderRadius.circular(8),
+                                    child: Image.memory(
+                                      bytes,
+                                      width: 75,
+                                      height: 75,
+                                      fit: BoxFit.cover,
+                                    ),
                                   ),
                                 );
                               } else if (!kIsWeb && file != null) {
-                                preview = ClipRRect(
-                                  borderRadius: BorderRadius.circular(8),
-                                  child: Image.file(
-                                    fileis,
-                                    width: 75,
-                                    height: 75,
-                                    fit: BoxFit.cover,
+                                preview = Container(
+                                  width: 75,
+                                  height: 75,
+                                  decoration: BoxDecoration(
+                                    border: Border.all(color: Colors.grey.shade400),
+                                    borderRadius: BorderRadius.circular(8),
+                                  ),
+                                  child: ClipRRect(
+                                    borderRadius: BorderRadius.circular(8),
+                                    child: Image.file(
+                                      fileis,
+                                      width: 75,
+                                      height: 75,
+                                      fit: BoxFit.cover,
+                                    ),
                                   ),
                                 );
                               } else {

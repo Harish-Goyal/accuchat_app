@@ -33,24 +33,24 @@ class ChangePassController extends GetxController {
   }
 
   hitApiToChangePassword()async {
-    FocusManager.instance.primaryFocus!.unfocus();
-    customLoader.show();
-    var reqData = multi.FormData.fromMap({
-      "user_id": storage.read(userId),
-      "auth_key": ApiEnd.authKEy,
-      "old_password": oldPassController.text,
-      "new_password": newPassController.text,
-      "confirm_password": conPasswordController.text
-    });
-   await Get.find<PostApiServiceImpl>()
-        .changePasswordApiCall(dataBody: reqData)
-        .then((value) {
-      customLoader.hide();
-      toast(value.message);
-    }).onError((error, stackTrace) {
-      customLoader.hide();
-      errorDialog(error.toString());
-    });
+   //  FocusManager.instance.primaryFocus!.unfocus();
+   //  customLoader.show();
+   //  var reqData = multi.FormData.fromMap({
+   //    "user_id": storage.read(userId),
+   //    "auth_key": ApiEnd.authKEy,
+   //    "old_password": oldPassController.text,
+   //    "new_password": newPassController.text,
+   //    "confirm_password": conPasswordController.text
+   //  });
+   // await Get.find<PostApiServiceImpl>()
+   //      .changePasswordApiCall(dataBody: reqData)
+   //      .then((value) {
+   //    customLoader.hide();
+   //    toast(value.message);
+   //  }).onError((error, stackTrace) {
+   //    customLoader.hide();
+   //    errorDialog(error.toString());
+   //  });
   }
 
   @override

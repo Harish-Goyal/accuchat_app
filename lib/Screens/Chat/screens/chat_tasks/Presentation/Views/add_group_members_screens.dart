@@ -46,6 +46,8 @@ class AddGroupMembersScreen extends GetView<AddGroupMemController> {
                 checkColor: Colors.white,
                 activeColor: appColorGreen,
                 onChanged: (selected) {
+                  print(selected);
+                  print(user.userCompany?.userCompanyId);
 
                     if (selected == true) {
                       controller.selectedUserIds.add(user.userCompany?.userCompanyId??0);
@@ -56,8 +58,8 @@ class AddGroupMembersScreen extends GetView<AddGroupMemController> {
                 },
                 title: SizedBox(
                     width: Get.width*.4,
-                    child:user.userName==''||user.userName==null?Text(user.isAdmin==1?'Company':"Member",maxLines: 1,overflow: TextOverflow.ellipsis,style: themeData.textTheme.titleMedium,):
-                    Text(user.userName??'User',maxLines: 1,overflow: TextOverflow.ellipsis,style: themeData.textTheme.titleMedium,)),
+                    child:user.displayName==''||user.displayName==null?Text(user.isAdmin==1?'Company':"Member",maxLines: 1,overflow: TextOverflow.ellipsis,style: themeData.textTheme.titleMedium,):
+                    Text(user.displayName??'User',maxLines: 1,overflow: TextOverflow.ellipsis,style: themeData.textTheme.titleMedium,)),
                 subtitle: Text(user.email==null?user.phone??'': user.email??'',style: themeData.textTheme.bodySmall),
 
                 secondary: SizedBox(

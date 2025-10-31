@@ -1,6 +1,6 @@
 import 'dart:async';
-import 'dart:io';
 import 'dart:math' as math;
+import 'package:AccuChat/Extension/text_field_extenstion.dart';
 import 'package:AccuChat/Screens/Chat/models/chat_history_response_model.dart';
 import 'package:AccuChat/Screens/Chat/screens/chat_tasks/Presentation/Controllers/chat_home_controller.dart';
 import 'package:AccuChat/Screens/Chat/screens/chat_tasks/Presentation/Controllers/chat_screen_controller.dart';
@@ -171,7 +171,7 @@ class ChatScreen extends GetView<ChatScreenController> {
                                           ),
                                         ):(controller.replyToMessage!.type == Type.text)?*/
                                       Text(
-                                        "${controller.replyToMessage?.fromUser?.userId == controller.me?.userId ? 'You' : controller.user?.userName ?? ''}: ${controller.replyToMessage?.message ?? ''}",
+                                        "${controller.replyToMessage?.fromUser?.userId == controller.me?.userId ? 'You' : controller.user?.displayName ?? ''}: ${controller.replyToMessage?.message ?? ''}",
                                         maxLines: 2,
                                         overflow: TextOverflow.ellipsis,
                                         style: themeData.textTheme.bodySmall
@@ -305,9 +305,9 @@ class ChatScreen extends GetView<ChatScreenController> {
                   controller.userIDSender =
                       element.chatMessageItems.fromUser?.userId;
                   controller.userNameReceiver =
-                      element.chatMessageItems.toUser?.userName ?? '';
+                      element.chatMessageItems.toUser?.displayName ?? '';
                   controller.userNameSender =
-                      element.chatMessageItems.fromUser?.userName ?? '';
+                      element.chatMessageItems.fromUser?.displayName ?? '';
                   controller.userIDReceiver =
                       element.chatMessageItems.toUser?.userId;
                   controller.replyToMessage = element.chatMessageItems;
@@ -383,11 +383,11 @@ class ChatScreen extends GetView<ChatScreenController> {
               chatdata: data,
               empIdreceiver: data.toUser?.userId.toString(),
               empName:data.isGroupChat ==1
-                  ? data.fromUser?.userName ?? ''
+                  ? data.fromUser?.displayName ?? ''
                   : data.fromUser?.userId.toString() ==
                   controller.me?.userId?.toString()
-                  ? data.fromUser?.userName ?? ''
-                  : data.toUser?.userName ?? '',
+                  ? data.fromUser?.displayName ?? ''
+                  : data.toUser?.displayName ?? '',
               message: data.replyToText ?? '')
               .marginOnly(top: 8, bottom: 0)
               : const SizedBox(),
@@ -534,11 +534,11 @@ class ChatScreen extends GetView<ChatScreenController> {
         controller.user?.userCompany?.isGroup == 1
             ? Text(
             sentByMe
-                ? (data.fromUser?.userName != null
-                ? data.fromUser?.userName ?? ''
+                ? (data.fromUser?.displayName != null
+                ? data.fromUser?.displayName ?? ''
                 : data.fromUser?.phone ?? '')
-                : (data.fromUser?.userName != null
-                ? data.fromUser?.userName ?? ''
+                : (data.fromUser?.displayName != null
+                ? data.fromUser?.displayName ?? ''
                 : data.fromUser?.phone ?? ''),
             textAlign: TextAlign.start,
             style: BalooStyles.baloothinTextStyle(
@@ -580,12 +580,12 @@ class ChatScreen extends GetView<ChatScreenController> {
           isGroupMessage: data.isGroupChat==1?true:false,
           myId: (controller.me?.userId ?? 0).toString(),
           fromId: (data.fromUser?.userId ?? 0).toString(),
-          senderName: data.fromUser?.userName ?? '',
+          senderName: data.fromUser?.displayName ?? '',
           baseUrl: ApiEnd.baseUrlMedia,
           defaultGallery: defaultGallery,
           onOpenDocument: (url) =>
               openDocumentFromUrl(url), // your existing function
-          onOpenImageViewer: (urls, startIndex) {
+          onOpenImageViewer: (mediaurls, startIndex) {
             // push your gallery view
             // Get.to(() => ImageViewer(urls: urls, initialIndex: startIndex));
             Get.to(
@@ -595,16 +595,16 @@ class ChatScreen extends GetView<ChatScreenController> {
                     controller.userIDSender =
                         data.fromUser?.userId;
                     controller.userNameReceiver =
-                        data.toUser?.userName ?? '';
+                        data.toUser?.displayName ?? '';
                     controller.userNameSender =
-                        data.fromUser?.userName ?? '';
+                        data.fromUser?.displayName ?? '';
                     controller.userIDReceiver =
                         data.toUser?.userId;
                     controller.replyToMessage =data;
                   },),
               binding: BindingsBuilder(() {
                 Get.put(GalleryViewerController(
-                    urls: urls, index: startIndex,
+                    urls: mediaurls, index: startIndex,
                 chathis: data));
               }),
               fullscreenDialog: true,
@@ -621,33 +621,6 @@ class ChatScreen extends GetView<ChatScreenController> {
             : const SizedBox(),
       ],
     );
-  }
-
-  Future<void> openDocumentFromUrl(String url) async {
-    customLoader.show();
-    if (kIsWeb) {
-      // Web: just open in a new tab (downloads or previews based on file type/server headers)
-      customLoader.hide();
-      final ok = await launchUrlString(
-        url,
-        mode: LaunchMode.externalApplication, // opens new tab
-      );
-      if (!ok) throw 'Could not open $url';
-      return;
-    }
-    try {
-      final dir = await getTemporaryDirectory();
-      final fileName = url.split('/').last.split('?').first;
-      final filePath = '${dir.path}/$fileName';
-
-      // Download using Dio
-      await Dio().download(url, filePath);
-      customLoader.hide();
-      await OpenFilex.open(filePath);
-    } catch (e) {
-      print("❌ Failed to open document: $e");
-      customLoader.hide();
-    }
   }
 
   // app bar widget
@@ -723,16 +696,15 @@ class ChatScreen extends GetView<ChatScreenController> {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     //user name
-
-                    controller.user?.userName != null
-                        ? Text(
-                      controller.user?.userName ?? "",
+                    (controller.user?.userCompany?.isGroup==1|| controller.user?.userCompany?.isBroadcast==1)? Text(
+                       (controller.user?.userName==''||controller.user?.userName==null)?controller.user?.phone??'':controller.user?.userName??'',
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
                       style: themeData.textTheme.titleMedium,
-                    )
-                        : Text(
-                      controller.user?.phone ?? "",
+                    ):
+
+                    Text(
+                      (controller.user?.displayName==''||controller.user?.displayName==null)?controller.user?.phone??'':controller.user?.displayName??'',
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
                       style: themeData.textTheme.titleMedium,
@@ -781,15 +753,31 @@ class ChatScreen extends GetView<ChatScreenController> {
           iconColor: Colors.black87,
           onSelected: (value) {
             if (value == 'AddMember') {
-              Get.toNamed(AppRoutes.add_group_member,
-                  arguments: {'groupChat': controller.user});
+
+              if(kIsWeb){
+                Get.toNamed(
+                  "${AppRoutes.add_group_member}?groupChatId=${controller.user?.userId.toString()}",
+                );
+              }else{
+                Get.toNamed(
+                  AppRoutes.add_group_member,
+                  arguments: {'groupChat': controller.user},
+                );
+              }
             }
             if (value == 'Exit') {
               toast("Under development");
             }
             if (value == 'Edit') {
-              Get.toNamed(AppRoutes.member_sr,
-                  arguments: {'user': controller.user});
+              if(kIsWeb){
+                Get.toNamed(
+                  "${AppRoutes.member_sr}?userId=${controller.user?.userId.toString()}",
+                );
+              }
+              else{
+                Get.toNamed(AppRoutes.member_sr,
+                    arguments: {'user': controller.user});
+              }
             }
           },
           itemBuilder: (context) => [
@@ -807,7 +795,7 @@ class ChatScreen extends GetView<ChatScreenController> {
                 ],
               ),
             ),
-            PopupMenuItem(
+            /*PopupMenuItem(
               value: 'Exit',
               child: Row(
                 children: [
@@ -820,7 +808,7 @@ class ChatScreen extends GetView<ChatScreenController> {
                   Text('Exit',style: BalooStyles.baloonormalTextStyle()),
                 ],
               ),
-            ),
+            ),*/
             PopupMenuItem(
               value: 'Edit',
               child: Row(
@@ -1279,8 +1267,8 @@ class ChatScreen extends GetView<ChatScreenController> {
                   ?
               //save option
               _OptionItem(
-                  icon: const Icon(Icons.download_rounded,
-                      color: Colors.blue, size: 18),
+                  icon:  Icon(Icons.download_rounded,
+                      color: appColorYellow, size: 18),
                   name: 'Save Image',
                   onTap: () async {
                     try {
@@ -1296,8 +1284,8 @@ class ChatScreen extends GetView<ChatScreenController> {
 
 
                 _OptionItem(
-                    icon: const Icon(Icons.download_rounded,
-                        color: Colors.blue, size: 18),
+                    icon:  Icon(Icons.reply,
+                        color: appColorYellow, size: 18),
                     name: 'Reply',
                     onTap: () async {
                       try {
@@ -1306,15 +1294,32 @@ class ChatScreen extends GetView<ChatScreenController> {
                         controller.userIDSender =
                             data.fromUser?.userId;
                         controller.userNameReceiver =
-                            data.toUser?.userName ?? '';
+                            data.toUser?.displayName ?? '';
                         controller.userNameSender =
-                            data.fromUser?.userName ?? '';
+                            data.fromUser?.displayName ?? '';
                         controller.userIDReceiver =
                             data.toUser?.userId;
                         controller.replyToMessage = data;
 
 
                         controller.update();
+                      } catch (e) {
+                        toast('Something went wrong!');
+                      }
+                    }),
+
+              _OptionItem(
+                    icon:  Icon(Icons.document_scanner,
+                        color: appColorYellow, size: 18),
+                    name: 'Save in Accuchat Gallery',
+                    onTap: () async {
+                      try {
+                        Get.back();
+
+
+                        showDialog(
+                            context: Get.context!,
+                            builder: (_) => _saveDocumentsDialog());
                       } catch (e) {
                         toast('Something went wrong!');
                       }
@@ -1404,6 +1409,115 @@ class ChatScreen extends GetView<ChatScreenController> {
           );
         });
   }
+
+  final _formKeyDoc = GlobalKey<FormState>();
+  _saveDocumentsDialog() {
+    return CustomDialogue(
+      title: "Documents",
+      isShowAppIcon: false,
+      // ⬇️ Add a responsive wrapper so the dialog doesn't take full web width/height
+      content: LayoutBuilder(
+        builder: (context, constraints) {
+          final screenW = MediaQuery.of(context).size.width;
+          final screenH = MediaQuery.of(context).size.height;
+
+          // Sensible responsive max width for the dialog
+          final double maxDialogWidth = screenW >= 1440
+              ? 560
+              : screenW >= 1024
+              ? 520
+              : screenW >= 768
+              ? 500
+              : screenW * 0.92;
+
+          // Keep height comfortable and scroll if needed
+          final double maxDialogHeight = screenH * 0.9;
+
+          return Center(
+            child: ConstrainedBox(
+              constraints: BoxConstraints(
+                maxWidth: maxDialogWidth,
+                maxHeight: maxDialogHeight,
+              ),
+              child: Material( // keeps proper text scaling/ink on web
+                type: MaterialType.transparency,
+                child: SingleChildScrollView(
+                  padding: EdgeInsets.symmetric(
+                    horizontal: screenW >= 768 ? 16 : 12,
+                    vertical: 12,
+                  ),
+                  child: Form(
+                    key: _formKeyDoc,
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.center,
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        vGap(20),
+                        Text(
+                          "This document or image has been securely saved in your AccuChat Gallery under a custom folder. You can easily access it anytime by searching its name.",
+                          style: BalooStyles.baloonormalTextStyle(),
+                          textAlign: TextAlign.center,
+                        ),
+
+                        vGap(30),
+
+                        CustomTextField(
+                          hintText: "Document Name",
+                          controller: controller.docNameController,
+                          focusNode: FocusNode(),
+                          onFieldSubmitted: (String? value) {
+                            FocusScope.of(Get.context!).unfocus();
+                          },
+                          labletext: "Document Name",
+                          validator: (value) =>
+                              value?.isEmptyField(messageTitle: "Document Name"),
+                        ),
+                        vGap(40),
+                        Row(
+                          children: [
+                            Expanded(
+                              child: GradientButton(
+                                name: "Save",
+                                btnColor: appColorYellow,
+                                gradient: LinearGradient(colors: [appColorYellow, appColorYellow]),
+                                vPadding: 6,
+                                onTap: () async {
+                                  if (_formKeyDoc.currentState!.validate()) {
+                                    controller.onTapSaveToFolder(Get.context!);
+                                  }
+                                  // logoutLocal();
+                                },
+                              ),
+                            ),
+                            hGap(15),
+                            Expanded(
+                              child: GradientButton(
+                                name: "Cancel",
+                                btnColor: Colors.black,
+                                color: Colors.black,
+                                gradient: LinearGradient(colors: [AppTheme.whiteColor, AppTheme.whiteColor]),
+                                vPadding: 6,
+                                onTap: () {
+                                  Get.back();
+                                },
+                              ),
+                            ),
+                          ],
+                        )
+                        // Text(STRING_logoutHeading,style: BalooStyles.baloomediumTextStyle(),),
+                      ],
+                    ).paddingSymmetric(horizontal: 8),
+                  ),
+                ),
+              ),
+            ),
+          );
+        },
+      ),
+      onOkTap: () {},
+    );
+  }
+
 
   Widget buildMessageBubble(ChatHisList msg, {required bool isMine}) {
     final bool isDeleted = (msg.message == null || msg.message!.isEmpty);

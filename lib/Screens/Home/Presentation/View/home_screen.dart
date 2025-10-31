@@ -72,7 +72,7 @@ class HomeScreen extends GetView<DashboardController> {
                                           CrossAxisAlignment.start,
                                       children: [
                                         Text(
-                                          'Hello, ${controller.userData?.userName != null ?controller.userData?.userName : 'AccuChat User'}!',
+                                          'Hello, ${controller.userData?.displayName != null ?controller.userData?.displayName : 'AccuChat User'}!',
 
                                           style: BalooStyles.baloosemiBoldTextStyle(
                                               ),
@@ -393,9 +393,11 @@ class ChatCard extends StatelessWidget {
   final String subtitle;
   final String? leadIcon;
   Widget? iconWidget;
+  bool isSelected;
   final VoidCallback onTap;
   final VoidCallback? subtitleTap;
   Color? cardColor;
+  Color? brcolor;
   final Widget? trailWidget;
 
   ChatCard(
@@ -404,17 +406,42 @@ class ChatCard extends StatelessWidget {
       this.trailWidget,
       this.cardColor,
       this.iconWidget,
+      this.isSelected = false,
+      this.brcolor,
       required this.subtitle,
       this.subtitleTap,
       required this.onTap});
 
   @override
   Widget build(BuildContext context) {
-    return CustomContainer(
-      vPadding: 8,
-      hPadding: 10,
-      color: cardColor ?? Colors.white,
-      childWidget: ListTile(
+    return AnimatedContainer(
+      duration: Duration(milliseconds: 250),
+      margin: const EdgeInsets.symmetric(vertical: 4),
+      padding: const EdgeInsets.all(4),
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(
+          color: isSelected ? brcolor??Colors.transparent : Colors.grey.shade200,
+          width: isSelected ? 2 : 1,
+        ),
+        boxShadow: isSelected
+            ? [
+          BoxShadow(
+            color: Colors.deepPurple.withOpacity(0.12),
+            blurRadius: 12,
+            offset: Offset(0, 4),
+          )
+        ]
+            : [],
+        color: isSelected
+            ? brcolor?.withOpacity(0.03)
+            : Colors.grey.shade100,
+      ),
+
+
+      child: ListTile(
+        horizontalTitleGap: 8,
+
         leading: iconWidget ??
             Image.asset(
               leadIcon ?? '',
@@ -430,7 +457,8 @@ class ChatCard extends StatelessWidget {
         subtitle: InkWell(
             onTap: subtitleTap ?? () {},
             child: Container(
-              padding: const EdgeInsets.all(7),
+              padding: const EdgeInsets.symmetric(vertical: 4),
+              width: 100,
               child: Text(
                 subtitle,
                 style: BalooStyles.baloonormalTextStyle(
@@ -441,6 +469,7 @@ class ChatCard extends StatelessWidget {
             )),
         contentPadding: EdgeInsets.zero,
         onTap: onTap,
+
       ),
     ).marginOnly(bottom: 8, left: 8, right: 8);
   }

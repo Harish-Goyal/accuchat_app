@@ -17,16 +17,15 @@ class AllUserController extends GetxController{
   String searchQuery = '';
   AllUserController();
   List<UserDataAPI> filteredList = [];
-  // List<dynamic> userList = [];
   int page =1;
   String? isRecent ='true';
   void onSearch(String query) {
     searchQuery = query.toLowerCase();
-
     filteredList = userList.where((item) {
-      return (item.userName??'').toLowerCase().contains(searchQuery) ||
-          (item.email??'').toLowerCase().contains(searchQuery);
-
+      return (item.displayName??'').toLowerCase().contains(searchQuery) ||
+          (item.email??'').toLowerCase().contains(searchQuery)||
+          (item.phone??'').toLowerCase().contains(searchQuery)
+      ;
     }).toList();
 
     update();

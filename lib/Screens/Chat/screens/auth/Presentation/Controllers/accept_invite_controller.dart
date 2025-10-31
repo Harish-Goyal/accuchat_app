@@ -67,12 +67,10 @@ class AcceptInviteController extends GetxController {
         .then((value) async {
       customLoader.hide();
       companyResponse = value.data;
-      storage.write(isLoggedIn, true);
       StorageService.setLoggedIn(true);
-      storage.write(isCompanyCreated, true);
+      StorageService.setCompanyCreated(true);
       final svc = Get.find<CompanyService>();
       await svc.select(companyResponse!);
-      storage.write(companyIDKey, companyResponse?.companyId);
       Get.offAllNamed(AppRoutes.home);
     }).onError((error, stackTrace) {
       update();

@@ -64,7 +64,7 @@ class SocketController extends GetxController {
           .enableReconnection()
           .enableAutoConnect()
           .setReconnectionDelay(2000) // 2 sec delay
-          .setReconnectionAttempts(5) // retry count// auto-reconnect
+          .setReconnectionAttempts(20) // retry count// auto-reconnect
           .setExtraHeaders({
             'Authorization': 'Bearer $token',
           })
@@ -87,7 +87,7 @@ class SocketController extends GetxController {
     socket?.onConnectError((e) => debugPrint('Connect error: $e'));
 
     socket?.onError((error) {
-      errorDialog(error.toString());
+      debugPrint("Socket disconnected $error");
     });
   }
 
@@ -214,10 +214,10 @@ class SocketController extends GetxController {
             Get.find<TaskThreadController>();
         TaskComments receivedMessageDataModal = TaskComments.fromJson(messages);
 
-        if ((receivedMessageDataModal.fromUser?.userId.toString() ==
-                (me?.userId).toString()) ||
-            (receivedMessageDataModal.toUser?.userId.toString() ==
-                (threadController.taskMessage?.fromUser?.userId.toString()))) {
+        // if ((receivedMessageDataModal.fromUser?.userId.toString() ==
+        //         (me?.userId).toString()) ||
+        //     (receivedMessageDataModal.toUser?.userId.toString() ==
+        //         (threadController.taskMessage?.fromUser?.userId.toString()))) {
           TaskComments taskComments = TaskComments(
               taskCommentId:receivedMessageDataModal.taskCommentId,
               fromUser:receivedMessageDataModal.fromUser,
@@ -230,7 +230,7 @@ class SocketController extends GetxController {
           threadController.commentsList?.insert(0, taskComments);
           threadController.commentsCategory
               .insert(0, GroupCommentsElement(DateTime.now(), taskComments));
-        }
+        // }
         threadController.update();
       } catch (e) {
         debugPrint(e.toString());
@@ -239,12 +239,14 @@ class SocketController extends GetxController {
 
     socket?.off('update_task_listener');
     socket?.on('update_task_listener', (payload) {
+      debugPrint("Listing update task......8");
+      debugPrint("update task  listener ${jsonEncode(payload.toString())}");
+
       try {
 
         final taskController = Get.find<TaskController>();
         final updated = TaskData.fromJson(payload);
 
-        // FILTER: sirf meri company/user ke liye (aapki logic as-is)
         final meId = APIs.me.userId?.toString();
         final fromId = updated.fromUser?.userId?.toString();
         final toId   = updated.toUser?.userId?.toString();
@@ -671,31 +673,31 @@ class SocketController extends GetxController {
         final svc = Get.find<CompanyService>();
         final myCompany = svc.selected;
 
-        if (pushToken != '' && pushToken != APIs.me.pushToken) {
-          if (!isTaskMode) {
-            // await LocalNotificationService.showChatNotification(
-            //   title: '💬 New Message from ${APIs.me.name}',
-            //   body: msg??'',
-            // );
-            await NotificationService.sendMessageNotification(
-              targetToken: pushToken,
-              senderName: APIs.me.userName ?? '',
-              company: myCompany,
-              message: message ?? '',
-            );
-          } else {
-            // await NotificationService.sendTaskNotification(
-            //   targetToken: token,
-            //   assignerName: APIs.me.name,
-            //   company: APIs.me.selectedCompany,
-            //   taskSummary: taskDetails?.title??'',
-            // );
-            // await LocalNotificationService.showTaskNotification(
-            //   title: '💬 New Task from ${APIs.me.name}',
-            //   body: taskDetails?.title??'',
-            // );
-          }
-        }
+        // if (pushToken != '' && pushToken != APIs.me.pushToken) {
+        //   if (!isTaskMode) {
+        //     // await LocalNotificationService.showChatNotification(
+        //     //   title: '💬 New Message from ${APIs.me.name}',
+        //     //   body: msg??'',
+        //     // );
+        //     await NotificationService.sendMessageNotification(
+        //       targetToken: pushToken,
+        //       senderName: APIs.me.userName ?? '',
+        //       company: myCompany,
+        //       message: message ?? '',
+        //     );
+        //   } else {
+        //     // await NotificationService.sendTaskNotification(
+        //     //   targetToken: token,
+        //     //   assignerName: APIs.me.name,
+        //     //   company: APIs.me.selectedCompany,
+        //     //   taskSummary: taskDetails?.title??'',
+        //     // );
+        //     // await LocalNotificationService.showTaskNotification(
+        //     //   title: '💬 New Task from ${APIs.me.name}',
+        //     //   body: taskDetails?.title??'',
+        //     // );
+        //   }
+        // }
       } catch (e) {
         debugPrint(e.toString());
       }
@@ -743,35 +745,36 @@ class SocketController extends GetxController {
         });
         debugPrint(
             "Message sent: $message ,receiverId: $receiverId , forwardChatId: $forwardChatId, fromid: ${APIs.me.userId}, comapnyid: ${APIs.me.userCompany?.userCompanyId}, alreadySaved: ${alreadySave}");
-
+        var token =  StorageService.getToken();
+        debugPrint("authorization token is ********* $token");
         final svc = Get.find<CompanyService>();
         final myCompany = svc.selected;
 
-        if (pushToken != '' && pushToken != APIs.me.pushToken) {
-          if (!isTaskMode) {
-            // await LocalNotificationService.showChatNotification(
-            //   title: '💬 New Message from ${APIs.me.name}',
-            //   body: msg??'',
-            // );
-            await NotificationService.sendMessageNotification(
-              targetToken: pushToken,
-              senderName: APIs.me.userName ?? '',
-              company: myCompany,
-              message: message ?? '',
-            );
-          } else {
-            // await NotificationService.sendTaskNotification(
-            //   targetToken: token,
-            //   assignerName: APIs.me.name,
-            //   company: APIs.me.selectedCompany,
-            //   taskSummary: taskDetails?.title??'',
-            // );
-            // await LocalNotificationService.showTaskNotification(
-            //   title: '💬 New Task from ${APIs.me.name}',
-            //   body: taskDetails?.title??'',
-            // );
-          }
-        }
+        // if (pushToken != '' && pushToken != APIs.me.pushToken) {
+        //   if (!isTaskMode) {
+        //     // await LocalNotificationService.showChatNotification(
+        //     //   title: '💬 New Message from ${APIs.me.name}',
+        //     //   body: msg??'',
+        //     // );
+        //     await NotificationService.sendMessageNotification(
+        //       targetToken: pushToken,
+        //       senderName: APIs.me.userName ?? '',
+        //       company: myCompany,
+        //       message: message ?? '',
+        //     );
+        //   } else {
+        //     // await NotificationService.sendTaskNotification(
+        //     //   targetToken: token,
+        //     //   assignerName: APIs.me.name,
+        //     //   company: APIs.me.selectedCompany,
+        //     //   taskSummary: taskDetails?.title??'',
+        //     // );
+        //     // await LocalNotificationService.showTaskNotification(
+        //     //   title: '💬 New Task from ${APIs.me.name}',
+        //     //   body: taskDetails?.title??'',
+        //     // );
+        //   }
+        // }
       } catch (e) {
         debugPrint(e.toString());
       }
@@ -805,24 +808,25 @@ class SocketController extends GetxController {
           "files": attachmentsList
         });
         debugPrint("Message sent: $taskTitle ,receiverId: $receiverId ,companyId: $companyId  ");
-
+        var token =  StorageService.getToken();
+        debugPrint("authorization token is ********* $token");
         final svc = Get.find<CompanyService>();
         final myCompany = svc.selected;
 
-        if(!kIsWeb) {
-          if (pushToken != '' && pushToken != APIs.me.pushToken) {
-            // await LocalNotificationService.showChatNotification(
-            //   title: '💬 New Message from ${APIs.me.name}',
-            //   body: msg??'',
-            // );
-            await NotificationService.sendTaskNotification(
-              targetToken: pushToken,
-              assignerName: APIs.me.userName ?? '',
-              company: myCompany,
-              taskSummary: taskTitle,
-            );
-          }
-        }
+        // if(!kIsWeb) {
+        //   if (pushToken != '' && pushToken != APIs.me.pushToken) {
+        //     // await LocalNotificationService.showChatNotification(
+        //     //   title: '💬 New Message from ${APIs.me.name}',
+        //     //   body: msg??'',
+        //     // );
+        //     await NotificationService.sendTaskNotification(
+        //       targetToken: pushToken,
+        //       assignerName: APIs.me.userName ?? '',
+        //       company: myCompany,
+        //       taskSummary: taskTitle,
+        //     );
+        //   }
+        // }
       } catch (e) {
         debugPrint("error is: ${e.toString()}");
       }
@@ -846,7 +850,7 @@ class SocketController extends GetxController {
     UserDataAPI? forwardUser,
   }) async {
     if (socket != null && socket!.connected) {
-      debugPrint("Message sent:---------- $taskTitle");
+      debugPrint("Update task sent:---------- $taskTitle");
       try {
         socket?.emit('update_task', {
           "task_id": taskID,
@@ -858,23 +862,23 @@ class SocketController extends GetxController {
           "task_status_id": taskStatusId,
           "media": attachmentsList
         });
-        debugPrint("Message sent: $taskTitle ,receiverId: $receiverId ");
+        debugPrint("Update task sent: ======== task_id: $taskID, title:  $taskTitle ,receiverId: $receiverId ,companyId : $companyId, taskStatusId:$taskStatusId");
 
         final svc = Get.find<CompanyService>();
         final myCompany = svc.selected;
 
-        if (pushToken != '' && pushToken != APIs.me.pushToken) {
-          // await LocalNotificationService.showChatNotification(
-          //   title: '💬 New Message from ${APIs.me.name}',
-          //   body: msg??'',
-          // );
-          await NotificationService.sendTaskNotification(
-            targetToken: pushToken,
-            assignerName: APIs.me.userName ?? '',
-            company: myCompany,
-            taskSummary: taskTitle,
-          );
-        }
+        // if (pushToken != '' && pushToken != APIs.me.pushToken) {
+        //   // await LocalNotificationService.showChatNotification(
+        //   //   title: '💬 New Message from ${APIs.me.name}',
+        //   //   body: msg??'',
+        //   // );
+        //   await NotificationService.sendTaskNotification(
+        //     targetToken: pushToken,
+        //     assignerName: APIs.me.userName ?? '',
+        //     company: myCompany,
+        //     taskSummary: taskTitle,
+        //   );
+        // }
       } catch (e) {
         debugPrint(e.toString());
       }
@@ -906,18 +910,18 @@ class SocketController extends GetxController {
         final svc = Get.find<CompanyService>();
         final myCompany = svc.selected;
 
-        if (pushToken != '' && pushToken != APIs.me.pushToken) {
-          // await LocalNotificationService.showChatNotification(
-          //   title: '💬 New Message from ${APIs.me.name}',
-          //   body: msg??'',
-          // );
-          await NotificationService.sendTaskNotification(
-            targetToken: pushToken,
-            assignerName: APIs.me.userName ?? '',
-            company: myCompany,
-            taskSummary: tasktitle,
-          );
-        }
+        // if (pushToken != '' && pushToken != APIs.me.pushToken) {
+        //   // await LocalNotificationService.showChatNotification(
+        //   //   title: '💬 New Message from ${APIs.me.name}',
+        //   //   body: msg??'',
+        //   // );
+        //   await NotificationService.sendTaskNotification(
+        //     targetToken: pushToken,
+        //     assignerName: APIs.me.userName ?? '',
+        //     company: myCompany,
+        //     taskSummary: tasktitle,
+        //   );
+        // }
       } catch (e) {
         debugPrint(e.toString());
       }

@@ -6,6 +6,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_snake_navigationbar/flutter_snake_navigationbar.dart';
 import 'package:get/get.dart';
 import '../../../../main.dart';
+import '../Controller/company_service.dart';
 
 class AccuChatDashboard extends StatelessWidget {
 
@@ -87,10 +88,18 @@ class AccuChatDashboard extends StatelessWidget {
             label: Text('Tasks', style: BalooStyles.baloomediumTextStyle())),
         NavigationRailDestination(
             icon: Image.asset(
-              appHome,
+              connectedAppIcon,
               height: 22,
             ),
             label: Text('Your Companies',
+                style: BalooStyles.baloomediumTextStyle())),
+
+        NavigationRailDestination(
+            icon: Image.asset(
+              galleryIcon,
+              height: 22,
+            ),
+            label: Text('Gallery',
                 style: BalooStyles.baloomediumTextStyle())),
       ],
     );
@@ -147,12 +156,26 @@ class AccuChatDashboard extends StatelessWidget {
           ),
           ListTile(
             leading: Image.asset(
-              appHome,
+              connectedAppIcon,
               height: 22,
             ),
             title: const Text('Your Companies'),
             onTap: () {
               controller.updateIndex(2);
+              Get.back();
+
+                isTaskMode = false;
+              controller.update();
+            },
+          ),
+          ListTile(
+            leading: Image.asset(
+              galleryIcon,
+              height: 22,
+            ),
+            title: const Text('Gallery'),
+            onTap: () {
+              controller.updateIndex(3);
               Get.back();
 
                 isTaskMode = false;
@@ -255,17 +278,24 @@ class AccuChatDashboard extends StatelessWidget {
       selectedItemGradient:
       LinearGradient(colors: [Colors.white, Colors.white]),
       showSelectedLabels: true,
+      selectedLabelStyle: BalooStyles.baloonormalTextStyle(
+        size: 14,
+        color: Colors.white
+      ), unselectedLabelStyle: BalooStyles.baloonormalTextStyle(
+        size: 14
+      ),
+      showUnselectedLabels: true,
       currentIndex: controller.currentIndex,
-      onTap: (v) {
-        controller.updateIndex(v);
-
+      onTap: (v) async {
+        if(controller.bottomNavItems.isNotEmpty) {
+          controller.updateIndex(v);
           if (v == 1) {
             isTaskMode = true;
           } else {
             isTaskMode = false;
           }
-
-        controller.update();
+          controller.update();
+        }
       },
       items: controller.barItems,
 

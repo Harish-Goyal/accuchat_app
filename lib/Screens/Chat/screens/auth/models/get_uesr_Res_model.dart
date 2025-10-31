@@ -28,6 +28,7 @@ class GetUserResModel {
 class UserDataAPI {
   int? userId;
   String? userName;
+  String? displayName;
   String? phone;
   int? createdBy;
   int? isAdmin;
@@ -58,6 +59,7 @@ class UserDataAPI {
         this.email,
         this.createdBy,
         this.isAdmin,
+        this.displayName,
         this.open_count,
         this.isActive,
         this.userImage,
@@ -81,6 +83,7 @@ class UserDataAPI {
     userId = json['user_id'];
     createdBy = json['created_by'];
     memberCount = json['member_count'];
+    displayName = json['display_name'];
     userName = json['user_name'];
     open_count = json['open_count'];
     phone = json['phone'];
@@ -111,6 +114,7 @@ class UserDataAPI {
     final Map<String, dynamic> data = new Map<String, dynamic>();
     data['user_id'] = this.userId;
     data['user_name'] = this.userName;
+    data['display_name'] = this.displayName;
     data['open_count'] = this.open_count;
     data['is_admin'] = this.isAdmin;
     data['created_by'] = this.createdBy;

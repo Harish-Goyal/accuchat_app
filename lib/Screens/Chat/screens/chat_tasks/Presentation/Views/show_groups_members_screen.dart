@@ -7,8 +7,10 @@ import 'package:AccuChat/Services/APIs/api_ends.dart';
 import 'package:AccuChat/utils/helper_widget.dart';
 import 'package:AccuChat/utils/networl_shimmer_image.dart';
 import 'package:AccuChat/utils/text_style.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import '../../../../../../routes/app_routes.dart';
 import '../../../../../../utils/common_textfield.dart';
 import '../../../../../../utils/custom_dialogue.dart';
 import '../../../../../../utils/custom_flashbar.dart';
@@ -36,11 +38,23 @@ class GroupMembersScreen extends StatelessWidget {
               if (controller.groupOrBr?.createdBy== controller.me?.userCompany?.userCompanyId)
                 PopupMenuButton<String>(
                   color: Colors.white,
-                  icon: Icon(Icons.more_vert,color: Colors.black87,),
+                  icon: Icon(Icons.more_vert,color: Colors.black87,size: 18,),
                   onSelected: (value) {
                     if (value == 'delete') {
                       controller.hitAPIToDeleteGrBr(isGroup:
                       controller.groupOrBr?.userCompany?.isGroup==1?true:false,);
+                    }
+                    else if(value == 'add'){
+                      if(kIsWeb){
+                        Get.toNamed(
+                          "${AppRoutes.add_group_member}?groupChatId=${controller.groupOrBr?.userId.toString()}",
+                        );
+                      }else{
+                        Get.toNamed(
+                          AppRoutes.add_group_member,
+                          arguments: {'groupChat': controller.groupOrBr},
+                        );
+                      }
                     }
                   },
                   itemBuilder: (context) => [
@@ -48,9 +62,18 @@ class GroupMembersScreen extends StatelessWidget {
                       value: 'delete',
                       child: Row(
                         children: [
-                          Icon(Icons.delete_outline,color: Colors.black87,),
+                          Icon(Icons.delete_outline,color: Colors.black87,size: 18,),
                           hGap(5),
-                          const Text('Delete'),
+                           Text('Delete',style: BalooStyles.baloonormalTextStyle(),),
+                        ],
+                      ),
+                    ),PopupMenuItem(
+                      value: 'add',
+                      child: Row(
+                        children: [
+                          Icon(Icons.person_add_outlined,color: Colors.black87,size: 18),
+                          hGap(5),
+                           Text('Add Member',style: BalooStyles.baloonormalTextStyle(),),
                         ],
                       ),
                     ),
@@ -156,7 +179,7 @@ class GroupMembersScreen extends StatelessWidget {
                         mainAxisSize: MainAxisSize.min,
                         children: [
                           Text(
-                            member.userName??'',
+                            member.displayName??'',
                             style: themeData.textTheme.bodyMedium,
                           ),
                           if (isAdmin??true)

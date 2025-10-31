@@ -1,3 +1,4 @@
+import 'package:AccuChat/Constants/assets.dart';
 import 'package:AccuChat/Screens/Chat/screens/chat_tasks/Presentation/Controllers/chat_screen_controller.dart';
 import 'package:AccuChat/utils/helper_widget.dart';
 import 'package:AccuChat/utils/networl_shimmer_image.dart';
@@ -11,8 +12,9 @@ import '../../../../models/chat_history_response_model.dart';
 import '../Controllers/gallery_view_controller.dart';
 
 class GalleryViewerPage extends StatelessWidget {
-  GalleryViewerPage({super.key,required this.onReply});
+  GalleryViewerPage({super.key,required this.onReply,this.isChat=false});
   Function() onReply;
+  bool isChat;
   final PageController _pageController =
   PageController(initialPage: Get.find<GalleryViewerController>().index);
 
@@ -52,9 +54,9 @@ class GalleryViewerPage extends StatelessWidget {
                     chatC.userIDSender =
                         c.chathis.fromUser?.userId;
                     chatC.userNameReceiver =
-                        c.chathis.toUser?.userName ?? '';
+                        c.chathis.toUser?.displayName ?? '';
                     chatC.userNameSender =
-                        c.chathis.fromUser?.userName ?? '';
+                        c.chathis.fromUser?.displayName ?? '';
                     chatC.userIDReceiver =
                         c.chathis.toUser?.userId;
 
@@ -73,18 +75,32 @@ class GalleryViewerPage extends StatelessWidget {
                     Get.back();
                   }
                 },
-                itemBuilder: (ctx) => [
-                  const PopupMenuItem(
-                    value: 'save_all',
-                    child: Text('Save all', style: TextStyle(color: Colors.white)),
-                  ),const PopupMenuItem(
-                    value: 'save_one',
-                    child: Text('Save', style: TextStyle(color: Colors.white)),
-                  ),const PopupMenuItem(
-                    value: 'reply',
-                    child: Text('Reply', style: TextStyle(color: Colors.white)),
-                  ),
-                ],
+                itemBuilder: (ctx) {
+
+                  final List<PopupMenuEntry<String>> items = [];
+
+                  if(isChat){
+                    items.add(const PopupMenuItem(
+                      value: 'save_one',
+                      child: Text('Save', style: TextStyle(color: Colors.white)),
+                    ));
+                  }else{
+                    items.add(const PopupMenuItem(
+                      value: 'save_one',
+                      child: Text('Save', style: TextStyle(color: Colors.white)),
+                    )); items.add(const PopupMenuItem(
+                      value: 'save_all',
+                      child: Text('Save all', style: TextStyle(color: Colors.white)),
+                    )); items.add(const PopupMenuItem(
+                      value: 'reply',
+                      child: Text('Reply', style: TextStyle(color: Colors.white)),
+                    ));
+                  }
+
+                  return items;
+
+
+                  }
               ),
               vGap(4),
             ],
@@ -102,6 +118,9 @@ class GalleryViewerPage extends StatelessWidget {
                     heroAttributes: PhotoViewHeroAttributes(tag: url),
                     minScale: PhotoViewComputedScale.contained,
                     maxScale: PhotoViewComputedScale.covered * 3.0,
+                    errorBuilder: (context, error, stackTrace) => Center(
+                      child: Image.asset(appIcon, fit: BoxFit.contain),
+                    ),
                   );
                 },
                 onPageChanged: (i) => c.setIndex(i),
