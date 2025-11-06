@@ -1,5 +1,6 @@
 import 'package:AccuChat/Screens/Home/Presentation/Controller/company_service.dart';
 import 'package:AccuChat/Services/storage_service.dart';
+import 'package:flutter/foundation.dart';
 import 'package:get/get.dart';
 
 import '../../../Services/APIs/auth_service/auth_api_services_impl.dart';
@@ -26,7 +27,6 @@ class SplashBinding extends Bindings {
 class InitBinding extends Bindings {
   @override
   Future<void> dependencies() async {
-
     if (!Get.isRegistered<AppStorage>()) {
       Get.putAsync<AppStorage>(() async {
         await AppStorage().init(boxName: 'accu_chat');            // this is safe & idempotent now
@@ -39,6 +39,7 @@ class InitBinding extends Bindings {
     Get.lazyPut<AuthApiServiceImpl>(
       () => AuthApiServiceImpl(),
     );
+
 
     Get.lazyPut<PostApiServiceImpl>(
       () => PostApiServiceImpl(),

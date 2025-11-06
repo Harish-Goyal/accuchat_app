@@ -333,31 +333,29 @@ class VerifyOtpScreen extends GetView<VerifyOtpController> {
   Widget resendOTPView(context) {
     return Column(
       children: [
-        Text.rich(
-          TextSpan(
-              text: "Didn't receive the OTP? ".tr,
-              style: BalooStyles.balooregularTextStyle(
-                  color: AppTheme.secondaryTextColor),
-              children: [
-                TextSpan(
-                  text: "Resend Now".tr,
-                  recognizer: new TapGestureRecognizer()
-                    ..onTap = controller.enableResend ? () => controller.hitAPIToResendOtp(): () {},
-                  style: BalooStyles.balooregularTextStyle(
-                      color: controller.enableResend
-                          ? AppTheme.appColor
-                          : Colors.grey.shade400),
-                ),
-              ]),
-          textAlign: TextAlign.center,
-          style: const TextStyle(
-            color: Colors.black,
-            fontSize: 14,
-            fontWeight: FontWeight.w500,
-          ),
-        ).paddingSymmetric(vertical: 30, horizontal: 0),
+        Obx(() {
+          final canTap = controller.canResend.value && !controller.isSending.value;
 
-        // Text(secondsRemaining.toString(),style: BalooStyles.baloosemiBoldTextStyle(color: Colors.red),)
+          return TextButton(
+            onPressed: canTap ? controller.hitApiToResendOtp : null,
+            child: controller.isSending.value
+                ? const SizedBox(
+              width: 16, height: 16,
+              child: CircularProgressIndicator(strokeWidth: 2),
+            )
+                : Text(
+              controller.canResend.value
+                  ? 'Resend OTP'
+                  : 'Resend in ${controller.mmSs}',
+            ),
+          );
+        }),        Obx(() => Text(
+          controller.canResend.value
+              ? 'Didn’t get the code? Tap “Resend OTP”.'
+              : 'You can resend in ${controller.mmSs}',
+          style: Theme.of(context).textTheme.bodySmall,
+        ))
+        // Text(controller.secondsRemaining.toString(),style: BalooStyles.baloosemiBoldTextStyle(color: Colors.red),)
       ],
     );
   }

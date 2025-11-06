@@ -27,11 +27,12 @@ class ProfileMediaSectionGetX extends StatelessWidget {
         child: Builder(
           builder: (context) {
             // hook the TabController to GetX controller (once)
-            final tabCtrl = DefaultTabController.of(context)!;
-            WidgetsBinding.instance.addPostFrameCallback((_) {
-              // safe to call repeatedly; controller guards re-attach
-              controller.attachTabController(tabCtrl);
-            });
+
+              final tabCtrl = DefaultTabController.of(context);
+              WidgetsBinding.instance.addPostFrameCallback((_) {
+                controller.attachTabController(tabCtrl);
+              });
+
 
             return Column(
               children: [

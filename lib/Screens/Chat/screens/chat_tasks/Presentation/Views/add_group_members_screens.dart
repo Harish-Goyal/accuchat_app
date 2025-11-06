@@ -70,6 +70,7 @@ class AddGroupMembersScreen extends GetView<AddGroupMemController> {
                     height: mq.height * .055,
                     width: mq.height * .055,
                     boxFit: BoxFit.cover,
+                    borderColor: greyText,
                     defaultImage: ICON_profile,
                   ),
                 ),

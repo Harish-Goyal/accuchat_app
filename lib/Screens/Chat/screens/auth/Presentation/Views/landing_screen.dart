@@ -122,6 +122,7 @@ class LandingPage extends GetView<LandingScreenController> {
                                             radiusAll: 100,
                                             width: 50,
                                             height: 50,
+                                            borderColor: greyText,
                                             boxFit: BoxFit.cover,
                                             "${ApiEnd.baseUrlMedia}${company.logo ?? ''}",
                                           ),
@@ -180,7 +181,7 @@ class LandingPage extends GetView<LandingScreenController> {
                                       }else {
                                         Get.toNamed(
                                             AppRoutes.create_company,
-                                            arguments: {'isHome': false});
+                                            arguments: {'isHome': '0'});
                                       }
                                     },
                                     isShowText: true,
@@ -569,99 +570,102 @@ class LandingPage extends GetView<LandingScreenController> {
     );
   }
 
-  void showResponsiveLogoutDialog() {
-    final ctx = Get.context!;
-    final size = MediaQuery.of(ctx).size;
 
-    // Responsive width breakpoints (desktop / tablet / large phone / phone)
-    double targetWidth;
-    if (size.width >= 1280) {
-      targetWidth = size.width * 0.28; // desktop
-    } else if (size.width >= 992) {
-      targetWidth = size.width * 0.38; // laptop / large tablet
-    } else if (size.width >= 768) {
-      targetWidth = size.width * 0.52; // tablet
-    } else {
-      targetWidth = size.width * 0.90; // phones / small windows
-    }
-    // Keep width within reasonable min/max
-    targetWidth = targetWidth.clamp(360.0, 560.0);
 
-    final maxHeight = size.height * 0.90;
 
-    Get.dialog(
-      // Keeps dialog within safe areas and nicely centered
-      SafeArea(
-        child: Center(
-          child: ConstrainedBox(
-            constraints: BoxConstraints(
-              maxWidth: targetWidth,
-              maxHeight: maxHeight,
-            ),
-            child: Material(
-              color: Colors.transparent,
-              child: ClipRRect(
-                borderRadius: BorderRadius.circular(16),
-                child: Container(
-                  // Subtle background & padding to look good on web
-                  color: Colors.grey.shade100,
-                  padding: EdgeInsets.symmetric(
-                    horizontal: size.width >= 768 ? 24 : 16,
-                    vertical: 16,
-                  ),
-                  child: SingleChildScrollView(
-                    // 👇 Your dialog code is untouched and placed as-is
-                    child: CustomDialogue(
-                      title: "Logout",
-                      isShowAppIcon: false,
-                      content: Column(
-                        crossAxisAlignment: CrossAxisAlignment.center,
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          vGap(20),
-                          Text(
-                            "Do you really want to Logout?",
-                            style: BalooStyles.baloonormalTextStyle(),
-                            textAlign: TextAlign.center,
-                          ),
-                          vGap(30),
-                          Row(
-                            children: [
-                              Expanded(
-                                child: GradientButton(
-                                  name: "Yes",
-                                  btnColor: AppTheme.redErrorColor,
-                                  gradient: LinearGradient(
-                                    colors: [AppTheme.redErrorColor, AppTheme.redErrorColor],
-                                  ),
-                                  vPadding: 6,
-                                  onTap: () async {
-                                    logoutLocal();
-                                  },
+}
+void showResponsiveLogoutDialog() {
+  final ctx = Get.context!;
+  final size = MediaQuery.of(ctx).size;
+
+  // Responsive width breakpoints (desktop / tablet / large phone / phone)
+  double targetWidth;
+  if (size.width >= 1280) {
+    targetWidth = size.width * 0.28; // desktop
+  } else if (size.width >= 992) {
+    targetWidth = size.width * 0.38; // laptop / large tablet
+  } else if (size.width >= 768) {
+    targetWidth = size.width * 0.52; // tablet
+  } else {
+    targetWidth = size.width * 0.90; // phones / small windows
+  }
+  // Keep width within reasonable min/max
+  targetWidth = targetWidth.clamp(360.0, 560.0);
+
+  final maxHeight = size.height * 0.90;
+
+  Get.dialog(
+    // Keeps dialog within safe areas and nicely centered
+    SafeArea(
+      child: Center(
+        child: ConstrainedBox(
+          constraints: BoxConstraints(
+            maxWidth: targetWidth,
+            maxHeight: maxHeight,
+          ),
+          child: Material(
+            color: Colors.transparent,
+            child: ClipRRect(
+              borderRadius: BorderRadius.circular(16),
+              child: Container(
+                // Subtle background & padding to look good on web
+                color: Colors.grey.shade100,
+                padding: EdgeInsets.symmetric(
+                  horizontal: size.width >= 768 ? 24 : 16,
+                  vertical: 16,
+                ),
+                child: SingleChildScrollView(
+                  // 👇 Your dialog code is untouched and placed as-is
+                  child: CustomDialogue(
+                    title: "Logout",
+                    isShowAppIcon: false,
+                    content: Column(
+                      crossAxisAlignment: CrossAxisAlignment.center,
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        vGap(20),
+                        Text(
+                          "Do you really want to Logout?",
+                          style: BalooStyles.baloonormalTextStyle(),
+                          textAlign: TextAlign.center,
+                        ),
+                        vGap(30),
+                        Row(
+                          children: [
+                            Expanded(
+                              child: GradientButton(
+                                name: "Yes",
+                                btnColor: AppTheme.redErrorColor,
+                                gradient: LinearGradient(
+                                  colors: [AppTheme.redErrorColor, AppTheme.redErrorColor],
                                 ),
+                                vPadding: 6,
+                                onTap: () async {
+                                  logoutLocal();
+                                },
                               ),
-                              hGap(15),
-                              Expanded(
-                                child: GradientButton(
-                                  name: "Cancel",
-                                  btnColor: Colors.black,
-                                  color: Colors.black,
-                                  gradient: LinearGradient(
-                                    colors: [AppTheme.whiteColor, AppTheme.whiteColor],
-                                  ),
-                                  vPadding: 6,
-                                  onTap: () {
-                                    Get.back();
-                                  },
+                            ),
+                            hGap(15),
+                            Expanded(
+                              child: GradientButton(
+                                name: "Cancel",
+                                btnColor: Colors.black,
+                                color: Colors.black,
+                                gradient: LinearGradient(
+                                  colors: [AppTheme.whiteColor, AppTheme.whiteColor],
                                 ),
+                                vPadding: 6,
+                                onTap: () {
+                                  Get.back();
+                                },
                               ),
-                            ],
-                          ),
-                          // Text(STRING_logoutHeading,style: BalooStyles.baloomediumTextStyle(),),
-                        ],
-                      ),
-                      onOkTap: () {},
+                            ),
+                          ],
+                        ),
+                        // Text(STRING_logoutHeading,style: BalooStyles.baloomediumTextStyle(),),
+                      ],
                     ),
+                    onOkTap: () {},
                   ),
                 ),
               ),
@@ -669,10 +673,8 @@ class LandingPage extends GetView<LandingScreenController> {
           ),
         ),
       ),
-      barrierColor: Colors.black54, // nice dim on web
-      name: 'logout_dialog',
-    );
-  }
-
-
+    ),
+    barrierColor: Colors.black54, // nice dim on web
+    name: 'logout_dialog',
+  );
 }

@@ -12,7 +12,6 @@ import 'package:AccuChat/Constants/themes.dart';
 import 'package:AccuChat/Screens/Home/Presentation/Controller/home_controller.dart';
 import 'package:AccuChat/main.dart';
 import 'package:AccuChat/utils/helper_widget.dart';
-import 'package:dio/dio.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -21,11 +20,9 @@ import 'package:get/get.dart';
 import 'package:grouped_list/grouped_list.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:intl/intl.dart';
-import 'package:open_filex/open_filex.dart';
 import 'package:swipe_to/swipe_to.dart';
-import 'package:flutter/foundation.dart' show kIsWeb; // ✅ added: detect web
-import 'package:flutter/gestures.dart'; // ✅ added: better web scrolling
-import 'package:url_launcher/url_launcher_string.dart';
+import 'package:flutter/foundation.dart' show kIsWeb;
+import 'package:flutter/gestures.dart';
 import '../../../../../../Constants/app_theme.dart';
 import '../../../../../../Constants/assets.dart';
 import '../../../../../../Constants/colors.dart';
@@ -73,6 +70,13 @@ double _maxChatWidth(BuildContext context) {
   return 900;
 }
 
+double _maxContentWidth(double w) {
+  if (w >= 1400) return 920; // large desktop
+  if (w >= 1100) return 820; // desktop
+  if (w >= 900) return 720;  // small desktop / landscape tablet
+  if (w >= 600) return 560;  // portrait tablet
+  return w; // phones -> full width (preserves mobile UI)
+}
 EdgeInsets _shellHPadding(BuildContext context) {
   if (!kIsWeb) return EdgeInsets.zero;
   final w = MediaQuery.of(context).size.width;
@@ -532,24 +536,41 @@ class ChatScreen extends GetView<ChatScreenController> {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         controller.user?.userCompany?.isGroup == 1
-            ? Text(
-            sentByMe
-                ? (data.fromUser?.displayName != null
-                ? data.fromUser?.displayName ?? ''
-                : data.fromUser?.phone ?? '')
-                : (data.fromUser?.displayName != null
-                ? data.fromUser?.displayName ?? ''
-                : data.fromUser?.phone ?? ''),
-            textAlign: TextAlign.start,
-            style: BalooStyles.baloothinTextStyle(
-              color: Colors.black54,
-              size: 13,
-            ),
-            overflow: TextOverflow.visible)
-            .marginOnly(
-            left: sentByMe ? 0 : 0,
-            right: sentByMe ? 10 : 0,
-            bottom: 3)
+            ? Row(
+          mainAxisSize: MainAxisSize.min,
+              children: [
+                Flexible(
+                  child: Text(
+                  sentByMe
+                      ? (data.fromUser?.displayName != null
+                      ? data.fromUser?.displayName ?? ''
+                      : data.fromUser?.phone ?? '')
+                      : (data.fromUser?.displayName != null
+                      ? data.fromUser?.displayName ?? ''
+                      : data.fromUser?.phone ?? ''),
+                  textAlign: TextAlign.start,
+                  style: BalooStyles.baloothinTextStyle(
+                    color: Colors.black54,
+                    size: 13,
+                  ),
+                  overflow: TextOverflow.visible)
+                  .marginOnly(
+                  left: sentByMe ? 0 : 0,
+                  right: sentByMe ? 10 : 0,
+                  bottom: 3,top: 8),
+                ),
+                Flexible(
+                    child: Text(
+                      data.fromUser?.userId == controller.me?.userId ? "You" : (data.fromUser?.displayName ?? ''),
+                      style: BalooStyles.baloonormalTextStyle(color: data.fromUser?.userId == controller.me?.userId ? Colors.green : Colors.purple),
+                      textAlign: TextAlign.end,
+                    ).marginOnly(
+                        right: sentByMe ? 0 : 0,
+                        left : sentByMe ? 10 : 0,
+                        bottom: 3,top: 8),
+                  ),
+              ],
+            )
             : const SizedBox(),
 
         data.isForwarded == 1
@@ -575,49 +596,58 @@ class ChatScreen extends GetView<ChatScreenController> {
             overflow: TextOverflow.visible)
             : const SizedBox(),
         ((data.media ?? []).isNotEmpty)
-            ? ChatMessageMedia(
-          chat: data,
-          isGroupMessage: data.isGroupChat==1?true:false,
-          myId: (controller.me?.userId ?? 0).toString(),
-          fromId: (data.fromUser?.userId ?? 0).toString(),
-          senderName: data.fromUser?.displayName ?? '',
-          baseUrl: ApiEnd.baseUrlMedia,
-          defaultGallery: defaultGallery,
-          onOpenDocument: (url) =>
-              openDocumentFromUrl(url), // your existing function
-          onOpenImageViewer: (mediaurls, startIndex) {
-            // push your gallery view
-            // Get.to(() => ImageViewer(urls: urls, initialIndex: startIndex));
-            Get.to(
-                  () => GalleryViewerPage(onReply: (){
-                    Get.back();
-                    controller.refIdis = data.chatId;
-                    controller.userIDSender =
-                        data.fromUser?.userId;
-                    controller.userNameReceiver =
-                        data.toUser?.displayName ?? '';
-                    controller.userNameSender =
-                        data.fromUser?.displayName ?? '';
-                    controller.userIDReceiver =
-                        data.toUser?.userId;
-                    controller.replyToMessage =data;
-                  },),
-              binding: BindingsBuilder(() {
-                Get.put(GalleryViewerController(
-                    urls: mediaurls, index: startIndex,
-                chathis: data));
-              }),
-              fullscreenDialog: true,
-              transition: Transition.fadeIn,
-            );
-          },
-          onOpenVideo: (url) {
-            // open video player route/sheet if available
-          },
-          onOpenAudio: (url) {
-            // open audio player route/sheet if available
-          },
-        )
+            ? LayoutBuilder(
+            builder: (context, constraints) {
+              final isWide = constraints.maxWidth >= 900;
+              final fieldWidth = isWide ? 420.0 : null;
+                return SizedBox(
+                          width:kIsWeb? fieldWidth:null,
+                  child: ChatMessageMedia(
+                            chat: data,
+                            isGroupMessage: data.isGroupChat==1?true:false,
+                            myId: (controller.me?.userId ?? 0).toString(),
+                            fromId: (data.fromUser?.userId ?? 0).toString(),
+                            senderName: data.fromUser?.displayName ?? '',
+                            baseUrl: ApiEnd.baseUrlMedia,
+                            defaultGallery: defaultGallery,
+                            onOpenDocument: (url) =>
+                    openDocumentFromUrl(url), // your existing function
+                            onOpenImageViewer: (mediaurls, startIndex) {
+                  // push your gallery view
+                  // Get.to(() => ImageViewer(urls: urls, initialIndex: startIndex));
+                  Get.to(
+                        () => GalleryViewerPage(onReply: (){
+                          Get.back();
+                          controller.refIdis = data.chatId;
+                          controller.userIDSender =
+                              data.fromUser?.userId;
+                          controller.userNameReceiver =
+                              data.toUser?.displayName ?? '';
+                          controller.userNameSender =
+                              data.fromUser?.displayName ?? '';
+                          controller.userIDReceiver =
+                              data.toUser?.userId;
+                          controller.replyToMessage =data;
+                        },),
+                    binding: BindingsBuilder(() {
+                      Get.put(GalleryViewerController(
+                          urls: mediaurls, index: startIndex,
+                      chathis: data));
+                    }),
+                    fullscreenDialog: true,
+                    transition: Transition.fadeIn,
+                  );
+                            },
+                            onOpenVideo: (url) {
+                  // open video player route/sheet if available
+                            },
+                            onOpenAudio: (url) {
+                  // open audio player route/sheet if available
+                            },
+                          ),
+                );
+              }
+            )
             : const SizedBox(),
       ],
     );
@@ -634,6 +664,8 @@ class ChatScreen extends GetView<ChatScreenController> {
                   controller.user?.userCompany?.isBroadcast == 1)) {
 
                 if(kIsWeb){
+                  print("user id == ${controller.user?.userId.toString()}");
+
                   Get.toNamed(
                     "${AppRoutes.view_profile}?userId=${controller.user?.userId.toString()}",
                   );
@@ -685,6 +717,7 @@ class ChatScreen extends GetView<ChatScreenController> {
                       : controller.user?.userCompany?.isBroadcast == 1
                       ? broadcastIcon
                       : ICON_profile,
+                  borderColor: greyText,
                 ),
 
                 //for adding some space
@@ -915,11 +948,20 @@ class ChatScreen extends GetView<ChatScreenController> {
                                       child: InkWell(
                                         onTap: () =>
                                             showUploadOptions(Get.context!),
-                                        child: const Icon(
-                                          Icons.upload_outlined,
-                                          color: Colors.black54,
+                                        child: Container(
+                                          padding: EdgeInsets.all(5),
+                                          margin: EdgeInsets.all(5),
+                                          decoration: BoxDecoration(
+                                            borderRadius: BorderRadius.circular(8),
+                                            border: Border.all(color: appColorGreen),
+                                            color: appColorGreen.withOpacity(.1)
+                                          ),
+                                          child:  Icon(
+                                            Icons.upload_outlined,
+                                            color: appColorGreen,
+                                          ),
                                         ),
-                                      ).paddingAll(3))
+                                      ))
                               ],
                             ),
                           ),
@@ -996,6 +1038,7 @@ class ChatScreen extends GetView<ChatScreenController> {
                   );
                   controller.textController.clear();
                   controller.replyToMessage = null;
+
                   controller.update();
                 } else if (controller.user?.userCompany?.isBroadcast == 1) {
                   Get.find<SocketController>().sendMessage(
@@ -1006,6 +1049,7 @@ class ChatScreen extends GetView<ChatScreenController> {
                     type: "broadcast",
                     companyId: controller.user?.userCompany?.companyId,
                     alreadySave: false,
+
                   );
                   controller.textController.clear();
                   controller.replyToMessage = null;
@@ -1028,7 +1072,11 @@ class ChatScreen extends GetView<ChatScreenController> {
                 }
 
 
-
+                if(controller.me?.userId==controller.user?.userId){
+                  print("read=========");
+                  controller.markAllVisibleAsReadOnOpen();
+                }
+                controller.update();
                 // APIs.updateTypingStatus(false);
               }
             },
@@ -1056,6 +1104,7 @@ class ChatScreen extends GetView<ChatScreenController> {
       shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
       ),
+      backgroundColor: Colors.white,
       builder: (_) => SafeArea(
         child: Padding(
           padding:
@@ -1063,8 +1112,8 @@ class ChatScreen extends GetView<ChatScreenController> {
           child: Wrap(
             children: [
               ListTile(
-                leading: const Icon(Icons.camera_alt),
-                title: const Text("Camera"),
+                leading:  Icon(Icons.camera_alt_outlined,size: 20,),
+                title:  Text("Camera",style: BalooStyles.baloomediumTextStyle(),),
                 onTap: () async {
                   Get.back();
                   final ImagePicker picker = ImagePicker();
@@ -1082,8 +1131,8 @@ class ChatScreen extends GetView<ChatScreenController> {
                 },
               ),
               ListTile(
-                leading: const Icon(Icons.photo),
-                title: const Text("Gallery"),
+                leading:  Icon(Icons.photo_library_outlined,size: 20,),
+                title:  Text("Gallery",style: BalooStyles.baloomediumTextStyle(),),
                 onTap: () async {
                   Get.back();
                   final ImagePicker picker = ImagePicker();
@@ -1099,8 +1148,8 @@ class ChatScreen extends GetView<ChatScreenController> {
                 },
               ),
               ListTile(
-                leading: const Icon(Icons.picture_as_pdf),
-                title: const Text("Document"),
+                leading:  Icon(Icons.picture_as_pdf_outlined,size: 20,),
+                title:  Text("Document",style: BalooStyles.baloomediumTextStyle(),),
                 onTap: () {
                   Get.back();
                   controller.pickDocument();

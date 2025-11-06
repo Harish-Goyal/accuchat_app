@@ -45,7 +45,6 @@ class InviteUserRoleController extends GetxController {
 
   @override
   void onInit() {
-    _getCom();
     initData();
     hitAPIToGetAllRolesAPI();
     super.onInit();
@@ -102,18 +101,18 @@ class InviteUserRoleController extends GetxController {
     // if (inviteFormKeys.length > len) inviteFormKeys.removeRange(len, inviteFormKeys.length);
   }
 
-  CompanyData? myCompany =CompanyData();
-  _getCom(){
-    final svc = Get.find<CompanyService>();
-    myCompany = svc.selected;
-  }
+  // CompanyData? myCompany;
+  // _getCom(){
+  //   final svc = Get.find<CompanyService>();
+  //   myCompany = svc.selected;
+  // }
 
   List<ReqInviteModel> selectedInvitesContacts = [];
 
   hitAPIToSendInvites() async {
     customLoader.show();
     Map<String, dynamic> postData = {
-      "companyId": myCompany?.companyId,
+      "companyId": companyId,
       "companyUserInvites": selectedInvitesContacts.map((v)=>v.toJson()).toList()
     };
     Get.find<PostApiServiceImpl>()

@@ -707,8 +707,6 @@ class SocketController extends GetxController {
   }
 
 
-
-
   Future<void> sendMessage({
     int? receiverId,
     String? message,
@@ -726,8 +724,6 @@ class SocketController extends GetxController {
   }) async {
     if (socket != null && socket!.connected) {
       debugPrint("Message sent:---------- $message");
-
-
       try {
         socket?.emit('send_message', {
           "mode": type,
@@ -744,7 +740,7 @@ class SocketController extends GetxController {
           "forward_source_chat_id": forwardChatId
         });
         debugPrint(
-            "Message sent: $message ,receiverId: $receiverId , forwardChatId: $forwardChatId, fromid: ${APIs.me.userId}, comapnyid: ${APIs.me.userCompany?.userCompanyId}, alreadySaved: ${alreadySave}");
+            "Message sent: $message ,receiverId: $receiverId Broadcast user id,: $brID , forwardChatId: $forwardChatId, fromid: ${APIs.me.userId}, comapnyid: ${APIs.me.userCompany?.userCompanyId}, group id: $groupId, alreadySaved: ${alreadySave}");
         var token =  StorageService.getToken();
         debugPrint("authorization token is ********* $token");
         final svc = Get.find<CompanyService>();

@@ -57,6 +57,8 @@ class MediaChatUSer {
   int? chatId;
   int? fromId;
   int? toId;
+  int? toUserId;
+  int? fromUserId;
   int? isGroupChat;
   String? chatText;
   int? broadcastUserId;
@@ -72,6 +74,8 @@ class MediaChatUSer {
         this.isGroupChat,
         this.chatText,
         this.broadcastUserId,
+        this.toUserId,
+        this.fromUserId,
         this.repliedToId,
         this.repliedToText,
         this.repliedToTime,
@@ -80,6 +84,8 @@ class MediaChatUSer {
   MediaChatUSer.fromJson(Map<String, dynamic> json) {
     chatId = json['chat_id'];
     fromId = json['from_id'];
+    toUserId = json['to_user_id'];
+    fromUserId = json['from_user_id'];
     toId = json['to_id'];
     isGroupChat = json['is_group_chat'];
     chatText = json['chat_text'];
@@ -100,6 +106,8 @@ class MediaChatUSer {
     data['broadcast_user_id'] = this.broadcastUserId;
     data['replied_to_id'] = this.repliedToId;
     data['replied_to_text'] = this.repliedToText;
+    data['from_user_id'] = this.fromUserId;
+    data['to_user_id'] = this.toUserId;
     data['replied_to_time'] = this.repliedToTime;
     data['sent_on'] = this.sentOn;
     return data;

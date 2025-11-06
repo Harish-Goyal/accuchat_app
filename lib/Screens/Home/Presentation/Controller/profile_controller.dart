@@ -44,7 +44,7 @@ class HProfileController extends GetxController {
 
   UserDataAPI userData = UserDataAPI();
 
-  bool isLoading = true;
+  bool isLoading = false;
   CompanyData? myCompany = CompanyData();
   _getCompany() async {
     final svc     = Get.find<CompanyService>();
@@ -54,16 +54,18 @@ class HProfileController extends GetxController {
   }
 
   hitAPIToGetUser() async {
+   isLoading = true;
+   update();
     FocusManager.instance.primaryFocus!.unfocus();
     Get.find<AuthApiServiceImpl>().getUserApiCall(companyId: myCompany?.companyId??0).then((value) async {
       isLoading = false;
+      update();
       userData = value.data!;
       saveUser(userData);
       _initData(userData);
-      update();
+
     }).onError((error, stackTrace) {
       isLoading = false;
-      customLoader.hide();
       errorDialog(error.toString());
       update();
     });
@@ -72,7 +74,6 @@ class HProfileController extends GetxController {
 
   hitAPIToDeleteAccount() async {
     customLoader.show();
-    print(APIs.me.userId??0);
     Get.find<PostApiServiceImpl>()
         .deleteUserAccountApiCall(userID: APIs.me.userId??0)
         .then((value) async {

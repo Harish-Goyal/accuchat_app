@@ -462,7 +462,7 @@ class TaskScreen extends GetView<TaskController> {
                   child: Padding(
                     padding: const EdgeInsets.only(left: 12.0, top: 4),
                     child: Text(
-                      "👆 Double tap to update status",
+                      "👆Tap to update status",
                       style: TextStyle(
                         fontSize: 12,
                         color: appColorGreen,
@@ -556,13 +556,14 @@ class TaskScreen extends GetView<TaskController> {
        PopupMenuItem<int>(
         enabled: false,
         child: Text('Status History', style: BalooStyles.baloosemiBoldTextStyle()),
-      ),
+       ),
     ];
 
     // Show latest first
     for (final e in cleaned.reversed) {
       final id = e.taskStatusId as int;
       final statusName = (e.statusName??'');
+      final fromname = (e.from_name??'');
       final by =  resolveName;
       final when = controller.formatWhen(e.createdOn??'');
 
@@ -576,7 +577,7 @@ class TaskScreen extends GetView<TaskController> {
             style: BalooStyles.balooregularTextStyle( italicFontStyle: true,),
 
           ),
-          subtitle: Text('by $by at $when',
+          subtitle: Text('By $fromname At $when',
             style: BalooStyles.balooregularTextStyle(),),
         ),
       ));
@@ -591,14 +592,14 @@ class TaskScreen extends GetView<TaskController> {
       mainAxisSize: MainAxisSize.min,
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text("📝 ${message?.title}",
+        Text("📝 ${message.title}",
             style: const TextStyle(fontWeight: FontWeight.bold)),
         vGap(5),
         Text(
-          message?.details ?? '',
+          message.details ?? '',
           style: themeData.textTheme.bodySmall,
         ),
-        if ((message?.deadline ?? '').isNotEmpty) ...[
+        if ((message.deadline ?? '').isNotEmpty) ...[
           vGap(10),
           Text(
               "⏱️ Est. Time: ${estimateLabel(deadlineIso: message.deadline ?? '', createdIso: message.createdOn ?? '')}",
@@ -929,8 +930,8 @@ class TaskScreen extends GetView<TaskController> {
                   final r = rangeFor(v);
                   Get.find<TaskController>().hitAPIToGetTaskHistory(isFilter: true
                   ,
-                  fromDate: r.fromUtc.toIso8601String(),
-                  toDate: r.toUtc.toIso8601String());
+                  fromDate: r.startDate,
+                  toDate: r.endDate);
 
 
                 }else{
@@ -947,12 +948,9 @@ class TaskScreen extends GetView<TaskController> {
                         child: Text(s.status ?? 'Unknown',style: BalooStyles.baloonormalTextStyle()),
                       )),
                  const PopupMenuDivider(),
-
-
-
-                  PopupMenuItem(value: TimeFilter.today,     child: Text('Today',style: BalooStyles.baloonormalTextStyle(),)),
-                  PopupMenuItem(value: TimeFilter.thisWeek,  child: Text('This Week',style: BalooStyles.baloonormalTextStyle())),
-                  PopupMenuItem(value: TimeFilter.thisMonth, child: Text('This Month',style: BalooStyles.baloonormalTextStyle())),
+                 PopupMenuItem(value: TimeFilter.today,     child: Text('Today',style: BalooStyles.baloonormalTextStyle(),)),
+                 PopupMenuItem(value: TimeFilter.thisWeek,  child: Text('This Week',style: BalooStyles.baloonormalTextStyle())),
+                 PopupMenuItem(value: TimeFilter.thisMonth, child: Text('This Month',style: BalooStyles.baloonormalTextStyle())),
                 ];
                 return items;
               },
@@ -1927,6 +1925,7 @@ class TaskScreen extends GetView<TaskController> {
                         "${ApiEnd.baseUrlMedia}/${att.fileName ?? ''}",
                         radiusAll: 15,
                         boxFit: BoxFit.contain,
+                        borderColor: greyText,
                         defaultImage: defaultGallery,
                       ),
                     ),
@@ -1969,260 +1968,76 @@ class TaskScreen extends GetView<TaskController> {
   }
 
   _updateTasksDialogWidget(TaskData taskDetails) {
-    bool hydrated = false;
     return StatefulBuilder(builder: (context, setStateInside) {
-      // if (!hydrated) {
-      //   controller.attachedFiles = [];
-      //   for (TaskMedia m in (taskDetails.media ?? [])) {
-      //     controller.attachedFiles.add({
-      //       'type'    : (m.mediaType?.mediaType ?? '').toLowerCase() == 'image' ? 'image' : 'doc',
-      //       'name'    : m.fileName ?? '',
-      //       'url'     : m.fileName ?? m.fileName,
-      //     });
-      //   }
-      //   hydrated = true;
-      // }
       return CustomDialogue(
         title: "Update Task",
         isShowAppIcon: false,
-        // content: Column(
-        //   crossAxisAlignment: CrossAxisAlignment.center,
-        //   mainAxisSize: MainAxisSize.min,
-        //   children: [
-        //     Text(
-        //       "Enter Task Details",
-        //       style: BalooStyles.baloonormalTextStyle(),
-        //       textAlign: TextAlign.center,
-        //     ),
-        //     Text(
-        //       controller.validString,
-        //       style: BalooStyles.baloonormalTextStyle(
-        //           color: AppTheme.redErrorColor),
-        //       textAlign: TextAlign.center,
-        //     ),
-        //     vGap(20),
-        //     _taskInputArea(setStateInside, taskDetails: taskDetails),
-        //    //TODO
-        //    /* vGap(10),
-        //     const Text("Attachments",
-        //         style: TextStyle(fontWeight: FontWeight.bold)),
-        //     vGap(10),
-        //     if (controller.isUploadingTaskDoc) const IndicatorLoading(),
-        //     Wrap(
-        //       spacing: 8,
-        //       runSpacing: 8,
-        //       children: controller.attachedFiles.map((file) {
-        //         final String type = file['type'];
-        //         final String name = file['name'];
-        //         final url = file['url'];
-        //
-        //         Widget preview;
-        //
-        //         if (type == 'image') {
-        //           preview = url != null
-        //               ? url is File
-        //                   ? ClipRRect(
-        //                       borderRadius: BorderRadius.circular(8),
-        //                       child: Image.file(url,
-        //                           width: 75, height: 75, fit: BoxFit.cover),
-        //                     )
-        //                   : url is String && url.isNotEmpty
-        //                       ? CustomCacheNetworkImage(
-        //                           "${ApiEnd.baseUrlMedia}$url",
-        //                           radiusAll: 8,
-        //                           width: 75,
-        //                           height: 75,
-        //                           boxFit: BoxFit.cover,
-        //                           defaultImage: defaultGallery,
-        //                         )
-        //                       : const SizedBox()
-        //               : const SizedBox();
-        //         } else if (type == 'doc') {
-        //           IconData icon;
-        //           if (name.endsWith('.pdf')) {
-        //             icon = Icons.picture_as_pdf;
-        //           } else if (name.endsWith('.doc') || name.endsWith('.docx')) {
-        //             icon = Icons.description;
-        //           } else if (name.endsWith('.txt')) {
-        //             icon = Icons.note;
-        //           } else {
-        //             icon = Icons.insert_drive_file;
-        //           }
-        //
-        //           preview = Container(
-        //             width: 75,
-        //             height: 75,
-        //             padding: const EdgeInsets.symmetric(horizontal: 2),
-        //             decoration: BoxDecoration(
-        //               border: Border.all(color: Colors.grey.shade400),
-        //               borderRadius: BorderRadius.circular(8),
-        //             ),
-        //             child: Column(
-        //               mainAxisAlignment: MainAxisAlignment.center,
-        //               children: [
-        //                 Icon(icon, size: 30, color: Colors.grey),
-        //                 Text(name,
-        //                     textAlign: TextAlign.center,
-        //                     maxLines: 2,
-        //                     overflow: TextOverflow.ellipsis,
-        //                     style: const TextStyle(fontSize: 10)),
-        //               ],
-        //             ),
-        //           );
-        //         } else {
-        //           preview = const SizedBox();
-        //         }
-        //
-        //         return Stack(
-        //           alignment: Alignment.topRight,
-        //           clipBehavior: Clip.none,
-        //           children: [
-        //             preview,
-        //             Positioned(
-        //               top: -5,
-        //               right: -5,
-        //               child: GestureDetector(
-        //                 onTap: () {
-        //                   setStateInside(() {
-        //                     controller.attachedFiles.remove(file);
-        //                   });
-        //                   controller.update();
-        //                 },
-        //                 child: const CircleAvatar(
-        //                   radius: 13,
-        //                   backgroundColor: Colors.red,
-        //                   child:
-        //                       Icon(Icons.close, size: 12, color: Colors.white),
-        //                 ),
-        //               ),
-        //             ),
-        //           ],
-        //         );
-        //       }).toList(),
-        //     ),
-        //     vGap(10),
-        //     GestureDetector(
-        //       onTap: () => controller.attachedFiles.length < 3
-        //           ? showUploadOptionsForTask(context, setStateInside)
-        //           : toast("You can upload upto 3 attachments only"),
-        //       child: const Chip(
-        //         avatar: Icon(Icons.attach_file),
-        //         label: Text("Add Attachments"),
-        //         backgroundColor: Colors.white,
-        //       ),
-        //     ),*/
-        //     vGap(30),
-        //     GradientButton(
-        //       name: "Update",
-        //       btnColor: AppTheme.appColor,
-        //       vPadding: 8,
-        //       onTap: () async {
-        //         if (controller.tasksFormKey.currentState!.validate()) {
-        //           if (controller.getEstimatedTime(setStateInside) != "" &&
-        //               controller.selectedDate != null &&
-        //               controller.selectedTime != null) {
-        //             if (controller.getEstimatedTime(setStateInside) ==
-        //                 "Oops! The selected time is in the past. Please choose a valid future time.") {
-        //               setStateInside(() {
-        //                 controller.validString =
-        //                     "Please select valid time check AM PM correctly";
-        //               });
-        //             } else {
-        //               if (!controller.isUploadingTaskDoc) {
-        //                 controller.updateTaskApiCall(task:taskDetails);
-        //               } else {
-        //                 toast("Please wait");
-        //               }
-        //             }
-        //           } else {
-        //             if (!controller.isUploadingTaskDoc) {
-        //               controller.updateTaskApiCall(task:taskDetails);
-        //             } else {
-        //               toast("Please wait");
-        //             }
-        //           }
-        //         }
-        //       },
-        //     )
-        //   ],
-        // ),
-        content: LayoutBuilder(
-          builder: (context, constraints) {
-            final w = MediaQuery.of(context).size.width;
-            final h = MediaQuery.of(context).size.height;
+
+        // ❌ Was: content: LayoutBuilder(...)
+        // ✅ Use a simple Builder; let CustomDialogue handle scroll + sizing.
+        content: Builder(
+          builder: (context) {
+            final size = MediaQuery.of(context).size;
+            final w = size.width;
 
             final bool isDesktop = w >= 1024;
             final bool isTablet  = w >= 700 && w < 1024;
 
-            final double maxW = isDesktop ? 900 : (isTablet ? 720 : w * 0.95);
-            final double maxH = h * (kIsWeb ? 0.9 : 0.95);
-
-            return Center(
-              child: ConstrainedBox(
-                constraints: BoxConstraints(
-                  maxWidth: maxW,
-                  maxHeight: maxH,
+            // You can still branch on breakpoints if you need different child layouts.
+            // Width/height caps will be applied by CustomDialogue itself.
+            return Column(
+              crossAxisAlignment: CrossAxisAlignment.center,
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Text(
+                  "Enter Task Details",
+                  style: BalooStyles.baloonormalTextStyle(),
+                  textAlign: TextAlign.center,
                 ),
-                child: Scrollbar(
-                  thumbVisibility: kIsWeb,
-                  child: SingleChildScrollView(
-                    padding: const EdgeInsets.all(12),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.center,
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        Text(
-                          "Enter Task Details",
-                          style: BalooStyles.baloonormalTextStyle(),
-                          textAlign: TextAlign.center,
-                        ),
-                        Text(
-                          controller.validString,
-                          style: BalooStyles.baloonormalTextStyle(
-                              color: AppTheme.redErrorColor),
-                          textAlign: TextAlign.center,
-                        ),
-                        vGap(20),
-                        _taskInputArea(setStateInside, taskDetails: taskDetails),
-                        // (attachments section commented by you — left untouched)
-                        vGap(30),
-                        GradientButton(
-                          name: "Update",
-                          btnColor: AppTheme.appColor,
-                          vPadding: 8,
-                          onTap: () async {
-                            if (controller.tasksFormKey.currentState!.validate()) {
-                              if (controller.getEstimatedTime(setStateInside) != "" &&
-                                  controller.selectedDate != null &&
-                                  controller.selectedTime != null) {
-                                if (controller.getEstimatedTime(setStateInside) ==
-                                    "Oops! The selected time is in the past. Please choose a valid future time.") {
-                                  setStateInside(() {
-                                    controller.validString =
-                                    "Please select valid time check AM PM correctly";
-                                  });
-                                } else {
-                                  if (!controller.isUploadingTaskDoc) {
-                                    controller.updateTaskApiCall(task:taskDetails);
-                                  } else {
-                                    toast("Please wait");
-                                  }
-                                }
-                              } else {
-                                if (!controller.isUploadingTaskDoc) {
-                                  controller.updateTaskApiCall(task:taskDetails);
-                                } else {
-                                  toast("Please wait");
-                                }
-                              }
-                            }
-                          },
-                        )
-                      ],
-                    ),
+                Text(
+                  controller.validString,
+                  style: BalooStyles.baloonormalTextStyle(
+                    color: AppTheme.redErrorColor,
                   ),
+                  textAlign: TextAlign.center,
                 ),
-              ),
+                vGap(20),
+                _taskInputArea(setStateInside, taskDetails: taskDetails),
+
+                vGap(30),
+                GradientButton(
+                  name: "Update",
+                  btnColor: AppTheme.appColor,
+                  vPadding: 8,
+                  onTap: () async {
+                    if (controller.tasksFormKey.currentState!.validate()) {
+                      if (controller.getEstimatedTime(setStateInside) != "" &&
+                          controller.selectedDate != null &&
+                          controller.selectedTime != null) {
+                        if (controller.getEstimatedTime(setStateInside) ==
+                            "Oops! The selected time is in the past. Please choose a valid future time.") {
+                          setStateInside(() {
+                            controller.validString =
+                            "Please select valid time check AM PM correctly";
+                          });
+                        } else {
+                          if (!controller.isUploadingTaskDoc) {
+                            controller.updateTaskApiCall(task: taskDetails);
+                          } else {
+                            toast("Please wait");
+                          }
+                        }
+                      } else {
+                        if (!controller.isUploadingTaskDoc) {
+                          controller.updateTaskApiCall(task: taskDetails);
+                        } else {
+                          toast("Please wait");
+                        }
+                      }
+                    }
+                  },
+                ),
+              ],
             );
           },
         ),
@@ -2231,6 +2046,7 @@ class TaskScreen extends GetView<TaskController> {
       );
     });
   }
+
 
   _showDateTimePicker(setStateInside) async {
     final now = DateTime.now();

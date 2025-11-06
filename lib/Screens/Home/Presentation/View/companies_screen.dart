@@ -169,11 +169,13 @@ class CompaniesScreen extends GetView<CompaniesController> {
                                             radiusAll: 100,
                                             height: 55,
                                             width: 55,
+                                            borderColor: greyText,
                                             '${ApiEnd.baseUrlMedia}${companyData.logo ?? ''}',
                                             boxFit: BoxFit.cover,
                                           ),
                                         ),
                                         trailWidget: Column(
+                                          mainAxisSize: MainAxisSize.min,
                                           crossAxisAlignment:
                                               CrossAxisAlignment.start,
                                           children: [

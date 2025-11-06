@@ -10,7 +10,7 @@ import 'package:hive/hive.dart';
 import '../../Screens/Authentication/AuthResponseModel/loginResModel.dart';
 import '../../Screens/Chat/models/get_company_res_model.dart';
 import '../../Screens/Settings/Model/get_company_roles_res_moel.dart';
-import '../../Screens/hive_boot.dart';
+import '../hive_boot.dart';
 import '../../main.dart';
 import '../../utils/shares_pref_web.dart';
 import '../storage_service.dart';

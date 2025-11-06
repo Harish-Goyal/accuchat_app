@@ -93,7 +93,7 @@ class ViewProfileScreen extends GetView<ViewProfileController> {
                               radiusAll: 100,
                               boxFit: BoxFit.cover,
                               defaultImage: userIcon,
-                              borderColor: Colors.black,
+                                borderColor: greyText,
                             ),
                           )
                         : const SizedBox(),
@@ -106,25 +106,25 @@ class ViewProfileScreen extends GetView<ViewProfileController> {
                         style: BalooStyles.baloomediumTextStyle()),
                     vGap(10),
                     Text(
-                      'About: ',
+                      'About:',
                       style: BalooStyles.baloosemiBoldTextStyle(),
                     ),
-                    controller.user?.about != null ||
-                            controller.user?.about != ""
-                        ? Container(
+
+
+                 Container(
                             padding: const EdgeInsets.all(8),
                             decoration: BoxDecoration(
                               color: Colors.grey.shade100,
                               borderRadius: BorderRadius.circular(12),
                             ),
-                            child: Text(controller.user?.about ?? '',
+                            child: Text(controller.user?.about ?? 'I am using Accuchat!',
                                     style: BalooStyles.baloonormalTextStyle(
                                         size: 13),
                                     maxLines: 2,
                                     overflow: TextOverflow.ellipsis)
                                 .paddingSymmetric(horizontal: 8),
-                          )
-                        : const SizedBox(),
+                          ) ,
+
                     vGap(15),
                     const ProfileMediaSectionGetX(baseUrl: ApiEnd.baseUrlMedia),
                   ],

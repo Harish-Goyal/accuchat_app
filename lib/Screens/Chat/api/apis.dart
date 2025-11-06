@@ -15,6 +15,7 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:http/http.dart';
+import 'package:permission_handler/permission_handler.dart';
 import '../../../Extension/user_Ext.dart';
 import '../../../Services/APIs/auth_service/auth_api_services_impl.dart';
 import '../../../Services/APIs/local_keys.dart';
@@ -106,11 +107,10 @@ class APIs {
   static FirebaseMessaging fMessaging = FirebaseMessaging.instance;
 
   // for getting firebase messaging token
-  static Future<void> getFirebaseMessagingToken() async {
+/*  static Future<void> getFirebaseMessagingToken() async {
     await fMessaging.requestPermission(alert: true,
       badge: true,
       sound: true,);
-
     await fMessaging.getToken().then((t) async {
       if (t != null) {
         me.pushToken = t;
@@ -119,8 +119,7 @@ class APIs {
         hitAPIToPushRegister(me.pushToken);
       }
     });
-
-   /* // for handling foreground messages
+   *//* // for handling foreground messages
     FirebaseMessaging.onMessage.listen((RemoteMessage message) {
       log('Got a message whilst in the foreground!');
       log('Message data: ${message.data}');
@@ -128,11 +127,105 @@ class APIs {
       if (message.notification != null) {
         log('Message also contained a notification: ${message.notification}');
       }
-    });*/
+    });*//*
+  }*/
+
+
+  static Future<String?>? _pendingToken;
+
+  // You already call this in your verify flow. Keep doing that.
+  static Future<void> getFirebaseMessagingToken() async {
+    // If a fetch is already running, await it instead of starting a new one.
+    if (_pendingToken != null) {
+      final existing = await _pendingToken!;
+      if (existing != null && existing.isNotEmpty) {
+        me.pushToken = existing;
+        hitAPIToPushRegister(existing);
+      }
+      return;
+    }
+
+    // ========= Permissions per platform =========
+    if (kIsWeb) {
+      final s = await fMessaging.requestPermission(alert: true, badge: true, sound: true);
+      if (s.authorizationStatus == AuthorizationStatus.denied) return;
+    } else if (Platform.isIOS || Platform.isMacOS) {
+      final s = await fMessaging.requestPermission(alert: true, badge: true, sound: true);
+      if (s.authorizationStatus != AuthorizationStatus.authorized &&
+          s.authorizationStatus != AuthorizationStatus.provisional) {
+        return;
+      }
+      await fMessaging.setAutoInitEnabled(true);
+    } else if (Platform.isAndroid) {
+      // Android 13+ runtime notification permission
+      if (await _isAndroid13OrAbove()) {
+        final st = await Permission.notification.status;
+        if (!st.isGranted) {
+          final r = await Permission.notification.request();
+          if (!r.isGranted) return;
+        }
+      }
+      await fMessaging.setAutoInitEnabled(true);
+    }
+
+    // ========= Token fetch with backoff & hard-failure handling =========
+    _pendingToken = _getTokenWithBackoff();
+    try {
+      final token = await _pendingToken!;
+      if (token != null && token.isNotEmpty) {
+        me.pushToken = token;
+        hitAPIToPushRegister(token);
+      }
+    } finally {
+      // Allow future fetches if needed
+      _pendingToken = null;
+    }
+
+    // Keep server in sync when FCM rotates the token
+    FirebaseMessaging.instance.onTokenRefresh.listen((t) {
+      if (t.isNotEmpty) {
+        me.pushToken = t;
+        hitAPIToPushRegister(t);
+      }
+    });
   }
 
+  // Retries only on transient/IOException conditions; caps attempts.
+  static Future<String?> _getTokenWithBackoff() async {
+    const int maxAttempts = 3;
+    var delayMs = 500; // 0.5s → 1s → 2s
 
+    for (int attempt = 1; attempt <= maxAttempts; attempt++) {
+      try {
+        if (kIsWeb) {
+          // Add your VAPID key here if you use web
+          return await fMessaging.getToken(/* vapidKey: 'YOUR_VAPID' */);
+        } else {
+          return await fMessaging.getToken();
+        }
+      } catch (e) {
+        final msg = e.toString();
+        // Retry only for transient cases like SERVICE_NOT_AVAILABLE / IOException
+        final isTransient = msg.contains('SERVICE_NOT_AVAILABLE') ||
+            msg.contains('IOException') ||
+            msg.contains('SERVICE_NOT_READY');
 
+        if (!isTransient || attempt == maxAttempts) {
+          // Hard failure: don’t loop forever. Likely no Play Services / misconfig / permanently blocked.
+          // You could show a one-time hint to the user here if needed.
+          break;
+        }
+        await Future.delayed(Duration(milliseconds: delayMs));
+        delayMs *= 2;
+      }
+    }
+    return null;
+  }
+
+  static Future<bool> _isAndroid13OrAbove() async {
+    final info = await DeviceInfoPlugin().androidInfo;
+    return info.version.sdkInt >= 33;
+  }
   static var deviceName, deviceType, deviceID;
 
   // To getting device type (Android or IOS)

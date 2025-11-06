@@ -72,12 +72,15 @@ class CreateCompanyController extends GetxController {
 
     if(kIsWeb){
       if (Get.parameters != null) {
-      final  _isHomeBool = Get.parameters['isHome'];
-      isHome = _isHomeBool=="1"?true:false;
+        final  _isHomeBool = Get.parameters['isHome'];
+        isHome = _isHomeBool=="1"?true:false;
       }
     }else{
       if (Get.arguments != null) {
-        isHome = Get.arguments['isHome'];
+        final  _isHomeBool =  Get.arguments['isHome'];
+        print("isHome=======");
+        print(isHome);
+        isHome = _isHomeBool=="1"?true:false;
       }
     }
 
@@ -111,72 +114,75 @@ class CreateCompanyController extends GetxController {
 
   CompanyData companyResponse = CompanyData();
 
-  createCompanyApi({String? companyId}) async {
-    SystemChannels.textInput.invokeMethod('TextInput.hide');
-    customLoader.show();
-    var reqData = multi.FormData.fromMap({
-      "company_id": companyId,
-      "company_name": nameController.text,
-      "address": addressController.text,
-      "website": websiteController.text,
-      "email": emailController.text.trim(),
-      "phone": phoneController.text.trim(),
-    });
-    if (companyLogoUrl != '' && companyLogoUrl != null ) {
-      reqData.files.add(MapEntry(
+  Future<void> createCompanyApi() async {
+    try {
+      SystemChannels.textInput.invokeMethod('TextInput.hide');
+      customLoader.show();
+
+      final form = multi.FormData.fromMap({
+        "company_name": nameController.text,
+        "address":      addressController.text,
+        "website":      websiteController.text,
+        "email":        emailController.text.trim(),
+        "phone":        phoneController.text.trim(),
+      });
+
+      // Attach logo only if a real file path is present
+      if ((companyLogoUrl ?? '').isNotEmpty) {
+        form.files.add(MapEntry(
           "logo",
           await multi.MultipartFile.fromFile(
-            companyLogoUrl ?? '',
-            filename: (companyLogoUrl ?? '').split('/').last,
+            companyLogoUrl!,
+            filename: companyLogoUrl!.split('/').last,
             contentType: MediaType("image", "jpeg"),
-          )));
+          ),
+        ));
+      }
 
-    }
-    Get.find<PostApiServiceImpl>()
-        .createCompanyAPICall(dataBody: reqData)
-        .then((value) async {
-      companyResponse = value.data!;
+      final api = Get.find<PostApiServiceImpl>();
+      final resp = await api.createCompanyAPICall(dataBody: form);
+
+      companyResponse = resp.data!;
       _clearFields();
-      customLoader.hide();
       StorageService.setLoggedIn(true);
-      toast(value.message??'');
-      update();
       StorageService.setCompanyCreated(true);
-      final svc = Get.find<CompanyService>();
-      await svc.select(companyResponse);
 
-      await APIs.refreshMe(companyId: companyResponse.companyId??0);
-      if (isHome) {
-        if (kIsWeb) {
-          Get.toNamed(AppRoutes.home);
-          // Get.offAllNamed('${AppRoutes.invite_member}?companyId=${companyResponse.companyId.toString()}&invitedBy=${companyResponse.createdBy}&companyName=${companyResponse.companyName}');
-        } else {
-        Get.offAllNamed(AppRoutes.invite_member, arguments: {
-          'companyName': companyResponse.companyName,
-          'companyId': companyResponse.companyId,
-          'invitedBy': companyResponse.createdBy,
-        });
-      }
-      } else {
-        if (kIsWeb) {
-          Get.offAllNamed(AppRoutes.home);
-        } else {
-          Get.offAllNamed(AppRoutes.invite_member, arguments: {
-            'companyName': companyResponse.companyName,
-            'companyId': companyResponse.companyId,
-            'invitedBy': companyResponse.createdBy,
-          });
-        }
-      }
+      // Persist company selection for refresh-safe access
+      final svc = Get.put<CompanyService>(CompanyService());
 
+      await svc.init().then((v) async =>await svc.select(companyResponse));
 
-    }).onError((error, stackTrace) {
-      update();
-      Get.back();
+      // refresh current user/session for that company
+      await APIs.refreshMe(companyId: companyResponse.companyId ?? 0);
+
       customLoader.hide();
-      errorDialog(error.toString());
-    }).whenComplete(() {});
+      toast(resp.message ?? 'Company created');
+
+      // ---- Navigate to Invite Member ----
+      if (kIsWeb) {
+        Get.offAllNamed(
+          AppRoutes.home
+        );
+      } else {
+        // Use arguments on mobile
+        Get.offAllNamed(
+          AppRoutes.invite_member,
+          arguments: {
+            'companyName': companyResponse.companyName,
+            'companyId'  : companyResponse.companyId,
+            'invitedBy'  : companyResponse.createdBy,
+          },
+        );
+      }
+
+      update();
+    } catch (e) {
+      customLoader.hide();
+      errorDialog(e.toString());
+      update();
+    }
   }
+
 
   _clearFields() {
     nameController.clear();
@@ -185,7 +191,7 @@ class CreateCompanyController extends GetxController {
     addressController.clear();
     websiteController.clear();
     companyLogoUrl = '';
-    update();
+
   }
 
 

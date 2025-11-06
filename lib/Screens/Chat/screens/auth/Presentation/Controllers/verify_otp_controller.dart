@@ -60,10 +60,12 @@ class VerifyOtpController extends GetxController{
             StorageService.saveMobile(emailOrPhone);
             StorageService.setIsFirstTime(false);
             await AppStorage().write(LOCALKEY_token, value.data?.token);
+
             await APIs.getFirebaseMessagingToken();
+
             update();
 
-      Get.offAllNamed(AppRoutes.landing_r);
+
 
       // openBottomSheet();
     }).onError((error, stackTrace) {
@@ -71,10 +73,75 @@ class VerifyOtpController extends GetxController{
       errorDialog(error.toString());
       isFill = false;
       update();
+    }).then((v){Get.offAllNamed(AppRoutes.landing_r);});
+  }
+
+  final int cooldownSeconds = 60;
+
+  // State
+  final RxInt secondsLeft = 0.obs;
+  final RxBool canResend = true.obs;
+  final RxBool isSending = false.obs;
+
+
+  /// Call this right after you send the first OTP
+  void startCooldown([int? seconds]) {
+    timer?.cancel();
+    final total = seconds ?? cooldownSeconds;
+    secondsLeft.value = total;
+    canResend.value = false;
+
+    timer = Timer.periodic(const Duration(seconds: 1), (t) {
+      if (secondsLeft.value <= 1) {
+        t.cancel();
+        secondsLeft.value = 0;
+        canResend.value = true;
+      } else {
+        secondsLeft.value--;
+      }
     });
   }
 
 
+
+  Future<void> hitApiToResendOtp() async {
+    if (!canResend.value || isSending.value) return;
+
+    isSending.value = true;
+    try {
+      FocusManager.instance.primaryFocus!.unfocus();
+      customLoader.show();
+      var req = {
+        "userInput":  emailOrPhone,
+      };
+      enableResend = false;
+      update();
+      Get.find<AuthApiServiceImpl>()
+          .signupApiCall(dataBody: req)
+          .then((value) async {
+        customLoader.hide();
+        otpSent = true;
+        Get.snackbar("Resent", value.message??'',
+            backgroundColor: Colors.white, colorText: Colors.black);
+
+        update();
+      }).onError((error, stackTrace) {
+        customLoader.hide();
+        errorDialog(error.toString());
+        update();
+      });
+
+      startCooldown(); // restart 60s timer
+    } catch (e) {
+      Get.snackbar('Error', e.toString(),
+          snackPosition: SnackPosition.BOTTOM, duration: const Duration(seconds: 3));
+    } finally {
+      isSending.value = false;
+    }
+  }
+
+  String get mmSs =>
+      '00:${secondsLeft.value.toString().padLeft(2, '0')}';
 
 
   /* UserDataAPI userData = UserDataAPI();
@@ -96,35 +163,7 @@ class VerifyOtpController extends GetxController{
   }
 */
 
-  hitAPIToResendOtp() async {
-    FocusManager.instance.primaryFocus!.unfocus();
-    customLoader.show();
-    var req = {
-      "userInput":  emailOrPhone,
-    };
-    enableResend = false;
-    update();
-    Get.find<AuthApiServiceImpl>()
-        .signupApiCall(dataBody: req)
-        .then((value) async {
-      customLoader.hide();
-      otpSent = true;
-      Get.snackbar("Resent", value.message??'',
-          backgroundColor: Colors.white, colorText: Colors.black);
-    /*  Get.toNamed(AppRoutes.verifyOTPRoute,
-          arguments: {
-            'otpValue':otpValue,
-            'emailOrPhone':emailOrPhone
-          });*/
-      update();
 
-      // openBottomSheet();
-    }).onError((error, stackTrace) {
-      customLoader.hide();
-      errorDialog(error.toString());
-      update();
-    });
-  }
 
 
   @override

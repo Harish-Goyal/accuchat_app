@@ -353,36 +353,39 @@ String safeName(String name) {
 
 enum TimeFilter { today, thisWeek, thisMonth }
 
-// 2) Helper to build a [from, to) range in LOCAL time, then convert to UTC ISO
 class DateRange {
-  final DateTime fromUtc;
-  final DateTime toUtc;
-  DateRange(this.fromUtc, this.toUtc);
+  final String startDate;
+  final String endDate;
+
+  DateRange(this.startDate, this.endDate);
 }
 
 DateRange rangeFor(TimeFilter f, {DateTime? nowLocal}) {
-  final now = nowLocal ?? DateTime.now(); // Asia/Kolkata on user device
+  final now = nowLocal ?? DateTime.now(); // device local time
+  final dateFormat = DateFormat('dd-MM-yyyy');
+
   final startOfToday = DateTime(now.year, now.month, now.day);
+  final todayStr = dateFormat.format(startOfToday);
 
   if (f == TimeFilter.today) {
-    final fromLocal = startOfToday;
-    final toLocal = fromLocal.add(const Duration(days: 1));
-    return DateRange(fromLocal.toUtc(), toLocal.toUtc());
+    // start and end are the same date
+    return DateRange(todayStr, todayStr);
   }
 
   if (f == TimeFilter.thisWeek) {
-    // ISO week (Mon–Sun). For Sun-start weeks, change weekday math.
+    // Monday–Sunday week
     final int weekday = startOfToday.weekday; // Mon=1 ... Sun=7
-    final fromLocal = startOfToday.subtract(Duration(days: weekday - 1)); // Monday 00:00
-    final toLocal = fromLocal.add(const Duration(days: 7));               // next Monday 00:00
-    return DateRange(fromLocal.toUtc(), toLocal.toUtc());
+    final fromLocal = startOfToday.subtract(Duration(days: weekday - 1));
+    final toLocal = fromLocal.add(const Duration(days: 6)); // Sunday
+    return DateRange(dateFormat.format(fromLocal), dateFormat.format(toLocal));
   }
 
   // thisMonth
   final fromLocal = DateTime(now.year, now.month, 1);
-  final toLocal = DateTime(now.year, now.month + 1, 1);
-  return DateRange(fromLocal.toUtc(), toLocal.toUtc());
+  final toLocal = DateTime(now.year, now.month + 1, 0); // last day of month
+  return DateRange(dateFormat.format(fromLocal), dateFormat.format(toLocal));
 }
+
 
 String friendlyDate(DateTime dt) {
   final now = DateTime.now();

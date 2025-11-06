@@ -97,8 +97,6 @@ class DashboardController extends GetxController with WidgetsBindingObserver {
     // (kept) your mapping – but ensure non-empty fallbacks
     screens = bottomNavItems.map((nav) => screenFor(nav)).toList();
     barItems = bottomNavItems.map((NavigationItem nav) {
-      print("nav============================123");
-      print(nav.navigationItem);
       return BottomNavigationBarItem(
         icon: Image.asset(
           iconFor(nav),
@@ -125,8 +123,8 @@ class DashboardController extends GetxController with WidgetsBindingObserver {
       case 'Companies Button':
         return CompaniesScreen(); 
         
-      case 'Gallery Button':
-        return GalleryTab();
+     /* case 'Gallery Button':
+        return GalleryTab();*/
       default:
       // --- change: visible tiny loader instead of invisible container
         return const Center(child: IndicatorLoading());
@@ -142,8 +140,8 @@ class DashboardController extends GetxController with WidgetsBindingObserver {
         return tasksHome;
       case 'Companies Button':
         return connectedAppIcon;
-      case 'Gallery Button':
-        return galleryIcon;
+      /*case 'Gallery Button':
+        return galleryIcon;*/
       default:
         return appIcon;
     }
@@ -255,7 +253,7 @@ class DashboardController extends GetxController with WidgetsBindingObserver {
         NavigationItem(navigationItem: 'Chat Button', isActive: 1, sortingOrder: 1, navigationPlace: bottom_nav_key),
         NavigationItem(navigationItem: 'Task Button', isActive: 1, sortingOrder: 2, navigationPlace: bottom_nav_key),
         NavigationItem(navigationItem: 'Companies Button', isActive: 1, sortingOrder: 3, navigationPlace: bottom_nav_key),
-        NavigationItem(navigationItem: 'Gallery Button', isActive: 1, sortingOrder: 4, navigationPlace: bottom_nav_key),
+        // NavigationItem(navigationItem: 'Gallery Button', isActive: 1, sortingOrder: 4, navigationPlace: bottom_nav_key),
       ];
     }
 

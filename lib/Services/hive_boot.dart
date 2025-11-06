@@ -1,7 +1,7 @@
 import 'package:hive/hive.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 
-import 'Chat/models/get_company_res_model.dart';
+import '../Screens/Chat/models/get_company_res_model.dart';
 
 class HiveBoot {
   static bool _inited = false;

@@ -79,7 +79,6 @@ class _ChatUserCardState extends State<ChatUserCard>
 
   @override
   Widget build(BuildContext context) {
-    print(widget.user?.displayName);
     return Container(
       padding: EdgeInsets.zero,
       margin: EdgeInsets.symmetric(horizontal: mq.width * .04, vertical: 0),
@@ -130,30 +129,17 @@ class _ChatUserCardState extends State<ChatUserCard>
                     context: context,
                     builder: (_) => ProfileDialog(user: widget.user));
               },
-              child: ClipRRect(
-                borderRadius: BorderRadius.circular(mq.height * .04),
-                child: Container(
-                  padding: const EdgeInsets.all(0),
-                  decoration: const BoxDecoration(
-                      color: Colors.white,
-                      boxShadow: [
-                        BoxShadow(
-                            color: Colors.grey,
-                            blurRadius: 10,
-                            offset: Offset(3, 3)),
-                      ]),
-                  child: CustomCacheNetworkImage(
-                    radiusAll: 100,
-                    "${ApiEnd.baseUrlMedia}${widget.user?.userImage??''}",
-                    height: mq.height * .055,
-                    width: mq.height * .055,
-                    boxFit: BoxFit.cover,
-                    defaultImage: widget.user?.userCompany?.isGroup==1?
-                    groupIcn:
-                    widget.user?.userCompany?.isBroadcast==1?
-                    broadcastIcon:ICON_profile,
-                  ),
-                ),
+              child: CustomCacheNetworkImage(
+                radiusAll: 100,
+                "${ApiEnd.baseUrlMedia}${widget.user?.userImage??''}",
+                height: mq.height * .06,
+                width: mq.height * .06,
+                boxFit: BoxFit.cover,
+                borderColor: greyText,
+                defaultImage: widget.user?.userCompany?.isGroup==1?
+                groupIcn:
+                widget.user?.userCompany?.isBroadcast==1?
+                broadcastIcon:ICON_profile,
               ),
             ),
 

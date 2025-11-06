@@ -138,8 +138,9 @@ class TaskController extends GetxController {
   }
 
   CompanyData? myCompany = CompanyData();
-  _getCompany() {
+  _getCompany() async {
     final svc = Get.find<CompanyService>();
+
     myCompany = svc.selected;
     update();
   }

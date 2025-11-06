@@ -18,14 +18,16 @@ class ViewProfileController extends GetxController {
   void onInit() {
     _getCompany();
     getArguments();
+
+
     super.onInit();
   }
 
   getArguments(){
     if(kIsWeb){
-
       if(Get.parameters!=null) {
         String? userId = Get.parameters['userId'];
+
         getUserByIdApi(userId: int.parse(userId??''));
       }
     }else{
@@ -37,12 +39,17 @@ class ViewProfileController extends GetxController {
   }
 
 
-  CompanyData? myCompany = CompanyData();
+  CompanyData? myCompany;
   _getCompany() {
     final svc = Get.find<CompanyService>();
     myCompany = svc.selected;
+    print("compan id ========= ${myCompany?.companyId}");
     update();
   }
+
+
+
+
 
   getUserByIdApi({int? userId}) async {
     Get.find<PostApiServiceImpl>()

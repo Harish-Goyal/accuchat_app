@@ -8,6 +8,7 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
+import '../../../../../../Constants/colors.dart';
 import '../../../../../../main.dart';
 import '../../../../models/chat_user.dart';
 import '../../../auth/models/get_uesr_Res_model.dart';
@@ -42,7 +43,7 @@ class ProfileDialog extends StatelessWidget {
                       height: mq.width * .5,
                       "${ApiEnd.baseUrlMedia}${user?.userImage??''}",defaultImage: userIcon,
                       radiusAll: mq.height * .25,
-                      boxFit: BoxFit.cover,
+                      boxFit: BoxFit.cover,borderColor: greyText,
                     ))
 
                 /*ClipRRect(

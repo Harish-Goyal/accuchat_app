@@ -16,7 +16,7 @@ class NetworkController extends GetxController {
   void onInit() {
     super.onInit();
     _startListening();
-    _checkNow(); // initial check
+    _checkNow();
   }
 
   void _startListening() {

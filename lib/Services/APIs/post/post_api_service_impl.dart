@@ -332,8 +332,8 @@ class PostApiServiceImpl extends GetxService implements PostApiService {
             'page':page,
             'limit':20,
             'statusId':statusId,
-            'from_date':fromDate,
-            'to_date':toDate,
+            'startDate':fromDate,
+            'endDate':toDate,
 
           },
           skipAuth: false);

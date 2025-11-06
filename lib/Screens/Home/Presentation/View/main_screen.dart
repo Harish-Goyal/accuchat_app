@@ -168,20 +168,20 @@ class AccuChatDashboard extends StatelessWidget {
               controller.update();
             },
           ),
-          ListTile(
-            leading: Image.asset(
-              galleryIcon,
-              height: 22,
-            ),
-            title: const Text('Gallery'),
-            onTap: () {
-              controller.updateIndex(3);
-              Get.back();
-
-                isTaskMode = false;
-              controller.update();
-            },
-          ),
+          // ListTile(
+          //   leading: Image.asset(
+          //     galleryIcon,
+          //     height: 22,
+          //   ),
+          //   title: const Text('Gallery'),
+          //   onTap: () {
+          //     controller.updateIndex(3);
+          //     Get.back();
+          //
+          //       isTaskMode = false;
+          //     controller.update();
+          //   },
+          // ),
         ],
       ),
     );

@@ -22,6 +22,7 @@ import '../../../Chat/models/chat_user.dart';
 import '../../../Chat/models/company_model.dart';
 import '../../../Chat/models/invite_model.dart';
 import '../../../Chat/screens/chat_tasks/Presentation/Views/chat_screen.dart';
+import '../../../Chat/screens/chat_tasks/Presentation/dialogs/profile_dialog.dart';
 
 class CompanyMembers extends GetView<CompanyMemberController> {
   CompanyMembers({super.key});
@@ -168,25 +169,36 @@ class CompanyMembers extends GetView<CompanyMemberController> {
             },
 
               child: ListTile(
-              onTap: () {
-                controller.removeCompanyMember(memData);
-              },
               dense: true,
+              enabled: false,
               visualDensity: kIsWeb ? const VisualDensity(vertical: -1) : VisualDensity.standard, // tighter on web
               contentPadding:
               const EdgeInsets.symmetric(horizontal: 10, vertical: 0),
               leading:
                   memData?.displayName == '' ||
                   memData?.displayName == null
-                  ? CircleAvatar(
-                  radius: isWide ? 22 : 20, // slightly larger on wide
-                  backgroundColor: appColorGreen.withOpacity(.1),
-                  child: Icon(
-                    Icons.person,
-                    size: isWide ? 18 : 15,
-                    color: appColorGreen,
-                  ))
-                  : CircleAvatar(
+                  ? InkWell(
+                    onTap: (){
+                      showDialog(
+                          context: context,
+                          builder: (_) => ProfileDialog(user: memData));
+                    },
+                    child: CircleAvatar(
+                    radius: isWide ? 22 : 20, // slightly larger on wide
+                    backgroundColor: appColorGreen.withOpacity(.1),
+                    child: Icon(
+                      Icons.person,
+                      size: isWide ? 18 : 15,
+                      color: appColorGreen,
+                    )),
+                  )
+                  : InkWell(
+          onTap: (){
+          showDialog(
+          context: context,
+          builder: (_) => ProfileDialog(user: memData));
+          },
+          child:CircleAvatar(
                   radius: isWide ? 22 : 20,
                   backgroundColor: appColorGreen.withOpacity(.1),
                   child: SizedBox(
@@ -196,40 +208,58 @@ class CompanyMembers extends GetView<CompanyMemberController> {
                       width: 60,
                       height: 60,
                       boxFit: BoxFit.cover,
+                      defaultImage: userIcon,
+                      borderColor: greyText,
                       "${ApiEnd.baseUrlMedia}${memData?.userImage ?? ''}",
                     ),
-                  )),
+                  ))),
               title:
-                  memData?.displayName == '' ||
-                  memData?.displayName == null
-                  ? Text(
-                (memData?.email != null)
-                    ? memData?.email ?? ''
-                    : memData?.phone ?? '',
-                style: BalooStyles.balooregularTextStyle(),
-                maxLines: 1,
-                overflow: TextOverflow.ellipsis,
-              )
-                  : Text(
-                memData?.displayName ?? '',
-                style: BalooStyles.baloosemiBoldTextStyle(),
-                maxLines: 1,
-                overflow: TextOverflow.ellipsis,
-              ),
-              subtitle:
-                  memData?.displayName == '' ||
-                  memData?.displayName == null
-                  ? const SizedBox(
-                height: 0,
-              )
-                  : Text(
-                memData?.email != null
-                    ?memData?.email ?? ''
-                    : memData?.phone ?? '',
-                style: BalooStyles.balooregularTextStyle(),
-                maxLines: 1,
-                overflow: TextOverflow.ellipsis,
-              ),
+
+                  InkWell(
+                    onLongPress: (){
+                      controller.removeCompanyMember(memData);
+                    },
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        memData?.displayName == '' ||
+                            memData?.displayName == null
+                            ? Text(
+                          (memData?.email != null)
+                              ? memData?.email ?? ''
+                              : memData?.phone ?? '',
+                          style: BalooStyles.balooregularTextStyle(),
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                        )
+                            : Text(
+                          memData?.displayName ?? '',
+                          style: BalooStyles.baloosemiBoldTextStyle(),
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                        ),
+
+                        vGap(4),
+
+                        memData?.displayName == '' ||
+                            memData?.displayName == null
+                            ? const SizedBox(
+                          height: 0,
+                        )
+                            : Text(
+                          memData?.email != null
+                              ?memData?.email ?? ''
+                              : memData?.phone ?? '',
+                          style: BalooStyles.balooregularTextStyle(),
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                      ],
+                    ),
+                  ),
+
+
+
               trailing: Column(
                   crossAxisAlignment: CrossAxisAlignment.end,
                   mainAxisSize: MainAxisSize.min,

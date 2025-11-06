@@ -231,7 +231,7 @@ class CompaniesController extends GetxController {
     }else{
       Get.toNamed(
           AppRoutes.create_company,
-          arguments: {'isHome': true});
+          arguments: {'isHome': '1'});
     }
 
 /*
