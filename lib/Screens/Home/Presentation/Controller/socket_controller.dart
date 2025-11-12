@@ -71,12 +71,13 @@ class SocketController extends GetxController with WidgetsBindingObserver  {
       IO.OptionBuilder()
           .setTransports(['websocket'])
           .enableForceNew()
-          .setAuth({'token': token})
           .enableReconnection()
           .enableAutoConnect()
           .setReconnectionDelay(2000)
           .setReconnectionAttempts(20)
-          .setExtraHeaders({'Authorization': 'Bearer $token'})
+          .setTimeout(20000)
+          .setAuth({'token': token})
+          .setPath('/socket.io/')
           .build(),
     );
 

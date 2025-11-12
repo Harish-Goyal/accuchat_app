@@ -80,7 +80,7 @@ class ReplyMessageWidget extends StatelessWidget {
               ),
             ),
              vGap(2),
-            isCancel!?   Expanded(child: buildReplyMessage(isSendByME)):
+            // isCancel!?   Expanded(child: buildReplyMessage(isSendByME)):
             Flexible(child: buildReplyMessage(isSendByME)),
           ],
         ).marginOnly(
@@ -113,39 +113,38 @@ class ReplyMessageWidget extends StatelessWidget {
               mainAxisAlignment:MainAxisAlignment.start,
               mainAxisSize: isCancel! ? MainAxisSize.max: MainAxisSize.min,
               children: [
-                isCancel! ?     Expanded(
+               /* isCancel! ?     Expanded(
                   child:chatdata?.isGroupChat==1? Text(
-                    (chatdata?.fromUser?.displayName!=null?
-                    chatdata?.fromUser?.displayName??'':chatdata?.fromUser?.phone??''),
+                    (chatdata?.fromUser?.userCompany?.displayName!=null?
+                    chatdata?.fromUser?.userCompany?.displayName??'':chatdata?.fromUser?.phone??''),
                     style: BalooStyles.baloonormalTextStyle(color: appColorYellow),
                     overflow: TextOverflow.ellipsis,
                     maxLines: 1,
                     textAlign: TextAlign.start,
                   ).paddingOnly(left: 8,right: 8):Text(
-                    isSendByME?(chatdata?.fromUser?.displayName!=null?
-                    chatdata?.fromUser?.displayName??'':chatdata?.fromUser?.phone??''):(chatdata?.toUser?.displayName!=null?chatdata?.toUser?.displayName??'':chatdata?.toUser?.phone??''),
+                    isSendByME?(chatdata?.fromUser?.userCompany?.displayName!=null?
+                    chatdata?.fromUser?.userCompany?.displayName??'':chatdata?.fromUser?.phone??''):(chatdata?.toUser?.userCompany?.displayName!=null?chatdata?.toUser?.userCompany?.displayName??'':chatdata?.toUser?.phone??''),
                     style: BalooStyles.baloonormalTextStyle(color: appColorYellow),
                     overflow: TextOverflow.ellipsis,
                     maxLines: 1,
                     textAlign: TextAlign.start,
                   ).paddingOnly(left: 8,right: 8),
-                ): Flexible(
-                  child:chatdata?.isGroupChat==1? Text(
-                    (chatdata?.fromUser?.displayName!=null?
-                    chatdata?.fromUser?.displayName??'':chatdata?.fromUser?.phone??''),
+                ):*/sentByMe!? Flexible(
+                  child: Text(
+                    (chatdata?.fromUser?.userCompany?.displayName!=null?
+                    chatdata?.fromUser?.userCompany?.displayName??'':chatdata?.fromUser?.phone??''),
                     style: BalooStyles.baloonormalTextStyle(color: appColorYellow),
                     overflow: TextOverflow.ellipsis,
                     maxLines: 1,
                     textAlign: TextAlign.start,
-                  ).paddingOnly(left: 8,right: 8): Text(
-                    isSendByME?(chatdata?.fromUser?.displayName!=null?
-                    chatdata?.fromUser?.displayName??'':chatdata?.fromUser?.phone??''):(chatdata?.toUser?.displayName!=null?chatdata?.toUser?.displayName??'':chatdata?.toUser?.phone??''),
+                  ).paddingOnly(left: 8,right: 8)): Text(
+                   (chatdata?.toUser?.userCompany?.displayName!=null?chatdata?.toUser?.userCompany?.displayName??'':chatdata?.toUser?.phone??''),
                     style: BalooStyles.baloonormalTextStyle(color: appColorYellow),
                     overflow: TextOverflow.ellipsis,
                     maxLines: 1,
                     textAlign: TextAlign.start,
                   ).paddingOnly(left: 8,right: 8),
-                ),
+
 
                 isCancel!
 
