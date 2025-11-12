@@ -2025,6 +2025,8 @@ class TaskScreen extends GetView<TaskController> {
           // File for mobile/desktop local previews (guarded)
           File? localFile;
           if (pf != null && pf.path != null && pf.path!.isNotEmpty) {
+            print("pf.path====");
+            print(pf.path);
             localFile = File(pf.path!);
           } else if (m['url'] is File) {
             localFile = m['url'] as File;
