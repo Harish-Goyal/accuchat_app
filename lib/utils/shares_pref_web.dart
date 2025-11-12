@@ -15,17 +15,17 @@ abstract class IStorage {
 
 class PrefsStorage implements IStorage {
 
-  late SharedPreferences _prefs;
+   SharedPreferences? _prefs;
 
   @override
   Future<void> init() async {
-
-    _prefs = await SharedPreferences.getInstance();
+    _prefs ??= await SharedPreferences.getInstance();
+    // _prefs = await SharedPreferences.getInstance();
   }
 
   @override
   T? read<T>(String key) {
-    final v = _prefs.get(key);
+    final v = _prefs?.get(key);
     if (v == null) return null;
     // decode JSON strings back to maps if needed
     if (T == Map || T == Map<String, dynamic>) {
@@ -37,27 +37,27 @@ class PrefsStorage implements IStorage {
   @override
   Future<void> write(String key, value) async {
     if (value is String) {
-      await _prefs.setString(key, value);
+      await _prefs?.setString(key, value);
     } else if (value is int) {
-      await _prefs.setInt(key, value);
+      await _prefs?.setInt(key, value);
     } else if (value is double) {
-      await _prefs.setDouble(key, value);
+      await _prefs?.setDouble(key, value);
     } else if (value is bool) {
-      await _prefs.setBool(key, value);
+      await _prefs?.setBool(key, value);
     } else if (value is List<String>) {
-      await _prefs.setStringList(key, value);
+      await _prefs?.setStringList(key, value);
     } else if (value is Map) {
-      await _prefs.setString(key, jsonEncode(value));
+      await _prefs?.setString(key, jsonEncode(value));
     } else {
-      await _prefs.setString(key, value.toString());
+      await _prefs?.setString(key, value.toString());
     }
   }
 
   @override
-  Future<bool> remove(String key) => _prefs.remove(key);
+  Future<bool> remove(String key) => _prefs!.remove(key);
 
   @override
-  Future<bool> clear() => _prefs.clear();
+  Future<bool> clear() => _prefs!.clear();
 }
 
 /// Use this everywhere in your app

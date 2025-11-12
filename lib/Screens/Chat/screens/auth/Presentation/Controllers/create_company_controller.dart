@@ -148,9 +148,21 @@ class CreateCompanyController extends GetxController {
       StorageService.setCompanyCreated(true);
 
       // Persist company selection for refresh-safe access
-      final svc = Get.put<CompanyService>(CompanyService());
+      if(Get.isRegistered<CompanyService>()) {
+        final svc = CompanyService.to;
+        await svc.select(companyResponse);
 
-      await svc.init().then((v) async =>await svc.select(companyResponse));
+      }
+      /*else{
+        await Get.putAsync<CompanyService>(
+              () async => await CompanyService().init(),
+          permanent: true,
+        );
+
+        final svc = CompanyService.to;
+        await svc.select(companyResponse);
+      }*/
+
 
       // refresh current user/session for that company
       await APIs.refreshMe(companyId: companyResponse.companyId ?? 0);

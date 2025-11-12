@@ -104,8 +104,10 @@ class LandingPage extends GetView<LandingScreenController> {
 
 
 */
-                                      final svc = Get.find<CompanyService>();
+                                      final svc = CompanyService.to;
                                       await svc.select(company);
+                                      // final svc = Get.find<CompanyService>();
+                                      // await svc.select(company);
                                       // storage.write(isLoggedIn,true);
                                       StorageService.setLoggedIn(true);
                                       // storage.write(companyIDKey, company.companyId);
@@ -133,9 +135,25 @@ class LandingPage extends GetView<LandingScreenController> {
                                           // saveCompany(company);
 
                                           customLoader.show();
-                                          final svc = Get.put<CompanyService>(CompanyService());
+                                          if(Get.isRegistered<CompanyService>()) {
+                                            final svc = CompanyService.to;
+                                            await svc.select(company);
+                                          }else{
+                                            await Get.putAsync<CompanyService>(
+                                                  () async => await CompanyService().init(),
+                                              permanent: true,
+                                            );
 
-                                          await svc.init().then((v) async =>await svc.select(company));
+                                            final svc = CompanyService.to;
+                                            await svc.select(company);
+                                          }
+
+
+                                          // final svc = CompanyService.to;
+                                          // await svc.select(company);
+                                          // final svc = Get.put<CompanyService>(CompanyService());
+                                          //
+                                          // await svc.init().then((v) async =>await svc.select(company));
 
                                           StorageService.setLoggedIn(true);
                                           customLoader.hide();

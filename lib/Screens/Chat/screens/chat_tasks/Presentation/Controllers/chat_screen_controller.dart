@@ -12,6 +12,7 @@ import 'package:http_parser/http_parser.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:mime/mime.dart';
 import 'package:permission_handler/permission_handler.dart';
+import 'package:scrollable_positioned_list/scrollable_positioned_list.dart';
 import '../../../../../../Services/APIs/local_keys.dart';
 import '../../../../../../Services/APIs/post/post_api_service_impl.dart';
 import '../../../../../../main.dart';
@@ -36,6 +37,7 @@ import '../Widgets/create_custom_folder.dart';
 class ChatScreenController extends GetxController {
   final formKeyDoc = GlobalKey<FormState>();
   UserDataAPI? user;
+
   // Message? forwardMessage;
   final _alreadyEmitted = <int>{};
   String? selectedChatId;
@@ -45,7 +47,9 @@ class ChatScreenController extends GetxController {
   final textController = TextEditingController();
   ChatHisList? replyToMessage;
   String? replyToImage;
-  bool showEmoji = false, isUploading = false, isUploadingTaskDoc = false;
+  bool showEmoji = false,
+      isUploading = false,
+      isUploadingTaskDoc = false;
   File? file;
   List<Map<String, dynamic>> attachedFiles = [];
   List<XFile> images = [];
@@ -56,9 +60,91 @@ class ChatScreenController extends GetxController {
   var userIDReceiver;
   var refIdis;
 
+ late ItemScrollController itemScrollController ;
+ late ItemPositionsListener itemPositionsListener ;
+
+  bool isDoc(String orignalMsg) {
+    final ext = (orignalMsg ?? '').toLowerCase();
+    return ext.endsWith('.pdf') ||
+        ext.endsWith('.doc') || ext.endsWith('.docx') ||
+        ext.endsWith('.xls') || ext.endsWith('.xlsx') ||
+        ext.endsWith('.ppt') || ext.endsWith('.pptx') ||
+        ext.endsWith('.csv') || ext.endsWith('.txt');
+  }
+
+  bool isImageOrVideo(String orignalMsg) {
+    final ext = (orignalMsg ?? '').toLowerCase();
+    return ext.endsWith('.jpg') || ext.endsWith('.jpeg') ||
+        ext.endsWith('.png') || ext.endsWith('.gif') ||
+        ext.endsWith('.webp') || ext.endsWith('.mp4') ||
+        ext.endsWith('.mov') || ext.endsWith('.m4v') || ext.endsWith('.avi');
+  }
+
+  List<ChatRow> flatRows = [];
+  final Map<int, int> chatIdToIndex = {}; // chatId -> index in flatRows
+
+  // Call this whenever chatCatygory changes
+  void rebuildFlatRows() {
+    flatRows = [];
+    chatIdToIndex.clear();
+
+    // You used GroupedListOrder.DESC + reverse:true previously.
+    // For ScrollablePositionedList we keep ascending order,
+    // and we’ll start at the bottom using initialScrollIndex.
+    final sorted = List<GroupChatElement>.from(chatCatygory)
+      ..sort((a, b) => a.date.compareTo(b.date));
+
+    DateTime? lastHeaderDate;
+    for (final el in sorted) {
+      final d = DateTime(el.date.year, el.date.month, el.date.day);
+
+      if (lastHeaderDate == null || d.compareTo(lastHeaderDate!) != 0) {
+        flatRows?.add(ChatHeaderRow(d));
+        lastHeaderDate = d;
+      }
+      flatRows?.add(ChatMessageRow(el));
+      final idx = (flatRows?.length??0) - 1;
+      final id = el.chatMessageItems.chatId;
+      if (id != null) chatIdToIndex[id] = idx;
+    }
+    update();
+  }
+
+  // Jump to a message by chatId
+  Future<void> scrollToChatId(int chatId) async {
+    final idx = chatIdToIndex[chatId];
+    if (idx == null) {
+      debugPrint("Original message not found (maybe not loaded)");
+      return;
+    }
+    await itemScrollController?.scrollTo(
+      index: idx,
+      duration: const Duration(milliseconds: 450),
+      curve: Curves.easeInOut,
+      alignment: 0.1, // keeps it a bit below top
+    );
+    highlightMessage(chatId); // optional visual flash
+  }
+
+  // Optional highlight logic
+  final highlighted = <int>{}.obs;
+  void highlightMessage(int chatId) {
+    highlighted.add(chatId);
+    update();
+    Future.delayed(const Duration(seconds: 1), () {
+      highlighted.remove(chatId);
+      update();
+    });
+  }
+
+
+
   TextEditingController docNameController = TextEditingController();
   final TextEditingController newFolderCtrl = TextEditingController();
   final FocusNode newFolderFocus = FocusNode();
+
+
+
 
   // Gallery
   List<GalleryFolder> folders = [
@@ -183,7 +269,11 @@ class ChatScreenController extends GetxController {
 
   @override
   void onInit() {
+    super.onInit();
     getArguments();
+    itemScrollController = ItemScrollController();
+    itemPositionsListener = ItemPositionsListener.create();
+    _initScroll();
     // markAllVisibleAsReadOnOpen();
 
     // WidgetsBinding.instance.addPostFrameCallback((_) {
@@ -199,7 +289,33 @@ class ChatScreenController extends GetxController {
     //   }
     // });
 
-    super.onInit();
+
+  }
+
+  _initScroll(){
+    WidgetsBinding.instance.addPostFrameCallback((_) async {
+      // 1) if list hasn't loaded yet, don't scroll
+      if (flatRows.isEmpty) return;
+
+      // 2) wait until the list attaches to the controller
+      int tries = 0;
+      while (!itemScrollController.isAttached && tries < 30) {
+        await Future.delayed(const Duration(milliseconds: 16));
+        tries++;
+      }
+      if (!itemScrollController.isAttached) return;
+
+      // 3) compute a valid index
+      final last = flatRows.length - 1;
+
+      // 4) prefer scrollTo (jumpTo throws more easily if timing is off)
+      await itemScrollController.scrollTo(
+        index: last,
+        duration: const Duration(milliseconds: 1), // effectively instant
+        alignment: 1.0, // bottom align
+        curve: Curves.linear,
+      );
+    });
   }
 
   void markAllVisibleAsReadOnOpen() {
@@ -279,7 +395,7 @@ class ChatScreenController extends GetxController {
   CompanyData? myCompany = CompanyData();
   _getCompany() async {
     if (Get.isRegistered<CompanyService>()) {
-      final svc = Get.find<CompanyService>();
+      final svc = CompanyService.to;
       // await svc.ready;
       myCompany = svc.selected;
       update();
@@ -374,6 +490,7 @@ class ChatScreenController extends GetxController {
 
         return GroupChatElement(datais ?? DateTime.now(), item);
       }).toList();
+      rebuildFlatRows();
       update();
     }).onError((error, stackTrace) {
       showPostShimmer = false;
@@ -546,7 +663,7 @@ class ChatScreenController extends GetxController {
         };
       }
 
-      // If you later need reply fields:
+      // // If you later need reply fields:
       // if (replyToId != null) fields['reply_to_id'] = replyToId;
       // if (replyText?.trim().isNotEmpty == true) fields['reply_to_text'] = replyText!.trim();
 
@@ -1031,4 +1148,13 @@ class GroupChatElement implements Comparable {
   int compareTo(other) {
     return date.compareTo(other.date);
   }
+}
+abstract class ChatRow {}
+class ChatHeaderRow extends ChatRow {
+  final DateTime date;
+  ChatHeaderRow(this.date);
+}
+class ChatMessageRow extends ChatRow {
+  final GroupChatElement element; // your (date, chatMessageItems)
+  ChatMessageRow(this.element);
 }

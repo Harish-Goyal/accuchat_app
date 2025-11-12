@@ -27,7 +27,7 @@ class RoleListController extends GetxController {
   CompanyData? company = CompanyData();
 
   CompanyData? getCompany() {
-    final svc = Get.find<CompanyService>();
+    final svc = CompanyService.to;
     company = svc.selected;
     return company;
   }

@@ -8,7 +8,7 @@ import 'package:get/get.dart';
 import 'package:hive/hive.dart';
 import 'package:flutter/foundation.dart';
 
-class CompanyService extends GetxController {
+/*class CompanyService extends GetxController {
   CompanyData? selected;
   late Box<CompanyData> _box;
 
@@ -55,10 +55,10 @@ class CompanyService extends GetxController {
     selected = null;
     update();
   }
-}
+}*/
 
 
-/*const _companyBox = 'selected_company_box';
+const _companyBox = 'selected_company_box';
 const _keyCurrent  = 'current';
 
 class CompanyService extends GetxService {
@@ -72,9 +72,8 @@ class CompanyService extends GetxService {
 
   /// Call via: await Get.putAsync(() async => CompanyService().init(), permanent: true)
   Future<CompanyService> init() async {
-    _box ??= await Hive.openBox<CompanyData>(_companyBox);
+    await _ensureBoxOpen();
     _selected.value = _box!.get(_keyCurrent);
-
     if (_selected.value != null) {
       await _initSessionSafe(_selected.value!.companyId ?? 0);
     }
@@ -82,22 +81,48 @@ class CompanyService extends GetxService {
   }
 
   Future<void> select(CompanyData c, {bool persist = true}) async {
+    await _ensureBoxOpen();                  // <— important
     if (persist) {
-      await _box?.put(_keyCurrent, c);
-      await _box?.flush();
+      await _box!.put(_keyCurrent, c);
+      await _box!.flush();
     }
-    _selected.value = c; // Obx listeners update automatically
+    _selected.value = c;
 
-    // optional hygiene between company switches
     await MemoryDoctor.deflateBeforeNav();
     MemoryDoctor.disposeFeatureControllers();
-
     await _refreshSessionSafe(c.companyId ?? 0);
   }
 
+  @override
+  void onClose() {
+    // In GetxService this is called when the service is deleted.
+    // Don't await here.
+    if (_box != null && _box!.isOpen) {
+      _box!.close();
+    }
+    _box = null;
+    super.onClose();
+  }
+
+  Future<void> closeBox() async {
+    if (_box != null && _box!.isOpen) {
+      await _box!.close();
+    }
+    _box = null;
+  }
+
   Future<void> clear() async {
-    await _box?.delete(_keyCurrent);
-    _selected.value = null; // reactive clear
+    await _ensureBoxOpen();                  // in case it was closed
+    await _box!.delete(_keyCurrent);
+    _selected.value = null;
+  }
+
+  // --- lifecycle / utils ---
+
+  Future<void> _ensureBoxOpen() async {
+    if (_box == null || !_box!.isOpen) {
+      _box = await Hive.openBox<CompanyData>(_companyBox);
+    }
   }
 
   // ---- session helpers (safe if Session isn't registered yet) ----
@@ -120,5 +145,7 @@ class CompanyService extends GetxService {
   }
 
   static CompanyService get to => Get.find<CompanyService>();
-}*/
+
+
+}
 

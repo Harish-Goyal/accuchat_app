@@ -64,7 +64,7 @@ class ChatHomeController extends GetxController{
   CompanyData? myCompany = CompanyData();
   getCompany(){
     if(Get.isRegistered<CompanyService>()) {
-      final svc = Get.find<CompanyService>();
+      final svc = CompanyService.to;
       myCompany = svc.selected;
       update();
     }

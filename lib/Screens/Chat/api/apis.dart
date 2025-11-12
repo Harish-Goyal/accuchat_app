@@ -353,7 +353,7 @@ class APIs {
   }
 
   static Future<void> getSelfInfo() async {
-    final svc = Get.find<CompanyService>();
+    final svc = CompanyService.to;
     final myCompany =svc.selected;
     print("APIS self user");
     Get.find<AuthApiServiceImpl>()

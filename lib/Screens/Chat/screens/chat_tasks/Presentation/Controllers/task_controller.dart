@@ -42,6 +42,7 @@ class TaskController extends GetxController {
   bool showEmoji = false, isUploading = false, isUploadingTaskDoc = false;
   File? file;
   List<Map<String, dynamic>> attachedFiles = [];
+  List<String> removedMediaIds = [];
   List<XFile> images = [];
 
   var userIDSender;
@@ -139,7 +140,7 @@ class TaskController extends GetxController {
 
   CompanyData? myCompany = CompanyData();
   _getCompany() async {
-    final svc = Get.find<CompanyService>();
+    final svc = CompanyService.to;
 
     myCompany = svc.selected;
     update();
@@ -337,7 +338,7 @@ class TaskController extends GetxController {
             taskDes: descController.text.trim(),
             taskDeadline: isoDeadline,
           );
-          _clearFields();
+          clearFields();
           Get.back();
           update();
         } catch (e) {
@@ -355,9 +356,9 @@ class TaskController extends GetxController {
       for (final item in attachedFiles) {
         // expected shapes we support:
         // MOBILE image/doc: {'file': File, 'name': '...', 'type': 'image'|'doc', ...}
-        // WEB image:       {'bytes': Uint8List, 'name': '...', 'type': 'image', ...}
-        // WEB doc:         {'platformFile': PlatformFile, 'name': '...', 'type': 'doc', ...}
-        // LEGACY:          {'url': File}  (your older code path)
+        // WEB image:  {'bytes': Uint8List, 'name': '...', 'type': 'image', ...}
+        // WEB doc:{'platformFile': PlatformFile, 'name': '...', 'type': 'doc', ...}
+        // LEGACY: {'url': File}  (your older code path)
 
         final String nameFromItem = (item['name'] as String?)?.trim() ?? '';
         final dynamic fileObj = item['file'];            // File? (mobile)
@@ -458,7 +459,7 @@ class TaskController extends GetxController {
           taskDes: descController.text.trim(),
           taskDeadline: isoDeadline,
         );
-        _clearFields();
+        clearFields();
         Get.back();
         update();
         return;
@@ -487,7 +488,7 @@ class TaskController extends GetxController {
           taskDeadline: isoDeadline,
           attachmentsList: resp.data?.files, // as per your API
         );
-        _clearFields();
+        clearFields();
         Get.back();
         update();
       } catch (e) {
@@ -500,7 +501,7 @@ class TaskController extends GetxController {
     }
   }
 
-  _clearFields(){
+  clearFields(){
     titleController.clear();
     descController.clear();
     selectedDate=null;
@@ -591,7 +592,7 @@ class TaskController extends GetxController {
     // Hide keyboard
     SystemChannels.textInput.invokeMethod('TextInput.hide');
 
-   /* try {
+  try {
       if (attachedFiles.isNotEmpty) {
         isUploading = true;
         update();
@@ -647,7 +648,7 @@ class TaskController extends GetxController {
         try {
           // If your upload API returns the saved files list:
           Get.find<SocketController>().updateTaskMessage(
-            taskID: taskId,
+            taskID: task.taskId,
             receiverId: user?.userCompany?.userCompanyId,
             companyId: myCompany?.companyId,
             taskTitle: titleController.text.trim(),
@@ -662,14 +663,47 @@ class TaskController extends GetxController {
           print(e.toString());
         }
       } else {
-
+        try {
+          DateTime? selectedDateTime;
+          if (selectedDate != null && selectedTime != null) {
+            selectedDateTime = DateTime(
+              selectedDate!.year,
+              selectedDate!.month,
+              selectedDate!.day,
+              selectedTime!.hour,
+              selectedTime!.minute,
+            );
+          }
+          var time = selectedDateTime?.toIso8601String();
+          taskStatusId!=null?Get.find<SocketController>().updateTaskMessage(
+            taskID: task.taskId,
+            taskStatusId: taskStatusId,
+            receiverId: user?.userCompany?.userCompanyId,
+            companyId: myCompany?.companyId,
+            taskTitle: task.title,
+            taskDes: task.details,
+            // taskDeadline: time,
+          ):Get.find<SocketController>().updateTaskMessage(
+              taskID: task.taskId,
+              receiverId: user?.userCompany?.userCompanyId,
+              companyId: myCompany?.companyId,
+              taskTitle: titleController.text.trim(),
+              taskDes: descController.text.trim(),
+              taskStatusId: taskStatusId
+            // taskDeadline: time,
+          );
+          clearFields();
+          update();
+        } catch (e) {
+          print(e.toString());
+        }
       }
     } catch (e) {
       isUploading = false;
       update();
       errorDialog(e.toString());
-    }*/
-    try {
+    }
+   /* try {
       DateTime? selectedDateTime;
       if (selectedDate != null && selectedTime != null) {
         selectedDateTime = DateTime(
@@ -698,12 +732,29 @@ class TaskController extends GetxController {
         taskStatusId: taskStatusId
         // taskDeadline: time,
       );
+      clearFields();
       update();
     } catch (e) {
       print(e.toString());
-    }
+    }*/
   }
 
+// Helper: build ISO deadline from selected date/time, or fall back to existing
+  String? _deadlineIsoOrExisting(TaskData task) {
+    if (selectedDate != null && selectedTime != null) {
+      final dt = DateTime(
+        selectedDate!.year, selectedDate!.month, selectedDate!.day,
+        selectedTime!.hour, selectedTime!.minute,
+      );
+      // Use UTC or keep local; pick what your server expects
+      return dt.toIso8601String();          // or: dt.toUtc().toIso8601String();
+    }
+    // fallback to existing task deadline if it exists
+    final d = task.deadline;
+    if (d is String && d.isNotEmpty) return d;
+    // if (d is DateTime) return d.toIso8601String(); // or toUtc()
+    return null;
+  }
 
   String convertUtcToIndianTime(String utcTimeString) {
     // Parse UTC string
@@ -776,7 +827,6 @@ class TaskController extends GetxController {
           taskCategory=[];
           update();
         }
-
       }
 
       taskCategory = (taskHisList ?? []).map((item) {

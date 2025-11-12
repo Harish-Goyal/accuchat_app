@@ -24,7 +24,6 @@ class ViewProfileScreen extends GetView<ViewProfileController> {
   @override
   Widget build(BuildContext context) {
     return GetBuilder<ViewProfileController>(builder: (controller) {
-      print(controller.user?.about);
       return GestureDetector(
         // for hiding keyboard
         onTap: () => FocusScope.of(context).unfocus(),
@@ -79,8 +78,7 @@ class ViewProfileScreen extends GetView<ViewProfileController> {
               child: SingleChildScrollView(
                 child: Column(
                   children: [
-                    controller.user?.userImage != null
-                        ? InkWell(
+                     InkWell(
                             borderRadius: BorderRadius.circular(100),
                             onTap: () =>
                                 controller.user?.userId == APIs.me.userId
@@ -88,15 +86,15 @@ class ViewProfileScreen extends GetView<ViewProfileController> {
                                     : null,
                             child: CustomCacheNetworkImage(
                               "${ApiEnd.baseUrlMedia}${controller.user?.userImage ?? ''}",
-                              height: 140,
-                              width: 140,
+                              height: 100,
+                              width: 100,
                               radiusAll: 100,
                               boxFit: BoxFit.cover,
                               defaultImage: userIcon,
                                 borderColor: greyText,
                             ),
-                          )
-                        : const SizedBox(),
+                          ),
+
                     vGap(10),
                     Text(
                         controller.user?.email == null ||

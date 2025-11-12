@@ -19,7 +19,7 @@ import '../../../../models/invite_model.dart';
 import '../../models/pending_invites_res_model.dart';
 
 class AcceptInviteController extends GetxController {
-  CompanyData company = CompanyData();
+  // CompanyData company = CompanyData();
 
 
   bool isLoading = false;
@@ -69,8 +69,22 @@ class AcceptInviteController extends GetxController {
       companyResponse = value.data;
       StorageService.setLoggedIn(true);
       StorageService.setCompanyCreated(true);
-      final svc = Get.put<CompanyService>(CompanyService());
-      await svc.init().then((v) async =>await svc.select(companyResponse!));
+
+      if(Get.isRegistered<CompanyService>()) {
+        final svc = CompanyService.to;
+        await svc.select(companyResponse!);
+      }else{
+        await Get.putAsync<CompanyService>(
+              () async => await CompanyService().init(),
+          permanent: true,
+        );
+
+        final svc = CompanyService.to;
+        await svc.select(companyResponse!);
+      }
+
+      // final svc = Get.put<CompanyService>(CompanyService());
+      // await svc.init().then((v) async =>await svc.select(companyResponse!));
       await APIs.refreshMe(companyId: companyResponse?.companyId ?? 0);
       Get.offAllNamed(AppRoutes.home);
     }).onError((error, stackTrace) {

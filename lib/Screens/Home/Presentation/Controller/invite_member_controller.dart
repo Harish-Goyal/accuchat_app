@@ -406,7 +406,7 @@ class InviteMemberController extends GetxController {
                     ],
                   ).paddingSymmetric(horizontal: 20, vertical: 20),
                 ],
-              ),
+              ).marginSymmetric(horizontal: 15,vertical: 15),
             );
           },
         );

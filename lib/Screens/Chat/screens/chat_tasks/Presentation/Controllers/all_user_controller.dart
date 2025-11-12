@@ -49,7 +49,7 @@ class AllUserController extends GetxController{
 
   CompanyData? myCompany = CompanyData();
   _getCompany()async{
-    final svc     = Get.find<CompanyService>();
+    final svc = CompanyService.to;
     myCompany = svc.selected;
   }
 

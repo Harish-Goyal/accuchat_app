@@ -58,10 +58,10 @@ class DashboardController extends GetxController with WidgetsBindingObserver {
     ),BottomNavigationBarItem(
       icon: Image.asset(connectedAppIcon,height: 22),
       label: 'Companies',
-    ),BottomNavigationBarItem(
+    ),/*BottomNavigationBarItem(
       icon: Image.asset(galleryIcon,height: 22),
       label: 'Gallery',
-    ),
+    ),*/
   ];
 
   // --- add: ensure we always have something to render
@@ -77,7 +77,7 @@ class DashboardController extends GetxController with WidgetsBindingObserver {
   List<Widget> screens = [];
 
   List<BottomNavigationBarItem> barItems = [];
-  initscres() {
+  initscres() async {
     if (_inited) {
       _ensureFallbackNavIfEmpty();
       update();
@@ -86,7 +86,11 @@ class DashboardController extends GetxController with WidgetsBindingObserver {
     _inited = true;
 
     // (kept) registrations – wrapped in try to avoid crash if already registered
-    try { Get.put<SocketController>(SocketController(), permanent: true); } catch (_) {}
+    try { await Get.putAsync<SocketController>(
+          () async => SocketController()..onInit(), // or call init() inside
+      permanent: true,
+    );
+    } catch (_) {}
     try { Get.lazyPut(() => DashboardController(), fenix: true); } catch (_) {}
     try { Get.lazyPut(() => ChatHomeController(), fenix: true); } catch (_) {}
     try { Get.lazyPut(() => TaskHomeController(), fenix: true); } catch (_) {}
@@ -222,10 +226,11 @@ class DashboardController extends GetxController with WidgetsBindingObserver {
   List<NavigationItem>? userNav = [];
   CompanyData? myCompany = CompanyData();
   getCompany() async {
-
-    final svc = Get.put<CompanyService>(CompanyService());
-    await svc.init();
-      myCompany = svc.selected;
+    final svc = CompanyService.to;
+    myCompany = svc.selected;
+    // final svc = Get.put<CompanyService>(CompanyService());
+    // await svc.init();
+    //   myCompany = svc.selected;
       Future.delayed(const Duration(milliseconds: 800), () {
         hitAPIToGetUser();
       });

@@ -61,11 +61,17 @@ Future<void> main() async {
 
   WidgetsFlutterBinding.ensureInitialized();
 
-  if (kIsWeb) {
+
     await StorageService.init();
-    if (!Get.isRegistered<PostApiServiceImpl>()) {
-      Get.put(CompanyService(), permanent: true);
+    await HiveBoot.init();
+    await HiveBoot.openBoxOnce<CompanyData>(selectedCompanyBox);
+    if(!Get.isRegistered<CompanyService>()) {
+      await Get.putAsync<CompanyService>(
+            () async => await CompanyService().init(),
+        permanent: true,
+      );
     }
+  if (kIsWeb) {
     if (!Get.isRegistered<PostApiServiceImpl>()) {
       Get.put(PostApiServiceImpl(), permanent: true);
     }
@@ -93,9 +99,10 @@ Future<void> main() async {
 // ---------------------------------------------
 // NEW: moved your heavy code here (nothing removed, only deferred)
 // ---------------------------------------------
+const selectedCompanyBox = 'selected_company_box';
 Future<void> _deferredBoot() async {
   // Your original code lines are preserved below; I only grouped & parallelized them.
-  await StorageService.init();
+  // await StorageService.init();
   // ---- originally: firebase + notifications + storages + boxes ----
   final Future<void> firebaseInit = _initializeFirebase(); // (kept)
 
@@ -119,22 +126,23 @@ Future<void> _deferredBoot() async {
   final billingCtrl = Get.lazyPut(() => BillingController(service)); // (kept)
 
   // (kept) storages + hive registrations + box open
-  const selectedCompanyBox = 'selected_company_box';
 
-  final storageBoot = (() async {
-    await HiveBoot.init();
-    await HiveBoot.openBoxOnce<CompanyData>(selectedCompanyBox);
-  })();
-  if (!kIsWeb) {
-    if (!Get.isRegistered<PostApiServiceImpl>()) {
-      Get.put(CompanyService(), permanent: true);
-    }
-  }
+
+  // final storageBoot = (() async {
+  //   await HiveBoot.init();
+  //   await HiveBoot.openBoxOnce<CompanyData>(selectedCompanyBox);
+  // })();
+  //
+  //   await Get.putAsync<CompanyService>(
+  //         () async => await CompanyService().init(),
+  //     permanent: true,
+  //   );
+
   await Future.wait<void>([
     firebaseInit.timeout(const Duration(seconds: 5), onTimeout: () => null),
     notifInit.timeout(const Duration(seconds: 4), onTimeout: () => null),
     localNotifInit.timeout(const Duration(seconds: 4), onTimeout: () => null),
-    storageBoot.timeout(const Duration(seconds: 6), onTimeout: () => null),
+    // storageBoot.timeout(const Duration(seconds: 6), onTimeout: () => null),
   ]);
 
   Get.lazyPut(() => NetworkController(), fenix: true);

@@ -214,8 +214,7 @@ class CompaniesScreen extends GetView<CompaniesController> {
                                         title: '',
                                         subtitleTap: () async {
                                           customLoader.show();
-                                          final svc =
-                                              Get.find<CompanyService>();
+                                          final svc = CompanyService.to;
                                           await svc.select(companyData);
                                           await APIs.refreshMe(
                                               companyId: svc.id!);
@@ -244,8 +243,7 @@ class CompaniesScreen extends GetView<CompaniesController> {
                                             'members: ${companyData.members?.length ?? 0}',
                                         onTap: () async {
                                           customLoader.show();
-                                          final svc =
-                                              Get.find<CompanyService>();
+                                          final svc = CompanyService.to;
                                           await svc.select(companyData);
                                           await APIs.refreshMe(
                                               companyId: svc.id!);
@@ -287,7 +285,7 @@ class CompaniesScreen extends GetView<CompaniesController> {
 
                                                 if (isCreator) {
                                                   // Invite (creator + mobile only)
-                                                  if (!kIsWeb) {
+
                                                     items.add(
                                                       const PopupMenuItem(
                                                         value: 'Invite',
@@ -303,7 +301,7 @@ class CompaniesScreen extends GetView<CompaniesController> {
                                                         ]),
                                                       ),
                                                     );
-                                                  }
+
 
                                                   // Pending (creator)
                                                   items.add(

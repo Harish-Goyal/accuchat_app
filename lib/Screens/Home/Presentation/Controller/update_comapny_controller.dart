@@ -153,7 +153,7 @@ class UpdateCompanyController extends GetxController {
         .then((value) async {
       toast(value.message ?? '');
       companyResponse = value.data!;
-      final svc = Get.find<CompanyService>();
+      final svc = CompanyService.to;
       await svc.select(companyResponse!);
       await APIs.refreshMe(companyId: svc.id!);
       Get.find<ChatHomeController>().getCompany();
@@ -182,7 +182,7 @@ class UpdateCompanyController extends GetxController {
   CompanyData? selCompany;
 
   _getCompany() {
-    final svc = Get.find<CompanyService>();
+    final svc = CompanyService.to;
     selCompany = svc.selected;
 
     update();

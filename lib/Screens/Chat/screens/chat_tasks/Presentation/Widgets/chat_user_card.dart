@@ -121,6 +121,7 @@ class _ChatUserCardState extends State<ChatUserCard>
           },
           child:ListTile(
             //user profile picture
+
             contentPadding:
             const EdgeInsets.symmetric(horizontal: 10),
             leading: InkWell(

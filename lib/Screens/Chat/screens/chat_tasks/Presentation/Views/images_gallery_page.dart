@@ -22,10 +22,11 @@ class GalleryViewerPage extends StatelessWidget {
   Widget build(BuildContext context) {
     return GetBuilder<GalleryViewerController>(
       builder: (c) {
+
         return Scaffold(
-          backgroundColor: Colors.black,
+          backgroundColor: Colors.white,
           appBar: AppBar(
-            backgroundColor: Colors.black,
+            backgroundColor: Colors.white,
             foregroundColor: Colors.white,
             elevation: 0,
             title: Text('${c.index + 1}/${c.urls.length}'),
@@ -37,7 +38,7 @@ class GalleryViewerPage extends StatelessWidget {
               ),
               PopupMenuButton<String>(
                 color: Colors.grey.shade900,
-                iconColor: Colors.white,
+                iconColor: Colors.black87,
                 onSelected: (v) async {
                   if (v == 'save_all'){
                     for(String url in c.urls ){
@@ -65,10 +66,16 @@ class GalleryViewerPage extends StatelessWidget {
                             chatId:c.chathis.chatId,
                             fromUser:c.chathis.fromUser,
                             toUser:c.chathis.toUser,
-                            message:getFileNameFromUrl(c.urls[c.index]),
+                            message:c.urls[c.index],
+                            // message:getFileNameFromUrl(c.urls[c.index]),
                             replyToId:c.chathis.chatId,
-                            replyToText:getFileNameFromUrl(c.urls[c.index]),
+                            replyToText:c.urls[c.index],
+                            // replyToText:getFileNameFromUrl(c.urls[c.index]),
                         );
+
+                    print("c.urls[c.index]");
+                    print(c.urls[c.index]);
+                    print(getFileNameFromUrl(c.urls[c.index]));
 
                     chatC.update();
                     c.update();
@@ -113,6 +120,8 @@ class GalleryViewerPage extends StatelessWidget {
                 backgroundDecoration: const BoxDecoration(color: Colors.black),
                 builder: (context, index) {
                   final url = c.urls[index];
+                  print("url=====");
+                  print(url);
                   return PhotoViewGalleryPageOptions(
                     imageProvider: CachedNetworkImageProvider(url),
                     heroAttributes: PhotoViewHeroAttributes(tag: url),

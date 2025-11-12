@@ -11,6 +11,7 @@ import 'package:get/get.dart';
 import '../../../../../../Services/APIs/auth_service/auth_api_services_impl.dart';
 import '../../../../../../Services/APIs/local_keys.dart';
 import '../../../../../../Services/APIs/post/post_api_service_impl.dart';
+import '../../../../../../Services/hive_boot.dart';
 import '../../../../../../Services/storage_service.dart';
 import '../../../../../../main.dart';
 import '../../../../../../routes/app_routes.dart';
@@ -46,7 +47,7 @@ class VerifyOtpController extends GetxController{
 
         CompanyData? selCompany;
         try {
-          final svc = Get.find<CompanyService>();
+          final svc = CompanyService.to;
           // OPTIONAL: if you add a `Future<void> ready` in CompanyService, await it here:
           // await svc.ready;
           selCompany = svc.selected; // may be null on clean install
@@ -55,6 +56,17 @@ class VerifyOtpController extends GetxController{
         await s.initSafe(companyId: selCompany?.companyId??0); // <-- works with null/0
         return s;
       });
+
+      if(!Get.isRegistered<CompanyService>()) {
+        await StorageService.init();
+        await HiveBoot.init();
+        await HiveBoot.openBoxOnce<CompanyData>(selectedCompanyBox);
+        await Get.putAsync<CompanyService>(
+              () async => await CompanyService().init(),
+          permanent: true,
+        );
+      }
+
             StorageService.setFirstTimeTask(isFirstTimeChat);
             StorageService.saveToken(value.data?.token);
             StorageService.saveMobile(emailOrPhone);

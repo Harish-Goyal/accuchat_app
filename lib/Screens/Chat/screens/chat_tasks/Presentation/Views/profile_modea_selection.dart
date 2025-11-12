@@ -1,6 +1,7 @@
 import 'package:AccuChat/Constants/colors.dart';
 import 'package:AccuChat/Screens/Chat/models/chat_history_response_model.dart';
 import 'package:flutter/cupertino.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
@@ -75,15 +76,16 @@ class ProfileMediaSectionGetX extends StatelessWidget {
                         onTapF: (){},
                         controller: controller,
                         items: controller.profileMediaList
-                            .where((m) => controller.isImageOrVideo(m)) // if _isImageOrVideo is private, duplicate logic here
+                            .where((m) => isImageOrVideo(m)) // if _isImageOrVideo is private, duplicate logic here
                             .toList(),
                       )),
 
                       // DOC LIST
                       Obx(() => _DocsList(
                         baseUrl: ApiEnd.baseUrlMedia,
+                        controller: controller,
                         items: controller.profileMediaList
-                            .where((m) => controller.isDoc(m))
+                            .where((m) => isDoc(m))
                             .toList(),
                       )),
                     ],
@@ -189,6 +191,108 @@ class _MediaGrid extends StatelessWidget {
   final ViewProfileController controller;
   const _MediaGrid({required this.baseUrl, required this.items,required this.controller, required this.onTapF});
 
+  int _columnsForWidth(double w) {
+    // tweak breakpoints as you like
+    if (w < 480) return 3;        // phones
+    if (w < 720) return 4;        // small tablets
+    if (w < 1024) return 5;       // large tablets
+    if (w < 1440) return 6;       // small desktops
+    if (w < 1920) return 8;       // desktops
+    return 10;                    // big screens/4K
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    if (items.isEmpty) {
+      return Center(child: Text('No media found', style: BalooStyles.baloonormalTextStyle()));
+    }
+
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final cols = _columnsForWidth(constraints.maxWidth);
+
+        // remove glow + use platform-appropriate physics (bouncing on mobile, clamping on web)
+        return ScrollConfiguration(
+          behavior: const ScrollBehavior().copyWith(
+            overscroll: false,
+            physics: kIsWeb ? const ClampingScrollPhysics() : const BouncingScrollPhysics(),
+          ),
+          child: GridView.builder(
+            physics: kIsWeb ? const ClampingScrollPhysics() : const BouncingScrollPhysics(),
+            controller: controller.scrollController,
+            padding: const EdgeInsets.only(bottom: 8, left: 8, right: 8, top: 8),
+            gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+              crossAxisCount: cols,
+              crossAxisSpacing: 8,
+              mainAxisSpacing: 8,
+              childAspectRatio: 1, // keep squares; adjust if you want cards
+            ),
+            itemCount: items.length,
+            itemBuilder: (_, i) {
+              final m = items[i];
+              final url = '$baseUrl${m.fileName ?? ''}';
+              return InkWell(
+                onTap: (){
+                  Get.to(
+                        () => GalleryViewerPage(
+                      isChat: true,
+                      onReply: (){
+
+                        Get.back();
+                        // controller.refIdis = data.chatId;
+                        // controller.userIDSender =
+                        //     data.fromUser?.userId;
+                        // controller.userNameReceiver =
+                        //     data.toUser?.displayName ?? '';
+                        // controller.userNameSender =
+                        //     data.fromUser?.displayName ?? '';
+                        // controller.userIDReceiver =
+                        //     data.toUser?.userId;
+                        // controller.replyToMessage =data;
+                      },),
+                    binding: BindingsBuilder(() {
+                      Get.put(GalleryViewerController(
+                          urls: items.map((v)=>"${ApiEnd.baseUrlMedia}${v.fileName}").toList()
+                          , index: i,
+                          chathis: ChatHisList()));
+                    }),
+                    fullscreenDialog: true,
+                    transition: Transition.fadeIn,
+                  );
+                },
+                child: Container(
+                  decoration: BoxDecoration(
+                    border: Border.all(color:greyColor, width: 1),
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                  clipBehavior: Clip.antiAlias,
+                  child: CustomCacheNetworkImage(
+                    url,
+                    height: double.infinity,
+                    width: double.infinity,
+                    borderWidth: 3,
+                    boxFit: BoxFit.cover,
+                    borderColor: Colors.red,
+                    radiusAll: 8,
+                  ),
+                ),
+              );
+            },
+          ),
+        );
+      },
+    );
+  }
+}
+
+
+/*class _MediaGrid extends StatelessWidget {
+  final String baseUrl;
+  final List<Items> items;
+  final Function() onTapF;
+  final ViewProfileController controller;
+  const _MediaGrid({required this.baseUrl, required this.items,required this.controller, required this.onTapF});
+
   @override
   Widget build(BuildContext context) {
     if (items.isEmpty) {
@@ -196,6 +300,7 @@ class _MediaGrid extends StatelessWidget {
     }
     return GridView.builder(
       physics: const BouncingScrollPhysics(),
+      controller: controller.scrollController,
       padding: const EdgeInsets.only(bottom: 8),
       gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
         crossAxisCount: 3, crossAxisSpacing: 4, mainAxisSpacing: 4,
@@ -232,26 +337,26 @@ class _MediaGrid extends StatelessWidget {
               transition: Transition.fadeIn,
             );
           },
-          child: ClipRRect(
-            borderRadius: BorderRadius.circular(8),
-            child: CustomCacheNetworkImage(
-              url,
-              height: double.infinity,
-              width: double.infinity,
-              boxFit: BoxFit.cover,
-              radiusAll: 0,
-            ),
+          child: CustomCacheNetworkImage(
+            url,
+            height: double.infinity,
+            width: double.infinity,
+            borderWidth: 3,
+            boxFit: BoxFit.cover,
+            borderColor: Colors.red,
+            radiusAll: 8,
           ),
         );
       },
     );
   }
-}
+}*/
 
 class _DocsList extends StatelessWidget {
   final String baseUrl;
   final List<Items> items;
-  const _DocsList({required this.baseUrl, required this.items});
+  final ViewProfileController controller;
+  const _DocsList({required this.baseUrl, required this.items,required this.controller});
 
   @override
   Widget build(BuildContext context) {
@@ -261,6 +366,7 @@ class _DocsList extends StatelessWidget {
     return ListView.separated(
       physics: const BouncingScrollPhysics(),
       itemCount: items.length,
+      controller: controller.scrollController2,
       separatorBuilder: (_, __) => Divider(color: Colors.grey.shade300, height: 1),
       itemBuilder: (_, i) {
         final d = items[i];
