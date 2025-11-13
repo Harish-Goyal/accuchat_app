@@ -9,33 +9,116 @@ import '../../../../../../utils/networl_shimmer_image.dart';
 import '../Controllers/create_broadcats_controller.dart';
 
 class BroadcastCreateDialog extends GetView<CreateBroadcastsController> {
-   BroadcastCreateDialog({super.key});
+  BroadcastCreateDialog({super.key});
 
-  CreateBroadcastsController broadcastsController = Get.put(CreateBroadcastsController());
+  final CreateBroadcastsController broadcastsController =
+  Get.put(CreateBroadcastsController());
 
   @override
   Widget build(BuildContext context) {
     return GetBuilder<CreateBroadcastsController>(builder: (controller) {
-      return AlertDialog(
-        title: Text('New Broadcast', style: themeData.textTheme.titleSmall),
-        insetPadding: EdgeInsets.symmetric(horizontal: 20),
-        backgroundColor: Colors.white,
-        content: SizedBox(
-          width: double.maxFinite,
-          height: Get.height * .2,
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
+      return LayoutBuilder(
+        builder: (context, constraints) {
+          final w = constraints.maxWidth;
 
-            children: [
-              TextField(
-                controller: controller.nameController,
-                decoration: const InputDecoration(
-                  labelText: 'Broadcast Name',
-                  border: OutlineInputBorder(),
+          // Responsive max width for the dialog
+          double maxW;
+          EdgeInsets inset;
+          if (w >= 1400) {
+            maxW = 640; // large desktop
+            inset = const EdgeInsets.symmetric(horizontal: 48, vertical: 28);
+          } else if (w >= 900) {
+            maxW = 580; // desktop / tablet landscape
+            inset = const EdgeInsets.symmetric(horizontal: 40, vertical: 24);
+          } else if (w >= 600) {
+            maxW = 520; // tablet portrait
+            inset = const EdgeInsets.symmetric(horizontal: 24, vertical: 20);
+          } else {
+            maxW = w * 0.96; // phones
+            inset = const EdgeInsets.symmetric(horizontal: 8, vertical: 12);
+          }
+
+          return Center(
+            child: ConstrainedBox(
+              constraints: BoxConstraints(maxWidth: maxW, minWidth: 280),
+              child: AlertDialog(
+                alignment: Alignment.center,
+                insetPadding: inset,
+                backgroundColor: Colors.white,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(16),
                 ),
+                title: Text(
+                  'New Broadcast',
+                  style: themeData.textTheme.titleSmall,
+                ),
+                content: SingleChildScrollView(
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      TextField(
+                        controller: controller.nameController,
+                        decoration: const InputDecoration(
+                          labelText: 'Broadcast Name',
+                          border: OutlineInputBorder(),
+                        ),
+                      ),
+                      const SizedBox(height: 16),
+                    ],
+                  ),
+                ),
+                actions: [
+                  TextButton(
+                    onPressed: () => Navigator.pop(context),
+                    style: ButtonStyle(
+                      backgroundColor:
+                      MaterialStateProperty.all(appColorYellow),
+                      padding: WidgetStateProperty.all(
+                        const EdgeInsets.symmetric(
+                          vertical: 6,
+                          horizontal: 16,
+                        ),
+                      ),
+                      shape: WidgetStateProperty.all(
+                        RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(8),
+                        ),
+                      ),
+                    ),
+                    child: Text(
+                      'Cancel',
+                      style: themeData.textTheme.bodySmall
+                          ?.copyWith(color: Colors.white),
+                    ),
+                  ),
+                  dynamicButton(
+                    name: "Create",
+                    onTap: controller.createBroadcast,
+                    btnColor: appColorYellow,
+                    isShowText: true,
+                    isShowIconText: true,
+                    gradient: LinearGradient(
+                      colors: [appColorYellow, appColorYellow],
+                    ),
+                    iconColor: Colors.white,
+                    leanIcon: broadcastIcon,
+                  ),
+                ],
               ),
-              const SizedBox(height: 16),
-            /*  Expanded(
+            ),
+          );
+        },
+      );
+    });
+  }
+}
+
+
+
+
+
+
+/*  Expanded(
                 child: controller.allUsers.isEmpty
                     ? const Center(child: CircularProgressIndicator())
                     : ListView.builder(
@@ -96,32 +179,3 @@ class BroadcastCreateDialog extends GetView<CreateBroadcastsController> {
                         },
                       ),
               ),*/
-            ],
-          ),
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: Text('Cancel',
-                style: themeData.textTheme.bodySmall
-                    ?.copyWith(color: Colors.white)),
-            style: ButtonStyle(
-                backgroundColor: MaterialStateProperty.all(appColorYellow),
-                padding: WidgetStateProperty.all(
-                    EdgeInsets.symmetric(vertical: 3, horizontal: 15))),
-          ),
-          dynamicButton(
-              name: "Create",
-              onTap:controller.createBroadcast,
-              btnColor: appColorYellow,
-              isShowText: true,
-              isShowIconText: true,
-              gradient:
-                  LinearGradient(colors: [appColorYellow, appColorYellow]),
-              iconColor: Colors.white,
-              leanIcon: broadcastIcon)
-        ],
-      );
-    });
-  }
-}

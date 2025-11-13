@@ -93,6 +93,9 @@ class ChatsHomeScreen extends GetView<ChatHomeController> {
                                     "${ApiEnd.baseUrlMedia}${controller.myCompany?.logo ?? ''}",
                                     radiusAll: 100,
                                     height: 40,
+                                    width: 40,
+                                    borderColor: appColorYellow,
+
                                     defaultImage: appIcon,
                                     boxFit: BoxFit.cover,
                                   ),
@@ -145,6 +148,15 @@ class ChatsHomeScreen extends GetView<ChatHomeController> {
                             showDialog(
                                 context: Get.context!,
                                 builder: (_) => _groupDialogWidget());
+                            // Get.dialog(
+                            //   Dialog(
+                            //     insetPadding: const EdgeInsets.symmetric(horizontal: 24, vertical: 24),
+                            //     clipBehavior: Clip.antiAlias,
+                            //     shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                            //     child: _groupDialogWidget(), // from above
+                            //   ),
+                            //   barrierDismissible: true,
+                            // );
                           } else if (value == 'new_broadcast') {
                             showDialog(
                                 context: Get.context!,
@@ -234,7 +246,7 @@ class ChatsHomeScreen extends GetView<ChatHomeController> {
                             controller: controller.scrollController,
                             itemBuilder: (context, index) {
                               final item = controller.filteredList[index];
-                              return SwipeTo(
+                              return /*SwipeTo(
                                   iconOnLeftSwipe: Icons.delete_outline,
                                   iconColor: Colors.red,
                                   onLeftSwipe: (detail) async {
@@ -276,7 +288,9 @@ class ChatsHomeScreen extends GetView<ChatHomeController> {
                                       }
                                     }
                                   },
-                                  child: ChatUserCard(user: item));
+                                  child: */ChatUserCard(user: item)
+                              // )
+                              ;
                             },
                           ),
                         )
@@ -326,11 +340,10 @@ class ChatsHomeScreen extends GetView<ChatHomeController> {
     );
   }
 
-  _groupDialogWidget() {
-    return CustomDialogue(
-      title: "Create Group",
-      isShowAppIcon: false,
-      content: Column(
+  Widget _groupDialogWidget() {
+    // Reuse your original body so it's easy to maintain
+    Widget _dialogBody() {
+      return Column(
         crossAxisAlignment: CrossAxisAlignment.center,
         mainAxisSize: MainAxisSize.min,
         children: [
@@ -339,56 +352,6 @@ class ChatsHomeScreen extends GetView<ChatHomeController> {
             style: BalooStyles.baloonormalTextStyle(),
             textAlign: TextAlign.center,
           ),
-          /*    vGap(20),
-            Container(
-              width: Get.width,
-              child: InputDecorator(
-                decoration: InputDecoration(
-                  labelText: 'Select Type',
-                  hintText: 'Select Type',
-                  hintStyle:
-                  BalooStyles.baloonormalTextStyle(color: Colors.grey),
-                  border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(12),
-                      borderSide: BorderSide(color: Colors.grey.shade400)),
-                  enabledBorder: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(12),
-                      borderSide: BorderSide(color: Colors.grey.shade400)),
-                  labelStyle: BalooStyles.baloonormalTextStyle(),
-                  filled: true,
-                  fillColor: Colors.white,
-                  contentPadding:
-                  const EdgeInsets.symmetric(horizontal: 3, vertical: 1),
-                ),
-                child: DropdownButtonHideUnderline(
-                  child: DropdownButton<String>(
-                    value: controller.selectedGroupType,
-                    hint: Text(
-                      "Select Type",
-                      style: BalooStyles.baloomediumTextStyle(),
-                    ),
-                    items: ["Group", "Collection"]
-                        .map((String type) => DropdownMenuItem<String>(
-                      value: type,
-                      child: SizedBox(
-                          width: Get.width * .52,
-                          child: Text(
-                            type,
-                            style: BalooStyles.baloomediumTextStyle(),
-                          )),
-                    ))
-                        .toList(),
-                    onChanged: (String? newValue) {
-                      if (newValue != null) {
-                        controller.selectedGroupType = newValue;
-                        controller.update();
-                      }
-                    },
-                    dropdownColor: Colors.white,
-                  ),
-                ),
-              ),
-            ),*/
           vGap(20),
           CustomTextField(
             hintText: "Group Name",
@@ -406,18 +369,54 @@ class ChatsHomeScreen extends GetView<ChatHomeController> {
             vPadding: 8,
             onTap: () {
               if (controller.groupController.text.isNotEmpty) {
-                controller.createGroupBroadcastApi(
-                    isGroup: "1", isBroadcast: '0');
+                controller.createGroupBroadcastApi(isGroup: "1", isBroadcast: '0');
               } else {
                 errorDialog("Please enter group name");
               }
             },
           )
         ],
-      ),
-      onOkTap: () {},
+      );
+    }
+
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final w = constraints.maxWidth;
+
+        // Responsive target width
+        double targetMaxWidth;
+        if (w >= 1400) {
+          targetMaxWidth = 560;       // big desktop
+        } else if (w >= 900) {
+          targetMaxWidth = 520;       // desktop/tablet landscape
+        } else if (w >= 600) {
+          targetMaxWidth = 480;       // tablet portrait
+        } else {
+          targetMaxWidth = w * 0.9;   // phones: take ~90% width
+        }
+
+        return Center(
+          child: ConstrainedBox(
+            constraints: BoxConstraints(
+              maxWidth: targetMaxWidth,
+              minWidth: 280,
+            ),
+            child: Material( // ensure proper elevation/shape if CustomDialogue is plain
+              type: MaterialType.transparency,
+              child: CustomDialogue(
+                title: "Create Group",
+                isShowAppIcon: false,
+                // In case content grows, let it scroll
+                content: SingleChildScrollView(child: _dialogBody()),
+                onOkTap: () {},
+              ),
+            ),
+          ),
+        );
+      },
     );
   }
+
 
   // for adding new chat user
   void _addChatUserDialog() {

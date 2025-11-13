@@ -1,3 +1,4 @@
+import 'package:AccuChat/Screens/Home/Presentation/Controller/home_controller.dart';
 import 'package:AccuChat/Screens/Settings/Presentation/Views/static_page.dart';
 import 'package:AccuChat/Services/APIs/api_ends.dart';
 import 'package:AccuChat/routes/app_routes.dart';
@@ -51,46 +52,58 @@ class AllSettingsScreen extends GetView<AllSettingsController> {
   Widget _buildContent(BuildContext context, AllSettingsController controller, bool isWide) {
     return ListView(
       children: [
-        CustomContainer(
-          elevation: 1,
-          childWidget: Row(
-            crossAxisAlignment: CrossAxisAlignment.center,
-            children: [
-              CustomCacheNetworkImage(
-                // APIs.me.selectedCompany?.logoUrl ?? '',
-                "${ApiEnd.baseUrlMedia}${controller.myCompany?.logo??''}",
-                height: isWide ? 64 : 50,           // responsive: slightly larger on web
-                width: isWide ? 64 : 50,
-                boxFit: BoxFit.cover,
-                radiusAll: 100,
-                borderColor: Colors.black54,
-              ),
-              hGap(isWide ? 14 : 10),
-              Expanded( // responsive: allow long names/emails to wrap nicely
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      // APIs.me.selectedCompany?.name ?? '',
-                      (controller.myCompany?.companyName??"").toUpperCase(),
-                      style: BalooStyles.baloosemiBoldTextStyle(),
-                      overflow: TextOverflow.ellipsis,
-                      maxLines: 1,
-                    ),
-                    vGap(4),
-                    Text(
-                      controller.myCompany?.email==null?
-                      controller.myCompany?.phone??"": controller.myCompany?.email??'',
-                      style: BalooStyles.balooregularTextStyle(),
-                      overflow: TextOverflow.ellipsis,
-                      maxLines: 1,
-                    ),
-                  ],
+        InkWell(
+          onTap: (){
+            try {
+              Get.back();
+              final con = Get.find<DashboardController>();
+              con.updateIndex(2);
+              con.update();
+            }catch(v){
+              print(v);
+            }
+          },
+          child: CustomContainer(
+            elevation: 1,
+            childWidget: Row(
+              crossAxisAlignment: CrossAxisAlignment.center,
+              children: [
+                CustomCacheNetworkImage(
+                  // APIs.me.selectedCompany?.logoUrl ?? '',
+                  "${ApiEnd.baseUrlMedia}${controller.myCompany?.logo??''}",
+                  height: isWide ? 64 : 50,           // responsive: slightly larger on web
+                  width: isWide ? 64 : 50,
+                  boxFit: BoxFit.cover,
+                  radiusAll: 100,
+                  borderColor: Colors.black54,
                 ),
-              ),
-            ],
-          ),
-        ).marginSymmetric(horizontal: 12,vertical: 12),
+                hGap(isWide ? 14 : 10),
+                Expanded( // responsive: allow long names/emails to wrap nicely
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        // APIs.me.selectedCompany?.name ?? '',
+                        (controller.myCompany?.companyName??"").toUpperCase(),
+                        style: BalooStyles.baloosemiBoldTextStyle(),
+                        overflow: TextOverflow.ellipsis,
+                        maxLines: 1,
+                      ),
+                      vGap(4),
+                      Text(
+                        controller.myCompany?.phone!=null?
+                        controller.myCompany?.phone??"": controller.myCompany?.email??'',
+                        style: BalooStyles.balooregularTextStyle(),
+                        overflow: TextOverflow.ellipsis,
+                        maxLines: 1,
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+          ).marginSymmetric(horizontal: 12,vertical: 12),
+        ),
         /* _buildTile(
           icon: Icons.person,
           title: 'Profile',

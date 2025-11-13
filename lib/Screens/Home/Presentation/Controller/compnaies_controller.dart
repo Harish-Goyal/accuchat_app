@@ -62,7 +62,7 @@ class CompaniesController extends GetxController {
   CompanyData? selCompany;
 
   CompanyData? getCompany() {
-    final svc = Get.find<CompanyService>();
+    final svc = CompanyService.to;
     selCompany = svc.selected;
     return selCompany;
   }
@@ -106,7 +106,7 @@ class CompaniesController extends GetxController {
 
 
   companyNavigation(value, CompanyData companyData) async {
-    final svc = Get.find<CompanyService>();
+    final svc = CompanyService.to;
     if (value == "Pending") {
       if(companyData.companyId == selCompany?.companyId) {
         if (kIsWeb) {
@@ -132,23 +132,27 @@ class CompaniesController extends GetxController {
       }
 
     } else if (value == "Invite") {
-      if(companyData.companyId == selCompany?.companyId) {
-        if (!kIsWeb) {
-          await svc.select(companyData);
-          getCompany();
-          update();
+      if (!kIsWeb) {
+        if (companyData.companyId == selCompany?.companyId) {
+          if (!kIsWeb) {
+            await svc.select(companyData);
+            getCompany();
+            update();
 
-          Future.delayed(
-              const Duration(milliseconds: 500),
-                  () =>
-                  (selCompany?.createdBy) == me?.userId
-                  ? _onInvite(companyData)
-                  : toast("You are not allowed to perform this action!"));
+            Future.delayed(
+                const Duration(milliseconds: 500),
+                    () =>
+                (selCompany?.createdBy) == me?.userId
+                    ? _onInvite(companyData)
+                    : toast("You are not allowed to perform this action!"));
+          } else {
+            toast("Please go to mobile app to send invites to user");
+          }
         } else {
-          toast("Please go to mobile app to send invites to user");
+          toast("Please select your company");
         }
       }else{
-        toast("Please select your company");
+        toast("Download mobile apps to Invite your contacts");
       }
     } else if (value == "Update") {
       if(companyData.companyId == selCompany?.companyId) {
@@ -231,7 +235,7 @@ class CompaniesController extends GetxController {
     }else{
       Get.toNamed(
           AppRoutes.create_company,
-          arguments: {'isHome': true});
+          arguments: {'isHome': '1'});
     }
 
 /*

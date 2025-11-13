@@ -12,6 +12,7 @@ import 'package:http_parser/http_parser.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:mime/mime.dart';
 import 'package:permission_handler/permission_handler.dart';
+import 'package:scrollable_positioned_list/scrollable_positioned_list.dart';
 import '../../../../../../Services/APIs/local_keys.dart';
 import '../../../../../../Services/APIs/post/post_api_service_impl.dart';
 import '../../../../../../main.dart';
@@ -34,9 +35,9 @@ import '../Widgets/all_users_dialog.dart';
 import '../Widgets/create_custom_folder.dart';
 
 class ChatScreenController extends GetxController {
-
   final formKeyDoc = GlobalKey<FormState>();
   UserDataAPI? user;
+
   // Message? forwardMessage;
   final _alreadyEmitted = <int>{};
   String? selectedChatId;
@@ -46,7 +47,9 @@ class ChatScreenController extends GetxController {
   final textController = TextEditingController();
   ChatHisList? replyToMessage;
   String? replyToImage;
-  bool showEmoji = false, isUploading = false, isUploadingTaskDoc = false;
+  bool showEmoji = false,
+      isUploading = false,
+      isUploadingTaskDoc = false;
   File? file;
   List<Map<String, dynamic>> attachedFiles = [];
   List<XFile> images = [];
@@ -57,16 +60,106 @@ class ChatScreenController extends GetxController {
   var userIDReceiver;
   var refIdis;
 
+ late ItemScrollController itemScrollController ;
+ late ItemPositionsListener itemPositionsListener ;
+
+  bool isDoc(String orignalMsg) {
+    final ext = (orignalMsg ?? '').toLowerCase();
+    return ext.endsWith('.pdf') ||
+        ext.endsWith('.doc') || ext.endsWith('.docx') ||
+        ext.endsWith('.xls') || ext.endsWith('.xlsx') ||
+        ext.endsWith('.ppt') || ext.endsWith('.pptx') ||
+        ext.endsWith('.csv') || ext.endsWith('.txt');
+  }
+
+  bool isImageOrVideo(String orignalMsg) {
+    final ext = (orignalMsg ?? '').toLowerCase();
+    return ext.endsWith('.jpg') || ext.endsWith('.jpeg') ||
+        ext.endsWith('.png') || ext.endsWith('.gif') ||
+        ext.endsWith('.webp') || ext.endsWith('.mp4') ||
+        ext.endsWith('.mov') || ext.endsWith('.m4v') || ext.endsWith('.avi');
+  }
+
+  List<ChatRow> flatRows = [];
+  final Map<int, int> chatIdToIndex = {}; // chatId -> index in flatRows
+
+  // Call this whenever chatCatygory changes
+  void rebuildFlatRows() {
+    flatRows = [];
+    chatIdToIndex.clear();
+
+    // You used GroupedListOrder.DESC + reverse:true previously.
+    // For ScrollablePositionedList we keep ascending order,
+    // and we’ll start at the bottom using initialScrollIndex.
+    final sorted = List<GroupChatElement>.from(chatCatygory)
+      ..sort((a, b) => a.date.compareTo(b.date));
+
+    DateTime? lastHeaderDate;
+    for (final el in sorted) {
+      final d = DateTime(el.date.year, el.date.month, el.date.day);
+
+      if (lastHeaderDate == null || d.compareTo(lastHeaderDate!) != 0) {
+        flatRows?.add(ChatHeaderRow(d));
+        lastHeaderDate = d;
+      }
+      flatRows?.add(ChatMessageRow(el));
+      final idx = (flatRows?.length??0) - 1;
+      final id = el.chatMessageItems.chatId;
+      if (id != null) chatIdToIndex[id] = idx;
+    }
+    update();
+  }
+
+  // Jump to a message by chatId
+  Future<void> scrollToChatId(int chatId) async {
+    final idx = chatIdToIndex[chatId];
+    if (idx == null) {
+      debugPrint("Original message not found (maybe not loaded)");
+      return;
+    }
+    await itemScrollController?.scrollTo(
+      index: idx,
+      duration: const Duration(milliseconds: 450),
+      curve: Curves.easeInOut,
+      alignment: 0.1, // keeps it a bit below top
+    );
+    highlightMessage(chatId); // optional visual flash
+  }
+
+  // Optional highlight logic
+  final highlighted = <int>{}.obs;
+  void highlightMessage(int chatId) {
+    highlighted.add(chatId);
+    update();
+    Future.delayed(const Duration(seconds: 1), () {
+      highlighted.remove(chatId);
+      update();
+    });
+  }
+
+
+
   TextEditingController docNameController = TextEditingController();
   final TextEditingController newFolderCtrl = TextEditingController();
   final FocusNode newFolderFocus = FocusNode();
 
 
+
+
   // Gallery
   List<GalleryFolder> folders = [
-    GalleryFolder(id: 'fld_1', name: 'Invoices', createdAt: DateTime.now().subtract(const Duration(days: 10))),
-    GalleryFolder(id: 'fld_2', name: 'Design Assets', createdAt: DateTime.now().subtract(const Duration(days: 6))),
-    GalleryFolder(id: 'fld_3', name: 'Client Docs', createdAt: DateTime.now().subtract(const Duration(days: 1))),
+    GalleryFolder(
+        id: 'fld_1',
+        name: 'Invoices',
+        createdAt: DateTime.now().subtract(const Duration(days: 10))),
+    GalleryFolder(
+        id: 'fld_2',
+        name: 'Design Assets',
+        createdAt: DateTime.now().subtract(const Duration(days: 6))),
+    GalleryFolder(
+        id: 'fld_3',
+        name: 'Client Docs',
+        createdAt: DateTime.now().subtract(const Duration(days: 1))),
   ];
 
   String? selectedFolderId;
@@ -89,7 +182,8 @@ class ChatScreenController extends GetxController {
   }
 
   bool _isUniqueName(String name) {
-    return !folders.any((f) => f.name.toLowerCase() == name.trim().toLowerCase());
+    return !folders
+        .any((f) => f.name.toLowerCase() == name.trim().toLowerCase());
   }
 
   /// Validator used by CustomTextField
@@ -139,7 +233,6 @@ class ChatScreenController extends GetxController {
     return folders.firstWhereOrNull((f) => f.id == selectedFolderId);
   }
 
-
   void onTapSaveToFolder(BuildContext context) async {
     final chosen = await showSaveToCustomFolderDialog(context);
     if (chosen != null) {
@@ -148,7 +241,9 @@ class ChatScreenController extends GetxController {
       // For example:
       // await api.saveFileToFolder(fileId: fileId, folderId: chosen.id);
       Get.snackbar('Saved', 'Item saved to "${chosen.name}"',
-          snackPosition: SnackPosition.BOTTOM,backgroundColor: Colors.white,colorText: Colors.black87);
+          snackPosition: SnackPosition.BOTTOM,
+          backgroundColor: Colors.white,
+          colorText: Colors.black87);
     }
   }
 
@@ -172,11 +267,16 @@ class ChatScreenController extends GetxController {
     update();
   }
 
-
   @override
   void onInit() {
+    super.onInit();
     getArguments();
-    // markAllVisibleAsReadOnOpen();WidgetsBinding.instance.addPostFrameCallback((_) {
+    itemScrollController = ItemScrollController();
+    itemPositionsListener = ItemPositionsListener.create();
+    _initScroll();
+    // markAllVisibleAsReadOnOpen();
+
+    // WidgetsBinding.instance.addPostFrameCallback((_) {
     //   // for (ChatHisList? m in chatHisList??[]) {
     //   //   // if (/*m?.fromUser?.userId != APIs.me.userId && */ m?.readOn == null && _alreadyEmitted.add(m?.chatId??0)) {
     //   //     Get.find<SocketController>().readMsgEmitter(chatId: m?.chatId??0);
@@ -189,16 +289,41 @@ class ChatScreenController extends GetxController {
     //   }
     // });
 
-    super.onInit();
+
   }
 
+  _initScroll(){
+    WidgetsBinding.instance.addPostFrameCallback((_) async {
+      // 1) if list hasn't loaded yet, don't scroll
+      if (flatRows.isEmpty) return;
+
+      // 2) wait until the list attaches to the controller
+      int tries = 0;
+      while (!itemScrollController.isAttached && tries < 30) {
+        await Future.delayed(const Duration(milliseconds: 16));
+        tries++;
+      }
+      if (!itemScrollController.isAttached) return;
+
+      // 3) compute a valid index
+      final last = flatRows.length - 1;
+
+      // 4) prefer scrollTo (jumpTo throws more easily if timing is off)
+      await itemScrollController.scrollTo(
+        index: last,
+        duration: const Duration(milliseconds: 1), // effectively instant
+        alignment: 1.0, // bottom align
+        curve: Curves.linear,
+      );
+    });
+  }
 
   void markAllVisibleAsReadOnOpen() {
     for (ChatHisList m in (chatHisList ?? [])) {
-      if(user?.pendingCount!=0){
-        Get.find<SocketController>().readMsgEmitter(chatId: m.chatId??0);
+      if (user?.pendingCount != 0) {
+        Get.find<SocketController>().readMsgEmitter(chatId: m.chatId ?? 0);
       }
-       // your existing emitter
+      // your existing emitter
     }
   }
 
@@ -211,16 +336,15 @@ class ChatScreenController extends GetxController {
   }
 
   getArguments() {
-
-    if(kIsWeb){
+    if (kIsWeb) {
       _getCompany();
       if (Get.parameters != null) {
         final String? argUserId = Get.parameters['userId'];
         if (argUserId != null) {
-          getUserByIdApi(userId: int.parse(argUserId??''));
+          getUserByIdApi(userId: int.parse(argUserId ?? ''));
         }
       }
-    }else{
+    } else {
       if (Get.arguments != null) {
         final argUser = Get.arguments['user'];
         if (argUser != null) {
@@ -228,16 +352,11 @@ class ChatScreenController extends GetxController {
         }
       }
     }
-
   }
 
-
-
-
   getUserByIdApi({int? userId}) async {
-
     Get.find<PostApiServiceImpl>()
-        .getUserByApiCall(userID: userId,comid: myCompany?.companyId)
+        .getUserByApiCall(userID: userId, comid: myCompany?.companyId)
         .then((value) async {
       user = value.data;
       openConversation(user);
@@ -248,19 +367,17 @@ class ChatScreenController extends GetxController {
     }).whenComplete(() {});
   }
 
-
   void openConversation(UserDataAPI? useriii) {
     _getCompany();
     user = useriii;
     update();
     _getMe();
-    Future.delayed(const Duration(milliseconds: 500),(){
+    Future.delayed(const Duration(milliseconds: 500), () {
       hitAPIToGetChatHistory();
       if (user?.userCompany?.isGroup == 1 ||
           user?.userCompany?.isBroadcast == 1) {
         hitAPIToGetMembers();
       }
-
     });
     scrollListener();
   }
@@ -269,8 +386,6 @@ class ChatScreenController extends GetxController {
   List<Message> filteredTasks = [];
   String selectedFilter = 'all';
 
-
-
   UserDataAPI? me = UserDataAPI();
   _getMe() {
     me = getUser();
@@ -278,10 +393,20 @@ class ChatScreenController extends GetxController {
   }
 
   CompanyData? myCompany = CompanyData();
-  _getCompany() {
-    final svc = Get.find<CompanyService>();
-    myCompany = svc.selected;
-    update();
+  _getCompany() async {
+    if (Get.isRegistered<CompanyService>()) {
+      final svc = CompanyService.to;
+      // await svc.ready;
+      myCompany = svc.selected;
+      update();
+    } else {
+      final svc = Get.put<CompanyService>(CompanyService());
+      await svc.init();
+      myCompany = svc.selected;
+      print('myCompany==');
+      print(myCompany?.companyId);
+      update();
+    }
   }
 
   List<UserDataAPI> members = [];
@@ -302,7 +427,6 @@ class ChatScreenController extends GetxController {
     });
   }
 
-
   ChatHisResModelAPI chatHisResModelAPI = ChatHisResModelAPI();
 
   List<ChatHisList>? chatHisList = [];
@@ -316,9 +440,7 @@ class ChatScreenController extends GetxController {
 
   scrollListener() {
     scrollController.addListener(() {
-      if ((scrollController.position.extentAfter) <= 0 &&
-          !isLoading) {
-
+      if ((scrollController.position.extentAfter) <= 0 && !isLoading) {
         hasMore = true;
         page++;
         update();
@@ -328,7 +450,6 @@ class ChatScreenController extends GetxController {
   }
 
   hitAPIToGetChatHistory() async {
-
     Get.find<PostApiServiceImpl>()
         .getChatHistoryApiCall(
             userComId: user?.userCompany?.userCompanyId,
@@ -344,18 +465,17 @@ class ChatScreenController extends GetxController {
           isLoading = false;
           hasMore = false;
           update();
-          markAllVisibleAsReadOnOpen();
+
         } else {
           chatHisList?.addAll(value.data?.rows ?? []);
           isLoading = false;
           hasMore = false;
-          markAllVisibleAsReadOnOpen();
           update();
         }
       } else {
-          isLoading = false;
-          hasMore = false;
-          update();
+        isLoading = false;
+        hasMore = false;
+        update();
       }
 
       chatCatygory = (chatHisList ?? []).map((item) {
@@ -363,8 +483,14 @@ class ChatScreenController extends GetxController {
         if (item.sentOn != null) {
           datais = DateTime.parse(item.sentOn ?? '');
         }
+        if(me?.userId==item.toUser?.userId){
+
+          markAllVisibleAsReadOnOpen();
+        }
+
         return GroupChatElement(datais ?? DateTime.now(), item);
       }).toList();
+      rebuildFlatRows();
       update();
     }).onError((error, stackTrace) {
       showPostShimmer = false;
@@ -497,7 +623,9 @@ class ChatScreenController extends GetxController {
         } else {
           // WEB: path may be empty; use bytes
           final Uint8List bytes = await x.readAsBytes();
-          final nameGuess = x.name.isNotEmpty ? x.name : 'image_${DateTime.now().millisecondsSinceEpoch}.jpg';
+          final nameGuess = x.name.isNotEmpty
+              ? x.name
+              : 'image_${DateTime.now().millisecondsSinceEpoch}.jpg';
           final extis = ext(nameGuess);
           mf = multi.MultipartFile.fromBytes(
             bytes,
@@ -508,15 +636,34 @@ class ChatScreenController extends GetxController {
 
         mediaFiles.add(mf);
       }
+      final Map<String, dynamic> fields;
+      if (user?.userCompany?.isGroup == 1) {
+        fields = {
+          'company_id': myCompany?.companyId,
+          'media_type_code': type,
+          'group_id': user?.userCompany?.userCompanyId,
+          'is_group_chat': user?.userCompany?.isGroup == 1 ? 1 : 0,
+          'chat_media': mediaFiles, // array of files
+        };
+      } else if (user?.userCompany?.isBroadcast == 1) {
+        fields = {
+          'company_id': myCompany?.companyId,
+          'media_type_code': type,
+          'broadcast_user_id': user?.userCompany?.userCompanyId,
+          'is_group_chat': user?.userCompany?.isGroup == 1 ? 1 : 0,
+          'chat_media': mediaFiles, // array of files
+        };
+      } else {
+        fields = {
+          'company_id': myCompany?.companyId,
+          'media_type_code': type,
+          'to_uc_id': user?.userCompany?.userCompanyId,
+          'is_group_chat': user?.userCompany?.isGroup == 1 ? 1 : 0,
+          'chat_media': mediaFiles, // array of files
+        };
+      }
 
-      final Map<String, dynamic> fields = {
-        'company_id': myCompany?.companyId,
-        'media_type_code': type,
-        'to_uc_id': user?.userCompany?.userCompanyId,
-        'chat_media': mediaFiles, // array of files
-      };
-
-      // If you later need reply fields:
+      // // If you later need reply fields:
       // if (replyToId != null) fields['reply_to_id'] = replyToId;
       // if (replyText?.trim().isNotEmpty == true) fields['reply_to_text'] = replyText!.trim();
 
@@ -534,11 +681,19 @@ class ChatScreenController extends GetxController {
         Get.find<SocketController>().sendMessage(
           receiverId: user?.userId ?? 0,
           message: resp.data?.chat?.chatText ?? "",
-          isGroup: 0,
+          isGroup: user?.userCompany?.isGroup == 1 ? 1 : 0,
           alreadySave: true,
           chatId: resp.data?.chat?.chatId ?? 0,
+          type: user?.userCompany?.isGroup == 1
+              ? 'group'
+              : user?.userCompany?.isBroadcast == 1
+                  ? "broadcast"
+                  : '',
+          groupId: user?.userCompany?.userCompanyId,
+          brID: user?.userCompany?.userCompanyId,
         );
-        toast(resp.message ?? 'Uploaded');
+        mediaFiles.clear();
+        images.clear();
         update();
       } catch (e) {
         print('Socket sendMessage error: $e');
@@ -683,13 +838,34 @@ class ChatScreenController extends GetxController {
         toast('No readable documents selected');
         return;
       }
+      multi.FormData? formData;
+      if(user?.userCompany?.isGroup == 1){
+        formData = multi.FormData.fromMap({
+          'company_id': myCompany?.companyId,
+          'media_type_code': ChatMediaType.DOC.name,
+          'group_id': user?.userCompany?.userCompanyId,
+          'is_group_chat': user?.userCompany?.isGroup == 1 ? 1 : 0,
+          'chat_media': docParts, // array of docs
+        });
+      }else if(user?.userCompany?.isBroadcast == 1){
+         formData = multi.FormData.fromMap({
+          'company_id': myCompany?.companyId,
+          'media_type_code': ChatMediaType.DOC.name,
+          'broadcast_user_id': user?.userCompany?.userCompanyId,
+          'is_group_chat': user?.userCompany?.isGroup == 1 ? 1 : 0,
+          'chat_media': docParts, // array of docs
+        });
+      }else{
+        formData = multi.FormData.fromMap({
+          'company_id': myCompany?.companyId,
+          'media_type_code': ChatMediaType.DOC.name,
+          'to_uc_id': user?.userCompany?.userCompanyId,
+          'is_group_chat': user?.userCompany?.isGroup == 1 ? 1 : 0,
+          'chat_media': docParts, // array of docs
+        });
+      }
 
-      final formData = multi.FormData.fromMap({
-        'company_id': myCompany?.companyId,
-        'media_type_code': ChatMediaType.DOC.name,
-        'to_uc_id': user?.userCompany?.userCompanyId,
-        'chat_media': docParts, // array of docs
-      });
+
 
       final resp = await Get.find<PostApiServiceImpl>().uploadMediaApiCall(
         dataBody: formData,
@@ -700,13 +876,20 @@ class ChatScreenController extends GetxController {
 
       try {
         Get.find<SocketController>().sendMessage(
-          receiverId: resp.data?.chat?.toId ?? 0,
+          receiverId: resp.data?.chat?.toUserId ?? 0,
           message: resp.data?.chat?.chatText ?? "",
           isGroup: 0,
           alreadySave: true,
+          type: user?.userCompany?.isGroup == 1
+              ? 'group'
+              : user?.userCompany?.isBroadcast == 1
+                  ? "broadcast"
+                  : '',
           chatId: resp.data?.chat?.chatId ?? 0,
+          groupId: user?.userCompany?.userCompanyId,
+          brID: user?.userCompany?.userCompanyId,
         );
-        toast(resp.message ?? 'Uploaded');
+        // toast(resp.message ?? 'Uploaded');
         update();
       } catch (e) {
         print('Socket sendMessage error: $e');
@@ -717,10 +900,6 @@ class ChatScreenController extends GetxController {
       errorDialog(e.toString());
     }
   }
-
-
-
-
 
   double uploadProgress = 0.0; // 0 → 100
 
@@ -802,17 +981,16 @@ class ChatScreenController extends GetxController {
           Get.isRegistered<ChatScreenController>()) {
         Get.find<ChatScreenController>().openConversation(selectedUser);
       } else {
-        if(kIsWeb){
+        if (kIsWeb) {
           Get.offNamed(
             "${AppRoutes.chats_li_r}?userId=${selectedUser.userId.toString()}",
           );
-        }else{
+        } else {
           Get.offNamed(
             AppRoutes.chats_li_r,
             arguments: {'user': selectedUser},
           );
         }
-
       }
     }
 
@@ -868,7 +1046,6 @@ class ChatScreenController extends GetxController {
     );
     _afterSendNavigate();
   }
-
 
   bool isSaving = false;
   String progress = '';
@@ -951,7 +1128,6 @@ class ChatScreenController extends GetxController {
     return true;
   }
 
-
   void _toast(String msg) {
     // Plug your toast/snackbar here
     // e.g., Get.snackbar('Info', msg); or your existing toast()
@@ -972,4 +1148,13 @@ class GroupChatElement implements Comparable {
   int compareTo(other) {
     return date.compareTo(other.date);
   }
+}
+abstract class ChatRow {}
+class ChatHeaderRow extends ChatRow {
+  final DateTime date;
+  ChatHeaderRow(this.date);
+}
+class ChatMessageRow extends ChatRow {
+  final GroupChatElement element; // your (date, chatMessageItems)
+  ChatMessageRow(this.element);
 }

@@ -531,7 +531,7 @@ class CreateCompanyScreen extends GetView<CreateCompanyController> {
 
                                 // Create button
                                 ElevatedButton(
-                                  onPressed: controller.createCompanyApi,
+                                  onPressed:()=> controller.createCompanyApi(),
                                   child: const Text("Create Company"),
                                 ),
 

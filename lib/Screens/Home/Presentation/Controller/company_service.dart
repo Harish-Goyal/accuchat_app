@@ -1,12 +1,14 @@
 import 'package:flutter/material.dart';
-import 'package:get/get.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 import '../../../../Services/APIs/local_keys.dart';
 import '../../../../utils/memmory_Doctor.dart';
 import '../../../Chat/api/session_alive.dart';
 import '../../../Chat/models/get_company_res_model.dart';
+import 'package:get/get.dart';
+import 'package:hive/hive.dart';
+import 'package:flutter/foundation.dart';
 
-class CompanyService extends GetxController {
+/*class CompanyService extends GetxController {
   CompanyData? selected;
   late Box<CompanyData> _box;
 
@@ -53,4 +55,97 @@ class CompanyService extends GetxController {
     selected = null;
     update();
   }
+}*/
+
+
+const _companyBox = 'selected_company_box';
+const _keyCurrent  = 'current';
+
+class CompanyService extends GetxService {
+  final Rxn<CompanyData> _selected = Rxn<CompanyData>();
+  Box<CompanyData>? _box;
+
+  CompanyData? get selected => _selected.value;
+  int? get id => _selected.value?.companyId;
+  String get name => _selected.value?.companyName ?? '-';
+  bool get hasCompany => _selected.value != null;
+
+  /// Call via: await Get.putAsync(() async => CompanyService().init(), permanent: true)
+  Future<CompanyService> init() async {
+    await _ensureBoxOpen();
+    _selected.value = _box!.get(_keyCurrent);
+    if (_selected.value != null) {
+      await _initSessionSafe(_selected.value!.companyId ?? 0);
+    }
+    return this;
+  }
+
+  Future<void> select(CompanyData c, {bool persist = true}) async {
+    await _ensureBoxOpen();                  // <— important
+    if (persist) {
+      await _box!.put(_keyCurrent, c);
+      await _box!.flush();
+    }
+    _selected.value = c;
+
+    await MemoryDoctor.deflateBeforeNav();
+    MemoryDoctor.disposeFeatureControllers();
+    await _refreshSessionSafe(c.companyId ?? 0);
+  }
+
+  @override
+  void onClose() {
+    // In GetxService this is called when the service is deleted.
+    // Don't await here.
+    if (_box != null && _box!.isOpen) {
+      _box!.close();
+    }
+    _box = null;
+    super.onClose();
+  }
+
+  Future<void> closeBox() async {
+    if (_box != null && _box!.isOpen) {
+      await _box!.close();
+    }
+    _box = null;
+  }
+
+  Future<void> clear() async {
+    await _ensureBoxOpen();                  // in case it was closed
+    await _box!.delete(_keyCurrent);
+    _selected.value = null;
+  }
+
+  // --- lifecycle / utils ---
+
+  Future<void> _ensureBoxOpen() async {
+    if (_box == null || !_box!.isOpen) {
+      _box = await Hive.openBox<CompanyData>(_companyBox);
+    }
+  }
+
+  // ---- session helpers (safe if Session isn't registered yet) ----
+  Future<void> _initSessionSafe(int companyId) async {
+    try {
+      final session = Get.find<Session>();
+      await session.init(companyId: companyId);
+    } catch (e, s) {
+      debugPrint('Session init from CompanyService failed: $e\n$s');
+    }
+  }
+
+  Future<void> _refreshSessionSafe(int companyId) async {
+    try {
+      final session = Get.find<Session>();
+      await session.refreshUser(companyId: companyId);
+    } catch (e, s) {
+      debugPrint('Session refresh from CompanyService failed: $e\n$s');
+    }
+  }
+
+  static CompanyService get to => Get.find<CompanyService>();
+
+
 }
+

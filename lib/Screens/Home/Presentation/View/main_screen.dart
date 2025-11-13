@@ -9,49 +9,46 @@ import '../../../../main.dart';
 import '../Controller/company_service.dart';
 
 class AccuChatDashboard extends StatelessWidget {
-
-
   final DashboardController controller = Get.put(DashboardController());
-
 
   @override
   Widget build(BuildContext context) {
     bool isWideScreen = MediaQuery.of(context).size.width > 800;
 
-    return WillPopScope(
-      onWillPop: ()async {
-        if (controller.currentIndex != 0) {
-          controller.updateIndex(0);
-          return false;
-        }
-        return true;
-      },
-      child: GetBuilder<DashboardController>(
-        builder: (controller) {
-          return Scaffold(
-            drawer: isWideScreen ? null : _buildDrawer(), // for mobile
-            body: Row(
-              children: [
-                if (isWideScreen) _buildSideNav(), // For web/tablet
-                Expanded(
-                  child: Center(
-                    child:controller.screens.isEmpty?SizedBox(): ConstrainedBox(
-                      constraints: const BoxConstraints(maxWidth: 1000),
-                      child: AnimatedSwitcher(
-                        duration: const Duration(milliseconds: 300),
-                        child: controller.screens[controller.currentIndex],
+    return WillPopScope(onWillPop: () async {
+      if (controller.currentIndex != 0) {
+        controller.updateIndex(0);
+        return false;
+      }
+      return true;
+    }, child: GetBuilder<DashboardController>(builder: (controller) {
+      return Scaffold(
+        // drawer: isWideScreen ? null : _buildDrawer(), // for mobile
+        body: Row(
+          children: [
+            if (isWideScreen) _buildSideNav(), // For web/tablet
+            Expanded(
+              child: Center(
+                child: controller.screens.isEmpty
+                    ? SizedBox()
+                    : ConstrainedBox(
+                        constraints: const BoxConstraints(maxWidth: 1000),
+                        child: AnimatedSwitcher(
+                          duration: const Duration(milliseconds: 300),
+                          child: controller.screens[controller.currentIndex],
+                        ),
                       ),
-                    ),
-                  ),
-                ),
-              ],
+              ),
             ),
-            bottomNavigationBar:
-            isWideScreen ? null : controller.screens.isEmpty?SizedBox():_bottomNavigationBar(),
-          );
-        }
-      )
-    );
+          ],
+        ),
+        bottomNavigationBar: isWideScreen
+            ? null
+            : controller.screens.isEmpty
+                ? SizedBox()
+                : _bottomNavigationBar(),
+      );
+    }));
   }
 
   Widget _buildSideNav() {
@@ -60,17 +57,13 @@ class AccuChatDashboard extends StatelessWidget {
       onDestinationSelected: (index) {
         controller.getCompany();
         controller.updateIndex(index);
-
-          isTaskMode = index == 1;
-
-          controller.update();
-
+        isTaskMode = index == 1;
+        controller.update();
       },
       labelType: NavigationRailLabelType.all,
       backgroundColor: Colors.white,
-      elevation: 5,
+      elevation: 3,
       destinations: [
-
         NavigationRailDestination(
             icon: Image.asset(
               chatHome,
@@ -94,13 +87,13 @@ class AccuChatDashboard extends StatelessWidget {
             label: Text('Your Companies',
                 style: BalooStyles.baloomediumTextStyle())),
 
-        NavigationRailDestination(
+        /*        NavigationRailDestination(
             icon: Image.asset(
               galleryIcon,
               height: 22,
             ),
             label: Text('Gallery',
-                style: BalooStyles.baloomediumTextStyle())),
+                style: BalooStyles.baloomediumTextStyle())),*/
       ],
     );
   }
@@ -109,7 +102,6 @@ class AccuChatDashboard extends StatelessWidget {
     return Drawer(
       backgroundColor: Colors.white,
       elevation: 0,
-
       child: ListView(
         padding: EdgeInsets.zero,
         children: [
@@ -135,7 +127,7 @@ class AccuChatDashboard extends StatelessWidget {
             onTap: () {
               controller.updateIndex(0);
               Get.back();
-                isTaskMode = false;
+              isTaskMode = false;
               controller.update();
             },
           ),
@@ -148,10 +140,9 @@ class AccuChatDashboard extends StatelessWidget {
             onTap: () {
               controller.updateIndex(1);
 
-
-                isTaskMode = true;
+              isTaskMode = true;
               Get.back();
-                controller.update();
+              controller.update();
             },
           ),
           ListTile(
@@ -164,24 +155,24 @@ class AccuChatDashboard extends StatelessWidget {
               controller.updateIndex(2);
               Get.back();
 
-                isTaskMode = false;
+              isTaskMode = false;
               controller.update();
             },
           ),
-          ListTile(
-            leading: Image.asset(
-              galleryIcon,
-              height: 22,
-            ),
-            title: const Text('Gallery'),
-            onTap: () {
-              controller.updateIndex(3);
-              Get.back();
-
-                isTaskMode = false;
-              controller.update();
-            },
-          ),
+          // ListTile(
+          //   leading: Image.asset(
+          //     galleryIcon,
+          //     height: 22,
+          //   ),
+          //   title: const Text('Gallery'),
+          //   onTap: () {
+          //     controller.updateIndex(3);
+          //     Get.back();
+          //
+          //       isTaskMode = false;
+          //     controller.update();
+          //   },
+          // ),
         ],
       ),
     );
@@ -276,18 +267,15 @@ class AccuChatDashboard extends StatelessWidget {
         appColorYellow.withOpacity(.8)
       ]),
       selectedItemGradient:
-      LinearGradient(colors: [Colors.white, Colors.white]),
+          LinearGradient(colors: [Colors.white, Colors.white]),
       showSelectedLabels: true,
-      selectedLabelStyle: BalooStyles.baloonormalTextStyle(
-        size: 14,
-        color: Colors.white
-      ), unselectedLabelStyle: BalooStyles.baloonormalTextStyle(
-        size: 14
-      ),
+      selectedLabelStyle:
+          BalooStyles.baloonormalTextStyle(size: 14, color: Colors.white),
+      unselectedLabelStyle: BalooStyles.baloonormalTextStyle(size: 14),
       showUnselectedLabels: true,
       currentIndex: controller.currentIndex,
       onTap: (v) async {
-        if(controller.bottomNavItems.isNotEmpty) {
+        if (controller.bottomNavItems.isNotEmpty) {
           controller.updateIndex(v);
           if (v == 1) {
             isTaskMode = true;
@@ -298,7 +286,6 @@ class AccuChatDashboard extends StatelessWidget {
         }
       },
       items: controller.barItems,
-
     );
   }
 }

@@ -45,6 +45,7 @@ dependencies:
   google_maps_flutter: ^2.5.3
   loading_indicator: ^3.1.1
   google_fonts:
+  scrollable_positioned_list: ^0.3.8
   gal: ^2.3.0
   photo_view: ^0.15.0
   in_app_update: ^4.0.2

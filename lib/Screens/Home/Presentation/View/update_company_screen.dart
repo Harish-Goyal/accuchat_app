@@ -635,6 +635,7 @@ class _LogoPickerBlock extends StatelessWidget {
           width: avatarSize,
           boxFit: BoxFit.cover,
           radiusAll: avatarSize,
+          borderColor: greyText,
         ),
       );
     } else {
@@ -646,6 +647,7 @@ class _LogoPickerBlock extends StatelessWidget {
           width: avatarSize,
           boxFit: BoxFit.cover,
           radiusAll: avatarSize,
+          borderColor: greyText,
         ),
       );
     }

@@ -15,7 +15,9 @@ import 'Constants/app_theme.dart';
 import 'Screens/Chat/helper/local_notification_channel.dart';
 import 'Screens/Chat/models/get_company_res_model.dart';
 import 'Screens/Home/Presentation/Controller/company_service.dart';
-import 'Screens/hive_boot.dart';
+import 'Services/APIs/auth_service/auth_api_services_impl.dart';
+import 'Services/APIs/post/post_api_service_impl.dart';
+import 'Services/hive_boot.dart';
 import 'Screens/splash/binding/binding.dart';
 import 'Services/notification_web_mobile.dart';
 import 'Services/storage_service.dart';
@@ -36,9 +38,9 @@ bool isFirstTimeChat = true;
 
 class GlobalVariable {
   static final GlobalKey<ScaffoldMessengerState> navState =
-  GlobalKey<ScaffoldMessengerState>();
+      GlobalKey<ScaffoldMessengerState>();
   static final GlobalKey<NavigatorState> navigatorState =
-  GlobalKey<NavigatorState>();
+      GlobalKey<NavigatorState>();
 }
 
 // (kept as-is)
@@ -58,19 +60,38 @@ Future<void> main() async {
   ));
 
   WidgetsFlutterBinding.ensureInitialized();
-  await StorageService.init();
-  Get.put(CompanyService(), permanent: true);
+
+
+    await StorageService.init();
+    await HiveBoot.init();
+    await HiveBoot.openBoxOnce<CompanyData>(selectedCompanyBox);
+    if(!Get.isRegistered<CompanyService>()) {
+      await Get.putAsync<CompanyService>(
+            () async => await CompanyService().init(),
+        permanent: true,
+      );
+    }
+  if (kIsWeb) {
+    if (!Get.isRegistered<PostApiServiceImpl>()) {
+      Get.put(PostApiServiceImpl(), permanent: true);
+    }
+    if (!Get.isRegistered<AuthApiServiceImpl>()) {
+      Get.put(AuthApiServiceImpl(), permanent: true);
+    }
+  }
+
   // IMPORTANT CHANGE:
   // Instead of doing heavy awaits here, we start UI immediately and
   // defer your exact same initialization to after first frame (see _deferredBoot).
   SystemChrome.setPreferredOrientations(
-      [DeviceOrientation.portraitUp, DeviceOrientation.portraitDown])
+          [DeviceOrientation.portraitUp, DeviceOrientation.portraitDown])
       .then((value) {
     runApp(const MyApp());
 
     // Kick boot AFTER first frame to avoid blocking splash.
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      _bootOnce ??= _deferredBoot(); // runs all your original awaits, just later
+      _bootOnce ??=
+          _deferredBoot(); // runs all your original awaits, just later
     });
   });
 }
@@ -78,16 +99,17 @@ Future<void> main() async {
 // ---------------------------------------------
 // NEW: moved your heavy code here (nothing removed, only deferred)
 // ---------------------------------------------
+const selectedCompanyBox = 'selected_company_box';
 Future<void> _deferredBoot() async {
   // Your original code lines are preserved below; I only grouped & parallelized them.
-  await StorageService.init();
+  // await StorageService.init();
   // ---- originally: firebase + notifications + storages + boxes ----
   final Future<void> firebaseInit = _initializeFirebase(); // (kept)
 
   // (kept) Notification init – deferred, same call
   final Future<void> notifInit = NotificationServicess.init(
     webVapidPublicKey:
-    "BJt_tuDwKCr6OR8Gibo9KMKsJfSjB3rje9fn7Q31qGPyxAi9SKF11kf8HYOd__Zo7Wubg_xgbhkZzykxRojmN9g",
+        "BJt_tuDwKCr6OR8Gibo9KMKsJfSjB3rje9fn7Q31qGPyxAi9SKF11kf8HYOd__Zo7Wubg_xgbhkZzykxRojmN9g",
   );
 
   // (kept) Local notifications – deferred, same calls
@@ -104,23 +126,26 @@ Future<void> _deferredBoot() async {
   final billingCtrl = Get.lazyPut(() => BillingController(service)); // (kept)
 
   // (kept) storages + hive registrations + box open
-  const selectedCompanyBox = 'selected_company_box';
 
-  final storageBoot = (() async {
-    await HiveBoot.init(); // safe + idempotent
-    await HiveBoot.openBoxOnce<CompanyData>(selectedCompanyBox);
-  })();
-  // Run the major groups in parallel with gentle timeouts (prevents hangs).
+
+  // final storageBoot = (() async {
+  //   await HiveBoot.init();
+  //   await HiveBoot.openBoxOnce<CompanyData>(selectedCompanyBox);
+  // })();
+  //
+  //   await Get.putAsync<CompanyService>(
+  //         () async => await CompanyService().init(),
+  //     permanent: true,
+  //   );
+
   await Future.wait<void>([
     firebaseInit.timeout(const Duration(seconds: 5), onTimeout: () => null),
     notifInit.timeout(const Duration(seconds: 4), onTimeout: () => null),
     localNotifInit.timeout(const Duration(seconds: 4), onTimeout: () => null),
-    storageBoot.timeout(const Duration(seconds: 6), onTimeout: () => null),
+    // storageBoot.timeout(const Duration(seconds: 6), onTimeout: () => null),
   ]);
 
-  // (kept) Your StorageService + NetworkController
-  // await StorageService.init(); // deferred but intact
-  Get.lazyPut(() => NetworkController(), fenix: true); // kept
+  Get.lazyPut(() => NetworkController(), fenix: true);
 
   // (kept) open boxes in try/catch – deferred
   // try {
@@ -134,7 +159,6 @@ Future<void> _deferredBoot() async {
   await SystemChrome.setEnabledSystemUIMode(SystemUiMode.edgeToEdge);
 
   // (kept) CompanyService – deferred
-
 
   // (kept) image cache tuning – deferred
   final cache = PaintingBinding.instance.imageCache;

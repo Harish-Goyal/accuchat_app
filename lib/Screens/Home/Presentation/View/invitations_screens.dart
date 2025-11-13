@@ -1,7 +1,10 @@
+import 'dart:math';
+
 import 'package:AccuChat/Constants/colors.dart';
 import 'package:AccuChat/Screens/Chat/api/apis.dart';
 import 'package:AccuChat/Screens/Home/Presentation/Controller/invitations_controller.dart';
 import 'package:AccuChat/main.dart';
+import 'package:AccuChat/utils/custom_dialogue.dart';
 import 'package:AccuChat/utils/data_not_found.dart';
 import 'package:AccuChat/utils/text_style.dart';
 import 'package:flutter/material.dart';
@@ -39,7 +42,8 @@ class InvitationsScreen extends GetView<InvitationsController> {
         body: shimmerEffectWidget(
           // showShimmer:true,
           showShimmer: controller.isLoading,
-          shimmerWidget: shimmerlistView(child: shimmerlistItem(height: 100,horizonalPadding: 20)),
+          shimmerWidget: shimmerlistView(
+              child: shimmerlistItem(height: 100, horizonalPadding: 20)),
           child: AnimationLimiter(
               child: controller.sentInviteList.isNotEmpty
                   ? ListView.builder(
@@ -78,6 +82,40 @@ class InvitationsScreen extends GetView<InvitationsController> {
                                 style: BalooStyles.baloomediumTextStyle()),
                             subtitle: Text(invitation.toPhoneEmail ?? '',
                                 style: BalooStyles.baloonormalTextStyle()),
+                            onLongPress: () {
+                              showDialog(
+                                  context: context,
+                                  builder: (_) => AlertDialog(
+                                    backgroundColor: Colors.white,
+                                        content: Column(
+                                          mainAxisSize: MainAxisSize.min,
+                                          children: [
+                                            Text(
+                                              "Delete Invitations",
+                                              style: BalooStyles
+                                                  .baloosemiBoldTextStyle(),
+                                            ),
+                                            vGap(8),
+                                            Text(
+                                              "The invite you have sent has been deleted! click OK!",
+                                              style: BalooStyles
+                                                  .baloonormalTextStyle(),
+                                            ),
+                                            vGap(30),
+                                            dynamicButton(
+                                                name: "Ok",
+                                                onTap: () => controller
+                                                    .hitAPIToDeleteInvitations(
+                                                        invitation.inviteId),
+                                                isShowText: true,
+                                                gradient:LinearGradient(colors: [Colors.red,Colors.red]),
+                                                color: Colors.white,
+                                                isShowIconText: false,
+                                                leanIcon: '')
+                                          ],
+                                        ),
+                                      ));
+                            },
                           ),
                         );
                       },

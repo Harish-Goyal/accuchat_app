@@ -42,65 +42,85 @@ class LoginScreenG extends GetView<LoginGController> {
                       maxWidth: isWide ? 500 : double.infinity,
                     ),
                     child: SingleChildScrollView(
-                      child: Column(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        crossAxisAlignment: CrossAxisAlignment.center,
-                        children: [
-                          Image.asset(appIcon, width:isWide? Get.width*.1:Get.width*.3,height:isWide? Get.width*.1:Get.width*.3,),
-                          Text(
-                            "Login with phone or email address!",
-                            style: BalooStyles.baloonormalTextStyle(weight: FontWeight.w500),
-                            textAlign: TextAlign.center,
-                          ),
-                          vGap(30),
-                          CustomTextField(
-                            hintText: "Email or Phone".tr,
-                            controller: controller.phoneController,
-                            textInputType: TextInputType.emailAddress,
-                            inputFormatters: controller.showCountryCode
-                                ? <TextInputFormatter>[
-                              FilteringTextInputFormatter.digitsOnly,
-                              LengthLimitingTextInputFormatter(10),
-                            ]
-                                : <TextInputFormatter>[],
-                            validator: (value) {
-                              return controller.showCountryCode
-                                  ? value?.validateMobile(controller.phoneController.text)
-                                  : value?.isValidEmail();
-                            },
-                            onFieldSubmitted: (String? value) {
-                              FocusScope.of(Get.context!).unfocus();
-                            },
-
-                            labletext: "Phone or Email",
-                            prefix: !controller.showCountryCode
-                                ? Icon(Icons.email_outlined, size: 18, color: appColorGreen)
-                                : CountryCodePicker(
-                              flagWidth: 20.0,
-                              initialSelection: 'IN',
-                              showCountryOnly: false,
-                              padding: EdgeInsets.zero,
-                              showFlagDialog: true,
-                              backgroundColor: Colors.red,
-                              showDropDownButton: false,
-                              barrierColor: Colors.black26,
-                              enabled: false,
-                              boxDecoration: BoxDecoration(borderRadius: BorderRadius.circular(0)),
-                              onChanged: (_) {},
+                        child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      crossAxisAlignment: CrossAxisAlignment.center,
+                      children: [
+                        Image.asset(
+                          appIcon,
+                          width: isWide ? Get.width * .1 : Get.width * .3,
+                          height: isWide ? Get.width * .1 : Get.width * .3,
+                        ),
+                        Text(
+                          "Login with phone or email address!",
+                          style: BalooStyles.baloonormalTextStyle(
+                              weight: FontWeight.w500),
+                          textAlign: TextAlign.center,
+                        ),
+                        vGap(30),
+                        CustomTextField(
+                          hintText: "Email or Phone".tr,
+                          controller: controller.phoneController,
+                          textInputType: TextInputType.emailAddress,
+                          inputFormatters: controller.showCountryCode
+                              ? <TextInputFormatter>[
+                                  FilteringTextInputFormatter.digitsOnly,
+                                  LengthLimitingTextInputFormatter(10),
+                                ]
+                              : <TextInputFormatter>[],
+                          validator: (value) {
+                            return controller.showCountryCode
+                                ? value?.validateMobile(
+                                    controller.phoneController.text)
+                                : value?.isValidEmail();
+                          },
+                          onFieldSubmitted: (String? value) {
+                            FocusScope.of(Get.context!).unfocus();
+                          },
+                          labletext: "Phone or Email",
+                          prefix: !controller.showCountryCode
+                              ? Icon(Icons.email_outlined,
+                                  size: 18, color: appColorGreen)
+                              : CountryCodePicker(
+                            initialSelection: 'IN',
+                            showFlagDialog: false,
+                            showDropDownButton: false,
+                            padding: EdgeInsets.zero,
+                            backgroundColor: Colors.transparent,            // just in case
+                            boxDecoration: const BoxDecoration(
+                              color: Colors.transparent,                    // main container transparent
                             ),
-
-                            onChangee: controller.onTextChanged,
-                          ),
-                          vGap(40),
-                          dynamicButton(
-                            name: "Send OTP",
-                            onTap: () => controller.hitAPIToSendOtp(),
-                            isShowText: true,
-                            isShowIconText: false,
-                            gradient: buttonGradient,
-                            leanIcon: 'assets/images/google.png',
-                          ),
-                          /*vGap(35),
+                            builder: (code) {
+                              return Container(                             // you control the painting
+                                color: Colors.transparent,
+                                padding: const EdgeInsets.symmetric(horizontal: 8),
+                                child: Row(
+                                  mainAxisSize: MainAxisSize.min,
+                                  children: [
+                                    if (code?.flagUri != null)
+                                      Image.asset(code!.flagUri!,
+                                          package: 'country_code_picker', width: 20),
+                                    const SizedBox(width: 6),
+                                    Text(code?.dialCode ?? ''),
+                                  ],
+                                ),
+                              );
+                            },
+                            onChanged: (_) {},
+                          )
+                          ,
+                          onChangee: controller.onTextChanged,
+                        ),
+                        vGap(40),
+                        dynamicButton(
+                          name: "Send OTP",
+                          onTap: () => controller.hitAPIToSendOtp(),
+                          isShowText: true,
+                          isShowIconText: false,
+                          gradient: buttonGradient,
+                          leanIcon: 'assets/images/google.png',
+                        ),
+                        /*vGap(35),
                           Row(
                             children: [
                               Expanded(
@@ -115,15 +135,14 @@ class LoginScreenG extends GetView<LoginGController> {
                               ),
                             ],
                           ).marginSymmetric(horizontal: 20),*/
-                          vGap(20),
-                          Row(
-                            children: [
-                              Flexible(child: _policyText()),
-                            ],
-                          ).marginSymmetric(vertical: 35, horizontal: 20),
-                        ],
-                      ).paddingSymmetric(vertical: 5, horizontal: 15)
-                    ),
+                        vGap(20),
+                        Row(
+                          children: [
+                            Flexible(child: _policyText()),
+                          ],
+                        ).marginSymmetric(vertical: 35, horizontal: 20),
+                      ],
+                    ).paddingSymmetric(vertical: 5, horizontal: 15)),
                   ),
                 );
               },
@@ -280,22 +299,23 @@ class LoginScreenG extends GetView<LoginGController> {
     );
   }
 
-
-  _policyText(){
+  _policyText() {
     return Text.rich(
       TextSpan(
           text: "By continuing with Google Sign-In, you agree to our  ".tr,
-          style: BalooStyles.baloonormalTextStyle(size: 14,color: Colors.black54),
+          style:
+              BalooStyles.baloonormalTextStyle(size: 14, color: Colors.black54),
           children: [
             TextSpan(
               text: "Privacy Policy.".tr,
               recognizer: new TapGestureRecognizer()
                 ..onTap = () {
                   Get.to(() => HtmlViewer(
-                    htmlContent: pvcContent,
-                  ));
+                        htmlContent: pvcContent,
+                      ));
                 },
-              style: BalooStyles.baloomediumTextStyle(size: 14,color: appColorGreen),
+              style: BalooStyles.baloomediumTextStyle(
+                  size: 14, color: appColorGreen),
             ),
           ]),
       textAlign: TextAlign.center,
@@ -306,5 +326,4 @@ class LoginScreenG extends GetView<LoginGController> {
       ),
     );
   }
-
 }

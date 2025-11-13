@@ -4,6 +4,7 @@ import 'package:get/get.dart';
 import 'package:flutter/foundation.dart' show kIsWeb; // ✅ for web checks
 import 'dart:math' as math; // ✅ for min/max helpers
 
+import '../../../../../../Constants/colors.dart';
 import '../../../../../../utils/helper.dart';
 import '../../../../../../utils/networl_shimmer_image.dart';
 import '../../../../models/chat_history_response_model.dart';
@@ -242,15 +243,16 @@ class _ImagesGrid extends StatelessWidget {
       return Column(
         crossAxisAlignment: CrossAxisAlignment.end,
         mainAxisSize: MainAxisSize.min,
+        mainAxisAlignment: MainAxisAlignment.start,
         children: [
-          if (isGroupMessage)
+          /*if (isGroupMessage)
             Text(
               fromId == myId ? "You" : (senderName ?? ''),
               style: Theme.of(context)
                   .textTheme
                   .bodySmall
                   ?.copyWith(fontSize: 13, color: fromId == myId ? Colors.green : Colors.purple),
-            ).paddingAll(4),
+            ).paddingAll(0),*/
           InkWell(
             onTap: () => onTapImage(0),
             child: /*ClipRRect(
@@ -274,14 +276,13 @@ class _ImagesGrid extends StatelessWidget {
             )*/AspectRatio(
               aspectRatio: kIsWeb ? 18/10 : 4 / 3,
               child: CustomCacheNetworkImage(
-
                 item.url,
                 radiusAll: 15, // radius handled by ClipRRect above
                 boxFit: BoxFit.cover,
                 defaultImage: defaultGallery,
+                borderColor: greyText,
                 assetPadding: 0,
-
-              ).paddingOnly(bottom: 16,top: 0),
+              ).paddingOnly(bottom: 16,top: 2),
             ),
           ),
         ],
@@ -298,14 +299,14 @@ class _ImagesGrid extends StatelessWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.end,
       children: [
-        if (isGroupMessage)
-          Text(
-            fromId == myId ? "You" : (senderName ?? ''),
-            style: Theme.of(context)
-                .textTheme
-                .bodySmall
-                ?.copyWith(fontSize: 13, color: fromId == myId ? Colors.green : Colors.purple),
-          ),
+        // if (isGroupMessage)
+        //   Text(
+        //     fromId == myId ? "You" : (senderName ?? ''),
+        //     style: Theme.of(context)
+        //         .textTheme
+        //         .bodySmall
+        //         ?.copyWith(fontSize: 13, color: fromId == myId ? Colors.green : Colors.purple),
+        //   ),
         GridView.builder(
           shrinkWrap: true,
           physics: const NeverScrollableScrollPhysics(),
@@ -366,14 +367,14 @@ class _FileTiles extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.end,
         mainAxisSize: MainAxisSize.min,
         children: [
-          if (showHeaderName)
-            Text(
-              whoText,
-              style: Theme.of(context)
-                  .textTheme
-                  .bodySmall
-                  ?.copyWith(fontSize: 13, color: labelColorForSender),
-            ),
+          // if (showHeaderName)
+          //   Text(
+          //     whoText,
+          //     style: Theme.of(context)
+          //         .textTheme
+          //         .bodySmall
+          //         ?.copyWith(fontSize: 13, color: labelColorForSender),
+          //   ),
 
           ...items.map((item) {
             final fileName = item.fileName;

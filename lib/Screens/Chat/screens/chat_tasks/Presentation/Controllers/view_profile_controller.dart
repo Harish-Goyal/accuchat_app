@@ -6,6 +6,7 @@ import 'package:get/get.dart';
 
 import '../../../../../../Services/APIs/post/post_api_service_impl.dart';
 import '../../../../../../utils/custom_flashbar.dart';
+import '../../../../../../utils/helper_widget.dart';
 import '../../../../../Home/Presentation/Controller/company_service.dart';
 import '../../../../models/all_media_res_model.dart';
 import '../../../../models/chat_user.dart';
@@ -16,41 +17,55 @@ class ViewProfileController extends GetxController {
   UserDataAPI? user;
   @override
   void onInit() {
-    _getCompany();
+
     getArguments();
+    scrollListener();
+    scrollListener2();
+
     super.onInit();
   }
 
-  getArguments(){
-    if(kIsWeb){
+  bool isLoading =true;
 
+  getArguments(){
+    _getCompany();
+    if(kIsWeb){
       if(Get.parameters!=null) {
         String? userId = Get.parameters['userId'];
+
         getUserByIdApi(userId: int.parse(userId??''));
       }
     }else{
       if(Get.arguments!=null) {
         user = Get.arguments['user'];
+        _fireApiForCurrentTab();
       }
     }
 
   }
 
 
-  CompanyData? myCompany = CompanyData();
+  CompanyData? myCompany;
   _getCompany() {
-    final svc = Get.find<CompanyService>();
+    final svc = CompanyService.to;
     myCompany = svc.selected;
-    update();
   }
+
+
+
+
 
   getUserByIdApi({int? userId}) async {
     Get.find<PostApiServiceImpl>()
         .getUserByApiCall(userID: userId,comid: myCompany?.companyId)
         .then((value) async {
+      isLoading =false;
       user = value.data;
+      _fireApiForCurrentTab();
       update();
     }).onError((error, stackTrace) {
+      update();
+      isLoading =false;
       update();
       errorDialog(error.toString());
     }).whenComplete(() {});
@@ -71,7 +86,7 @@ class ViewProfileController extends GetxController {
     _tabCtrl!.addListener(_onTabChanged);
 
     // initial fetch for default tab
-    _fireApiForCurrentTab();
+
   }
 
 
@@ -90,12 +105,57 @@ class ViewProfileController extends GetxController {
     getAllMediaAPICall( mediaType, sourceFilter.value);
   }
 
+
+  int page = 1;
+  bool hasMore = true;
+
+  ScrollController scrollController = ScrollController();
+  ScrollController scrollController2 = ScrollController();
+
+  scrollListener() {
+    scrollController.addListener(() {
+      if ((scrollController.position.extentAfter) <= 0 && !isLoading) {
+        hasMore = true;
+        page++;
+        update();
+        _fireApiForCurrentTab();
+      }
+    });
+  }
+  scrollListener2() {
+    scrollController2.addListener(() {
+      if ((scrollController2.position.extentAfter) <= 0 && !isLoading) {
+        hasMore = true;
+        page++;
+        update();
+        _fireApiForCurrentTab();
+      }
+    });
+  }
+
   getAllMediaAPICall(type,source) async {
     Get.find<PostApiServiceImpl>()
         .getAllMediaAPI(page: 1,source: isTaskMode?'task':'chat',mediaType:type,userCId: user?.userCompany?.userCompanyId )
         .then((value) async {
       profileMediaList.assignAll(value.data?.items??[]);
       update();
+      if ((value.data?.items ?? []).isNotEmpty) {
+        if (page == 1) {
+          profileMediaList.assignAll(value.data?.items??[]);
+          isLoading = false;
+          hasMore = false;
+          update();
+        } else {
+          profileMediaList.addAll(value.data?.items ?? []);
+          isLoading = false;
+          hasMore = false;
+          update();
+        }
+      } else {
+          isLoading = false;
+          hasMore = false;
+          update();
+      }
     }).onError((error, stackTrace) {
       update();
       errorDialog(error.toString());
@@ -130,24 +190,5 @@ class ViewProfileController extends GetxController {
       _filtered.where((m) => isDoc(m)).toList();
 
   // -------- type helpers ----------
-  bool isDoc(Items m) {
-    final code = (m.mediaType?.code ?? '').toUpperCase();
-    if (code == 'DOC') return true;
-    final ext = (m.fileName ?? '').toLowerCase();
-    return ext.endsWith('.pdf') ||
-        ext.endsWith('.doc') || ext.endsWith('.docx') ||
-        ext.endsWith('.xls') || ext.endsWith('.xlsx') ||
-        ext.endsWith('.ppt') || ext.endsWith('.pptx') ||
-        ext.endsWith('.csv') || ext.endsWith('.txt');
-  }
 
-  bool isImageOrVideo(Items m) {
-    final code = (m.mediaType?.code ?? '').toUpperCase();
-    if (code == 'IMG' || code == 'IMAGE' || code == 'PHOTO' || code == 'VID' || code == 'VIDEO') return true;
-    final ext = (m.fileName ?? '').toLowerCase();
-    return ext.endsWith('.jpg') || ext.endsWith('.jpeg') ||
-        ext.endsWith('.png') || ext.endsWith('.gif') ||
-        ext.endsWith('.webp') || ext.endsWith('.mp4') ||
-        ext.endsWith('.mov') || ext.endsWith('.m4v') || ext.endsWith('.avi');
-  }
 }

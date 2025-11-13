@@ -19,18 +19,13 @@ class HProfileController extends GetxController {
 
   String profileImg = '';
 
-  late TextEditingController nameC;
-  late TextEditingController aboutC;
-  late TextEditingController phoneC;
-  late TextEditingController mailC;
+ TextEditingController nameC=TextEditingController();
+ TextEditingController aboutC=TextEditingController();
+ TextEditingController phoneC=TextEditingController();
+ TextEditingController mailC=TextEditingController();
   @override
   void onInit() {
     _getCompany();
-    nameC = TextEditingController();
-    aboutC = TextEditingController();
-    phoneC = TextEditingController();
-    mailC = TextEditingController();
-
     super.onInit();
   }
 
@@ -44,26 +39,28 @@ class HProfileController extends GetxController {
 
   UserDataAPI userData = UserDataAPI();
 
-  bool isLoading = true;
+  bool isLoading = false;
   CompanyData? myCompany = CompanyData();
   _getCompany() async {
-    final svc     = Get.find<CompanyService>();
+    final svc = CompanyService.to;
     myCompany =svc.selected;
-    update();
     hitAPIToGetUser();
   }
 
   hitAPIToGetUser() async {
-    FocusManager.instance.primaryFocus!.unfocus();
+   isLoading = true;
+   update();
+    // FocusManager.instance.primaryFocus!.unfocus();
     Get.find<AuthApiServiceImpl>().getUserApiCall(companyId: myCompany?.companyId??0).then((value) async {
       isLoading = false;
+      update();
       userData = value.data!;
       saveUser(userData);
+
       _initData(userData);
-      update();
+
     }).onError((error, stackTrace) {
       isLoading = false;
-      customLoader.hide();
       errorDialog(error.toString());
       update();
     });
@@ -72,7 +69,6 @@ class HProfileController extends GetxController {
 
   hitAPIToDeleteAccount() async {
     customLoader.show();
-    print(APIs.me.userId??0);
     Get.find<PostApiServiceImpl>()
         .deleteUserAccountApiCall(userID: APIs.me.userId??0)
         .then((value) async {

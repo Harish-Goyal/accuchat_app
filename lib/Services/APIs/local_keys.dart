@@ -10,7 +10,7 @@ import 'package:hive/hive.dart';
 import '../../Screens/Authentication/AuthResponseModel/loginResModel.dart';
 import '../../Screens/Chat/models/get_company_res_model.dart';
 import '../../Screens/Settings/Model/get_company_roles_res_moel.dart';
-import '../../Screens/hive_boot.dart';
+import '../hive_boot.dart';
 import '../../main.dart';
 import '../../utils/shares_pref_web.dart';
 import '../storage_service.dart';
@@ -95,12 +95,21 @@ RolesData? getRolesData() {
   return null;
 }
 
-logoutLocal() async {
-  // Get.find<CompanyService>().clear();
-  // await Get.delete<CompanyService>(force: true);
+Future<void> logoutLocal() async {
   customLoader.show();
+
+  // 1) Close & delete CompanyService instance cleanly
+  if (Get.isRegistered<CompanyService>()) {
+    try { await CompanyService.to.closeBox(); } catch (_) {}
+    await Get.delete<CompanyService>(force: true);
+  }
+
+  // 2) Now it’s safe to wipe Hive
   await HiveBoot.closeAndDeleteAll(deleteFromDisk: true);
-  // await HiveBoot.init();
+  // If your app requires, re-init later before next login:
+  // await HiveBoot.init();  <-- do this at login boot instead
+
+  // 3) Clear your storages
   StorageService.remove(isFirstTime);
   StorageService.remove(isFirstTimeChatKey);
   StorageService.remove(user_mob);
@@ -114,10 +123,13 @@ logoutLocal() async {
   AppStorage().remove(LOCALKEY_token);
   AppStorage().remove(user_key);
   AppStorage().clear();
+
+  // 4) Navigate to login
   Future.delayed(const Duration(milliseconds: 600),
-      () => Get.offAllNamed(AppRoutes.login_r));
+          () => Get.offAllNamed(AppRoutes.login_r));
   customLoader.hide();
 }
+
 
 void saveNavigation(List<NavigationItem> data) {
   final navJson = data

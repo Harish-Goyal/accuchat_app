@@ -29,7 +29,6 @@ class AllUserScreen extends GetView<AllUserController> {
           return Scaffold(
             appBar: AppBar(
               // automaticallyImplyLeading: false,
-
               title:controller.isSearching
                   ? TextField(
                 controller: controller.seacrhCon,
@@ -79,6 +78,7 @@ class AllUserScreen extends GetView<AllUserController> {
                     radiusAll: 100,
                     borderColor: greyText,
                     boxFit: BoxFit.cover,
+
                     defaultImage: userIcon,
                   ),
                 ),

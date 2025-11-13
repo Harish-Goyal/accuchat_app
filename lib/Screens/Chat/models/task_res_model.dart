@@ -239,11 +239,13 @@ class StatusHistory {
   int? toId;
   int? fromId;
   String? createdOn;
+  String? from_name;
 
   StatusHistory(
       {this.taskLogId,
         this.taskStatusId,
         this.statusName,
+        this.from_name,
         this.toId,
         this.fromId,
         this.createdOn});
@@ -252,6 +254,7 @@ class StatusHistory {
     taskLogId = json['task_log_id'];
     taskStatusId = json['task_status_id'];
     statusName = json['status_name'];
+    from_name = json['from_name'];
     toId = json['to_id'];
     fromId = json['from_id'];
     createdOn = json['created_on'];
@@ -262,6 +265,7 @@ class StatusHistory {
     data['task_log_id'] = this.taskLogId;
     data['task_status_id'] = this.taskStatusId;
     data['status_name'] = this.statusName;
+    data['from_name'] = this.from_name;
     data['to_id'] = this.toId;
     data['from_id'] = this.fromId;
     data['created_on'] = this.createdOn;

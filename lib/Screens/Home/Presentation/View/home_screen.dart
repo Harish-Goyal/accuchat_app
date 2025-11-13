@@ -64,6 +64,7 @@ class HomeScreen extends GetView<DashboardController> {
                                         radiusAll: mq.height * .25,
                                         height: 50,
                                         boxFit: BoxFit.cover,
+                                        borderColor: greyText,
                                       ),
                                     ).paddingAll(4),
                                     const SizedBox(width: 8),
@@ -136,7 +137,7 @@ class HomeScreen extends GetView<DashboardController> {
                                                   width: 50,
                                                   boxFit: BoxFit.cover,
                                                   radiusAll: 100,
-                                                  borderColor: Colors.black54,
+                                                  borderColor: greyText,
                                                 )),
                                             hGap(10),
                                             Expanded(
@@ -159,7 +160,7 @@ class HomeScreen extends GetView<DashboardController> {
                                             ),
                                             dynamicButton(
                                               btnColor: appColorGreen,
-                                              onTap: () async=> await controller.hitAPIToAcceptInvite(invites.inviteId,invites.company?.companyId),
+                                              onTap: () async=>  controller.hitAPIToAcceptInvite(invites.inviteId,invites.company?.companyId),
                                               gradient: buttonGradient,
                                               vPad: 8,
                                               name: "Accept",
@@ -469,6 +470,7 @@ class ChatCard extends StatelessWidget {
             )),
         contentPadding: EdgeInsets.zero,
         onTap: onTap,
+
 
       ),
     ).marginOnly(bottom: 8, left: 8, right: 8);

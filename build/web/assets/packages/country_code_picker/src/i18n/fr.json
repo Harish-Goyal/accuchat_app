@@ -39,7 +39,11 @@
     "CA": "Canada",
     "CV": "Cap-Vert",
     "KY": "Îles Caïmans",
+<<<<<<< HEAD
     "CF": "République Centrafricaine",
+=======
+    "CF": "Centrafricaine, République",
+>>>>>>> wor_web_06
     "TD": "Tchad",
     "CL": "Chili",
     "CN": "Chine",
@@ -92,7 +96,11 @@
     "GY": "Guyana",
     "HT": "Haïti",
     "HM": "Îles Heard-et-MacDonald",
+<<<<<<< HEAD
     "VA": "Vatican",
+=======
+    "VA": "Saint-Siège",
+>>>>>>> wor_web_06
     "HN": "Honduras",
     "HK": "Hong Kong",
     "HU": "Hongrie",
@@ -113,7 +121,11 @@
     "KP": "Corée du Nord",
     "KR": "Corée du Sud",
     "KW": "Koweït",
+<<<<<<< HEAD
     "KG": "Kirghizistan",
+=======
+    "KG": "Kirghistan",
+>>>>>>> wor_web_06
     "LA": "Laos",
     "LV": "Lettonie",
     "LB": "Liban",
@@ -212,7 +224,11 @@
     "TG": "Togo",
     "TK": "Tokelau",
     "TO": "Tonga",
+<<<<<<< HEAD
     "TT": "Trinité-et-Tobago",
+=======
+    "TT": "Trinidad et Tobago",
+>>>>>>> wor_web_06
     "TN": "Tunisie",
     "TR": "Turquie",
     "TM": "Turkménistan",

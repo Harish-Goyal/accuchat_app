@@ -1,5 +1,6 @@
 import 'package:AccuChat/Screens/Home/Presentation/Controller/company_service.dart';
 import 'package:AccuChat/Services/storage_service.dart';
+import 'package:flutter/foundation.dart';
 import 'package:get/get.dart';
 
 import '../../../Services/APIs/auth_service/auth_api_services_impl.dart';
@@ -26,19 +27,19 @@ class SplashBinding extends Bindings {
 class InitBinding extends Bindings {
   @override
   Future<void> dependencies() async {
-
-    if (!Get.isRegistered<AppStorage>()) {
+    // if (!Get.isRegistered<AppStorage>()) {
       Get.putAsync<AppStorage>(() async {
         await AppStorage().init(boxName: 'accu_chat');            // this is safe & idempotent now
         return AppStorage();                // or a service wrapper if you have one
       }, permanent: true);
-    }
+    // }
 
     await StorageService.init();
 
     Get.lazyPut<AuthApiServiceImpl>(
       () => AuthApiServiceImpl(),
     );
+
 
     Get.lazyPut<PostApiServiceImpl>(
       () => PostApiServiceImpl(),
@@ -50,7 +51,7 @@ class InitBinding extends Bindings {
 
       CompanyData? selCompany;
       try {
-        final svc = Get.find<CompanyService>();
+        final svc = CompanyService.to;
         // OPTIONAL: if you add a `Future<void> ready` in CompanyService, await it here:
         // await svc.ready;
         selCompany = svc.selected; // may be null on clean install

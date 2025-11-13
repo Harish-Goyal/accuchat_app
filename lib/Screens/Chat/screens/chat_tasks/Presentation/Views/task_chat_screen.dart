@@ -3,6 +3,7 @@ import 'dart:io';
 import 'dart:math' as math;
 import 'package:AccuChat/Screens/Chat/screens/chat_tasks/Presentation/Controllers/task_home_controller.dart';
 import 'package:AccuChat/Services/storage_service.dart';
+import 'package:file_picker/file_picker.dart';
 import 'package:url_launcher/url_launcher_string.dart';
 import 'package:AccuChat/Screens/Chat/models/chat_history_response_model.dart';
 import 'package:AccuChat/Services/APIs/api_ends.dart';
@@ -462,7 +463,7 @@ class TaskScreen extends GetView<TaskController> {
                   child: Padding(
                     padding: const EdgeInsets.only(left: 12.0, top: 4),
                     child: Text(
-                      "👆 Double tap to update status",
+                      "👆Tap to update status",
                       style: TextStyle(
                         fontSize: 12,
                         color: appColorGreen,
@@ -556,13 +557,14 @@ class TaskScreen extends GetView<TaskController> {
        PopupMenuItem<int>(
         enabled: false,
         child: Text('Status History', style: BalooStyles.baloosemiBoldTextStyle()),
-      ),
+       ),
     ];
 
     // Show latest first
     for (final e in cleaned.reversed) {
       final id = e.taskStatusId as int;
       final statusName = (e.statusName??'');
+      final fromname = (e.from_name??'');
       final by =  resolveName;
       final when = controller.formatWhen(e.createdOn??'');
 
@@ -576,7 +578,7 @@ class TaskScreen extends GetView<TaskController> {
             style: BalooStyles.balooregularTextStyle( italicFontStyle: true,),
 
           ),
-          subtitle: Text('by $by at $when',
+          subtitle: Text('By $fromname At $when',
             style: BalooStyles.balooregularTextStyle(),),
         ),
       ));
@@ -591,14 +593,14 @@ class TaskScreen extends GetView<TaskController> {
       mainAxisSize: MainAxisSize.min,
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text("📝 ${message?.title}",
+        Text("📝 ${message.title}",
             style: const TextStyle(fontWeight: FontWeight.bold)),
         vGap(5),
         Text(
-          message?.details ?? '',
+          message.details ?? '',
           style: themeData.textTheme.bodySmall,
         ),
-        if ((message?.deadline ?? '').isNotEmpty) ...[
+        if ((message.deadline ?? '').isNotEmpty) ...[
           vGap(10),
           Text(
               "⏱️ Est. Time: ${estimateLabel(deadlineIso: message.deadline ?? '', createdIso: message.createdOn ?? '')}",
@@ -740,15 +742,21 @@ class TaskScreen extends GetView<TaskController> {
                 //back button
                 IconButton(
                     onPressed: () {
-                      Get.back();
-                      Get.find<TaskHomeController>().hitAPIToGetRecentTasksUser();
-
-                      if (isTaskMode) {
-                        dashboardController.updateIndex(1);
+                      if (Get.previousRoute.isNotEmpty) {
+                        Get.back();
                       } else {
-                        dashboardController.updateIndex(0);
+                        Get.offAllNamed(AppRoutes.home); // or your main route
                       }
+                      if(!kIsWeb) {
+                        Get.find<TaskHomeController>()
+                            .hitAPIToGetRecentTasksUser();
 
+                        if (isTaskMode) {
+                          dashboardController.updateIndex(1);
+                        } else {
+                          dashboardController.updateIndex(0);
+                        }
+                      }
                       // APIs.updateActiveStatus(false);
                     },
                     icon: const Icon(Icons.arrow_back, color: Colors.black54)),
@@ -929,8 +937,8 @@ class TaskScreen extends GetView<TaskController> {
                   final r = rangeFor(v);
                   Get.find<TaskController>().hitAPIToGetTaskHistory(isFilter: true
                   ,
-                  fromDate: r.fromUtc.toIso8601String(),
-                  toDate: r.toUtc.toIso8601String());
+                  fromDate: r.startDate,
+                  toDate: r.endDate);
 
 
                 }else{
@@ -947,12 +955,9 @@ class TaskScreen extends GetView<TaskController> {
                         child: Text(s.status ?? 'Unknown',style: BalooStyles.baloonormalTextStyle()),
                       )),
                  const PopupMenuDivider(),
-
-
-
-                  PopupMenuItem(value: TimeFilter.today,     child: Text('Today',style: BalooStyles.baloonormalTextStyle(),)),
-                  PopupMenuItem(value: TimeFilter.thisWeek,  child: Text('This Week',style: BalooStyles.baloonormalTextStyle())),
-                  PopupMenuItem(value: TimeFilter.thisMonth, child: Text('This Month',style: BalooStyles.baloonormalTextStyle())),
+                 PopupMenuItem(value: TimeFilter.today,     child: Text('Today',style: BalooStyles.baloonormalTextStyle(),)),
+                 PopupMenuItem(value: TimeFilter.thisWeek,  child: Text('This Week',style: BalooStyles.baloonormalTextStyle())),
+                 PopupMenuItem(value: TimeFilter.thisMonth, child: Text('This Month',style: BalooStyles.baloonormalTextStyle())),
                 ];
                 return items;
               },
@@ -1031,7 +1036,7 @@ class TaskScreen extends GetView<TaskController> {
                                     onTap: () {
                                       // if (_showEmoji)
                                       //   setState(() => _showEmoji = !_showEmoji);
-
+                                      controller.clearFields();
                                       if (isTaskMode) {
                                         showDialog(
                                             context: Get.context!,
@@ -1448,169 +1453,6 @@ class TaskScreen extends GetView<TaskController> {
             title:
                 "Create Task for ${controller.user?.userId == APIs.me.userId ? 'You' : userName.isEmpty ? controller.user?.phone : userName}",
             isShowAppIcon: false,
-            // content: Column(
-            //   crossAxisAlignment: CrossAxisAlignment.center,
-            //   mainAxisSize: MainAxisSize.min,
-            //   children: [
-            //     Text(
-            //       "Enter Task Details",
-            //       style: BalooStyles.baloonormalTextStyle(),
-            //       textAlign: TextAlign.center,
-            //     ),
-            //     Text(
-            //       controller.validString,
-            //       style: BalooStyles.baloonormalTextStyle(
-            //           color: AppTheme.redErrorColor),
-            //       textAlign: TextAlign.center,
-            //     ),
-            //     vGap(10),
-            //     _taskInputArea(setStateInside),
-            //     vGap(10),
-            //     const Text("Attachments",
-            //         style: TextStyle(fontWeight: FontWeight.bold)),
-            //     vGap(10),
-            //     if (controller.isUploadingTaskDoc) const IndicatorLoading(),
-            //     Wrap(
-            //       spacing: 8,
-            //       runSpacing: 8,
-            //       children: controller.attachedFiles.map((file) {
-            //         final String type = file['type'];
-            //         final String name = file['name'];
-            //         final url = file['url'];
-            //
-            //         Widget preview;
-            //
-            //         if (type == 'image') {
-            //           preview = url != null
-            //               ? /*url.startWith('http')?  CustomCacheNetworkImage(
-            //             url,
-            //             radiusAll: 8,
-            //             width: 75,
-            //             height: 75,
-            //             boxFit: BoxFit.cover,
-            //             defaultImage: defaultGallery,
-            //           ):*/
-            //               ClipRRect(
-            //                   borderRadius: BorderRadius.circular(8),
-            //                   child: Image.file(
-            //                     url,
-            //                     width: 75,
-            //                     height: 75,
-            //                     fit: BoxFit.cover,
-            //                   ),
-            //                 )
-            //               : const SizedBox();
-            //         } else if (type == 'doc') {
-            //           IconData icon;
-            //           if (name.endsWith('.pdf')) {
-            //             icon = Icons.picture_as_pdf;
-            //           } else if (name.endsWith('.doc') || name.endsWith('.docx')) {
-            //             icon = Icons.description;
-            //           } else if (name.endsWith('.txt')) {
-            //             icon = Icons.note;
-            //           } else {
-            //             icon = Icons.insert_drive_file;
-            //           }
-            //
-            //           preview = Container(
-            //             width: 75,
-            //             height: 75,
-            //             padding: const EdgeInsets.symmetric(horizontal: 2),
-            //             decoration: BoxDecoration(
-            //               border: Border.all(color: Colors.grey.shade400),
-            //               borderRadius: BorderRadius.circular(8),
-            //             ),
-            //             child: Column(
-            //               mainAxisAlignment: MainAxisAlignment.center,
-            //               children: [
-            //                 Icon(icon, size: 30, color: Colors.grey),
-            //                 Text(name,
-            //                     textAlign: TextAlign.center,
-            //                     maxLines: 2,
-            //                     overflow: TextOverflow.ellipsis,
-            //                     style: const TextStyle(fontSize: 10)),
-            //               ],
-            //             ),
-            //           );
-            //         } else {
-            //           preview = const SizedBox();
-            //         }
-            //
-            //         return Stack(
-            //           alignment: Alignment.topRight,
-            //           clipBehavior: Clip.none,
-            //           children: [
-            //             preview,
-            //             Positioned(
-            //               top: -5,
-            //               right: -5,
-            //               child: GestureDetector(
-            //                 onTap: () {
-            //                   setStateInside(() {
-            //                     controller.attachedFiles.remove(file);
-            //                   });
-            //                   controller.update();
-            //                 },
-            //                 child: const CircleAvatar(
-            //                   radius: 13,
-            //                   backgroundColor: Colors.red,
-            //                   child:
-            //                       Icon(Icons.close, size: 12, color: Colors.white),
-            //                 ),
-            //               ),
-            //             ),
-            //           ],
-            //         );
-            //       }).toList(),
-            //     ),
-            //     vGap(10),
-            //     GestureDetector(
-            //       onTap: () => controller.attachedFiles.length < 3
-            //           ? showUploadOptionsForTask(context, setStateInside)
-            //           : toast("You can upload upto 3 attachments only"),
-            //       child: const Chip(
-            //         avatar: Icon(Icons.attach_file),
-            //         label: Text("Add Attachments"),
-            //         backgroundColor: Colors.white,
-            //       ),
-            //     ),
-            //     vGap(20),
-            //     GradientButton(
-            //       name:
-            //           "Send Task to ${controller.user?.userId == controller.me?.userId ? 'You' : userName.isEmpty ? controller.user?.phone : userName}",
-            //       btnColor: AppTheme.appColor,
-            //       vPadding: 8,
-            //       onTap: () {
-            //         if (controller.tasksFormKey.currentState!.validate()) {
-            //           if (controller.getEstimatedTime(setStateInside) != "" &&
-            //               controller.selectedDate != null &&
-            //               controller.selectedTime != null) {
-            //             if (controller.getEstimatedTime(setStateInside) ==
-            //                 "Oops! The selected time is in the past. Please choose a valid future time.") {
-            //               setStateInside(() {
-            //                 controller.validString =
-            //                     "Please select valid time check AM PM correctly";
-            //               });
-            //             } else {
-            //               if (!controller.isUploadingTaskDoc) {
-            //                 controller.sendTaskApiCall();
-            //               } else {
-            //                 toast("Please wait");
-            //               }
-            //             }
-            //           } else {
-            //             if (!controller.isUploadingTaskDoc) {
-            //               controller.sendTaskApiCall();
-            //             } else {
-            //               toast("Please wait");
-            //             }
-            //           }
-            //         }
-            //       },
-            //     )
-            //   ],
-            // ),
-
             content:  Center(
               child: ConstrainedBox(
                 constraints: BoxConstraints(
@@ -1823,7 +1665,7 @@ class TaskScreen extends GetView<TaskController> {
     );
   }
 
-  Widget _taskInputArea(setStateInside, {TaskData? taskDetails}) {
+/*  Widget _taskInputArea(setStateInside, {TaskData? taskDetails}) {
     return Form(
       key: controller.tasksFormKey,
       child: Column(
@@ -1834,7 +1676,7 @@ class TaskScreen extends GetView<TaskController> {
           _buildTaskField("Description", controller.descController, 5, 300),
           vGap(8),
          //TODO
-          taskDetails==null?    InkWell(
+            InkWell(
             onTap: () async {
               _showDateTimePicker(setStateInside);
             },
@@ -1872,7 +1714,81 @@ class TaskScreen extends GetView<TaskController> {
                 ],
               ),
             ),
-          ):SizedBox(),
+          ),
+        ],
+      ),
+    );
+  }*/
+  Widget _taskInputArea(setStateInside, {TaskData? taskDetails}) {
+    // ---------- hydrate once for UPDATE ----------
+    if (taskDetails != null) {
+      // Title/Description only if empty (so user-typed text isn't overwritten)
+      if (controller.titleController.text.trim().isEmpty) {
+        controller.titleController.text = taskDetails.title ?? '';
+      }
+      if (controller.descController.text.trim().isEmpty) {
+        controller.descController.text = taskDetails.details ?? '';
+      }
+
+      // Deadline → selectedDate/selectedTime (only if not already chosen)
+      if (controller.selectedDate == null && controller.selectedTime == null) {
+        final dl = taskDetails.deadline; // String/DateTime supported
+        DateTime? d;
+        if (dl!=null) {
+          d = DateTime.tryParse(dl);
+        }
+        if (d != null) {
+          final local = d.toLocal();
+          controller.selectedDate = DateTime(local.year, local.month, local.day);
+          controller.selectedTime = TimeOfDay(hour: local.hour, minute: local.minute);
+        }
+      }
+    }
+    // ---------------------------------------------
+
+    return Form(
+      key: controller.tasksFormKey,
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          _buildTaskField("Title", controller.titleController, 1, 50),
+          vGap(15),
+          _buildTaskField("Description", controller.descController, 5, 300),
+          vGap(8),
+
+          // DEADLINE (unchanged UI)
+          InkWell(
+            onTap: () async {
+              await _showDateTimePicker(setStateInside);
+            },
+            child: Container(
+              padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 12),
+              decoration: BoxDecoration(
+                color: appColorGreen.withOpacity(.1),
+                borderRadius: BorderRadius.circular(12),
+              ),
+              child: Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Flexible(
+                    child: Text(
+                      (controller.selectedDate != null && controller.selectedTime != null)
+                          ? "Est. Time : ${controller.getEstimatedTime(setStateInside)}"
+                          : "Select task deadline",
+                      style: themeData.textTheme.bodySmall?.copyWith(
+                        color: controller.getEstimatedTime(setStateInside) ==
+                            "Oops! The selected time is in the past. Please choose a valid future time."
+                            ? AppTheme.redErrorColor
+                            : Colors.black,
+                      ),
+                    ).paddingAll(5),
+                  ),
+                  Icon(Icons.access_time, color: appColorGreen)
+                      .paddingOnly(right: 5, top: 5),
+                ],
+              ),
+            ),
+          ),
         ],
       ),
     );
@@ -1927,6 +1843,7 @@ class TaskScreen extends GetView<TaskController> {
                         "${ApiEnd.baseUrlMedia}/${att.fileName ?? ''}",
                         radiusAll: 15,
                         boxFit: BoxFit.contain,
+                        borderColor: greyText,
                         defaultImage: defaultGallery,
                       ),
                     ),
@@ -1968,261 +1885,66 @@ class TaskScreen extends GetView<TaskController> {
     );
   }
 
-  _updateTasksDialogWidget(TaskData taskDetails) {
-    bool hydrated = false;
+/*  _updateTasksDialogWidget(TaskData taskDetails) {
     return StatefulBuilder(builder: (context, setStateInside) {
-      // if (!hydrated) {
-      //   controller.attachedFiles = [];
-      //   for (TaskMedia m in (taskDetails.media ?? [])) {
-      //     controller.attachedFiles.add({
-      //       'type'    : (m.mediaType?.mediaType ?? '').toLowerCase() == 'image' ? 'image' : 'doc',
-      //       'name'    : m.fileName ?? '',
-      //       'url'     : m.fileName ?? m.fileName,
-      //     });
-      //   }
-      //   hydrated = true;
-      // }
       return CustomDialogue(
         title: "Update Task",
         isShowAppIcon: false,
-        // content: Column(
-        //   crossAxisAlignment: CrossAxisAlignment.center,
-        //   mainAxisSize: MainAxisSize.min,
-        //   children: [
-        //     Text(
-        //       "Enter Task Details",
-        //       style: BalooStyles.baloonormalTextStyle(),
-        //       textAlign: TextAlign.center,
-        //     ),
-        //     Text(
-        //       controller.validString,
-        //       style: BalooStyles.baloonormalTextStyle(
-        //           color: AppTheme.redErrorColor),
-        //       textAlign: TextAlign.center,
-        //     ),
-        //     vGap(20),
-        //     _taskInputArea(setStateInside, taskDetails: taskDetails),
-        //    //TODO
-        //    /* vGap(10),
-        //     const Text("Attachments",
-        //         style: TextStyle(fontWeight: FontWeight.bold)),
-        //     vGap(10),
-        //     if (controller.isUploadingTaskDoc) const IndicatorLoading(),
-        //     Wrap(
-        //       spacing: 8,
-        //       runSpacing: 8,
-        //       children: controller.attachedFiles.map((file) {
-        //         final String type = file['type'];
-        //         final String name = file['name'];
-        //         final url = file['url'];
-        //
-        //         Widget preview;
-        //
-        //         if (type == 'image') {
-        //           preview = url != null
-        //               ? url is File
-        //                   ? ClipRRect(
-        //                       borderRadius: BorderRadius.circular(8),
-        //                       child: Image.file(url,
-        //                           width: 75, height: 75, fit: BoxFit.cover),
-        //                     )
-        //                   : url is String && url.isNotEmpty
-        //                       ? CustomCacheNetworkImage(
-        //                           "${ApiEnd.baseUrlMedia}$url",
-        //                           radiusAll: 8,
-        //                           width: 75,
-        //                           height: 75,
-        //                           boxFit: BoxFit.cover,
-        //                           defaultImage: defaultGallery,
-        //                         )
-        //                       : const SizedBox()
-        //               : const SizedBox();
-        //         } else if (type == 'doc') {
-        //           IconData icon;
-        //           if (name.endsWith('.pdf')) {
-        //             icon = Icons.picture_as_pdf;
-        //           } else if (name.endsWith('.doc') || name.endsWith('.docx')) {
-        //             icon = Icons.description;
-        //           } else if (name.endsWith('.txt')) {
-        //             icon = Icons.note;
-        //           } else {
-        //             icon = Icons.insert_drive_file;
-        //           }
-        //
-        //           preview = Container(
-        //             width: 75,
-        //             height: 75,
-        //             padding: const EdgeInsets.symmetric(horizontal: 2),
-        //             decoration: BoxDecoration(
-        //               border: Border.all(color: Colors.grey.shade400),
-        //               borderRadius: BorderRadius.circular(8),
-        //             ),
-        //             child: Column(
-        //               mainAxisAlignment: MainAxisAlignment.center,
-        //               children: [
-        //                 Icon(icon, size: 30, color: Colors.grey),
-        //                 Text(name,
-        //                     textAlign: TextAlign.center,
-        //                     maxLines: 2,
-        //                     overflow: TextOverflow.ellipsis,
-        //                     style: const TextStyle(fontSize: 10)),
-        //               ],
-        //             ),
-        //           );
-        //         } else {
-        //           preview = const SizedBox();
-        //         }
-        //
-        //         return Stack(
-        //           alignment: Alignment.topRight,
-        //           clipBehavior: Clip.none,
-        //           children: [
-        //             preview,
-        //             Positioned(
-        //               top: -5,
-        //               right: -5,
-        //               child: GestureDetector(
-        //                 onTap: () {
-        //                   setStateInside(() {
-        //                     controller.attachedFiles.remove(file);
-        //                   });
-        //                   controller.update();
-        //                 },
-        //                 child: const CircleAvatar(
-        //                   radius: 13,
-        //                   backgroundColor: Colors.red,
-        //                   child:
-        //                       Icon(Icons.close, size: 12, color: Colors.white),
-        //                 ),
-        //               ),
-        //             ),
-        //           ],
-        //         );
-        //       }).toList(),
-        //     ),
-        //     vGap(10),
-        //     GestureDetector(
-        //       onTap: () => controller.attachedFiles.length < 3
-        //           ? showUploadOptionsForTask(context, setStateInside)
-        //           : toast("You can upload upto 3 attachments only"),
-        //       child: const Chip(
-        //         avatar: Icon(Icons.attach_file),
-        //         label: Text("Add Attachments"),
-        //         backgroundColor: Colors.white,
-        //       ),
-        //     ),*/
-        //     vGap(30),
-        //     GradientButton(
-        //       name: "Update",
-        //       btnColor: AppTheme.appColor,
-        //       vPadding: 8,
-        //       onTap: () async {
-        //         if (controller.tasksFormKey.currentState!.validate()) {
-        //           if (controller.getEstimatedTime(setStateInside) != "" &&
-        //               controller.selectedDate != null &&
-        //               controller.selectedTime != null) {
-        //             if (controller.getEstimatedTime(setStateInside) ==
-        //                 "Oops! The selected time is in the past. Please choose a valid future time.") {
-        //               setStateInside(() {
-        //                 controller.validString =
-        //                     "Please select valid time check AM PM correctly";
-        //               });
-        //             } else {
-        //               if (!controller.isUploadingTaskDoc) {
-        //                 controller.updateTaskApiCall(task:taskDetails);
-        //               } else {
-        //                 toast("Please wait");
-        //               }
-        //             }
-        //           } else {
-        //             if (!controller.isUploadingTaskDoc) {
-        //               controller.updateTaskApiCall(task:taskDetails);
-        //             } else {
-        //               toast("Please wait");
-        //             }
-        //           }
-        //         }
-        //       },
-        //     )
-        //   ],
-        // ),
-        content: LayoutBuilder(
-          builder: (context, constraints) {
-            final w = MediaQuery.of(context).size.width;
-            final h = MediaQuery.of(context).size.height;
-
-            final bool isDesktop = w >= 1024;
-            final bool isTablet  = w >= 700 && w < 1024;
-
-            final double maxW = isDesktop ? 900 : (isTablet ? 720 : w * 0.95);
-            final double maxH = h * (kIsWeb ? 0.9 : 0.95);
-
-            return Center(
-              child: ConstrainedBox(
-                constraints: BoxConstraints(
-                  maxWidth: maxW,
-                  maxHeight: maxH,
+        content: Builder(
+          builder: (context) {
+            return Column(
+              crossAxisAlignment: CrossAxisAlignment.center,
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Text(
+                  "Enter Task Details",
+                  style: BalooStyles.baloonormalTextStyle(),
+                  textAlign: TextAlign.center,
                 ),
-                child: Scrollbar(
-                  thumbVisibility: kIsWeb,
-                  child: SingleChildScrollView(
-                    padding: const EdgeInsets.all(12),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.center,
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        Text(
-                          "Enter Task Details",
-                          style: BalooStyles.baloonormalTextStyle(),
-                          textAlign: TextAlign.center,
-                        ),
-                        Text(
-                          controller.validString,
-                          style: BalooStyles.baloonormalTextStyle(
-                              color: AppTheme.redErrorColor),
-                          textAlign: TextAlign.center,
-                        ),
-                        vGap(20),
-                        _taskInputArea(setStateInside, taskDetails: taskDetails),
-                        // (attachments section commented by you — left untouched)
-                        vGap(30),
-                        GradientButton(
-                          name: "Update",
-                          btnColor: AppTheme.appColor,
-                          vPadding: 8,
-                          onTap: () async {
-                            if (controller.tasksFormKey.currentState!.validate()) {
-                              if (controller.getEstimatedTime(setStateInside) != "" &&
-                                  controller.selectedDate != null &&
-                                  controller.selectedTime != null) {
-                                if (controller.getEstimatedTime(setStateInside) ==
-                                    "Oops! The selected time is in the past. Please choose a valid future time.") {
-                                  setStateInside(() {
-                                    controller.validString =
-                                    "Please select valid time check AM PM correctly";
-                                  });
-                                } else {
-                                  if (!controller.isUploadingTaskDoc) {
-                                    controller.updateTaskApiCall(task:taskDetails);
-                                  } else {
-                                    toast("Please wait");
-                                  }
-                                }
-                              } else {
-                                if (!controller.isUploadingTaskDoc) {
-                                  controller.updateTaskApiCall(task:taskDetails);
-                                } else {
-                                  toast("Please wait");
-                                }
-                              }
-                            }
-                          },
-                        )
-                      ],
-                    ),
+                Text(
+                  controller.validString,
+                  style: BalooStyles.baloonormalTextStyle(
+                    color: AppTheme.redErrorColor,
                   ),
+                  textAlign: TextAlign.center,
                 ),
-              ),
+                vGap(20),
+                _taskInputArea(setStateInside, taskDetails: taskDetails),
+
+                vGap(30),
+                GradientButton(
+                  name: "Update",
+                  btnColor: AppTheme.appColor,
+                  vPadding: 8,
+                  onTap: () async {
+                    if (controller.tasksFormKey.currentState!.validate()) {
+                      if (controller.getEstimatedTime(setStateInside) != "" &&
+                          controller.selectedDate != null &&
+                          controller.selectedTime != null) {
+                        if (controller.getEstimatedTime(setStateInside) ==
+                            "Oops! The selected time is in the past. Please choose a valid future time.") {
+                          setStateInside(() {
+                            controller.validString =
+                            "Please select valid time check AM PM correctly";
+                          });
+                        } else {
+                          if (!controller.isUploadingTaskDoc) {
+                            controller.updateTaskApiCall(task: taskDetails);
+                          } else {
+                            toast("Please wait");
+                          }
+                        }
+                      } else {
+                        if (!controller.isUploadingTaskDoc) {
+                          controller.updateTaskApiCall(task: taskDetails);
+                        } else {
+                          toast("Please wait");
+                        }
+                      }
+                    }
+                  },
+                ),
+              ],
             );
           },
         ),
@@ -2230,9 +1952,385 @@ class TaskScreen extends GetView<TaskController> {
         onOkTap: () {},
       );
     });
+  }*/
+
+
+  _updateTasksDialogWidget(TaskData taskDetails) {
+    // Local edit buffer for attachments (new + existing mapped to the same shape
+    // you already use in Create dialog)
+    List<Map<String, dynamic>> _editAttachedFiles = [];
+    // Track which existing media the user removed (so you can delete server-side)
+    final Set<String> _removedExistingMediaIds = {};
+    bool _hydrated = false;
+
+    // helper to hydrate only once from taskDetails.media
+    void _ensureHydrated() {
+      if (_hydrated) return;
+      final existing = (taskDetails.media ?? []);
+      for (final att in existing) {
+        final path = att.fileName ?? '';
+        final name = path.split('/').last.replaceAll(RegExp(r'^DOC_\d+_'), '');
+        final isImage = path.endsWith('.png') ||
+            path.endsWith('.jpg') ||
+            path.endsWith('.jpeg') ||
+            path.endsWith('.webp');
+        print(att.fileName);
+
+        _editAttachedFiles.add({
+          'type': isImage ? 'image' : 'doc',
+          'name': name,
+          'url': '${ApiEnd.baseUrlMedia}/$path', // for preview/open
+          'bytes': null,                         // web memory for new uploads
+          'file': null,                          // mobile File for new uploads
+          'isExisting': true,                    // mark as came from server
+        });
+      }
+      _hydrated = true;
+    }
+
+    return LayoutBuilder(builder: (context, constraints) {
+      final w = MediaQuery.of(context).size.width;
+      final h = MediaQuery.of(context).size.height;
+      final bool isDesktop = w >= 1024;
+      final bool isTablet  = w >= 700 && w < 1024;
+
+      // match Create dialog clamp
+      final double maxW = isDesktop ? 700 : (isTablet ? 720 : w * 0.95);
+      final double maxH = h * (kIsWeb ? 0.9 : 0.95);
+
+      return StatefulBuilder(builder: (context, setStateInside) {
+        _ensureHydrated(); // populate existing attachments once
+
+        // expose the edit buffer to the controller so your upload flow can push into it
+        controller.attachedFiles = _editAttachedFiles;
+
+
+
+        Widget _attachmentPreview(Map<String, dynamic> m) {
+          final String type = (m['type'] ?? 'doc') as String;
+          final bool isLocal  = (m['isLocal'] == true);
+          final bool isDelete = (m['isDelete'] == true);
+
+          // url MUST be String only; guard against File/other
+          final dynamic urlRaw = m['url'];
+          final String? url = (urlRaw is String && urlRaw.isNotEmpty) ? urlRaw : null;
+
+          // PlatformFile? (web or picker)
+          final dynamic pfRaw = m['url'];
+          final PlatformFile? pf = (pfRaw is PlatformFile) ? pfRaw : null;
+
+          // bytes for web local previews
+          final Uint8List? bytes = pf?.bytes;
+
+          // File for mobile/desktop local previews (guarded)
+          File? localFile;
+          if (pf != null && pf.path != null && pf.path!.isNotEmpty) {
+            print("pf.path====");
+            print(pf.path);
+            localFile = File(pf.path!);
+          } else if (m['url'] is File) {
+            localFile = m['url'] as File;
+          }
+
+          Widget tile;
+
+          if (type == 'image') {
+            if (isLocal) {
+              if (bytes != null) {
+                tile = Image.memory(bytes, width: 75, height: 75, fit: BoxFit.cover);
+              } else if (!kIsWeb && localFile != null) {
+                tile = Image.file(localFile, width: 75, height: 75, fit: BoxFit.cover);
+              } else {
+                tile = const SizedBox();
+              }
+            } else if (url != null) {
+              tile = GestureDetector(
+                onTap: () {
+                  showDialog(
+                    context: Get.context!,
+                    builder: (_) => Dialog(
+                      backgroundColor: Colors.transparent,
+                      child: InteractiveViewer(
+                        child: CustomCacheNetworkImage(
+                          url,
+                          radiusAll: 15,
+                          boxFit: BoxFit.contain,
+                          borderColor: greyText,
+                          defaultImage: defaultGallery,
+                        ),
+                      ),
+                    ),
+                  );
+                },
+                child: CustomCacheNetworkImage(
+                  url,
+                  radiusAll: 8,
+                  boxFit: BoxFit.cover,
+                  borderColor: Colors.transparent,
+                  defaultImage: defaultGallery,
+                ),
+              );
+            } else {
+              tile = const SizedBox();
+            }
+          } else {
+            // doc tile
+            final String name = (m['name'] ?? '') as String;
+            IconData icon;
+            if (name.endsWith('.pdf')) icon = Icons.picture_as_pdf;
+            else if (name.endsWith('.doc') || name.endsWith('.docx')) icon = Icons.description;
+            else if (name.endsWith('.txt')) icon = Icons.note;
+            else icon = Icons.insert_drive_file;
+
+            tile = GestureDetector(
+              onTap: () {
+                // Only open remote docs; locals aren’t uploaded yet
+                if (!isLocal && url != null) openDocumentFromUrl(url);
+              },
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Icon(icon, size: 30, color: Colors.grey),
+                  Text(
+                    name,
+                    textAlign: TextAlign.center,
+                    maxLines: 2,
+                    overflow: TextOverflow.ellipsis,
+                    style: const TextStyle(fontSize: 10),
+                  ),
+                ],
+              ),
+            );
+          }
+
+          return Stack(
+            children: [
+              Container(
+                width: 75, height: 75,
+                decoration: BoxDecoration(
+                  border: Border.all(color: Colors.grey.shade400),
+                  borderRadius: BorderRadius.circular(8),
+                  color: Colors.white,
+                ),
+                child: ClipRRect(borderRadius: BorderRadius.circular(8), child: tile),
+              ),
+              if (isDelete)
+                Positioned.fill(
+                  child: Container(
+                    decoration: BoxDecoration(
+                      color: Colors.black.withOpacity(0.35),
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                    child: const Center(child: Icon(Icons.delete, color: Colors.white)),
+                  ),
+                ),
+            ],
+          );
+        }
+
+
+
+        return CustomDialogue(
+          title: "Update Task",
+          isShowAppIcon: false,
+          content: Center(
+            child: ConstrainedBox(
+              constraints: BoxConstraints(maxWidth: maxW, maxHeight: maxH),
+              child: Scrollbar(
+                thumbVisibility: kIsWeb,
+                child: SingleChildScrollView(
+                  padding: const EdgeInsets.all(12),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.center,
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Text(
+                        "Enter Task Details",
+                        style: BalooStyles.baloonormalTextStyle(),
+                        textAlign: TextAlign.center,
+                      ),
+                      Text(
+                        controller.validString,
+                        style: BalooStyles.baloonormalTextStyle(
+                          color: AppTheme.redErrorColor,
+                        ),
+                        textAlign: TextAlign.center,
+                      ),
+                      vGap(10),
+
+                      // your existing fields block
+                      _taskInputArea(setStateInside, taskDetails: taskDetails),
+
+                      vGap(12),
+                      const Text("Attachments",
+                          style: TextStyle(fontWeight: FontWeight.bold)),
+                      vGap(10),
+                      if (controller.isUploadingTaskDoc) const IndicatorLoading(),
+
+                      // Editable attachments grid (existing + new)
+                      Wrap(
+                        spacing: 8,
+                        runSpacing: 8,
+                        children: _editAttachedFiles.map((file) {
+                          return Stack(
+                            alignment: Alignment.topRight,
+                            clipBehavior: Clip.none,
+                            children: [
+                              _attachmentPreview(file),
+                              Positioned(
+                                top: -5,
+                                right: -5,
+                                child: GestureDetector(
+                                  onTap: () {
+                                    setStateInside(() {
+                                      // if existing, remember its id for deletion
+                                      if (file['isExisting'] == true &&
+                                          file['mediaId'] != null) {
+                                        _removedExistingMediaIds
+                                            .add(file['mediaId'].toString());
+                                      }
+                                      _editAttachedFiles.remove(file);
+                                    });
+                                    controller.update(); // if needed elsewhere
+                                  },
+                                  child: const CircleAvatar(
+                                    radius: 13,
+                                    backgroundColor: Colors.red,
+                                    child: Icon(Icons.close,
+                                        size: 12, color: Colors.white),
+                                  ),
+                                ),
+                              ),
+                            ],
+                          );
+                        }).toList(),
+                      ),
+
+                      vGap(10),
+                      GestureDetector(
+                        onTap: () async {
+                          if (_editAttachedFiles.length >= 3) {
+                            toast("You can upload upto 3 attachments only");
+                            return;
+                          }
+                          // Reuse your existing upload sheet; it should push to controller.attachedFiles
+                           showUploadOptionsForTask(context, setStateInside);
+                          // Make sure our local buffer stays in sync
+                          setStateInside(() {
+                            _editAttachedFiles = controller.attachedFiles;
+                          });
+                        },
+                        child: const Chip(
+                          avatar: Icon(Icons.attach_file),
+                          label: Text("Add Attachments"),
+                          backgroundColor: Colors.white,
+                        ),
+                      ),
+
+                      vGap(20),
+                      GradientButton(
+                        name: "Update",
+                        btnColor: AppTheme.appColor,
+                        vPadding: 8,
+                        onTap: () async {
+                          if (controller.tasksFormKey.currentState!.validate()) {
+                            // keep controller in sync before API call
+                            controller.attachedFiles = _editAttachedFiles;
+                            controller.removedMediaIds =
+                                _removedExistingMediaIds.toList();
+
+                            if (controller.getEstimatedTime(setStateInside) != "" &&
+                                controller.selectedDate != null &&
+                                controller.selectedTime != null) {
+                              if (controller.getEstimatedTime(setStateInside) ==
+                                  "Oops! The selected time is in the past. Please choose a valid future time.") {
+                                setStateInside(() {
+                                  controller.validString =
+                                  "Please select valid time check AM PM correctly";
+                                });
+                              } else {
+                                if (!controller.isUploadingTaskDoc) {
+                                  controller.updateTaskApiCall(task: taskDetails);
+                                } else {
+                                  toast("Please wait");
+                                }
+                              }
+                            } else {
+                              if (!controller.isUploadingTaskDoc) {
+                                controller.updateTaskApiCall(task: taskDetails);
+                              } else {
+                                toast("Please wait");
+                              }
+                            }
+                          }
+                        },
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            ),
+          ),
+          onOkTap: () {},
+        );
+      });
+    });
   }
 
-  _showDateTimePicker(setStateInside) async {
+  _showDateTimePicker(StateSetter setStateInside) async {
+    final now = DateTime.now();
+
+    // Use selected values (from update prefill) if available
+    final DateTime initialDate = controller.selectedDate ??
+        DateTime(now.year, now.month, now.day);
+    final TimeOfDay initialTime = controller.selectedTime ?? TimeOfDay.now();
+
+    // --- DATE ---
+    final pickedDate = await showDatePicker(
+      context: Get.context!,
+      initialDate: initialDate.isBefore(DateTime(now.year, now.month, now.day))
+          ? DateTime(now.year, now.month, now.day)
+          : initialDate,
+      firstDate: DateTime(now.year, now.month, now.day), // disallow past dates
+      lastDate: DateTime(2100, 12, 31),
+    );
+    if (pickedDate == null) return;
+
+    setStateInside(() {
+      controller.selectedDate = pickedDate;
+    });
+
+    // --- TIME ---
+    final pickedTime = await showTimePicker(
+      context: Get.context!,
+      initialTime: initialTime,
+      builder: (context, child) {
+        return MediaQuery(
+          data: MediaQuery.of(context).copyWith(alwaysUse24HourFormat: false),
+          child: child!,
+        );
+      },
+    );
+    if (pickedTime == null) return;
+
+    final selectedDateTime = DateTime(
+      pickedDate.year, pickedDate.month, pickedDate.day,
+      pickedTime.hour, pickedTime.minute,
+    );
+
+    if (selectedDateTime.isBefore(now)) {
+      Get.snackbar("Invalid Time", "You cannot select past time!");
+      return;
+    }
+
+    setStateInside(() {
+      controller.selectedTime = pickedTime;
+      controller.validString = "";
+    });
+  }
+
+
+/*  _showDateTimePicker(setStateInside) async {
     final now = DateTime.now();
 
     // Pick Date
@@ -2283,7 +2381,7 @@ class TaskScreen extends GetView<TaskController> {
       controller.selectedTime = picked;
       controller.validString = "";
     });
-  }
+  }*/
 
   String _getEstimatedTime(setStateInside, estimateTime) {
     DateTime estimate =

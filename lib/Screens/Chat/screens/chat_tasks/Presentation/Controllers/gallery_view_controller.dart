@@ -20,11 +20,17 @@ class GalleryViewerController extends GetxController {
   bool saving = false;
   String? toast;
 
-  GalleryViewerController({required this.urls,required this.chathis, this.index = 0});
+  GalleryViewerController({required this.urls,required this.chathis,required this.index});
 
   void setIndex(int i) {
     index = i;
     update();
+  }
+
+  @override
+  onInit(){
+    // setIndex(index);
+    super.onInit();
   }
 
 

@@ -70,7 +70,7 @@ class AddGroupMemController extends GetxController {
 
   CompanyData? myCompany = CompanyData();
   _getCompany() {
-    final svc = Get.find<CompanyService>();
+    final svc = CompanyService.to;
     myCompany = svc.selected;
     update();
   }
@@ -108,9 +108,12 @@ class AddGroupMemController extends GetxController {
         .addMemberToGrBrApiCall(dataBody: req)
         .then((value) async {
           customLoader.hide();
-         Get.find<ChatScreenController>().hitAPIToGetMembers();
-         Get.find<GrBrMembersController>().hitAPIToGetMembers();
-         Get.back();
+          toast("Member added!");hitAPIToAllGetMember();
+
+         await Get.find<ChatScreenController>().hitAPIToGetMembers();
+          await Get.find<GrBrMembersController>().hitAPIToGetMembers();
+          Get.back();
+
       update();
     }).onError((error, stackTrace) {
       customLoader.hide();

@@ -51,9 +51,10 @@ class AcceptInvitationScreen extends GetView<AcceptInviteController> {
                             "${ApiEnd.baseUrlMedia}${invites.company?.logo ?? ''}",
                             height: 50,
                             width: 50,
+
                             boxFit: BoxFit.cover,
                             radiusAll: 100,
-                            borderColor: Colors.black54,
+                            borderColor: greyText,
                           )),
                       hGap(10),
                       Expanded(
@@ -76,7 +77,7 @@ class AcceptInvitationScreen extends GetView<AcceptInviteController> {
                       ),
                       dynamicButton(
                         btnColor: appColorGreen,
-                        onTap: () async=> await controller.hitAPIToAcceptInvite(invites.inviteId,invites.company?.companyId),
+                        onTap: () async=>  controller.hitAPIToAcceptInvite(invites.inviteId,invites.company?.companyId),
                         gradient: buttonGradient,
                         vPad: 8,
                         name: "Accept",

@@ -174,6 +174,7 @@ class UserCompany {
   int? isActive;
   int? userCompanyRoleId;
   String? createdOn;
+  String? displayName;
   int? isDeleted;
   int? invitedBy;
   int? isBroadcast;
@@ -188,6 +189,7 @@ class UserCompany {
         this.userId,
         this.companyId,
         this.isActive,
+        this.displayName,
         this.userCompanyRoleId,
         this.createdOn,
         this.isDeleted,
@@ -204,6 +206,7 @@ class UserCompany {
     userId = json['user_id'];
     companyId = json['company_id'];
     isActive = json['is_active'];
+    displayName = json['display_name'];
     userCompanyRoleId = json['user_company_role_id'];
     createdOn = json['created_on'];
     isDeleted = json['is_deleted'];
@@ -227,6 +230,7 @@ class UserCompany {
     data['is_active'] = this.isActive;
     data['user_company_role_id'] = this.userCompanyRoleId;
     data['created_on'] = this.createdOn;
+    data['display_name'] = this.displayName;
     data['is_deleted'] = this.isDeleted;
     data['invited_by'] = this.invitedBy;
     data['is_broadcast'] = this.isBroadcast;

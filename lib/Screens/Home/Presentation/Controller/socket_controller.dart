@@ -25,20 +25,30 @@ enum ChType {
   direct,
 }
 
-class SocketController extends GetxController {
+class SocketController extends GetxController with WidgetsBindingObserver  {
   late IO.Socket? socket;
 
-  @override
-  void onClose() {
-    socket?.disconnect();
-    super.onClose();
-  }
+
 
   @override
   void onInit() {
+    WidgetsBinding.instance.addObserver(this);
     _getMe();
     initSocket();
     super.onInit();
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    if (state == AppLifecycleState.resumed) {
+      // Ensure an active transport
+      if (!(socket?.connected ?? false)) {
+        try { socket?.connect(); } catch (_) {}
+      }
+      // Idempotently re-wire listeners and re-select company on resume
+      allListerer();           // ensures .off() then .on() again
+      connectUserEmitter();    // re-emit company context
+    }
   }
 
   Future<void> initSocket() async {
@@ -48,48 +58,56 @@ class SocketController extends GetxController {
 
   initial() {
     try {
+      // If an old socket instance exists, dispose it safely (keeps us single-instance)
+      try { socket?.dispose(); } catch (_) {}                  // ← ADD
       if (socket?.connected ?? false) {
-        socket?.disconnected;
+        socket?.disconnect();                                  // ← ADD (your line socket?.disconnected was a no-op)
       }
     } catch (e) {}
-
     final token = StorageService.getToken();
 
     socket = IO.io(
       ApiEnd.baseUrlMedia,
       IO.OptionBuilder()
-          .setTransports(['websocket']) // for Flutter or Dart
+          .setTransports(['websocket'])
           .enableForceNew()
-          .setAuth({'token': token})                     // <-- critical for Web
           .enableReconnection()
           .enableAutoConnect()
-          .setReconnectionDelay(2000) // 2 sec delay
-          .setReconnectionAttempts(20) // retry count// auto-reconnect
-          .setExtraHeaders({
-            'Authorization': 'Bearer $token',
-          })
+          .setReconnectionDelay(2000)
+          .setReconnectionAttempts(20)
+          .setTimeout(20000)
+          .setAuth({'token': token})
+          .setPath('/socket.io/')
           .build(),
     );
+
     socket?.connect();
+
     socket?.onConnect((_) {
-      connectUserEmitter();
+      connectUserEmitter();   // already in your code
+      allListerer();          // ← ADD: make sure listeners are wired on first connect
     });
+
     socket?.onReconnectAttempt((_) {
       print("🔄 Trying to reconnect...");
     });
+
     socket?.onReconnect((_) {
       print("🔄 Reconnected!");
-      // agar disconnect ke baad room join karna hai toh yaha dobara emit karo
+      // Re-attach handlers & re-emit company selection after reconnection
+      allListerer();          // ← ADD
+      connectUserEmitter();   // ← ADD
     });
+
     socket?.onDisconnect((v) {
       debugPrint("Socket disconnected $v");
     });
     socket?.onConnectError((e) => debugPrint('Connect error: $e'));
-
     socket?.onError((error) {
       debugPrint("Socket disconnected $error");
     });
   }
+
 
   UserDataAPI? me = UserDataAPI();
   _getMe() {
@@ -97,35 +115,6 @@ class SocketController extends GetxController {
   }
 
   allListerer() {
-    // socket.on('getChatList', (message) {
-    //   print("getChatList " + jsonEncode(message));
-    //   chatUserListResponse= PaginatinDataModal.fromJson(
-    //       message, (data2) => GetChatList.fromJson(data2));
-    //
-    //   getChatList?.addAll(chatUserListResponse?.listItems??[]);
-    //
-    //   try {
-    //     Get.find<UserChatListController>().update();
-    //   } catch (e) {
-    //     debugPrint("error ${e.toString()}");
-    //   }
-    // });
-    // socket?.off('connect_user_listner');
-    // socket?.on('connect_user_listner', (message) {
-    //   debugPrint("Listing......2");
-    //   debugPrint("joinChatSuccess " + jsonEncode(message));
-    //   // EmitterMessageDataModal joinChatMessage =
-    //   // EmitterMessageDataModal.fromJson(message);
-    //   //
-    //   // if (joinChatMessage.isConnected ?? false) {
-    //   //   chatListEmmitter(
-    //   //     perPage: 30,
-    //   //     currentPage: 1,
-    //   //
-    //   //   );
-    //   // }
-    // });
-
 
     socket?.off('send_message_listener');
     socket?.on('send_message_listener', (messages) {
@@ -156,6 +145,7 @@ class SocketController extends GetxController {
           chatDetailController.chatHisList?.insert(0, chatMessageItems);
           chatDetailController.chatCatygory
               .insert(0, GroupChatElement(DateTime.now(), chatMessageItems));
+        chatDetailController.rebuildFlatRows();
         // }
 
         chatDetailController.update();
@@ -449,12 +439,29 @@ class SocketController extends GetxController {
 
   }*/
 
-  void connectUserEmitter() {
-    final svc = Get.find<CompanyService>();
+/*  void connectUserEmitter() {
+    final svc = CompanyService.to;
     final myCompany = svc.selected;
     socket?.emit('select_company', {'company_id': myCompany?.companyId,'user_id': me?.userId});
     debugPrint("user connected");
+  }*/
+
+  void connectUserEmitter() {
+    try {
+      final svc = CompanyService.to;
+      final myCompany = svc.selected;
+      if (myCompany?.companyId != null && me?.userId != null) {
+        socket?.emit('select_company', {
+          'company_id': myCompany!.companyId,
+          'user_id': me!.userId,
+        });
+        debugPrint("user connected");
+      }
+    } catch (e) {
+      debugPrint("connectUserEmitter error: $e");
+    }
   }
+
 
   void _registerDeleteListener() {
     // avoid duplicate handlers
@@ -500,7 +507,7 @@ class SocketController extends GetxController {
     chatDetailController.chatHisList![idx] = msg;
     chatDetailController.chatHisList!.removeAt(idx);
     _rebuildCategories();
-
+    chatDetailController.rebuildFlatRows();
     Get.back();
 
     // 4) notify GetBuilder UIs
@@ -519,6 +526,7 @@ class SocketController extends GetxController {
       }
       return GroupChatElement(dt ?? DateTime.now(), item);
     }).toList();
+    chatDetailController.rebuildFlatRows();
   }
   void _registerDeleteListenerTask() {
     // avoid duplicate handlers
@@ -568,9 +576,7 @@ class SocketController extends GetxController {
     chatDetailController.taskHisList![idx] = msg;
     chatDetailController.taskHisList!.removeAt(idx);
     _rebuildCategoriesForTask();
-
     Get.back();
-
     // 4) notify GetBuilder UIs
     update();
     chatDetailController.update();
@@ -670,7 +676,7 @@ class SocketController extends GetxController {
         debugPrint(
             "Message sent: $message ,receiverId: $toId ,fromid: ${APIs.me.userId}, comapnyid: ${APIs.me.userCompany?.userCompanyId}");
 
-        final svc = Get.find<CompanyService>();
+        final svc = CompanyService.to;
         final myCompany = svc.selected;
 
         // if (pushToken != '' && pushToken != APIs.me.pushToken) {
@@ -707,8 +713,6 @@ class SocketController extends GetxController {
   }
 
 
-
-
   Future<void> sendMessage({
     int? receiverId,
     String? message,
@@ -720,14 +724,13 @@ class SocketController extends GetxController {
     int isGroup = 0,
     String? type,
     int? replyToId,
+    String? replyToText,
     int isForward = 0,
     String pushToken = '',
     bool alreadySave = false,
   }) async {
     if (socket != null && socket!.connected) {
       debugPrint("Message sent:---------- $message");
-
-
       try {
         socket?.emit('send_message', {
           "mode": type,
@@ -736,6 +739,7 @@ class SocketController extends GetxController {
           "company_id": companyId,
           "to_user_id": receiverId,
           "reply_to_id": replyToId,
+          "reply_to_text": replyToText,
           "text": message,
           'is_group': isGroup,
           "already_saved": alreadySave,
@@ -744,10 +748,10 @@ class SocketController extends GetxController {
           "forward_source_chat_id": forwardChatId
         });
         debugPrint(
-            "Message sent: $message ,receiverId: $receiverId , forwardChatId: $forwardChatId, fromid: ${APIs.me.userId}, comapnyid: ${APIs.me.userCompany?.userCompanyId}, alreadySaved: ${alreadySave}");
+            "Message sent: $message ,receiverId: $receiverId Broadcast user id,: $brID , forwardChatId: $forwardChatId, fromid: ${APIs.me.userId}, comapnyid: ${APIs.me.userCompany?.userCompanyId}, group id: $groupId, alreadySaved: ${alreadySave}");
         var token =  StorageService.getToken();
         debugPrint("authorization token is ********* $token");
-        final svc = Get.find<CompanyService>();
+        final svc = CompanyService.to;
         final myCompany = svc.selected;
 
         // if (pushToken != '' && pushToken != APIs.me.pushToken) {
@@ -810,7 +814,7 @@ class SocketController extends GetxController {
         debugPrint("Message sent: $taskTitle ,receiverId: $receiverId ,companyId: $companyId  ");
         var token =  StorageService.getToken();
         debugPrint("authorization token is ********* $token");
-        final svc = Get.find<CompanyService>();
+        final svc = CompanyService.to;
         final myCompany = svc.selected;
 
         // if(!kIsWeb) {
@@ -864,7 +868,7 @@ class SocketController extends GetxController {
         });
         debugPrint("Update task sent: ======== task_id: $taskID, title:  $taskTitle ,receiverId: $receiverId ,companyId : $companyId, taskStatusId:$taskStatusId");
 
-        final svc = Get.find<CompanyService>();
+        final svc = CompanyService.to;
         final myCompany = svc.selected;
 
         // if (pushToken != '' && pushToken != APIs.me.pushToken) {
@@ -906,8 +910,7 @@ class SocketController extends GetxController {
           "to_id": receiverId,
         });
         debugPrint("Message sent:TaskID $taskID ,receiverId: $receiverId ");
-
-        final svc = Get.find<CompanyService>();
+        final svc = CompanyService.to;
         final myCompany = svc.selected;
 
         // if (pushToken != '' && pushToken != APIs.me.pushToken) {
@@ -932,5 +935,14 @@ class SocketController extends GetxController {
 
   void onNewMessage(Function(dynamic) callback) {
     socket?.on('new_message', callback);
+  }
+
+
+
+  @override
+  void onClose() {
+    WidgetsBinding.instance.removeObserver(this);        // ← ADD
+    socket?.disconnect();
+    super.onClose();
   }
 }

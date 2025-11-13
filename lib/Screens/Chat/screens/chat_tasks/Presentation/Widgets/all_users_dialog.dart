@@ -91,6 +91,7 @@ class AllUserScreenDialog extends GetView<AllUserController> {
                           width: 50,
                           radiusAll: 100,
                           boxFit: BoxFit.cover,
+                          borderColor: greyText,
                           defaultImage:listToShow[i].userCompany?.isGroup==1?groupIcn:
                           listToShow[i].userCompany?.isBroadcast==1?
                               broadcastIcon

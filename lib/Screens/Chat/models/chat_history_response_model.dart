@@ -81,6 +81,7 @@ class ChatHisList {
   int? replyToId;
   String? replyToText;
   String? replyToTime;
+  String? replyToName;
   List<MediaList>? media;
 
   ChatHisList({this.chatId,this.replyToId,
@@ -96,6 +97,7 @@ class ChatHisList {
     isForwarded = json['is_forwarded'];
     pendingCount = json['pending-count'];
     replyToText = json['reply_to_text'];
+    replyToName = json['reply_to_name'];
     readOn=json['read_on'];
     replyToTime = json['reply_to_time'];
     isActivity = json['is_group_activity'];
@@ -133,6 +135,7 @@ class ChatHisList {
     data['chat_id'] = this.chatId;
     data['is_group_activity'] = this.isActivity;
     data['is_forwarded'] = this.isForwarded;
+    data['reply_to_name'] = this.replyToName;
     data['is_group_chat'] = this.isGroupChat;
     data['pending_count'] = this.pendingCount;
     data['reply_to_id'] = this.replyToId;

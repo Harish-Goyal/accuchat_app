@@ -199,7 +199,7 @@ class TaskThreadController extends GetxController {
 
   CompanyData? myCompany = CompanyData();
   _getCompany(){
-    final svc     = Get.find<CompanyService>();
+    final svc = CompanyService.to;
     myCompany = svc.selected;
     update();
 

@@ -11,42 +11,64 @@ import 'package:in_app_update/in_app_update.dart';
 
 import '../../../Chat/api/session_alive.dart';
 
-class SplashController extends GetxController {
+class SplashController extends GetxController with GetTickerProviderStateMixin{
   bool _navigated = false;
 
+  late final AnimationController c;
+  late final Animation<double> fade, scale, rotate;
 
-  @override
-  Future<void> onReady() async {
-    // Give web a frame so GetX bindings finish
-    await Future.delayed(const Duration(milliseconds: 1));
+  _onInit() {
+    c = AnimationController(vsync: this, duration: const Duration(milliseconds: 1500));
 
-    final session = Get.find<Session>();
+    fade   = CurvedAnimation(parent: c, curve: const Interval(0.00, 0.70, curve: Curves.easeOut));
+    scale  = TweenSequence<double>([
+      TweenSequenceItem(tween: Tween(begin: 0.70, end: 1.6).chain(CurveTween(curve: Curves.easeOutBack)), weight: 80),
+      TweenSequenceItem(tween: Tween(begin: 1.6, end: 1.00).chain(CurveTween(curve: Curves.easeIn)), weight: 40),
+    ]).animate(c);
 
-    // 1) Wait until Session has loaded cache / set up SWR
-    await session.whenReady();
+    rotate = Tween(begin: -1.2, end: .0) // slight counter-clockwise to 0
+        .chain(CurveTween(curve: Curves.easeOutCubic))
+        .animate(c);
 
-    // 2) Give SWR a short window (optional) to fetch user if needed
-    final ok = await session.waitForAuth(timeout: const Duration(milliseconds: 600));
-
-    if (ok) {
-      Get.offAllNamed(AppRoutes.home);
-    } else {
-      Get.offAllNamed(AppRoutes.login_r);
-    }
+    c.forward().whenComplete(() {
+      checkGooglePlayUpdate().then((v) {
+        return _navigateToNextScreen();
+      }); // 🔁 run after screen is rendered
+    });
   }
 
   @override
+  void onClose() { c.dispose(); super.onClose(); }
+
+
+  // @override
+  // Future<void> onReady() async {
+  //   // Give web a frame so GetX bindings finish
+  //   await Future.delayed(const Duration(milliseconds: 1));
+  //
+  //   final session = Get.find<Session>();
+  //
+  //   // 1) Wait until Session has loaded cache / set up SWR
+  //   await session.whenReady();
+  //
+  //   // 2) Give SWR a short window (optional) to fetch user if needed
+  //   final ok = await session.waitForAuth(timeout: const Duration(milliseconds: 600));
+  //
+  //   if (ok) {
+  //     Get.offAllNamed(AppRoutes.home);
+  //   } else {
+  //     Get.offAllNamed(AppRoutes.login_r);
+  //   }
+  // }
+
+  @override
   void onInit() {
+    _onInit();
     callNetworkCheck();
     SystemChannels.textInput.invokeMethod('TextInput.hide');
-
     SystemChrome.setEnabledSystemUIMode(SystemUiMode.edgeToEdge);
     SystemChrome.setSystemUIOverlayStyle(const SystemUiOverlayStyle(
         systemNavigationBarColor: Colors.white, statusBarColor: Colors.white));
-
-    checkGooglePlayUpdate().then((v) {
-      return _navigateToNextScreen();
-    }); // 🔁 run after screen is rendered
 
     super.onInit();
   }
@@ -85,9 +107,9 @@ class SplashController extends GetxController {
   // }
 
   _navigateToNextScreen() =>
-      Timer(Duration(milliseconds: 2000), () async {
+
         Future.microtask(checkUserNavigation);
-      });
+
 
   Future<void> checkUserNavigation() async {
     final String? token = StorageService.getToken();
@@ -211,3 +233,6 @@ class StartupController extends GetxController {
     Get.offAllNamed(AppRoutes.landing_r);
   }
 }
+
+
+

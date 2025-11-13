@@ -81,6 +81,7 @@ class GalleryController extends GetxController {
       update();
       return true;
     }
+
     return false;
   }
 
@@ -102,9 +103,6 @@ class GalleryController extends GetxController {
   void openLeaf(GalleryNode node) {
     Get.snackbar('Open', node.name, snackPosition: SnackPosition.BOTTOM);
   }
-
-
-
 
   final TextEditingController searchCtrl = TextEditingController();
   String query = '';
@@ -145,7 +143,6 @@ class GalleryController extends GetxController {
       ..clear()
       ..addAll(hit.path.where((p) => p.isFolder));
     update();
-
     final node = hit.node;
     if (node.isFolder) {
       // If result is a folder, open into it

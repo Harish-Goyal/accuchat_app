@@ -92,6 +92,7 @@ class TaskHomeScreen extends GetView<TaskHomeController> {
                                 radiusAll:100,
                                 height: 45,
                                 defaultImage: appIcon,
+                                borderColor: greyText,
                                 boxFit: BoxFit.cover,
                               ),
                             ).paddingAll(4),

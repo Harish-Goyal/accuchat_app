@@ -20,7 +20,8 @@ import '../../Models/all_member_res_model.dart';
 
 /// Simple in-memory cache for this session
 class InvitesCache {
-  static final Set<String> invited = <String>{}; // stores 10-digit numbers/emails (lowercase)
+  static final Set<String> invited =
+      <String>{}; // stores 10-digit numbers/emails (lowercase)
 }
 
 class InviteMemberController extends GetxController {
@@ -39,12 +40,15 @@ class InviteMemberController extends GetxController {
   // contacts (fetched)
   List<Contact> contacts = [];
   List<Contact> filteredContacts = [];
-  Set<Contact> selectedContacts = {};           // UI selection (includes disabled ones to show checked)
-  List<String> selectedInvitesContacts = [];    // to send to API (10-digit numbers)
+  Set<Contact> selectedContacts =
+      {}; // UI selection (includes disabled ones to show checked)
+  List<String> selectedInvitesContacts =
+      []; // to send to API (10-digit numbers)
   List<InviteUser> selectedUser = [];
 
   // DISABLED (already invited / members)
-  final Set<String> disabledContactIdentifiers = <String>{}; // 10-digit numbers or lowercase emails
+  final Set<String> disabledContactIdentifiers =
+      <String>{}; // 10-digit numbers or lowercase emails
 
   // search
   String searchQuery = '';
@@ -57,17 +61,22 @@ class InviteMemberController extends GetxController {
   @override
   void onInit() {
     getArguments();
-    hitAPIToGetAllMember();
-    initController();
-
-
-    if (!kIsWeb) {
-      initPhoneData();
-    } else {
-      isLoading = false;
-      update();
-    }
+    _init();
     super.onInit();
+  }
+
+  _init(){
+    Future.delayed(Duration(milliseconds: 500),(){
+      hitAPIToGetAllMember();
+      initController();
+
+      if (!kIsWeb) {
+        initPhoneData();
+      } else {
+        isLoading = false;
+        update();
+      }
+    });
   }
 
   void getArguments() {
@@ -77,23 +86,24 @@ class InviteMemberController extends GetxController {
       );
       invitedBy = Get.parameters['invitedBy'];
       companyName = Get.parameters['companyName'];
-    } else if (Get.arguments != null) {
-      companyName = Get.arguments['companyName'];
-      invitedBy = Get.arguments['invitedBy'];
-      companyId = Get.arguments['companyId'];
+    } else {
+      if (Get.arguments != null) {
+        companyName = Get.arguments['companyName'];
+        invitedBy = Get.arguments['invitedBy'];
+        companyId = Get.arguments['companyId'];
+      }
     }
   }
 
-
   List<AllMemberData> allInvitedAndJoinedMemberList = [];
-  bool isLoadingMember =false;
+  bool isLoadingMember = false;
   hitAPIToGetAllMember() async {
     isLoadingMember = true;
     update();
     Get.find<PostApiServiceImpl>()
         .getAllMembersApiCall(comid: companyId)
         .then((value) async {
-      allInvitedAndJoinedMemberList = value.data??[];
+      allInvitedAndJoinedMemberList = value.data ?? [];
       isLoadingMember = false;
       _absorbInvitedFromAPI();
       update();
@@ -130,7 +140,8 @@ class InviteMemberController extends GetxController {
     });
   }
 
-  void onTextChanged(String text, {required StateSetter setState, required int i}) {
+  void onTextChanged(String text,
+      {required StateSetter setState, required int i}) {
     final isEmail = emailRegEx.hasMatch(text);
     final isPhone = phoneRegEx.hasMatch(text);
     final wantPhoneMode = isPhone && !isEmail;
@@ -149,10 +160,13 @@ class InviteMemberController extends GetxController {
     final isPhoneField = showCountryCode[i];
     final emailErr = isPhoneField ? null : raw.isValidEmail();
     final mobileErr = isPhoneField ? raw.validateMobile(raw) : null;
-    final isValid = (!isPhoneField && emailErr == null) || (isPhoneField && mobileErr == null);
+    final isValid = (!isPhoneField && emailErr == null) ||
+        (isPhoneField && mobileErr == null);
     if (!isValid) return;
 
-    final normalized = isPhoneField ? normalizePhone(raw) : raw.toLowerCase(); // phones => 10-digit only
+    final normalized = isPhoneField
+        ? normalizePhone(raw)
+        : raw.toLowerCase(); // phones => 10-digit only
     if (normalized.isEmpty) return;
 
     if (!selectedInvitesContacts.contains(normalized)) {
@@ -186,7 +200,8 @@ class InviteMemberController extends GetxController {
 
   Future<List<Contact>> fetchContacts() async {
     final permissionStatus = await Permission.contacts.request();
-    if (!permissionStatus.isGranted) throw Exception("Contact permission not granted");
+    if (!permissionStatus.isGranted)
+      throw Exception("Contact permission not granted");
 
     await Future.delayed(const Duration(milliseconds: 200));
 
@@ -201,7 +216,8 @@ class InviteMemberController extends GetxController {
     searchQuery = value.toLowerCase();
     filteredContacts = contacts.where((c) {
       final name = (c.displayName ?? '').toLowerCase();
-      final firstPhone = c.phones.isNotEmpty ? normalizePhone(c.phones.first.number) : '';
+      final firstPhone =
+          c.phones.isNotEmpty ? normalizePhone(c.phones.first.number) : '';
       return name.contains(searchQuery) || firstPhone.contains(searchQuery);
     }).toList();
     update();
@@ -229,7 +245,6 @@ class InviteMemberController extends GetxController {
     update();
   }
 
-
   // ---- invited/disabled marking ----
   void markAsInvited(Iterable<String> identifiers) {
     final normalized = identifiers
@@ -245,7 +260,8 @@ class InviteMemberController extends GetxController {
     _seedDisabledSelection();
 
     // remove from pending (so duplicate send nahi hoga)
-    selectedInvitesContacts.removeWhere((x) => normalized.contains(_normalizeIdentifierFlexible(x)));
+    selectedInvitesContacts.removeWhere(
+        (x) => normalized.contains(_normalizeIdentifierFlexible(x)));
     selectedUser.removeWhere((u) {
       final id = u.mobile?.isNotEmpty == true
           ? normalizePhone(u.mobile!)
@@ -269,8 +285,11 @@ class InviteMemberController extends GetxController {
   }
 
   bool _contactMatchesAnyIdentifier(Contact c, Set<String> ids) {
-    final phones = c.phones.map((p) => normalizePhone(p.number)).where((e) => e.isNotEmpty);
-    final emails = c.emails.map((e) => e.address.toLowerCase()).where((e) => e.isNotEmpty);
+    final phones = c.phones
+        .map((p) => normalizePhone(p.number))
+        .where((e) => e.isNotEmpty);
+    final emails =
+        c.emails.map((e) => e.address.toLowerCase()).where((e) => e.isNotEmpty);
     for (final p in phones) {
       if (ids.contains(p)) return true;
     }
@@ -339,14 +358,18 @@ class InviteMemberController extends GetxController {
                               textInputType: TextInputType.emailAddress,
                               inputFormatters: showCountryCode[index]
                                   ? <TextInputFormatter>[
-                                FilteringTextInputFormatter.digitsOnly,
-                                LengthLimitingTextInputFormatter(10),
-                              ]
+                                      FilteringTextInputFormatter.digitsOnly,
+                                      LengthLimitingTextInputFormatter(10),
+                                    ]
                                   : <TextInputFormatter>[],
-                              validator: (value) =>
-                              showCountryCode[index] ? value?.validateMobile(controllers[index].text) : value?.isValidEmail(),
-                              prefix: Icon(Icons.person_add_alt, size: 18, color: appColorGreen),
-                              onChangee: (v) => onTextChanged(v, setState: setState, i: index),
+                              validator: (value) => showCountryCode[index]
+                                  ? value
+                                      ?.validateMobile(controllers[index].text)
+                                  : value?.isValidEmail(),
+                              prefix: Icon(Icons.person_add_alt,
+                                  size: 18, color: appColorGreen),
+                              onChangee: (v) => onTextChanged(v,
+                                  setState: setState, i: index),
                               onFieldSubmitted: (v) {
                                 _commitInput(index);
                                 FocusScope.of(context).nextFocus();
@@ -383,7 +406,7 @@ class InviteMemberController extends GetxController {
                     ],
                   ).paddingSymmetric(horizontal: 20, vertical: 20),
                 ],
-              ),
+              ).marginSymmetric(horizontal: 15,vertical: 15),
             );
           },
         );
@@ -401,15 +424,13 @@ class InviteMemberController extends GetxController {
   }
 
   String? validateEmailOrPhone(String? value) {
-    if (value == null || value
-        .trim()
-        .isEmpty) {
+    if (value == null || value.trim().isEmpty) {
       return 'Please enter email or phone number';
     }
     final trimmed = value.trim();
     final emailRegex = RegExp(r"^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$");
     final phoneRegex =
-    RegExp(r'^\d{10}$'); // You can change for international if needed
+        RegExp(r'^\d{10}$'); // You can change for international if needed
     if (!emailRegex.hasMatch(trimmed) && !phoneRegex.hasMatch(trimmed)) {
       return 'Enter a valid email or 10-digit phone number';
     }

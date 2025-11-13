@@ -13,6 +13,7 @@ import 'package:shimmer/shimmer.dart';
 import 'package:url_launcher/url_launcher_string.dart';
 import '../Constants/assets.dart';
 import '../Constants/themes.dart';
+import '../Screens/Chat/models/all_media_res_model.dart';
 import '../Screens/Chat/models/message.dart';
 import 'package:dio/dio.dart';
 import 'package:permission_handler/permission_handler.dart';
@@ -460,7 +461,43 @@ Future<void> openDocumentFromUrl(String url) async {
   }
 }*/
 
+bool isDoc(Items m) {
+  final code = (m.mediaType?.code ?? '').toUpperCase();
+  if (code == 'DOC') return true;
+  final ext = (m.fileName ?? '').toLowerCase();
+  return ext.endsWith('.pdf') ||
+      ext.endsWith('.doc') || ext.endsWith('.docx') ||
+      ext.endsWith('.xls') || ext.endsWith('.xlsx') ||
+      ext.endsWith('.ppt') || ext.endsWith('.pptx') ||
+      ext.endsWith('.csv') || ext.endsWith('.txt');
+}
 
+bool isImageOrVideo(Items m) {
+  final code = (m.mediaType?.code ?? '').toUpperCase();
+  if (code == 'IMG' || code == 'IMAGE' || code == 'PHOTO' || code == 'VID' || code == 'VIDEO') return true;
+  final ext = (m.fileName ?? '').toLowerCase();
+  return ext.endsWith('.jpg') || ext.endsWith('.jpeg') ||
+      ext.endsWith('.png') || ext.endsWith('.gif') ||
+      ext.endsWith('.webp') || ext.endsWith('.mp4') ||
+      ext.endsWith('.mov') || ext.endsWith('.m4v') || ext.endsWith('.avi');
+}
+
+bool isDocument(String orignalMsg) {
+  final ext = (orignalMsg ?? '').toLowerCase();
+  return ext.endsWith('.pdf') ||
+      ext.endsWith('.doc') || ext.endsWith('.docx') ||
+      ext.endsWith('.xls') || ext.endsWith('.xlsx') ||
+      ext.endsWith('.ppt') || ext.endsWith('.pptx') ||
+      ext.endsWith('.csv') || ext.endsWith('.txt');
+}
+
+bool isImageVideo(String orignalMsg) {
+  final ext = (orignalMsg ?? '').toLowerCase();
+  return ext.endsWith('.jpg') || ext.endsWith('.jpeg') ||
+      ext.endsWith('.png') || ext.endsWith('.gif') ||
+      ext.endsWith('.webp') || ext.endsWith('.mp4') ||
+      ext.endsWith('.mov') || ext.endsWith('.m4v') || ext.endsWith('.avi');
+}
 
 
 

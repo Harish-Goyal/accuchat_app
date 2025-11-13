@@ -34,7 +34,7 @@ class CreateRoleController extends GetxController {
 
 
   CompanyData? getCompany() {
-    final svc     = Get.find<CompanyService>();
+    final svc = CompanyService.to;
     company =svc.selected;
     update();
     return null;

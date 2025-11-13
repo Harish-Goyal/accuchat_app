@@ -58,10 +58,10 @@ class DashboardController extends GetxController with WidgetsBindingObserver {
     ),BottomNavigationBarItem(
       icon: Image.asset(connectedAppIcon,height: 22),
       label: 'Companies',
-    ),BottomNavigationBarItem(
+    ),/*BottomNavigationBarItem(
       icon: Image.asset(galleryIcon,height: 22),
       label: 'Gallery',
-    ),
+    ),*/
   ];
 
   // --- add: ensure we always have something to render
@@ -77,7 +77,7 @@ class DashboardController extends GetxController with WidgetsBindingObserver {
   List<Widget> screens = [];
 
   List<BottomNavigationBarItem> barItems = [];
-  initscres() {
+  initscres() async {
     if (_inited) {
       _ensureFallbackNavIfEmpty();
       update();
@@ -86,7 +86,11 @@ class DashboardController extends GetxController with WidgetsBindingObserver {
     _inited = true;
 
     // (kept) registrations – wrapped in try to avoid crash if already registered
-    try { Get.put<SocketController>(SocketController(), permanent: true); } catch (_) {}
+    try { await Get.putAsync<SocketController>(
+          () async => SocketController()..onInit(), // or call init() inside
+      permanent: true,
+    );
+    } catch (_) {}
     try { Get.lazyPut(() => DashboardController(), fenix: true); } catch (_) {}
     try { Get.lazyPut(() => ChatHomeController(), fenix: true); } catch (_) {}
     try { Get.lazyPut(() => TaskHomeController(), fenix: true); } catch (_) {}
@@ -97,8 +101,6 @@ class DashboardController extends GetxController with WidgetsBindingObserver {
     // (kept) your mapping – but ensure non-empty fallbacks
     screens = bottomNavItems.map((nav) => screenFor(nav)).toList();
     barItems = bottomNavItems.map((NavigationItem nav) {
-      print("nav============================123");
-      print(nav.navigationItem);
       return BottomNavigationBarItem(
         icon: Image.asset(
           iconFor(nav),
@@ -125,8 +127,8 @@ class DashboardController extends GetxController with WidgetsBindingObserver {
       case 'Companies Button':
         return CompaniesScreen(); 
         
-      case 'Gallery Button':
-        return GalleryTab();
+     /* case 'Gallery Button':
+        return GalleryTab();*/
       default:
       // --- change: visible tiny loader instead of invisible container
         return const Center(child: IndicatorLoading());
@@ -142,8 +144,8 @@ class DashboardController extends GetxController with WidgetsBindingObserver {
         return tasksHome;
       case 'Companies Button':
         return connectedAppIcon;
-      case 'Gallery Button':
-        return galleryIcon;
+      /*case 'Gallery Button':
+        return galleryIcon;*/
       default:
         return appIcon;
     }
@@ -224,10 +226,11 @@ class DashboardController extends GetxController with WidgetsBindingObserver {
   List<NavigationItem>? userNav = [];
   CompanyData? myCompany = CompanyData();
   getCompany() async {
-
-    final svc = Get.put<CompanyService>(CompanyService());
-    await svc.init();
-      myCompany = svc.selected;
+    final svc = CompanyService.to;
+    myCompany = svc.selected;
+    // final svc = Get.put<CompanyService>(CompanyService());
+    // await svc.init();
+    //   myCompany = svc.selected;
       Future.delayed(const Duration(milliseconds: 800), () {
         hitAPIToGetUser();
       });
@@ -255,7 +258,7 @@ class DashboardController extends GetxController with WidgetsBindingObserver {
         NavigationItem(navigationItem: 'Chat Button', isActive: 1, sortingOrder: 1, navigationPlace: bottom_nav_key),
         NavigationItem(navigationItem: 'Task Button', isActive: 1, sortingOrder: 2, navigationPlace: bottom_nav_key),
         NavigationItem(navigationItem: 'Companies Button', isActive: 1, sortingOrder: 3, navigationPlace: bottom_nav_key),
-        NavigationItem(navigationItem: 'Gallery Button', isActive: 1, sortingOrder: 4, navigationPlace: bottom_nav_key),
+        // NavigationItem(navigationItem: 'Gallery Button', isActive: 1, sortingOrder: 4, navigationPlace: bottom_nav_key),
       ];
     }
 
