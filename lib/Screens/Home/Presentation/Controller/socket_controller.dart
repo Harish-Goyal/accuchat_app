@@ -864,7 +864,7 @@ class SocketController extends GetxController with WidgetsBindingObserver  {
           "description": taskDes,
           "deadline": taskDeadline,
           "task_status_id": taskStatusId,
-          "media": attachmentsList
+          "files": attachmentsList
         });
         debugPrint("Update task sent: ======== task_id: $taskID, title:  $taskTitle ,receiverId: $receiverId ,companyId : $companyId, taskStatusId:$taskStatusId");
 

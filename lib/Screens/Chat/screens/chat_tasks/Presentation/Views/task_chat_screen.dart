@@ -1255,7 +1255,7 @@ class TaskScreen extends GetView<TaskController> {
                       final fileName =
                           'IMG_${DateTime.now().millisecondsSinceEpoch}.jpg';
                       controller.attachedFiles.add({
-                        'url': file,
+                        'file': file,
                         'type': 'image',
                         'name': fileName,
                         'isLocal': true,
@@ -1299,7 +1299,7 @@ class TaskScreen extends GetView<TaskController> {
 
                       setStateInside(() {
                         controller.attachedFiles.add(
-                            {'url': file, 'type': 'image', 'name': fileName,'isLocal':true,'isDelete':false});
+                            {'file': file, 'type': 'image', 'name': fileName,'isLocal':true,'isDelete':false});
                       });
                     }
                   } catch (e) {
@@ -1493,14 +1493,14 @@ class TaskScreen extends GetView<TaskController> {
                             print(controller.attachedFiles.map((v)=>v));
                             final String type = file['type'];
                             final String name = file['name'];
-                            final url = file['url'];
+                            final url = file['file'];
 
                             Widget preview;
 
                             if (type == 'image') {
                               // On mobile: we stored a File in 'file'
                               // On web: we stored Uint8List in 'bytes'
-                              final fileis = file['url'];          // File? (mobile)
+                              final fileis = file['file'];          // File? (mobile)
                               final bytes = file['bytes'];        // Uint8List? (web)
 
                               if (kIsWeb && bytes != null) {
@@ -1972,14 +1972,18 @@ class TaskScreen extends GetView<TaskController> {
         final name = path.split('/').last.replaceAll(RegExp(r'^DOC_\d+_'), '');
         final isImage = path.endsWith('.png') ||
             path.endsWith('.jpg') ||
+            path.endsWith('.JPG') ||
+            path.endsWith('.PNG') ||
             path.endsWith('.jpeg') ||
+            path.endsWith('.JPEG') ||
             path.endsWith('.webp');
+            path.endsWith('.WEBP');
         print(att.fileName);
 
         _editAttachedFiles.add({
           'type': isImage ? 'image' : 'doc',
           'name': name,
-          'url': '${ApiEnd.baseUrlMedia}/$path', // for preview/open
+          'url': '${ApiEnd.baseUrlMedia}$path', // for preview/open
           'bytes': null,                         // web memory for new uploads
           'file': null,                          // mobile File for new uploads
           'isExisting': true,                    // mark as came from server
@@ -2016,7 +2020,7 @@ class TaskScreen extends GetView<TaskController> {
           final String? url = (urlRaw is String && urlRaw.isNotEmpty) ? urlRaw : null;
 
           // PlatformFile? (web or picker)
-          final dynamic pfRaw = m['url'];
+          final dynamic pfRaw = m['bytes'];
           final PlatformFile? pf = (pfRaw is PlatformFile) ? pfRaw : null;
 
           // bytes for web local previews
@@ -2028,8 +2032,8 @@ class TaskScreen extends GetView<TaskController> {
             print("pf.path====");
             print(pf.path);
             localFile = File(pf.path!);
-          } else if (m['url'] is File) {
-            localFile = m['url'] as File;
+          } else if (m['file'] is File) {
+            localFile = m['file'] as File;
           }
 
           Widget tile;
