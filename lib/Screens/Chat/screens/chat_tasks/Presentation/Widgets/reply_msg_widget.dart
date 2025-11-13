@@ -55,20 +55,15 @@ class ReplyMessageWidget extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-
-
-
-
-    bool isSendByME =   APIs.me.userId.toString() ==
-        empIdsender
-        ? true
-        : false;
+    bool isSendByME = APIs.me.userId.toString() == empIdsender ? true : false;
     return IntrinsicHeight(
       child: Container(
         // alignment: isSendByME &&!isCancel!?Alignment.centerRight:Alignment.centerLeft,
         child: Row(
           mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment:isSendByME &&!isCancel!?CrossAxisAlignment.end: CrossAxisAlignment.start,
+          crossAxisAlignment: isSendByME && !isCancel!
+              ? CrossAxisAlignment.end
+              : CrossAxisAlignment.start,
           children: [
             Container(
               width: 4,
@@ -79,9 +74,10 @@ class ReplyMessageWidget extends StatelessWidget {
                 color: AppTheme.appColor,
               ),
             ),
-             vGap(2),
-            // isCancel!?   Expanded(child: buildReplyMessage(isSendByME)):
-            Flexible(child: buildReplyMessage(isSendByME)),
+            const SizedBox(width: 2),
+            isCancel!
+                ? Expanded(child: buildReplyMessage(isSendByME))
+                : Flexible(child: buildReplyMessage(isSendByME)),
           ],
         ).marginOnly(
           right: isCancel! ? 35 : 15,
@@ -89,7 +85,6 @@ class ReplyMessageWidget extends StatelessWidget {
         ),
       ),
     );
-
   }
   Widget buildReplyMessage(isSendByME) {
     return InkWell(
@@ -129,21 +124,14 @@ class ReplyMessageWidget extends StatelessWidget {
                     maxLines: 1,
                     textAlign: TextAlign.start,
                   ).paddingOnly(left: 8,right: 8),
-                ):*/sentByMe!? Flexible(
+                ):*/ Flexible(
                   child: Text(
-                    (chatdata?.fromUser?.userCompany?.displayName!=null?
-                    chatdata?.fromUser?.userCompany?.displayName??'':chatdata?.fromUser?.phone??''),
+        chatdata?.replyToName??'',
                     style: BalooStyles.baloonormalTextStyle(color: appColorYellow),
                     overflow: TextOverflow.ellipsis,
                     maxLines: 1,
                     textAlign: TextAlign.start,
-                  ).paddingOnly(left: 8,right: 8)): Text(
-                   (chatdata?.toUser?.userCompany?.displayName!=null?chatdata?.toUser?.userCompany?.displayName??'':chatdata?.toUser?.phone??''),
-                    style: BalooStyles.baloonormalTextStyle(color: appColorYellow),
-                    overflow: TextOverflow.ellipsis,
-                    maxLines: 1,
-                    textAlign: TextAlign.start,
-                  ).paddingOnly(left: 8,right: 8),
+                  ).paddingOnly(left: 8,right: 8)),
 
 
                 isCancel!
