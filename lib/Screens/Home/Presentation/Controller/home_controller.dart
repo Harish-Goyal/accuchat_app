@@ -44,7 +44,7 @@ class DashboardController extends GetxController with WidgetsBindingObserver {
   // --- add: simple skeleton widgets to avoid white frame before nav loads
   List<Widget> get _fallbackScreens => [
    const ChatHomeShimmer(itemCount: 12)
-
+  //
   ];
 
 
@@ -86,10 +86,9 @@ class DashboardController extends GetxController with WidgetsBindingObserver {
     _inited = true;
 
     // (kept) registrations – wrapped in try to avoid crash if already registered
-    try { await Get.putAsync<SocketController>(
-          () async => SocketController()..onInit(), // or call init() inside
-      permanent: true,
-    );
+    try {
+      await Get.putAsync<SocketController>(() async => SocketController(), permanent: true);
+
     } catch (_) {}
     try { Get.lazyPut(() => DashboardController(), fenix: true); } catch (_) {}
     try { Get.lazyPut(() => ChatHomeController(), fenix: true); } catch (_) {}
@@ -215,8 +214,9 @@ class DashboardController extends GetxController with WidgetsBindingObserver {
 
   @override
   void onInit() async {
-    _ensureFallbackNavIfEmpty();
     getCompany();
+    _ensureFallbackNavIfEmpty();
+
 
     // getTopSixRecentChats();
     // futureChats = getTopSixRecentChats();
@@ -224,15 +224,16 @@ class DashboardController extends GetxController with WidgetsBindingObserver {
   }
 
   List<NavigationItem>? userNav = [];
-  CompanyData? myCompany = CompanyData();
+  CompanyData? myCompany;
   getCompany() async {
     final svc = CompanyService.to;
     myCompany = svc.selected;
+    update();
     // final svc = Get.put<CompanyService>(CompanyService());
     // await svc.init();
     //   myCompany = svc.selected;
-      Future.delayed(const Duration(milliseconds: 800), () {
-        hitAPIToGetUser();
+      Future.delayed(const Duration(milliseconds: 500), () {
+        hitAPIToGetUser(myCompany?.companyId);
       });
 
 
@@ -308,11 +309,11 @@ class DashboardController extends GetxController with WidgetsBindingObserver {
 
   UserDataAPI userData = UserDataAPI();
 
-  Future<void> hitAPIToGetUser() async {
+  Future<void> hitAPIToGetUser(comid) async {
     FocusManager.instance.primaryFocus!.unfocus();
     print("Home user");
     Get.find<AuthApiServiceImpl>()
-        .getUserApiCall(companyId: myCompany?.companyId ?? 0)
+        .getUserApiCall(companyId: comid)
         .then((value) async {
       userData = value.data!;
       await APIs.getFirebaseMessagingToken();

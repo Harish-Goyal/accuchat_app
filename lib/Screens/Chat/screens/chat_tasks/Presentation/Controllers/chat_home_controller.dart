@@ -136,7 +136,7 @@ class ChatHomeController extends GetxController{
         .addEditGroupBroadcastApiCall(dataBody: reqData)
         .then((value) {
       customLoader.hide();
-      Get.find<SocketController>().connectUserEmitter();
+      Get.find<SocketController>().connectUserEmitter(myCompany?.companyId);
       Get.back();
       groupResModel = value;
       groupController.clear();

@@ -28,8 +28,6 @@ enum ChType {
 class SocketController extends GetxController with WidgetsBindingObserver  {
   late IO.Socket? socket;
 
-
-
   @override
   void onInit() {
     WidgetsBinding.instance.addObserver(this);
@@ -40,20 +38,23 @@ class SocketController extends GetxController with WidgetsBindingObserver  {
 
   @override
   void didChangeAppLifecycleState(AppLifecycleState state) {
+
     if (state == AppLifecycleState.resumed) {
+      final svc = CompanyService.to;
+      final myCompany =svc.selected;
       // Ensure an active transport
       if (!(socket?.connected ?? false)) {
         try { socket?.connect(); } catch (_) {}
       }
       // Idempotently re-wire listeners and re-select company on resume
-      allListerer();           // ensures .off() then .on() again
-      connectUserEmitter();    // re-emit company context
+      // allListerer();           // ensures .off() then .on() again
+      connectUserEmitter(myCompany?.companyId);    // re-emit company context
     }
   }
 
   Future<void> initSocket() async {
     initial();
-    allListerer();
+    // allListerer();
   }
 
   initial() {
@@ -69,22 +70,26 @@ class SocketController extends GetxController with WidgetsBindingObserver  {
     socket = IO.io(
       ApiEnd.baseUrlMedia,
       IO.OptionBuilder()
-          .setTransports(['websocket'])
+      // Allow polling + websocket – more reliable behind proxies
+          .setTransports(['websocket', 'polling'])
           .enableForceNew()
+          .setAuth({'token': token})
           .enableReconnection()
           .enableAutoConnect()
+          .setPath('/socket.io/')      // must match server/proxy location
+          .setTimeout(20000)
           .setReconnectionDelay(2000)
           .setReconnectionAttempts(20)
-          .setTimeout(20000)
-          .setAuth({'token': token})
-          .setPath('/socket.io/')
+          .setExtraHeaders({'Authorization': 'Bearer $token'})
           .build(),
     );
 
     socket?.connect();
 
     socket?.onConnect((_) {
-      connectUserEmitter();   // already in your code
+      final svc = CompanyService.to;
+      final myCompany =svc.selected;
+      connectUserEmitter(myCompany?.companyId);   // already in your code
       allListerer();          // ← ADD: make sure listeners are wired on first connect
     });
 
@@ -93,10 +98,12 @@ class SocketController extends GetxController with WidgetsBindingObserver  {
     });
 
     socket?.onReconnect((_) {
-      print("🔄 Reconnected!");
       // Re-attach handlers & re-emit company selection after reconnection
-      allListerer();          // ← ADD
-      connectUserEmitter();   // ← ADD
+      // allListerer();
+      // ← ADD
+      // final svc = CompanyService.to;
+      // final myCompany =svc.selected;
+      // connectUserEmitter(myCompany?.companyId);   // ← ADD
     });
 
     socket?.onDisconnect((v) {
@@ -139,6 +146,7 @@ class SocketController extends GetxController with WidgetsBindingObserver  {
             replyToText: receivedMessageDataModal.replyToText,
             replyToId: receivedMessageDataModal.replyToId,
             replyToTime: receivedMessageDataModal.replyToTime,
+            replyToName: receivedMessageDataModal.replyToName,
             isGroupChat: receivedMessageDataModal.isGroupChat,
             isActivity: receivedMessageDataModal.isActivity,
           );
@@ -192,6 +200,12 @@ class SocketController extends GetxController with WidgetsBindingObserver  {
       } catch (e) {
         debugPrint(e.toString());
       }
+    });
+
+    socket?.off('company_joined');
+    socket?.on('company_joined', (messages) {
+      debugPrint("Listing task......67");
+      debugPrint("company_joined ${messages}");
     });
 
 
@@ -307,152 +321,12 @@ class SocketController extends GetxController with WidgetsBindingObserver  {
     });
   }
 
-/*  addChatList(messages){
-    if( Get.isRegistered<UserChatListController>()){
-      ChatDetailResModel chatMessageItems=    ChatDetailResModel.fromJson(messages);
-      if((chatMessageItems.senderId?.userId.toString())!=storage.read(userId))
-      {
-        List<UserChatListData>? chatList = Get.find<UserChatListController>().chatList;
-        final index1 =   chatList?.indexWhere((item){
-          return (item.userId?.toString()) ==
-              chatMessageItems.senderId?.userId;
-        });
-        if(index1!=-1){
-          int? unReadCount=Get
-              .find<UserChatListController>()
-              .chatList?[index1!].unreadMessageCount;
 
-          Get
-              .find<UserChatListController>()
-              .chatList?.removeAt(index1!);
-          chatList?.insert(0, UserChatListData(
-            userId:int.parse(storage.read(userId)),
-            regdDate: chatList[index1!].regdDate,
-            userName: chatList[index1].userName,
-            password:"",
-            status: (unReadCount??0)+1,
-            userRoleId: 0,
-            empId: chatList[index1].empId,
-            canViewAll: chatList[index1].canViewAll,
-            canEditAll: chatList[index1].canEditAll,
-            canAddAll: chatList[index1].canAddAll,
-            userAbbr: chatList[index1].userAbbr,
-            accessEmailCheckBox: chatList[index1].accessEmailCheckBox,
-            canViewClientContact: chatList[index1].canViewClientContact,
-            isGroup: chatList[index1].isGroup,
-            isCollection: chatList[index1].isCollection,
-            createdOn: chatList[index1].createdOn,
-            socketId: chatList[index1].socketId,
-            employee: chatList[index1].employee,
-            unreadMessageCount: chatList[index1].unreadMessageCount,
-            lastMessage: chatList[index1].lastMessage,
-
-
-
-          ));
-        }
-        else{
-          chatList?.insert(0, UserChatListData(
-            userId:int.parse(storage.read(userId)),
-            regdDate: chatList[index1!].regdDate,
-            userName: chatList[index1].userName,
-            password:"",
-            // status: (unReadCount??0)+1,
-            userRoleId: 0,
-            empId: chatList[index1].empId,
-            canViewAll: chatList[index1].canViewAll,
-            canEditAll: chatList[index1].canEditAll,
-            canAddAll: chatList[index1].canAddAll,
-            userAbbr: chatList[index1].userAbbr,
-            accessEmailCheckBox: chatList[index1].accessEmailCheckBox,
-            canViewClientContact: chatList[index1].canViewClientContact,
-            isGroup: chatList[index1].isGroup,
-            isCollection: chatList[index1].isCollection,
-            createdOn: chatList[index1].createdOn,
-            socketId: chatList[index1].socketId,
-            employee: chatList[index1].employee,
-            unreadMessageCount: chatList[index1].unreadMessageCount,
-            lastMessage: chatList[index1].lastMessage,
-          ));
-        }
-
-        if (((chatList ?? []).any((item) =>
-        (item.userId.toString() ?? "-1") ==
-            chatMessageItems.senderId?.userId))) {
-
-
-          chatList?.add(  UserChatListData(
-            userId:int.parse(storage.read(userId)),
-            regdDate: chatList[index1!].regdDate,
-            userName: chatList[index1].userName,
-            password:"",
-            // status: (unReadCount??0)+1,
-            userRoleId: 0,
-            empId: chatList[index1].empId,
-            canViewAll: chatList[index1].canViewAll,
-            canEditAll: chatList[index1].canEditAll,
-            canAddAll: chatList[index1].canAddAll,
-            userAbbr: chatList[index1].userAbbr,
-            accessEmailCheckBox: chatList[index1].accessEmailCheckBox,
-            canViewClientContact: chatList[index1].canViewClientContact,
-            isGroup: chatList[index1].isGroup,
-            isCollection: chatList[index1].isCollection,
-            createdOn: chatList[index1].createdOn,
-            socketId: chatList[index1].socketId,
-            employee: chatList[index1].employee,
-            unreadMessageCount: chatList[index1].unreadMessageCount,
-            lastMessage: chatList[index1].lastMessage,
-
-
-
-          ));
-        }
-        else {
-          chatList?.add(   UserChatListData(
-            userId:int.parse(storage.read(userId)),
-            regdDate: chatList[index1!].regdDate,
-            userName: chatList[index1].userName,
-            password:"",
-            // status: (unReadCount??0)+1,
-            userRoleId: 0,
-            empId: chatList[index1].empId,
-            canViewAll: chatList[index1].canViewAll,
-            canEditAll: chatList[index1].canEditAll,
-            canAddAll: chatList[index1].canAddAll,
-            userAbbr: chatList[index1].userAbbr,
-            accessEmailCheckBox: chatList[index1].accessEmailCheckBox,
-            canViewClientContact: chatList[index1].canViewClientContact,
-            isGroup: chatList[index1].isGroup,
-            isCollection: chatList[index1].isCollection,
-            createdOn: chatList[index1].createdOn,
-            socketId: chatList[index1].socketId,
-            employee: chatList[index1].employee,
-            unreadMessageCount: chatList[index1].unreadMessageCount,
-            lastMessage: chatList[index1].lastMessage,
-
-          ));
-        }
-      }
-      Get
-          .find<UserChatListController>().update();
-    }
-
-  }*/
-
-/*  void connectUserEmitter() {
-    final svc = CompanyService.to;
-    final myCompany = svc.selected;
-    socket?.emit('select_company', {'company_id': myCompany?.companyId,'user_id': me?.userId});
-    debugPrint("user connected");
-  }*/
-
-  void connectUserEmitter() {
+  void connectUserEmitter(companyId) {
     try {
-      final svc = CompanyService.to;
-      final myCompany = svc.selected;
-      if (myCompany?.companyId != null && me?.userId != null) {
+      if (companyId != null && me?.userId != null) {
         socket?.emit('select_company', {
-          'company_id': myCompany!.companyId,
+          'company_id': companyId,
           'user_id': me!.userId,
         });
         debugPrint("user connected");
@@ -464,9 +338,7 @@ class SocketController extends GetxController with WidgetsBindingObserver  {
 
 
   void _registerDeleteListener() {
-    // avoid duplicate handlers
     socket?.off('delete_message_listener');
-
     socket?.on('delete_message_listener', (data) {
       try {
         Map<String, dynamic> map;
@@ -597,7 +469,6 @@ class SocketController extends GetxController with WidgetsBindingObserver  {
 
   void readMsgEmitter(
       {required int chatId}) {
-    print("read message for chat id$chatId");
     socket?.emit('read_message', {
       "chat_id": chatId,
     });

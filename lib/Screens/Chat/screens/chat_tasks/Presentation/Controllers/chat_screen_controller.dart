@@ -45,6 +45,7 @@ class ChatScreenController extends GetxController {
   List<Map<String, String>> uploadedAttachments = [];
   List<ChatHisResModel> msgList = [];
   final textController = TextEditingController();
+  final FocusNode focusNode = FocusNode();
   ChatHisList? replyToMessage;
   String? replyToImage;
   bool showEmoji = false,
@@ -270,6 +271,10 @@ class ChatScreenController extends GetxController {
   @override
   void onInit() {
     super.onInit();
+    if (kIsWeb) {
+      // web pe type karte hi yehi node focused rahe
+      focusNode.requestFocus();
+    }
     getArguments();
     itemScrollController = ItemScrollController();
     itemPositionsListener = ItemPositionsListener.create();
@@ -330,6 +335,8 @@ class ChatScreenController extends GetxController {
   @override
   void onClose() {
     newFolderCtrl.dispose();
+    focusNode.dispose();
+    textController.dispose();
     imageCache.clearLiveImages();
     imageCache.clear();
     super.onClose();
@@ -400,12 +407,7 @@ class ChatScreenController extends GetxController {
       myCompany = svc.selected;
       update();
     } else {
-      final svc = Get.put<CompanyService>(CompanyService());
-      await svc.init();
-      myCompany = svc.selected;
-      print('myCompany==');
-      print(myCompany?.companyId);
-      update();
+
     }
   }
 

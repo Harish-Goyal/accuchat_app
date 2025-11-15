@@ -98,7 +98,7 @@ double _textScaleClamp(BuildContext context) {
   // prevent giant scaling on browser zoom
   return t.clamp(0.9, 1.2);
 }
-
+final FocusNode _focusNode = FocusNode();
 class ChatScreen extends GetView<ChatScreenController> {
   ChatScreen({super.key});
   @override
@@ -1038,7 +1038,10 @@ class ChatScreen extends GetView<ChatScreenController> {
                                     controller: controller.textController,
                                     keyboardType: TextInputType.multiline,
                                     cursorColor: AppTheme.appColor,
-                                    maxLines: null,
+                                    maxLines: kIsWeb ? 1 : null,
+                                    textInputAction: kIsWeb
+                                        ? TextInputAction.send
+                                        : TextInputAction.newline,
                                     onChanged: (text) {
                                       // if (text.isNotEmpty) {
                                       //   list[0].isTyping = true;
@@ -1060,6 +1063,10 @@ class ChatScreen extends GetView<ChatScreenController> {
                                     },
                                     onTap: () {
                                     },
+                                    onFieldSubmitted: (v){
+                                        _sendMessage();
+                                    },
+
                                     decoration: InputDecoration(
                                       hintText: 'Type Something...',
                                       hintStyle: themeData.textTheme.bodySmall,
@@ -1154,62 +1161,7 @@ class ChatScreen extends GetView<ChatScreenController> {
           hGap(6),
           InkWell(
             onTap: () async {
-              if (controller.textController.text.isNotEmpty) {
-                if (controller.user?.userCompany?.isGroup == 1) {
-                  Get.find<SocketController>().sendMessage(
-                    receiverId: controller.user?.userId ?? 0,
-                    message: controller.textController.text.trim(),
-                    groupId: controller.user?.userCompany?.userCompanyId ?? 0,
-                    type: "group",
-                    isGroup: 1,
-                    companyId: controller.user?.userCompany?.companyId,
-                    alreadySave: false,
-                    replyToId: controller.replyToMessage?.chatId,
-                  );
-                  controller.textController.clear();
-                  controller.replyToMessage = null;
-
-                  controller.update();
-                } else if (controller.user?.userCompany?.isBroadcast == 1) {
-                  Get.find<SocketController>().sendMessage(
-                    receiverId: controller.user?.userId ?? 0,
-                    message: controller.textController.text.trim(),
-                    brID: controller.user?.userCompany?.userCompanyId ?? 0,
-                    isGroup: 0,
-                    type: "broadcast",
-                    companyId: controller.user?.userCompany?.companyId,
-                    alreadySave: false,
-
-                  );
-                  controller.textController.clear();
-                  controller.replyToMessage = null;
-                  controller.update();
-                } else {
-                  Get.find<SocketController>().sendMessage(
-                    receiverId: controller.user?.userId ?? 0,
-                    message: controller.textController.text.trim(),
-                    isGroup: 0,
-                    type: "direct",
-                    companyId: controller.user?.userCompany?.companyId,
-                    alreadySave: false,
-                    replyToId: controller.replyToMessage
-                        ?.chatId,
-                    replyToText: controller.replyToImage
-                  );
-                  controller.textController.clear();
-                  controller.replyToMessage = null;
-                  controller.replyToImage = null;
-                  controller.update();
-                }
-
-
-                if(controller.me?.userId==controller.user?.userId){
-                  print("read=========");
-                  controller.markAllVisibleAsReadOnOpen();
-                }
-                controller.update();
-                // APIs.updateTypingStatus(false);
-              }
+              _sendMessage();
             },
             child: Container(
               padding: const EdgeInsets.all(12),
@@ -1223,6 +1175,94 @@ class ChatScreen extends GetView<ChatScreenController> {
         ],
       ),
     );
+  }
+
+
+
+  KeyEventResult _handleKey(FocusNode node, KeyEvent event) {
+    if (!kIsWeb) return KeyEventResult.ignored;
+
+    if (event is KeyDownEvent &&
+        event.logicalKey == LogicalKeyboardKey.enter) {
+      // Check if SHIFT is pressed
+      final bool shiftPressed =
+          HardwareKeyboard.instance.logicalKeysPressed.contains(
+            LogicalKeyboardKey.shiftLeft,
+          ) ||
+              HardwareKeyboard.instance.logicalKeysPressed.contains(
+                LogicalKeyboardKey.shiftRight,
+              );
+
+      if (shiftPressed) {
+        // Shift + Enter → new line
+        return KeyEventResult.ignored;
+      }
+
+      // Enter → send
+      _sendMessage();
+      return KeyEventResult.handled;
+    }
+
+    return KeyEventResult.ignored;
+  }
+
+  _sendMessage(){
+    if (controller.textController.text.isNotEmpty) {
+      if (controller.user?.userCompany?.isGroup == 1) {
+        Get.find<SocketController>().sendMessage(
+          receiverId: controller.user?.userId ?? 0,
+          message: controller.textController.text.trim(),
+          groupId: controller.user?.userCompany?.userCompanyId ?? 0,
+          type: "group",
+          isGroup: 1,
+          companyId: controller.user?.userCompany?.companyId,
+          alreadySave: false,
+          replyToId: controller.replyToMessage?.chatId,
+        );
+        controller.textController.clear();
+        controller.replyToMessage = null;
+
+        controller.update();
+      } else if (controller.user?.userCompany?.isBroadcast == 1) {
+        Get.find<SocketController>().sendMessage(
+          receiverId: controller.user?.userId ?? 0,
+          message: controller.textController.text.trim(),
+          brID: controller.user?.userCompany?.userCompanyId ?? 0,
+          isGroup: 0,
+          type: "broadcast",
+          companyId: controller.user?.userCompany?.companyId,
+          alreadySave: false,
+
+        );
+        controller.textController.clear();
+        controller.replyToMessage = null;
+        controller.update();
+      } else {
+        Get.find<SocketController>().sendMessage(
+            receiverId: controller.user?.userId ?? 0,
+            message: controller.textController.text.trim(),
+            isGroup: 0,
+            type: "direct",
+            companyId: controller.user?.userCompany?.companyId,
+            alreadySave: false,
+            replyToId: controller.replyToMessage
+                ?.chatId,
+            replyToText: controller.replyToImage
+        );
+        controller.textController.clear();
+        controller.replyToMessage = null;
+        controller.replyToImage = null;
+        controller.update();
+      }
+
+
+      if(controller.me?.userId==controller.user?.userId){
+        print("read=========");
+        controller.markAllVisibleAsReadOnOpen();
+      }
+      controller.update();
+      // APIs.updateTypingStatus(false);
+    }
   }
 
   void showUploadOptions(BuildContext context) {

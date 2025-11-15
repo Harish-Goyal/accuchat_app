@@ -49,6 +49,7 @@ class VerifyOtpScreen extends GetView<VerifyOtpController> {
                               PinFieldAutoFill(
                                 codeLength: 6,
                                 controller: controller.otpFieldController,
+                                autoFocus: true,
                                 decoration: UnderlineDecoration(
                                   textStyle: const TextStyle(fontSize: 20, color: Colors.black),
                                   colorBuilder: FixedColorBuilder(appColorGreen),

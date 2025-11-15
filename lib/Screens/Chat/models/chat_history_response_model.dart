@@ -89,7 +89,9 @@ class ChatHisList {
     this.isForwarded,
     this.readOn,
     this.pendingCount,
-    this.replyToTime,this.media,this.isGroupChat,this.broadcastUserId,this.isActivity,this.isTask, this.fromUser, this.toUser, this.message, this.sentOn});
+    this.replyToTime,
+    this.replyToName,
+    this.media,this.isGroupChat,this.broadcastUserId,this.isActivity,this.isTask, this.fromUser, this.toUser, this.message, this.sentOn});
 
   ChatHisList.fromJson(Map<String, dynamic> json) {
     chatId = json['chat_id'];

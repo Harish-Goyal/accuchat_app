@@ -81,22 +81,31 @@ class CompanyService extends GetxService {
   }
 
   Future<void> select(CompanyData c, {bool persist = true}) async {
-    await _ensureBoxOpen();                  // <— important
+    await _ensureBoxOpen();
+
+    // ✅ in-memory state update
+    _selected.value = c;
+
     if (persist) {
       await _box!.put(_keyCurrent, c);
       await _box!.flush();
     }
-    _selected.value = c;
 
+    // Navigation-related cleanup
     await MemoryDoctor.deflateBeforeNav();
     MemoryDoctor.disposeFeatureControllers();
+
     await _refreshSessionSafe(c.companyId ?? 0);
+  }
+
+  Future<void> clear() async {
+    await _ensureBoxOpen();
+    await _box!.delete(_keyCurrent);
+    _selected.value = null;
   }
 
   @override
   void onClose() {
-    // In GetxService this is called when the service is deleted.
-    // Don't await here.
     if (_box != null && _box!.isOpen) {
       _box!.close();
     }
@@ -111,12 +120,6 @@ class CompanyService extends GetxService {
     _box = null;
   }
 
-  Future<void> clear() async {
-    await _ensureBoxOpen();                  // in case it was closed
-    await _box!.delete(_keyCurrent);
-    _selected.value = null;
-  }
-
   // --- lifecycle / utils ---
 
   Future<void> _ensureBoxOpen() async {
@@ -126,6 +129,7 @@ class CompanyService extends GetxService {
   }
 
   // ---- session helpers (safe if Session isn't registered yet) ----
+
   Future<void> _initSessionSafe(int companyId) async {
     try {
       final session = Get.find<Session>();
@@ -145,7 +149,5 @@ class CompanyService extends GetxService {
   }
 
   static CompanyService get to => Get.find<CompanyService>();
-
-
 }
 

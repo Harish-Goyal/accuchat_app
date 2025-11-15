@@ -58,7 +58,7 @@ class ChatsHomeScreen extends GetView<ChatHomeController> {
                 // }
                 return Future.value(true);
               },
-              child:controller.isLoading?ChatHomeShimmer(itemCount: 12): Scaffold(
+              child:/*controller.isLoading?ChatHomeShimmer(itemCount: 12):*/ Scaffold(
                   //app bar
                   // backgroundColor: isTaskMode?appColorYellow.withOpacity(.05):Colors.white,
                   appBar: AppBar(
@@ -234,7 +234,8 @@ class ChatsHomeScreen extends GetView<ChatHomeController> {
                           color: Colors.white,
                         )),
                   ),
-                  body: (controller.filteredList ?? []).isNotEmpty
+                  body:/*controller.isLoading?
+                  ChatHomeShimmer(itemCount: 12):*/(!controller.isLoading||controller.filteredList!=[])
                       ? RefreshIndicator(
                           backgroundColor: Colors.white,
                           color: appColorGreen,

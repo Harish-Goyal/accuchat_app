@@ -77,7 +77,7 @@ class VerifyOtpController extends GetxController{
 
             update();
 
-
+      Get.offAllNamed(AppRoutes.landing_r);
 
       // openBottomSheet();
     }).onError((error, stackTrace) {
@@ -85,7 +85,7 @@ class VerifyOtpController extends GetxController{
       errorDialog(error.toString());
       isFill = false;
       update();
-    }).then((v){Get.offAllNamed(AppRoutes.landing_r);});
+    }).then((v){});
   }
 
   final int cooldownSeconds = 60;

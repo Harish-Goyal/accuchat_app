@@ -84,7 +84,22 @@ class LandingPage extends GetView<LandingScreenController> {
                                   return InkWell(
                                     onTap: () async {
                                       customLoader.show();
+                                      if(Get.isRegistered<CompanyService>()) {
+                                        final svc = CompanyService.to;
+                                        await svc.select(company);
+                                      }else{
+                                        await Get.putAsync<CompanyService>(
+                                              () async => await CompanyService().init(),
+                                          permanent: true,
+                                        );
 
+                                        final svc = CompanyService.to;
+                                        await svc.select(company);
+                                      }
+
+                                      StorageService.setLoggedIn(true);
+                                      customLoader.hide();
+                                      Get.offAllNamed(AppRoutes.home);
                                      /* Get.putAsync<Session>(() async {
                                         final s = Session(Get.find<AuthApiServiceImpl>(), Get.find<AppStorage>());
 
@@ -104,7 +119,7 @@ class LandingPage extends GetView<LandingScreenController> {
 
 
 */
-                                      final svc = CompanyService.to;
+                                      /*final svc = CompanyService.to;
                                       await svc.select(company);
                                       // final svc = Get.find<CompanyService>();
                                       // await svc.select(company);
@@ -115,7 +130,7 @@ class LandingPage extends GetView<LandingScreenController> {
                                       final session = Get.find<Session>();
                                       await session.reinitWithCompany(company.companyId ?? 0);
                                       Get.toNamed(AppRoutes.home);
-
+*/
                                     } ,
                                     child: ChatCard(
                                         iconWidget: SizedBox(
@@ -132,7 +147,6 @@ class LandingPage extends GetView<LandingScreenController> {
                                         title: (company.companyName ?? '').toUpperCase(),
                                         subtitle: 'Tap to enter this company',
                                         onTap: () async {
-                                          // saveCompany(company);
 
                                           customLoader.show();
                                           if(Get.isRegistered<CompanyService>()) {

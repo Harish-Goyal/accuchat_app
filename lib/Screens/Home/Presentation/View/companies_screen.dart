@@ -214,15 +214,15 @@ class CompaniesScreen extends GetView<CompaniesController> {
                                         title: '',
                                         subtitleTap: () async {
                                           customLoader.show();
+                                          Get.find<SocketController>().initial();
                                           final svc = CompanyService.to;
                                           await svc.select(companyData);
+                                          controller.getCompany();
+                                          Get.find<SocketController>().connectUserEmitter(companyData.companyId);
                                           await APIs.refreshMe(
                                               companyId: svc.id!);
-                                          customLoader.hide();
-                                          controller.getCompany();
-                                          Get.find<SocketController>().connectUserEmitter();
                                           controller.update();
-
+                                          customLoader.hide();
                                           if (kIsWeb) {
                                             Get.toNamed(
                                                 '${AppRoutes.company_members}?companyId=${companyData.companyId}&companyName=${companyData.companyName ?? ''}');
@@ -243,13 +243,15 @@ class CompaniesScreen extends GetView<CompaniesController> {
                                             'members: ${companyData.members?.length ?? 0}',
                                         onTap: () async {
                                           customLoader.show();
+                                          Get.find<SocketController>().initial();
                                           final svc = CompanyService.to;
                                           await svc.select(companyData);
+
+                                          controller.getCompany();
+                                          Get.find<SocketController>().connectUserEmitter(companyData.companyId);
                                           await APIs.refreshMe(
                                               companyId: svc.id!);
                                           customLoader.hide();
-                                          controller.getCompany();
-                                          Get.find<SocketController>().connectUserEmitter();
                                           controller.update();
                                         },
                                       ),

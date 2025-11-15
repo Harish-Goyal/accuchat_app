@@ -40,13 +40,9 @@ import '../../../../../../utils/product_shimmer_widget.dart';
 import '../../../../../../utils/text_style.dart';
 import '../../../../../Home/Presentation/Controller/socket_controller.dart';
 import '../../../../models/task_res_model.dart';
-import '../../../../models/task_status_res_model.dart';
 import '../Controllers/task_controller.dart';
 import '../Widgets/staggered_view.dart';
 import '../../../../api/apis.dart';
-import '../Controllers/gallery_view_controller.dart';
-import '../Widgets/media_view.dart';
-import 'images_gallery_page.dart';
 import 'package:path_provider/path_provider.dart';
 
 /// -------------------------
