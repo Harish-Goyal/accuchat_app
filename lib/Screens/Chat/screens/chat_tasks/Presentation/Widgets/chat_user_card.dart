@@ -1,6 +1,8 @@
 import 'package:AccuChat/Constants/colors.dart';
 import 'package:AccuChat/Constants/themes.dart';
+import 'package:AccuChat/Screens/Chat/screens/chat_tasks/Presentation/Controllers/chat_home_controller.dart';
 import 'package:AccuChat/Screens/Chat/screens/chat_tasks/Presentation/Controllers/chat_screen_controller.dart';
+import 'package:AccuChat/Screens/Home/Presentation/Controller/home_controller.dart';
 import 'package:AccuChat/Services/APIs/api_ends.dart';
 import 'package:AccuChat/routes/app_routes.dart';
 import 'package:AccuChat/utils/helper_widget.dart';
@@ -81,7 +83,7 @@ class _ChatUserCardState extends State<ChatUserCard>
   Widget build(BuildContext context) {
     return Container(
       padding: EdgeInsets.zero,
-      margin: EdgeInsets.symmetric(horizontal: mq.width * .04, vertical: 0),
+      margin: EdgeInsets.symmetric(horizontal: kIsWeb?14:mq.width * .04, vertical: 0),
       decoration: BoxDecoration(
           borderRadius: BorderRadius.circular(15),
           border: Border.all(color:isTaskMode? appColorYellow.withOpacity(.06):appColorGreen.withOpacity(.04)),
@@ -107,15 +109,31 @@ class _ChatUserCardState extends State<ChatUserCard>
               }
 
             }else{
-              if(kIsWeb){
+
+              if (kIsWeb) {
+                final homec = Get.find<ChatHomeController>();
+                final chatc = Get.find<ChatScreenController>();
+                homec.selectedChat.value = widget.user;
+                chatc.user =homec.selectedChat.value ;
+
+                chatc.showPostShimmer =true;
+                chatc.openConversation(homec.selectedChat.value);
+                chatc.update();
+              } else {
                 Get.toNamed(
-                  "${AppRoutes.chats_li_r}?userId=${widget.user?.userId?.toString()}",
+                  AppRoutes.chats_li_r,
+                  arguments: {'user': widget.user},
                 );
-              }else{
-                Get.toNamed(AppRoutes.chats_li_r, arguments: {
-                  'user': widget.user
-                });
               }
+              // if(kIsWeb){
+              //   Get.toNamed(
+              //     "${AppRoutes.chats_li_r}?userId=${widget.user?.userId?.toString()}",
+              //   );
+              // }else{
+              //   Get.toNamed(AppRoutes.chats_li_r, arguments: {
+              //     'user': widget.user
+              //   });
+              // }
 
             }
           },
@@ -151,12 +169,13 @@ class _ChatUserCardState extends State<ChatUserCard>
             ):Text(
               (widget.user?.userId==APIs.me.userId)?"Me":  (widget.user?.displayName==''||widget.user?.displayName==null)?widget.user?.phone??'':widget.user?.displayName??'',
               style: themeData.textTheme.titleMedium,
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
             ),
 
             //last message
             subtitle: Text(
-              widget.user?.lastMessage?.message??''
-                  ,
+              widget.user?.lastMessage?.message??'',
               maxLines: 1,
               style: BalooStyles.balooregularTextStyle(),
               overflow: TextOverflow.ellipsis,
@@ -172,6 +191,8 @@ class _ChatUserCardState extends State<ChatUserCard>
                   child: Text(
                     "${widget.user?.pendingCount}",
                     style: BalooStyles.baloonormalTextStyle(color: Colors.white),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
                   ),
                 ):SizedBox(),
                 widget.user?.open_count!=null&&widget.user?.open_count!=0 ? Spacer():SizedBox(),

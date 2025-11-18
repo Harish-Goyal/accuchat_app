@@ -23,6 +23,7 @@ class ChatHomeController extends GetxController{
 
   bool isTask = false;
 
+  Rxn<UserDataAPI> selectedChat = Rxn<UserDataAPI>();
 
   List<ChatUser> list = [];
   List<ChatGroup> grouplist = [];
@@ -39,7 +40,7 @@ class ChatHomeController extends GetxController{
 
     getCompany();
 
-    Future.delayed(const Duration(milliseconds: 800),(){
+    Future.delayed(const Duration(milliseconds: 200),(){
       hitAPIToGetRecentChats();
     }
     );
@@ -102,7 +103,9 @@ class ChatHomeController extends GetxController{
       recentChatsUserResModel=value;
       recentChatUserList=value.data?.rows??[];
       filteredList = recentChatUserList??[];
-
+      if(filteredList.isNotEmpty) {
+        selectedChat.value = filteredList[0];
+      }
       final List<UserDataAPI> newItems = [];
 
       if (newItems.isNotEmpty) {

@@ -8,10 +8,10 @@ import '../../../../../../utils/common_textfield.dart';
 import '../../../../../../utils/helper.dart';
 import '../../../../models/gallery_create.dart';
 
-Future<GalleryFolder?> showSaveToCustomFolderDialog(BuildContext context) async {
+Future<GalleryFolder?> showSaveToCustomFolderDialog(BuildContext context,user) async {
   // Create a fresh controller for this dialog lifecycle
   final String tagId = 'gallery-folder-dialog-${UniqueKey()}';
-  final ctrl = Get.put(ChatScreenController(), tag: tagId);
+  final ctrl = Get.put(ChatScreenController(user: user), tag: tagId);
   final result = await showDialog<GalleryFolder?>(
     context: context,
     barrierDismissible: false,

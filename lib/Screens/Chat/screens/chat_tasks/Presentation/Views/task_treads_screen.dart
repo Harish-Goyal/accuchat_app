@@ -2,6 +2,7 @@ import 'package:AccuChat/Screens/Chat/models/task_commets_res_model.dart';
 import 'package:AccuChat/Screens/Chat/screens/chat_tasks/Presentation/Controllers/task_thread_controller.dart';
 import 'package:AccuChat/utils/text_style.dart';
 import 'package:dio/dio.dart' show Dio;
+import 'package:flutter/foundation.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:intl/intl.dart';
 import 'package:flutter/material.dart';
@@ -463,11 +464,17 @@ class TaskThreadScreen extends GetView<TaskThreadController> {
                               controller: controller.msgController,
                               keyboardType: TextInputType.multiline,
                               cursorColor: AppTheme.appColor,
-                              maxLines: null,
+                              maxLines: kIsWeb ? 1 : null,
+                              textInputAction: kIsWeb
+                                  ? TextInputAction.send
+                                  : TextInputAction.newline,
                               onChanged: (text) {},
                               onTap: () {
                                 // if (_showEmoji)
                                 //   setState(() => _showEmoji = !_showEmoji);
+                              },
+                              onFieldSubmitted: (v){
+                                _sendThreadMessage();
                               },
                               decoration: InputDecoration(
                                 hintText: 'Type Something...',

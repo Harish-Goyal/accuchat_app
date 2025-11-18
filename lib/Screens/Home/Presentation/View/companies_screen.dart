@@ -8,6 +8,7 @@ import 'package:AccuChat/utils/helper_widget.dart';
 import 'package:AccuChat/utils/loading_indicator.dart';
 import 'package:AccuChat/utils/networl_shimmer_image.dart';
 import 'package:AccuChat/utils/text_style.dart';
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_staggered_animations/flutter_staggered_animations.dart';
@@ -111,7 +112,7 @@ class CompaniesScreen extends GetView<CompaniesController> {
                           child: AnimationLimiter(
                             child: controller.pendingInvitesList == [] ||
                                     controller.pendingInvitesList.isEmpty
-                                ? SizedBox()
+                                ? const SizedBox()
                                 : PendingInvitesCard(
                                     invitesCount:
                                         controller.pendingInvitesList.length,
@@ -163,15 +164,19 @@ class CompaniesScreen extends GetView<CompaniesController> {
                                             controller.selCompany?.companyId
                                             ? appColorPerple
                                             : Colors.grey.shade200,
-                                        iconWidget: SizedBox(
-                                          width: 55,
-                                          child: CustomCacheNetworkImage(
-                                            radiusAll: 100,
-                                            height: 55,
-                                            width: 55,
-                                            borderColor: greyText,
-                                            '${ApiEnd.baseUrlMedia}${companyData.logo ?? ''}',
-                                            boxFit: BoxFit.cover,
+                                        iconWidget: ClipRRect(
+                                          borderRadius: BorderRadius.circular(100),
+                                          child: Container(
+                                            color: Colors.red,
+                                            width: 50,
+                                            child: CustomCacheNetworkImage(
+                                              radiusAll: 100,
+                                              height: 50,
+                                              width: 50,
+                                              borderColor: greyText,
+                                              '${ApiEnd.baseUrlMedia}${companyData.logo ?? ''}',
+                                              boxFit: BoxFit.cover,
+                                            ),
                                           ),
                                         ),
                                         trailWidget: Column(
@@ -214,7 +219,7 @@ class CompaniesScreen extends GetView<CompaniesController> {
                                         title: '',
                                         subtitleTap: () async {
                                           customLoader.show();
-                                          Get.find<SocketController>().initial();
+                                          // Get.find<SocketController>().initial();
                                           final svc = CompanyService.to;
                                           await svc.select(companyData);
                                           controller.getCompany();
@@ -243,7 +248,7 @@ class CompaniesScreen extends GetView<CompaniesController> {
                                             'members: ${companyData.members?.length ?? 0}',
                                         onTap: () async {
                                           customLoader.show();
-                                          Get.find<SocketController>().initial();
+                                          // Get.find<SocketController>().initial();
                                           final svc = CompanyService.to;
                                           await svc.select(companyData);
 
@@ -364,18 +369,18 @@ class CompaniesScreen extends GetView<CompaniesController> {
                                       companyData.companyId ==
                                           controller
                                               .selCompany?.companyId?   Positioned(
-                                        top: -14,
-                                        left: 0,
-                                        right: 0,
-                                        child:Container(
-                                          padding: const EdgeInsets.all(4),
-                                          decoration: BoxDecoration(
-                                              shape:BoxShape.circle,
-                                              // color:Colors.red.withOpacity(.1),
-                                              ),
-                                          child: Image.asset(pinnedPng,height: 22,width: 22,),
+                                        top: 4,
+                                        left: 4,
+                                        // right: 0,
+                                        child:Transform.scale(
+                                          scale: 1.2,
+                                          child: CupertinoCheckbox(
+                                            activeColor: appColorGreen,
+                                              value: companyData.companyId ==
+                                              controller
+                                                  .selCompany?.companyId, onChanged: (v){}),
                                         )
-                                      ):SizedBox(),
+                                      ):const SizedBox(),
 
                                       /*   Positioned(
                                             top: 8,
@@ -438,7 +443,7 @@ class CompaniesScreen extends GetView<CompaniesController> {
                                           padding: const EdgeInsets.all(6),
                                           decoration: BoxDecoration(
                                               borderRadius:
-                                                  BorderRadius.only(topRight: Radius.circular(30),
+                                                  const BorderRadius.only(topRight: Radius.circular(30),
                                                       topLeft: Radius.circular(30),bottomRight: Radius.circular(30)),
                                               color: companyData.createdBy ==
                                                       controller.me?.userId
@@ -494,7 +499,7 @@ class CompaniesScreen extends GetView<CompaniesController> {
                                             ),
                                           ),
                                         ),
-                                      ):SizedBox():SizedBox(),
+                                      ):const SizedBox():const SizedBox(),
                                       /*
                                         (companyData.createdBy ==
                                                     controller.me?.userId &&

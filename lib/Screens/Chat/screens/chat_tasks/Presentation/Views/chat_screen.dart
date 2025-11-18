@@ -34,6 +34,7 @@ import '../../../../../../utils/gradient_button.dart';
 import '../../../../../../utils/product_shimmer_widget.dart';
 import '../../../../../../utils/text_style.dart';
 import '../../../../../Home/Presentation/Controller/socket_controller.dart';
+import '../../../auth/models/get_uesr_Res_model.dart';
 import '../Widgets/reply_msg_widget.dart';
 import '../Widgets/staggered_view.dart';
 import '../../../../api/apis.dart';
@@ -100,10 +101,20 @@ double _textScaleClamp(BuildContext context) {
 }
 final FocusNode _focusNode = FocusNode();
 class ChatScreen extends GetView<ChatScreenController> {
-  ChatScreen({super.key});
+  final UserDataAPI? user;   // <- GET USER HERE
+   bool showBack=true;
+
+   ChatScreen({super.key, this.user,this.showBack=true});
   @override
   Widget build(BuildContext context) {
-    return GetBuilder<ChatScreenController>(builder: (controller) {
+    final chatController = Get.put(
+      ChatScreenController(user: user),
+      tag: "chat_${user?.userId ?? 'mobile'}",
+    );
+
+    return GetBuilder<ChatScreenController>(
+     init: chatController,
+        builder: (controller) {
       return GestureDetector(
         onTap: () => FocusScope.of(context).unfocus(),
         child: SafeArea(
@@ -118,7 +129,10 @@ class ChatScreen extends GetView<ChatScreenController> {
               child: Scaffold(
                 //app bar
                 appBar: AppBar(
-                  backgroundColor: Colors.white,
+                  backgroundColor: Colors.white,   // white color
+                  elevation: 1,                    // remove shadow
+                  scrolledUnderElevation: 0,       // ✨ prevents color change on scroll
+                  surfaceTintColor: Colors.white,
                   automaticallyImplyLeading: false,
                   flexibleSpace: MediaQuery( // ✅ clamp text scale for web
                     data: MediaQuery.of(context).copyWith(textScaleFactor: _textScaleClamp(context)),
@@ -129,7 +143,9 @@ class ChatScreen extends GetView<ChatScreenController> {
                 backgroundColor: const Color.fromARGB(255, 234, 248, 255),
 
                 //body
-                body: ScrollConfiguration( // ✅ nicer scrolling on web + no glow
+                body:  (controller.user == null) ? Center(child: Text("No chat selected")):
+
+                ScrollConfiguration( // ✅ nicer scrolling on web + no glow
                   behavior: const _NoGlowScrollBehavior(),
                   child: Center( // ✅ center content on wide screens
                     child: ConstrainedBox(
@@ -303,7 +319,7 @@ class ChatScreen extends GetView<ChatScreenController> {
                 child: ChatHistoryShimmer(
                   chatData: ChatHisList(),
                 )),
-            child: AnimationLimiter(child: groupListView()),
+            child:groupListView() /*AnimationLimiter(child: )*/,
           ),
         ),
         // vGap(80)
@@ -316,67 +332,7 @@ class ChatScreen extends GetView<ChatScreenController> {
         ? 0
         : controller.flatRows.length - 1;
     return controller.chatCatygory.isNotEmpty
-        ? /*GroupedListView<GroupChatElement, DateTime>(
-        shrinkWrap: false,
-        padding: const EdgeInsets.only(bottom: 30),
-        controller: controller.scrollController,
-        elements: controller.chatCatygory,
-        order: GroupedListOrder.DESC,
-        reverse: true,
-        floatingHeader: true,
-        useStickyGroupSeparators: true,
-        groupBy: (GroupChatElement element) => DateTime(
-          element.date.year,
-          element.date.month,
-          element.date.day,
-        ),
-        groupHeaderBuilder: _createGroupHeader,
-        indexedItemBuilder:
-            (BuildContext context, GroupChatElement element, int index) {
-          String formatatedTime = '';
-          if (element.chatMessageItems.sentOn != null) {
-            var timeString = element.chatMessageItems.sentOn ?? '';
-
-            formatatedTime = convertUtcToIndianTime(timeString);
-          }
-
-          var userid = controller.me?.userId;
-          return StaggeredAnimationListItem(
-            index: index,
-            child: SwipeTo(
-              onRightSwipe: (detail) {
-                if(element.chatMessageItems.isActivity == 1 ||(element.chatMessageItems.media??[]).isNotEmpty ){
-
-                }else{
-                  // Set the message being replied to
-                  controller.refIdis = element.chatMessageItems.chatId;
-                  controller.userIDSender =
-                      element.chatMessageItems.fromUser?.userId;
-                  controller.userNameReceiver =
-                      element.chatMessageItems.toUser?.displayName ?? '';
-                  controller.userNameSender =
-                      element.chatMessageItems.fromUser?.displayName ?? '';
-                  controller.userIDReceiver =
-                      element.chatMessageItems.toUser?.userId;
-                  controller.replyToMessage = element.chatMessageItems;
-                  controller.update();
-                }
-
-              },
-              child: _chatMessageTile(
-                  data: element.chatMessageItems,
-                  sentByMe: (userid
-                      ?.toString() ==
-                      element.chatMessageItems.fromUser?.userId
-                          ?.toString()
-                      ? true
-                      : false),
-                  formatedTime: formatatedTime),
-            ),
-          );
-        })*/
-
-
+        ?
 
     ScrollablePositionedList.builder(
       itemScrollController: controller.itemScrollController,
@@ -388,15 +344,12 @@ class ChatScreen extends GetView<ChatScreenController> {
       itemCount: controller.flatRows.length,
       itemBuilder: (context, index) {
         final row = controller.flatRows[index];
-
         if (row is ChatHeaderRow) {
           // reuse your header builder
-          return _createGroupHeader(row.date); // adapt signature if needed
+          return _createGroupHeader(row.date);
         }
-
         if (row is ChatMessageRow) {
           final element = row.element;
-
           String formattedTime = '';
           if (element.chatMessageItems.sentOn != null) {
             final timeString = element.chatMessageItems.sentOn!;
@@ -817,7 +770,7 @@ class ChatScreen extends GetView<ChatScreenController> {
             child: Row(
               children: [
                 //back button
-                IconButton(
+                !showBack?SizedBox(width: 14,):    IconButton(
                     onPressed: () {
                       if (Get.previousRoute.isNotEmpty) {
                         Get.back();
@@ -1704,7 +1657,7 @@ class ChatScreen extends GetView<ChatScreenController> {
                                 vPadding: 6,
                                 onTap: () async {
                                   if (_formKeyDoc.currentState!.validate()) {
-                                    controller.onTapSaveToFolder(Get.context!);
+                                    controller.onTapSaveToFolder(Get.context!,controller.user);
                                   }
                                   // logoutLocal();
                                 },

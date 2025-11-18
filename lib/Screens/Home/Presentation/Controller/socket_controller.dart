@@ -482,7 +482,6 @@ class SocketController extends GetxController with WidgetsBindingObserver  {
       ChatScreenController chatDetailController =
       Get.find<ChatScreenController>();
     socket?.on('read_message_listener', (data) {
-      print("Reading...............");
       final int chatId = data['chat_id'];
       final String? readOnStr = data['read_on']; // assuming backend sends this
       final String? readOn = readOnStr != null ?readOnStr: null;

@@ -442,6 +442,10 @@ class ChatCard extends StatelessWidget {
 
       child: ListTile(
         horizontalTitleGap: 8,
+        // dense: true,
+        minLeadingWidth: 55,
+        minTileHeight: 60,
+
 
         leading: iconWidget ??
             Image.asset(

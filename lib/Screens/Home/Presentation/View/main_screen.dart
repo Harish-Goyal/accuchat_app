@@ -6,6 +6,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_snake_navigationbar/flutter_snake_navigationbar.dart';
 import 'package:get/get.dart';
 import '../../../../main.dart';
+import '../../../../routes/app_routes.dart';
 import '../Controller/company_service.dart';
 
 class AccuChatDashboard extends StatelessWidget {
@@ -26,19 +27,17 @@ class AccuChatDashboard extends StatelessWidget {
         // drawer: isWideScreen ? null : _buildDrawer(), // for mobile
         body: Row(
           children: [
-            if (isWideScreen) _buildSideNav(), // For web/tablet
+            if (isWideScreen) SizedBox(
+              width: Get.width*.13,
+                child: buildSideNav(controller)), // For web/tablet
             Expanded(
-              child: Center(
-                child: controller.screens.isEmpty
-                    ? SizedBox()
-                    : ConstrainedBox(
-                        constraints: const BoxConstraints(maxWidth: 1000),
-                        child: AnimatedSwitcher(
-                          duration: const Duration(milliseconds: 300),
-                          child: controller.screens[controller.currentIndex],
-                        ),
-                      ),
-              ),
+              child: controller.screens.isEmpty
+                  ? SizedBox()
+                  : ConstrainedBox(
+                      constraints: const BoxConstraints(maxWidth: 1000),
+                      child: controller.screens[controller.currentIndex],
+
+                    ),
             ),
           ],
         ),
@@ -51,52 +50,7 @@ class AccuChatDashboard extends StatelessWidget {
     }));
   }
 
-  Widget _buildSideNav() {
-    return NavigationRail(
-      selectedIndex: controller.currentIndex,
-      onDestinationSelected: (index) {
-        controller.getCompany();
-        controller.updateIndex(index);
-        isTaskMode = index == 1;
-        controller.update();
-      },
-      labelType: NavigationRailLabelType.all,
-      backgroundColor: Colors.white,
-      elevation: 3,
-      destinations: [
-        NavigationRailDestination(
-            icon: Image.asset(
-              chatHome,
-              height: 22,
-            ),
-            label: Text(
-              'Chats',
-              style: BalooStyles.baloomediumTextStyle(),
-            )),
-        NavigationRailDestination(
-            icon: Image.asset(
-              tasksHome,
-              height: 22,
-            ),
-            label: Text('Tasks', style: BalooStyles.baloomediumTextStyle())),
-        NavigationRailDestination(
-            icon: Image.asset(
-              connectedAppIcon,
-              height: 22,
-            ),
-            label: Text('Your Companies',
-                style: BalooStyles.baloomediumTextStyle())),
 
-        /*        NavigationRailDestination(
-            icon: Image.asset(
-              galleryIcon,
-              height: 22,
-            ),
-            label: Text('Gallery',
-                style: BalooStyles.baloomediumTextStyle())),*/
-      ],
-    );
-  }
 
   Widget _buildDrawer() {
     return Drawer(
@@ -288,4 +242,82 @@ class AccuChatDashboard extends StatelessWidget {
       items: controller.barItems,
     );
   }
+}
+Widget buildSideNav(DashboardController controller) {
+  return Column(
+
+    children: [
+      Expanded(
+        child: NavigationRail(
+          selectedIndex: controller.currentIndex,
+          onDestinationSelected: (index) {
+            controller.getCompany();
+            controller.updateIndex(index);
+            isTaskMode = index == 1;
+            final isSetting = index == 3;
+            if(isSetting){
+              Get.toNamed(AppRoutes.all_settings);
+            }
+            controller.update();
+          },
+          unselectedIconTheme: IconThemeData(color: Colors.black45),
+          selectedIconTheme: IconThemeData(color: Colors.white),
+          useIndicator: true,
+          indicatorColor: appColorGreen,
+          labelType: NavigationRailLabelType.all,
+          backgroundColor: Colors.white,
+          elevation: 1,
+          destinations: [
+            NavigationRailDestination(
+                icon: Image.asset(
+                  chatHome,
+                  height: 22,
+                  color: controller.currentIndex==0?Colors.white:Colors.grey,
+                ),
+                label: Text(
+                  'Chats',
+                  style: BalooStyles.baloomediumTextStyle(),
+                )),
+            NavigationRailDestination(
+                icon: Image.asset(
+                  tasksHome,
+                  height: 22,
+                  color: controller.currentIndex==1?Colors.white:Colors.grey,
+                ),
+                label: Text('Tasks', style: BalooStyles.baloomediumTextStyle())),
+            NavigationRailDestination(
+                icon: Image.asset(
+                  connectedAppIcon,
+                  height: 22,
+                  color: controller.currentIndex==2?Colors.white:Colors.grey,
+                ),
+                label: Text('Your Companies',
+                    style: BalooStyles.baloomediumTextStyle(),maxLines: 1,overflow: TextOverflow.ellipsis,)),
+
+            /*        NavigationRailDestination(
+                  icon: Image.asset(
+                    galleryIcon,
+                    height: 22,
+                  ),
+                  label: Text('Gallery',
+                      style: BalooStyles.baloomediumTextStyle())),*/
+          ],
+        ),
+      ),
+      InkWell(
+        onTap: (){
+            Get.toNamed(AppRoutes.all_settings);
+        },
+        child: Container(
+          padding: EdgeInsets.all(15),
+          margin: EdgeInsets.all(2),
+          color: Colors.white,
+          child: Image.asset(
+            settingPng,
+            height: 22,
+          ),
+        ),
+      )
+    ],
+  );
 }

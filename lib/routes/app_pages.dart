@@ -49,13 +49,13 @@ class AppPages {
     if (!kIsWeb)
       GetPage(
         name: AppRoutes.splash,
-        page: () =>  SplashScreen(),
+        page: () => SplashScreen(),
         bindings: [SplashBinding()],
       ),
     GetPage(
       name: AppRoutes.home,
       page: () => AccuChatDashboard(),
-      bindings: [DashboardBinding(),InitBinding()],
+      bindings: [DashboardBinding(), InitBinding()],
       middlewares: [AuthGuard()],
     ),
     GetPage(
@@ -107,7 +107,8 @@ class AppPages {
       name: AppRoutes.invite_user_role,
       page: () => InviteUserRoleScreen(),
       bindings: [InviteUserRoleBinding()],
-    ), GetPage(
+    ),
+    GetPage(
       name: AppRoutes.member_sr,
       page: () => GroupMembersScreen(),
       bindings: [GrBrMemberBinding()],
@@ -146,7 +147,8 @@ class AppPages {
       name: AppRoutes.chats_li_r,
       page: () => ChatScreen(),
       bindings: [ChatScreenBinding()],
-    ),  GetPage(
+    ),
+    GetPage(
       name: AppRoutes.tasks_li_r,
       page: () => TaskScreen(),
       bindings: [TaskScreenBinding()],
@@ -206,6 +208,5 @@ class AppPages {
       page: () => VerifyOtpScreen(),
       bindings: [VerifyOTPBinding()],
     ),
-
   ];
 }

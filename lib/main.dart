@@ -212,7 +212,7 @@ class MyApp extends StatelessWidget {
       scaffoldMessengerKey: GlobalVariable.navState,
       debugShowCheckedModeBanner: false,
       enableLog: true,
-      logWriterCallback: LoggerX.write,
+      logWriterCallback:kIsWeb?null: LoggerX.write,
       builder: EasyLoading.init(),
       defaultTransition: Transition.cupertino,
     );

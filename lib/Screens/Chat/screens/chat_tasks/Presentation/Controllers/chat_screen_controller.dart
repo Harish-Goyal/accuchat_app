@@ -33,8 +33,10 @@ import 'dart:typed_data';
 
 import '../Widgets/all_users_dialog.dart';
 import '../Widgets/create_custom_folder.dart';
+import 'chat_home_controller.dart';
 
 class ChatScreenController extends GetxController {
+  ChatScreenController({required this.user});
   final formKeyDoc = GlobalKey<FormState>();
   UserDataAPI? user;
 
@@ -48,9 +50,7 @@ class ChatScreenController extends GetxController {
   final FocusNode focusNode = FocusNode();
   ChatHisList? replyToMessage;
   String? replyToImage;
-  bool showEmoji = false,
-      isUploading = false,
-      isUploadingTaskDoc = false;
+  bool showEmoji = false, isUploading = false, isUploadingTaskDoc = false;
   File? file;
   List<Map<String, dynamic>> attachedFiles = [];
   List<XFile> images = [];
@@ -61,24 +61,34 @@ class ChatScreenController extends GetxController {
   var userIDReceiver;
   var refIdis;
 
- late ItemScrollController itemScrollController ;
- late ItemPositionsListener itemPositionsListener ;
+  final ItemScrollController itemScrollController = ItemScrollController();
+  final ItemPositionsListener itemPositionsListener = ItemPositionsListener.create();
+
 
   bool isDoc(String orignalMsg) {
     final ext = (orignalMsg ?? '').toLowerCase();
     return ext.endsWith('.pdf') ||
-        ext.endsWith('.doc') || ext.endsWith('.docx') ||
-        ext.endsWith('.xls') || ext.endsWith('.xlsx') ||
-        ext.endsWith('.ppt') || ext.endsWith('.pptx') ||
-        ext.endsWith('.csv') || ext.endsWith('.txt');
+        ext.endsWith('.doc') ||
+        ext.endsWith('.docx') ||
+        ext.endsWith('.xls') ||
+        ext.endsWith('.xlsx') ||
+        ext.endsWith('.ppt') ||
+        ext.endsWith('.pptx') ||
+        ext.endsWith('.csv') ||
+        ext.endsWith('.txt');
   }
 
   bool isImageOrVideo(String orignalMsg) {
     final ext = (orignalMsg ?? '').toLowerCase();
-    return ext.endsWith('.jpg') || ext.endsWith('.jpeg') ||
-        ext.endsWith('.png') || ext.endsWith('.gif') ||
-        ext.endsWith('.webp') || ext.endsWith('.mp4') ||
-        ext.endsWith('.mov') || ext.endsWith('.m4v') || ext.endsWith('.avi');
+    return ext.endsWith('.jpg') ||
+        ext.endsWith('.jpeg') ||
+        ext.endsWith('.png') ||
+        ext.endsWith('.gif') ||
+        ext.endsWith('.webp') ||
+        ext.endsWith('.mp4') ||
+        ext.endsWith('.mov') ||
+        ext.endsWith('.m4v') ||
+        ext.endsWith('.avi');
   }
 
   List<ChatRow> flatRows = [];
@@ -104,7 +114,7 @@ class ChatScreenController extends GetxController {
         lastHeaderDate = d;
       }
       flatRows?.add(ChatMessageRow(el));
-      final idx = (flatRows?.length??0) - 1;
+      final idx = (flatRows?.length ?? 0) - 1;
       final id = el.chatMessageItems.chatId;
       if (id != null) chatIdToIndex[id] = idx;
     }
@@ -138,14 +148,9 @@ class ChatScreenController extends GetxController {
     });
   }
 
-
-
   TextEditingController docNameController = TextEditingController();
   final TextEditingController newFolderCtrl = TextEditingController();
   final FocusNode newFolderFocus = FocusNode();
-
-
-
 
   // Gallery
   List<GalleryFolder> folders = [
@@ -234,8 +239,8 @@ class ChatScreenController extends GetxController {
     return folders.firstWhereOrNull((f) => f.id == selectedFolderId);
   }
 
-  void onTapSaveToFolder(BuildContext context) async {
-    final chosen = await showSaveToCustomFolderDialog(context);
+  void onTapSaveToFolder(BuildContext context, user) async {
+    final chosen = await showSaveToCustomFolderDialog(context, user);
     if (chosen != null) {
       Get.back();
       // Do your save logic here using chosen.id / chosen.name
@@ -271,13 +276,13 @@ class ChatScreenController extends GetxController {
   @override
   void onInit() {
     super.onInit();
+
     if (kIsWeb) {
       // web pe type karte hi yehi node focused rahe
       focusNode.requestFocus();
     }
     getArguments();
-    itemScrollController = ItemScrollController();
-    itemPositionsListener = ItemPositionsListener.create();
+    user = Get.find<ChatHomeController>().selectedChat.value;
     _initScroll();
     // markAllVisibleAsReadOnOpen();
 
@@ -293,11 +298,9 @@ class ChatScreenController extends GetxController {
     //     // }
     //   }
     // });
-
-
   }
 
-  _initScroll(){
+  _initScroll() {
     WidgetsBinding.instance.addPostFrameCallback((_) async {
       // 1) if list hasn't loaded yet, don't scroll
       if (flatRows.isEmpty) return;
@@ -335,8 +338,8 @@ class ChatScreenController extends GetxController {
   @override
   void onClose() {
     newFolderCtrl.dispose();
-    focusNode.dispose();
-    textController.dispose();
+    // focusNode.dispose();
+    // textController.dispose();
     imageCache.clearLiveImages();
     imageCache.clear();
     super.onClose();
@@ -345,11 +348,13 @@ class ChatScreenController extends GetxController {
   getArguments() {
     if (kIsWeb) {
       _getCompany();
-      if (Get.parameters != null) {
-        final String? argUserId = Get.parameters['userId'];
-        if (argUserId != null) {
-          getUserByIdApi(userId: int.parse(argUserId ?? ''));
-        }
+      // if (Get.parameters != null) {
+      final String? argUserId = Get.parameters['userId'];
+      if (argUserId != null) {
+        getUserByIdApi(userId: int.parse(argUserId ?? ''));
+        // }
+      } else {
+        getUserByIdApi(userId: user?.userId);
       }
     } else {
       if (Get.arguments != null) {
@@ -406,9 +411,7 @@ class ChatScreenController extends GetxController {
       // await svc.ready;
       myCompany = svc.selected;
       update();
-    } else {
-
-    }
+    } else {}
   }
 
   List<UserDataAPI> members = [];
@@ -467,7 +470,6 @@ class ChatScreenController extends GetxController {
           isLoading = false;
           hasMore = false;
           update();
-
         } else {
           chatHisList?.addAll(value.data?.rows ?? []);
           isLoading = false;
@@ -485,8 +487,7 @@ class ChatScreenController extends GetxController {
         if (item.sentOn != null) {
           datais = DateTime.parse(item.sentOn ?? '');
         }
-        if(me?.userId==item.toUser?.userId){
-
+        if (me?.userId == item.toUser?.userId) {
           markAllVisibleAsReadOnOpen();
         }
 
@@ -841,7 +842,7 @@ class ChatScreenController extends GetxController {
         return;
       }
       multi.FormData? formData;
-      if(user?.userCompany?.isGroup == 1){
+      if (user?.userCompany?.isGroup == 1) {
         formData = multi.FormData.fromMap({
           'company_id': myCompany?.companyId,
           'media_type_code': ChatMediaType.DOC.name,
@@ -849,15 +850,15 @@ class ChatScreenController extends GetxController {
           'is_group_chat': user?.userCompany?.isGroup == 1 ? 1 : 0,
           'chat_media': docParts, // array of docs
         });
-      }else if(user?.userCompany?.isBroadcast == 1){
-         formData = multi.FormData.fromMap({
+      } else if (user?.userCompany?.isBroadcast == 1) {
+        formData = multi.FormData.fromMap({
           'company_id': myCompany?.companyId,
           'media_type_code': ChatMediaType.DOC.name,
           'broadcast_user_id': user?.userCompany?.userCompanyId,
           'is_group_chat': user?.userCompany?.isGroup == 1 ? 1 : 0,
           'chat_media': docParts, // array of docs
         });
-      }else{
+      } else {
         formData = multi.FormData.fromMap({
           'company_id': myCompany?.companyId,
           'media_type_code': ChatMediaType.DOC.name,
@@ -866,8 +867,6 @@ class ChatScreenController extends GetxController {
           'chat_media': docParts, // array of docs
         });
       }
-
-
 
       final resp = await Get.find<PostApiServiceImpl>().uploadMediaApiCall(
         dataBody: formData,
@@ -1151,11 +1150,14 @@ class GroupChatElement implements Comparable {
     return date.compareTo(other.date);
   }
 }
+
 abstract class ChatRow {}
+
 class ChatHeaderRow extends ChatRow {
   final DateTime date;
   ChatHeaderRow(this.date);
 }
+
 class ChatMessageRow extends ChatRow {
   final GroupChatElement element; // your (date, chatMessageItems)
   ChatMessageRow(this.element);

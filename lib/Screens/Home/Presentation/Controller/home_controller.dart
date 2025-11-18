@@ -58,7 +58,8 @@ class DashboardController extends GetxController with WidgetsBindingObserver {
     ),BottomNavigationBarItem(
       icon: Image.asset(connectedAppIcon,height: 22),
       label: 'Companies',
-    ),/*BottomNavigationBarItem(
+    ),
+    /*BottomNavigationBarItem(
       icon: Image.asset(galleryIcon,height: 22),
       label: 'Gallery',
     ),*/
@@ -88,10 +89,9 @@ class DashboardController extends GetxController with WidgetsBindingObserver {
     // (kept) registrations – wrapped in try to avoid crash if already registered
     try {
       await Get.putAsync<SocketController>(() async => SocketController(), permanent: true);
-
     } catch (_) {}
     try { Get.lazyPut(() => DashboardController(), fenix: true); } catch (_) {}
-    try { Get.lazyPut(() => ChatHomeController(), fenix: true); } catch (_) {}
+    try { Get.lazyPut(() =>ChatHomeController(), fenix: true); } catch (_) {}
     try { Get.lazyPut(() => TaskHomeController(), fenix: true); } catch (_) {}
     try { Get.lazyPut(() => CompaniesController(), fenix: true); } catch (_) {}
 
@@ -124,7 +124,8 @@ class DashboardController extends GetxController with WidgetsBindingObserver {
       case 'Task Button':
         return TaskHomeScreen();
       case 'Companies Button':
-        return CompaniesScreen(); 
+        return CompaniesScreen();
+
         
      /* case 'Gallery Button':
         return GalleryTab();*/

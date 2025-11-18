@@ -1,6 +1,8 @@
 import 'package:AccuChat/Constants/assets.dart';
 import 'package:AccuChat/Constants/colors.dart';
 import 'package:AccuChat/Constants/themes.dart';
+import 'package:AccuChat/Screens/Chat/screens/chat_tasks/Presentation/Controllers/chat_screen_controller.dart';
+import 'package:AccuChat/Screens/Chat/screens/chat_tasks/Presentation/Views/chat_screen.dart';
 import 'package:AccuChat/routes/app_routes.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/foundation.dart';
@@ -18,6 +20,7 @@ import '../../../../../../utils/helper_widget.dart';
 import '../../../../../../utils/networl_shimmer_image.dart';
 import '../../../../../../utils/text_style.dart';
 import '../../../../../Home/Presentation/Controller/company_service.dart';
+import '../../../../../Home/Presentation/View/main_screen.dart';
 import '../../../../api/apis.dart';
 import '../../../../helper/dialogs.dart';
 import '../../../../models/chat_user.dart';
@@ -35,219 +38,268 @@ class ChatsHomeScreen extends GetView<ChatHomeController> {
 
   ChatHomeController chatHomeController =
       Get.put<ChatHomeController>(ChatHomeController());
-  // 5678568900
+
   @override
   Widget build(BuildContext context) {
-    return GetBuilder<ChatHomeController>(
-        init: ChatHomeController(),
-        builder: (controller) {
-          return GestureDetector(
-            //for hiding keyboard when a tap is detected on screen
-            onTap: () => FocusScope.of(context).unfocus(),
-            child: WillPopScope(
-              //if search is on & back button is pressed then close search
-              //or else simple close current screen on back button click
-              onWillPop: () {
-                // if (_isSearching) {
-                //   setState(() {
-                //     _isSearching = !_isSearching;
-                //   });
-                //   return Future.value(false);
-                // } else {
-                //   return Future.value(true);
-                // }
-                return Future.value(true);
-              },
-              child:/*controller.isLoading?ChatHomeShimmer(itemCount: 12):*/ Scaffold(
-                  //app bar
-                  // backgroundColor: isTaskMode?appColorYellow.withOpacity(.05):Colors.white,
-                  appBar: AppBar(
-                    automaticallyImplyLeading: false,
-                    title: controller.isSearching
-                        ? TextField(
-                            controller: controller.seacrhCon,
-                            cursorColor: appColorGreen,
-                            decoration: const InputDecoration(
-                                border: InputBorder.none,
-                                hintText: 'Search User, Group & Collection ...',
-                                contentPadding: EdgeInsets.symmetric(
-                                    vertical: 0, horizontal: 10),
-                                constraints: BoxConstraints(maxHeight: 45)),
-                            autofocus: true,
-                            style: const TextStyle(
-                                fontSize: 13, letterSpacing: 0.5),
-                            onChanged: (val) {
-                              controller.searchQuery = val;
-                              controller.onSearch(val);
-                            },
-                          ).marginSymmetric(vertical: 10)
-                        : InkWell(
-                            onTap: () {
-                              Get.toNamed(AppRoutes.all_settings);
-                            },
-                            child: Row(
-                              children: [
-                                SizedBox(
-                                  width: 40,
-                                  child: CustomCacheNetworkImage(
-                                    "${ApiEnd.baseUrlMedia}${controller.myCompany?.logo ?? ''}",
-                                    radiusAll: 100,
-                                    height: 40,
-                                    width: 40,
-                                    borderColor: appColorYellow,
+    // ChatScreenController chatController =
+    // Get.put<ChatScreenController>(ChatScreenController(user: controller.selectedChat.value,));
 
-                                    defaultImage: appIcon,
-                                    boxFit: BoxFit.cover,
-                                  ),
-                                ).paddingAll(3),
-                                Expanded(
-                                  child: Column(
-                                    mainAxisAlignment: MainAxisAlignment.end,
-                                    mainAxisSize: MainAxisSize.min,
-                                    crossAxisAlignment: CrossAxisAlignment.start,
-                                    children: [
-                                      Text(
-                                        'Chats',
-                                        style:
-                                            BalooStyles.balooboldTitleTextStyle(
-                                                color: AppTheme.appColor,
-                                                size: 18),
-                                      ).paddingOnly(left: 4, top: 4),
-                                      Text(
-                                        (controller.myCompany?.companyName ?? '')
-                                            .toUpperCase(),
-                                        style: BalooStyles.baloosemiBoldTextStyle(
-                                          color: appColorYellow,
-                                        ),
-                                        maxLines: 1,
-                                        overflow: TextOverflow.ellipsis,
-                                      ).paddingOnly(left: 4, top: 2),
-                                    ],
-                                  ),
-                                ),
-                              ],
+    return GestureDetector(
+      //for hiding keyboard when a tap is detected on screen
+      onTap: () => FocusScope.of(context).unfocus(),
+      child: WillPopScope(
+        //if search is on & back button is pressed then close search
+        //or else simple close current screen on back button click
+        onWillPop: () {
+          // if (_isSearching) {
+          //   setState(() {
+          //     _isSearching = !_isSearching;
+          //   });
+          //   return Future.value(false);
+          // } else {
+          //   return Future.value(true);
+          // }
+          return Future.value(true);
+        },
+        child:/*controller.isLoading?ChatHomeShimmer(itemCount: 12):*/ Scaffold(
+            //app bar
+            // backgroundColor: isTaskMode?appColorYellow.withOpacity(.05):Colors.white,
+            appBar: AppBar(
+              automaticallyImplyLeading: false,
+              backgroundColor: Colors.white,   // white color
+              elevation: 1,                    // remove shadow
+              scrolledUnderElevation: 0,       // ✨ prevents color change on scroll
+              surfaceTintColor: Colors.white,
+              title: controller.isSearching
+                  ? TextField(
+                      controller: controller.seacrhCon,
+                      cursorColor: appColorGreen,
+                      decoration: const InputDecoration(
+                          border: InputBorder.none,
+                          hintText: 'Search User, Group & Collection ...',
+                          contentPadding: EdgeInsets.symmetric(
+                              vertical: 0, horizontal: 10),
+                          constraints: BoxConstraints(maxHeight: 45)),
+                      autofocus: true,
+                      style: const TextStyle(
+                          fontSize: 13, letterSpacing: 0.5),
+                      onChanged: (val) {
+                        controller.searchQuery = val;
+                        controller.onSearch(val);
+                      },
+                    ).marginSymmetric(vertical: 10)
+                  : InkWell(
+                      onTap: () {
+                        Get.toNamed(AppRoutes.all_settings);
+                      },
+                      child: Row(
+                        children: [
+                          SizedBox(
+                            width: 40,
+                            child: CustomCacheNetworkImage(
+                              "${ApiEnd.baseUrlMedia}${controller.myCompany?.logo ?? ''}",
+                              radiusAll: 100,
+                              height: 40,
+                              width: 40,
+                              borderColor: appColorYellow,
+
+                              defaultImage: appIcon,
+                              boxFit: BoxFit.cover,
                             ),
-                          ),
-                    actions: [
-                      //search user button
-                      IconButton(
-                          onPressed: () {
-                            controller.isSearching = !controller.isSearching;
-                            controller.update();
-                          },
-                          icon: Icon(controller.isSearching
-                                  ? CupertinoIcons.clear_circled_solid
-                                  : Icons.search)
-                              .paddingOnly(top: 0, right: 10)),
-
-                      PopupMenuButton<String>(
-                        padding: EdgeInsets.zero,
-                        menuPadding: EdgeInsets.zero,
-                        onSelected: (value) {
-                          if (value == 'new_group') {
-                            showDialog(
-                                context: Get.context!,
-                                builder: (_) => _groupDialogWidget());
-                            // Get.dialog(
-                            //   Dialog(
-                            //     insetPadding: const EdgeInsets.symmetric(horizontal: 24, vertical: 24),
-                            //     clipBehavior: Clip.antiAlias,
-                            //     shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-                            //     child: _groupDialogWidget(), // from above
-                            //   ),
-                            //   barrierDismissible: true,
-                            // );
-                          } else if (value == 'new_broadcast') {
-                            showDialog(
-                                context: Get.context!,
-                                builder: (_) => BroadcastCreateDialog());
-                          }
-                        },
-                        itemBuilder: (context) => [
-                          PopupMenuItem(
-                            value: 'new_group',
-                            child: Row(
+                          ).paddingAll(3),
+                          Expanded(
+                            child: Column(
+                              mainAxisAlignment: MainAxisAlignment.end,
                               mainAxisSize: MainAxisSize.min,
+                              crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
-                                Icon(
-                                  Icons.group,
-                                  size: 17,
-                                  color: appColorGreen,
-                                ),
-                                hGap(5),
                                 Text(
-                                  'Create Group',
-                                  style: themeData.textTheme.bodySmall,
-                                ),
+                                  'Chats',
+                                  style:
+                                      BalooStyles.balooboldTitleTextStyle(
+                                          color: AppTheme.appColor,
+                                          size: 18),
+                                ).paddingOnly(left: 4, top: 4),
+                                Text(
+                                  (controller.myCompany?.companyName ?? '')
+                                      .toUpperCase(),
+                                  style: BalooStyles.baloosemiBoldTextStyle(
+                                    color: appColorYellow,
+                                  ),
+                                  maxLines: 1,
+                                  overflow: TextOverflow.ellipsis,
+                                ).paddingOnly(left: 4, top: 2),
                               ],
                             ),
-                          ),
-                          PopupMenuItem(
-                            value: 'new_broadcast',
-                            child:
-                                Row(mainAxisSize: MainAxisSize.min, children: [
-                              Image.asset(
-                                broadcastIcon,
-                                height: 15,
-                                color: appColorYellow,
-                              ),
-                              hGap(5),
-                              Text(
-                                'Create Broadcast',
-                                style: themeData.textTheme.bodySmall,
-                              )
-                            ]),
                           ),
                         ],
-                        color: Colors.white,
-                        icon: const Icon(Icons.more_vert),
                       ),
-                      //more features button
-                      /*IconButton(
-                      onPressed: () {
-                        Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                                builder: (_) => ProfileScreen(user: APIs.me)));
-                      },
-                      icon: const Icon(Icons.person))*/
-                    ],
-                  ),
+                    ),
+              actions: [
+                IconButton(
+                    onPressed: () {
+                      controller.isSearching = !controller.isSearching;
+                      controller.update();
+                    },
+                    icon: Icon(controller.isSearching
+                            ? CupertinoIcons.clear_circled_solid
+                            : Icons.search)
+                        .paddingOnly(top: 0, right: 10)),
 
-                  //floating button to add new user
-                  floatingActionButton: Padding(
-                    padding: const EdgeInsets.only(bottom: 10),
-                    child: FloatingActionButton(
-                        onPressed: () {
-                          // _addChatUserDialog();
-                          if (kIsWeb) {
-                            Get.toNamed(
-                                "${AppRoutes.all_users}?isRecent='false'");
-                          } else {
-                            Get.toNamed(AppRoutes.all_users,
-                                arguments: {"isRecent": 'false'});
-                          }
-                        },
-                        backgroundColor: appColorGreen,
-                        child: const Icon(
-                          Icons.add,
-                          color: Colors.white,
-                        )),
-                  ),
-                  body:/*controller.isLoading?
-                  ChatHomeShimmer(itemCount: 12):*/(!controller.isLoading||controller.filteredList!=[])
-                      ? RefreshIndicator(
-                          backgroundColor: Colors.white,
-                          color: appColorGreen,
-                          onRefresh: () async =>
-                              controller.hitAPIToGetRecentChats(),
-                          child: ListView.builder(
-                            physics: const AlwaysScrollableScrollPhysics(),
-                            itemCount: controller.filteredList.length,
-                            controller: controller.scrollController,
-                            itemBuilder: (context, index) {
-                              final item = controller.filteredList[index];
-                              return /*SwipeTo(
+                PopupMenuButton<String>(
+                  padding: EdgeInsets.zero,
+                  menuPadding: EdgeInsets.zero,
+                  onSelected: (value) {
+                    if (value == 'new_group') {
+                      showDialog(
+                          context: Get.context!,
+                          builder: (_) => _groupDialogWidget());
+                    } else if (value == 'new_broadcast') {
+                      showDialog(
+                          context: Get.context!,
+                          builder: (_) => BroadcastCreateDialog());
+                    }
+                  },
+                  itemBuilder: (context) => [
+                    PopupMenuItem(
+                      value: 'new_group',
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Icon(
+                            Icons.group,
+                            size: 17,
+                            color: appColorGreen,
+                          ),
+                          hGap(5),
+                          Text(
+                            'Create Group',
+                            style: themeData.textTheme.bodySmall,
+                          ),
+                        ],
+                      ),
+                    ),
+                    PopupMenuItem(
+                      value: 'new_broadcast',
+                      child:
+                          Row(mainAxisSize: MainAxisSize.min, children: [
+                        Image.asset(
+                          broadcastIcon,
+                          height: 15,
+                          color: appColorYellow,
+                        ),
+                        hGap(5),
+                        Text(
+                          'Create Broadcast',
+                          style: themeData.textTheme.bodySmall,
+                        )
+                      ]),
+                    ),
+                  ],
+                  color: Colors.white,
+                  icon: const Icon(Icons.more_vert),
+                ),
+                //more features button
+                /*IconButton(
+                onPressed: () {
+                  Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                          builder: (_) => ProfileScreen(user: APIs.me)));
+                },
+                icon: const Icon(Icons.person))*/
+              ],
+            ),
+
+            //floating button to add new user
+            floatingActionButton: Padding(
+              padding: const EdgeInsets.only(bottom: 10),
+              child: FloatingActionButton(
+                  onPressed: () {
+                    // _addChatUserDialog();
+                    if (kIsWeb) {
+                      Get.offNamed(
+                          "${AppRoutes.all_users}?isRecent='false'");
+                    } else {
+                      Get.toNamed(AppRoutes.all_users,
+                          arguments: {"isRecent": 'false'});
+                    }
+                  },
+                  backgroundColor: appColorGreen,
+                  child: const Icon(
+                    Icons.add,
+                    color: Colors.white,
+                  )),
+            ),
+
+          body: Obx(
+             () {
+               final selected = controller.selectedChat.value;
+              return LayoutBuilder(
+                builder: (context, constraints) {
+                  double w = constraints.maxWidth;
+
+                  // ---------------- MOBILE ----------------
+                  if (w < 500) {
+                    return _recentChatsList(controller);  // your existing list
+                  }
+
+                  // ---------------- TABLET (Drawer + Recents) ----------------
+                  if (w < 555) {
+                    return Row(
+                      children: [
+                        // SizedBox(
+                        //   width: 250,
+                        //   child: buildSideNav(dashboardController),   // <--- add your drawer here
+                        // ),
+                        Expanded(
+                          child: _recentChatsList(controller),
+                        ),
+                      ],
+                    );
+                  }
+
+                  // ---------------- WEB (Drawer + Recents + ChatScreen) ----------------
+
+                    return Row(
+                      children: [
+                        SizedBox(width: 320, child: _recentChatsList(controller)),
+
+                        Expanded(
+                          child: selected == null
+                              ? Center(child: Text("Select a chat to start messaging"))
+                              : ChatScreen(user: selected,showBack: false,),   // <- correct
+                        ),
+                      ],
+                    );
+
+
+                },
+              );
+            }
+          ),
+
+
+        ),
+      ),
+    );
+  }
+
+  Widget _recentChatsList(ChatHomeController controller) {
+    return (!controller.isLoading||controller.filteredList!=[])
+        ? RefreshIndicator(
+      backgroundColor: Colors.white,
+      color: appColorGreen,
+      onRefresh: () async =>
+          controller.hitAPIToGetRecentChats(),
+      child: ListView.builder(
+        physics: const AlwaysScrollableScrollPhysics(),
+        itemCount: controller.filteredList.length,
+        padding: EdgeInsets.zero,
+        controller: controller.scrollController,
+        itemBuilder: (context, index) {
+          final item = controller.filteredList[index];
+          return /*SwipeTo(
                                   iconOnLeftSwipe: Icons.delete_outline,
                                   iconColor: Colors.red,
                                   onLeftSwipe: (detail) async {
@@ -290,48 +342,46 @@ class ChatsHomeScreen extends GetView<ChatHomeController> {
                                     }
                                   },
                                   child: */ChatUserCard(user: item)
-                              // )
-                              ;
-                            },
-                          ),
-                        )
-                      : Center(
-                          child: InkWell(
-                            onTap: () {
-                              if (kIsWeb) {
-                                Get.toNamed(
-                                    "${AppRoutes.all_users}?isRecent='false'");
-                              } else {
-                                Get.toNamed(AppRoutes.all_users,
-                                    arguments: {"isRecent": 'false'});
-                              }
-                            },
-                            child: Column(
-                              mainAxisSize: MainAxisSize.min,
-                              mainAxisAlignment: MainAxisAlignment.center,
-                              crossAxisAlignment: CrossAxisAlignment.center,
-                              children: [
-                                Image.asset(
-                                  emptyRecentPng,
-                                  height: 90,
-                                ),
-                                Text('Click to Start new Chat 👋',
-                                        style:
-                                            BalooStyles.baloosemiBoldTextStyle(
-                                                color: appColorGreen))
-                                    .paddingAll(12),
-
-                                vGap(12),
-                                IconButton(onPressed: () async => controller.hitAPIToGetRecentChats(), icon: Icon(Icons.refresh,size: 35,color: appColorGreen,)).paddingOnly(right: 8)
-
-                              ],
-                            ),
-                          ),
-                        )),
+          // )
+              ;
+        },
+      ),
+    )
+        : Center(
+      child: InkWell(
+        onTap: () {
+          if (kIsWeb) {
+            Get.toNamed(
+                "${AppRoutes.all_users}?isRecent='false'");
+          } else {
+            Get.toNamed(AppRoutes.all_users,
+                arguments: {"isRecent": 'false'});
+          }
+        },
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          mainAxisAlignment: MainAxisAlignment.center,
+          crossAxisAlignment: CrossAxisAlignment.center,
+          children: [
+            Image.asset(
+              emptyRecentPng,
+              height: 90,
             ),
-          );
-        });
+            Text('Click to Start new Chat 👋',
+                style:
+                BalooStyles.baloosemiBoldTextStyle(
+                    color: appColorGreen))
+                .paddingAll(12),
+
+            vGap(12),
+            IconButton(onPressed: () async => controller.hitAPIToGetRecentChats(), icon: Icon(Icons.refresh,size: 35,color: appColorGreen,)).paddingOnly(right: 8)
+
+          ],
+        ),
+      ),
+    );
   }
+
 
   Widget _buildHeader(String title) {
     return Padding(

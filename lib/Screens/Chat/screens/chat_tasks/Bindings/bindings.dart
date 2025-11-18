@@ -7,6 +7,7 @@ import 'package:AccuChat/Screens/Chat/screens/chat_tasks/Presentation/Controller
 import 'package:AccuChat/Screens/Chat/screens/chat_tasks/Presentation/Controllers/view_profile_controller.dart';
 import 'package:get/get.dart';
 import '../../../../Home/Presentation/Controller/socket_controller.dart';
+import '../../../api/apis.dart';
 import '../Presentation/Controllers/add_broadcard_mem_controller.dart';
 import '../Presentation/Controllers/add_group_mem_controller.dart';
 import '../Presentation/Controllers/chat_home_controller.dart';
@@ -65,9 +66,7 @@ class ChatHomeBinding extends Bindings {
 class ChatScreenBinding extends Bindings {
   @override
   void dependencies() {
-
-
-    Get.put<ChatScreenController>(ChatScreenController());
+    // Get.put<ChatScreenController>(ChatScreenController(user: APIs.me));
   }
 }
 
