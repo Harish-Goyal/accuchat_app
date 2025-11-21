@@ -57,7 +57,6 @@ import 'package:flutter/foundation.dart';
   }
 }*/
 
-
 const _companyBox = 'selected_company_box';
 const _keyCurrent  = 'current';
 
@@ -73,6 +72,7 @@ class CompanyService extends GetxService {
   /// Call via: await Get.putAsync(() async => CompanyService().init(), permanent: true)
   Future<CompanyService> init() async {
     await _ensureBoxOpen();
+
     _selected.value = _box!.get(_keyCurrent);
     if (_selected.value != null) {
       await _initSessionSafe(_selected.value!.companyId ?? 0);

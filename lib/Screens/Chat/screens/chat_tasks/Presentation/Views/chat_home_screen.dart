@@ -41,8 +41,6 @@ class ChatsHomeScreen extends GetView<ChatHomeController> {
 
   @override
   Widget build(BuildContext context) {
-    // ChatScreenController chatController =
-    // Get.put<ChatScreenController>(ChatScreenController(user: controller.selectedChat.value,));
 
     return GestureDetector(
       //for hiding keyboard when a tap is detected on screen
@@ -70,81 +68,105 @@ class ChatsHomeScreen extends GetView<ChatHomeController> {
               elevation: 1,                    // remove shadow
               scrolledUnderElevation: 0,       // ✨ prevents color change on scroll
               surfaceTintColor: Colors.white,
-              title: controller.isSearching
-                  ? TextField(
-                      controller: controller.seacrhCon,
-                      cursorColor: appColorGreen,
-                      decoration: const InputDecoration(
-                          border: InputBorder.none,
-                          hintText: 'Search User, Group & Collection ...',
-                          contentPadding: EdgeInsets.symmetric(
-                              vertical: 0, horizontal: 10),
-                          constraints: BoxConstraints(maxHeight: 45)),
-                      autofocus: true,
-                      style: const TextStyle(
-                          fontSize: 13, letterSpacing: 0.5),
-                      onChanged: (val) {
-                        controller.searchQuery = val;
-                        controller.onSearch(val);
-                      },
-                    ).marginSymmetric(vertical: 10)
-                  : InkWell(
-                      onTap: () {
-                        Get.toNamed(AppRoutes.all_settings);
-                      },
-                      child: Row(
-                        children: [
-                          SizedBox(
-                            width: 40,
-                            child: CustomCacheNetworkImage(
-                              "${ApiEnd.baseUrlMedia}${controller.myCompany?.logo ?? ''}",
-                              radiusAll: 100,
-                              height: 40,
-                              width: 40,
-                              borderColor: appColorYellow,
+              title: Obx(
+                () {
+                  return controller.isSearching.value
+                      ? TextField(
+                              controller: controller.seacrhCon,
+                              cursorColor: appColorGreen,
+                              decoration: const InputDecoration(
+                                  border: InputBorder.none,
+                                  hintText: 'Search User, Group & Collection ...',
+                                  contentPadding: EdgeInsets.symmetric(
+                                      vertical: 0, horizontal: 10),
+                                  constraints: BoxConstraints(maxHeight: 45)),
+                              autofocus: true,
+                              style: const TextStyle(
+                                  fontSize: 13, letterSpacing: 0.5),
+                              onChanged: (val) {
+                                controller.searchQuery = val;
+                                controller.onSearch(val);
+                              },
+                            ).marginSymmetric(vertical: 10)
+                      : InkWell(
+                    hoverColor: Colors.transparent,
+                          onTap: () {
+                            Get.toNamed(AppRoutes.all_settings);
+                          },
+                          child: Row(
+                            children: [
+                              SizedBox(
+                                width: 40,
+                                child: CustomCacheNetworkImage(
+                                  "${ApiEnd.baseUrlMedia}${controller.myCompany?.logo ?? ''}",
+                                  radiusAll: 100,
+                                  height: 40,
+                                  width: 40,
+                                  borderColor: appColorYellow,
 
-                              defaultImage: appIcon,
-                              boxFit: BoxFit.cover,
-                            ),
-                          ).paddingAll(3),
-                          Expanded(
-                            child: Column(
-                              mainAxisAlignment: MainAxisAlignment.end,
-                              mainAxisSize: MainAxisSize.min,
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Text(
-                                  'Chats',
-                                  style:
-                                      BalooStyles.balooboldTitleTextStyle(
-                                          color: AppTheme.appColor,
-                                          size: 18),
-                                ).paddingOnly(left: 4, top: 4),
-                                Text(
-                                  (controller.myCompany?.companyName ?? '')
-                                      .toUpperCase(),
-                                  style: BalooStyles.baloosemiBoldTextStyle(
-                                    color: appColorYellow,
-                                  ),
-                                  maxLines: 1,
-                                  overflow: TextOverflow.ellipsis,
-                                ).paddingOnly(left: 4, top: 2),
-                              ],
-                            ),
+                                  defaultImage: appIcon,
+                                  boxFit: BoxFit.cover,
+                                ),
+                              ).paddingAll(3),
+                              Expanded(
+                                child: Column(
+                                  mainAxisAlignment: MainAxisAlignment.end,
+                                  mainAxisSize: MainAxisSize.min,
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Text(
+                                      'Chats',
+                                      style:
+                                          BalooStyles.balooboldTitleTextStyle(
+                                              color: AppTheme.appColor,
+                                              size: 18),
+                                    ).paddingOnly(left: 4, top: 4),
+                                    Text(
+                                      (controller.myCompany?.companyName ?? '')
+                                          .toUpperCase(),
+                                      style: BalooStyles.baloosemiBoldTextStyle(
+                                        color: appColorYellow,
+                                      ),
+                                      maxLines: 1,
+                                      overflow: TextOverflow.ellipsis,
+                                    ).paddingOnly(left: 4, top: 2),
+                                  ],
+                                ),
+                              ),
+
+
+                            ],
                           ),
-                        ],
-                      ),
-                    ),
+                        );
+                }
+              ),
               actions: [
-                IconButton(
+               kIsWeb? IconButton(
                     onPressed: () {
-                      controller.isSearching = !controller.isSearching;
-                      controller.update();
+                      if (kIsWeb) {
+                        Get.offNamed(
+                            "${AppRoutes.all_users}?isRecent='false'");
+                      } else {
+                        Get.toNamed(AppRoutes.all_users,
+                            arguments: {"isRecent": 'false'});
+                      }
                     },
-                    icon: Icon(controller.isSearching
-                            ? CupertinoIcons.clear_circled_solid
-                            : Icons.search)
-                        .paddingOnly(top: 0, right: 10)),
+                    icon: Icon(Icons.add_comment_outlined,size: 20,color: Colors.black87,)):SizedBox(),
+                hGap(10),
+                Obx(
+                   () {
+                    return IconButton(
+                        onPressed: () {
+                          controller.isSearching.value = !controller.isSearching.value;
+                          controller.isSearching.refresh();
+                          // controller.update();
+                        },
+                        icon:  Icon(controller.isSearching.value
+                                    ? CupertinoIcons.clear_circled_solid
+                                    : Icons.search)
+                            ).paddingOnly(top: 0, right: 10);
+                  }
+                ),
 
                 PopupMenuButton<String>(
                   padding: EdgeInsets.zero,
@@ -212,7 +234,7 @@ class ChatsHomeScreen extends GetView<ChatHomeController> {
             ),
 
             //floating button to add new user
-            floatingActionButton: Padding(
+            floatingActionButton:kIsWeb?SizedBox(): Padding(
               padding: const EdgeInsets.only(bottom: 10),
               child: FloatingActionButton(
                   onPressed: () {
@@ -245,7 +267,7 @@ class ChatsHomeScreen extends GetView<ChatHomeController> {
                   }
 
                   // ---------------- TABLET (Drawer + Recents) ----------------
-                  if (w < 555) {
+                  if (w < 600) {
                     return Row(
                       children: [
                         // SizedBox(
@@ -292,59 +314,19 @@ class ChatsHomeScreen extends GetView<ChatHomeController> {
       color: appColorGreen,
       onRefresh: () async =>
           controller.hitAPIToGetRecentChats(),
-      child: ListView.builder(
-        physics: const AlwaysScrollableScrollPhysics(),
-        itemCount: controller.filteredList.length,
-        padding: EdgeInsets.zero,
-        controller: controller.scrollController,
-        itemBuilder: (context, index) {
-          final item = controller.filteredList[index];
-          return /*SwipeTo(
-                                  iconOnLeftSwipe: Icons.delete_outline,
-                                  iconColor: Colors.red,
-                                  onLeftSwipe: (detail) async {
-                                    if ((item.userCompany?.isGroup == 1) ||
-                                        (item.userCompany?.isBroadcast == 1)) {
-                                    } else {
-                                      final confirm = await showDialog(
-                                        context: context,
-                                        builder: (_) => AlertDialog(
-                                          backgroundColor: Colors.white,
-                                          title: Text(
-                                              "Remove ${item?.email == null || item?.email == '' ? item?.phone : item?.email}"),
-                                          content: const Text(
-                                              "Are you sure you want to remove this member from recants?"),
-                                          actions: [
-                                            TextButton(
-                                                onPressed: () => Navigator.pop(
-                                                    context, false),
-                                                child: const Text("Cancel")),
-                                            TextButton(
-                                                onPressed: () => Navigator.pop(
-                                                    context, true),
-                                                child: Text(
-                                                  "Remove",
-                                                  style: BalooStyles
-                                                      .baloosemiBoldTextStyle(
-                                                          color: Colors.red),
-                                                )),
-                                          ],
-                                        ),
-                                      );
-
-                                      if (confirm == true) {
-                                        customLoader.show();
-
-                                        // await APIs.deleteRecantUserAndChat(item.id);
-                                        customLoader.hide();
-                                        controller.update();
-                                      }
-                                    }
-                                  },
-                                  child: */ChatUserCard(user: item)
-          // )
-              ;
-        },
+      child: Obx(
+        () {
+          return ListView.builder(
+            physics: const AlwaysScrollableScrollPhysics(),
+            itemCount: controller.filteredList.length,
+            padding: EdgeInsets.zero,
+            controller: controller.scrollController,
+            itemBuilder: (context, index) {
+              final item = controller.filteredList[index];
+              return ChatUserCard(user: item);
+            },
+          );
+        }
       ),
     )
         : Center(

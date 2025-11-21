@@ -12,9 +12,11 @@ import 'package:hive_flutter/hive_flutter.dart';
 import 'package:logger/logger.dart';
 import 'Components/custom_loader.dart';
 import 'Constants/app_theme.dart';
+import 'Screens/Chat/api/session_alive.dart';
 import 'Screens/Chat/helper/local_notification_channel.dart';
 import 'Screens/Chat/models/get_company_res_model.dart';
 import 'Screens/Home/Presentation/Controller/company_service.dart';
+import 'Screens/Home/Presentation/Controller/socket_controller.dart';
 import 'Services/APIs/auth_service/auth_api_services_impl.dart';
 import 'Services/APIs/post/post_api_service_impl.dart';
 import 'Services/hive_boot.dart';
@@ -24,6 +26,8 @@ import 'Services/storage_service.dart';
 import 'Services/subscription/billing_controller.dart';
 import 'Services/subscription/billing_service.dart';
 import 'firebase_options.dart';
+import 'dart:html' as html;
+
 
 // 9882896000
 // 9882996003
@@ -60,17 +64,21 @@ Future<void> main() async {
   ));
 
   WidgetsFlutterBinding.ensureInitialized();
+  html.window.onBeforeUnload.listen((event) {
+    try {
+      SocketController().socket!.dispose();
+    } catch (_) {}
+  });
+  await StorageService.init();
+  await HiveBoot.init();
+  await HiveBoot.openBoxOnce<CompanyData>(selectedCompanyBox);
+  await Get.putAsync<CompanyService>(
+        () async => await CompanyService().init(),
+    permanent: true,
+  );
 
 
-    await StorageService.init();
-    await HiveBoot.init();
-    await HiveBoot.openBoxOnce<CompanyData>(selectedCompanyBox);
-    if(!Get.isRegistered<CompanyService>()) {
-      await Get.putAsync<CompanyService>(
-            () async => await CompanyService().init(),
-        permanent: true,
-      );
-    }
+
   if (kIsWeb) {
     if (!Get.isRegistered<PostApiServiceImpl>()) {
       Get.put(PostApiServiceImpl(), permanent: true);
@@ -215,6 +223,13 @@ class MyApp extends StatelessWidget {
       logWriterCallback:kIsWeb?null: LoggerX.write,
       builder: EasyLoading.init(),
       defaultTransition: Transition.cupertino,
+      onReady: () {
+        if (kIsWeb) {
+          Future.delayed(Duration(milliseconds: 50), () {
+            Get.offAllNamed(AppRoutes.home);
+          });
+        }
+      },
     );
   }
 }

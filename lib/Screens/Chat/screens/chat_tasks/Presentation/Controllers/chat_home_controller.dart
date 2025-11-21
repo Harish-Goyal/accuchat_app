@@ -17,6 +17,7 @@ import '../../../../models/chat_user.dart';
 import '../../../../models/group_res_model.dart';
 import '../../../../models/get_company_res_model.dart';
 import '../../../auth/models/get_uesr_Res_model.dart';
+import 'chat_screen_controller.dart';
 
 
 class ChatHomeController extends GetxController{
@@ -28,7 +29,7 @@ class ChatHomeController extends GetxController{
   List<ChatUser> list = [];
   List<ChatGroup> grouplist = [];
   final List<ChatUser> searchList = [];
-  bool isSearching = false;
+  RxBool isSearching = false.obs;
   TextEditingController seacrhCon = TextEditingController();
   String searchQuery = '';
 
@@ -102,10 +103,16 @@ class ChatHomeController extends GetxController{
       update();
       recentChatsUserResModel=value;
       recentChatUserList=value.data?.rows??[];
-      filteredList = recentChatUserList??[];
+      filteredList.assignAll(recentChatUserList??[]);
       if(filteredList.isNotEmpty) {
         selectedChat.value = filteredList[0];
+        // final chatc = Get.find<ChatScreenController>();
+        // chatc.user=selectedChat.value;
+        // chatc.openConversation(selectedChat.value);
+        // chatc.update();
       }
+
+
       final List<UserDataAPI> newItems = [];
 
       if (newItems.isNotEmpty) {
@@ -155,26 +162,28 @@ class ChatHomeController extends GetxController{
   }
 
   TextEditingController groupController = TextEditingController();
-  // List<dynamic> mergedList = [];
-  List<UserDataAPI> filteredList = [];
-
   DashboardController dashboardController = Get.put(DashboardController());
+
+  // List<dynamic> mergedList = [];
+  var filteredList = <UserDataAPI>[].obs;
+
 
   void onSearch(String query) {
     searchQuery = query.toLowerCase();
 
-    filteredList = recentChatUserList!.where((item) {
-
-        return (item.displayName??'').toLowerCase().contains(searchQuery) ||
-            (item.email??'').toLowerCase().contains(searchQuery)||
-            (item.userName??'').toLowerCase().contains(searchQuery)||
-            (item.phone??'').contains(searchQuery)
-        ;
-
-    }).toList();
-
-   update();
+    if (query.isEmpty) {
+      filteredList.assignAll(recentChatUserList ?? []);
+    } else {
+      final result = recentChatUserList!.where((item) {
+        return (item.displayName ?? '').toLowerCase().contains(searchQuery) ||
+            (item.email ?? '').toLowerCase().contains(searchQuery) ||
+            (item.userName ?? '').toLowerCase().contains(searchQuery) ||
+            (item.phone ?? '').contains(searchQuery);
+      }).toList();
+      filteredList.assignAll(result);
+    }
   }
+
 }
 
 

@@ -89,10 +89,10 @@ class ReplyMessageWidget extends StatelessWidget {
   Widget buildReplyMessage(isSendByME) {
     return InkWell(
       onTap:(){
-        final replyToId = chatdata?.replyToId;
-        if (replyToId != null) {
-          Get.find<ChatScreenController>().scrollToChatId(replyToId);
-        }
+        // final replyToId = chatdata?.replyToId;
+        // if (replyToId != null) {
+        //   Get.find<ChatScreenController>().scrollToChatId(replyToId);
+        // }
       },
       child: Container(
         decoration: BoxDecoration(
@@ -159,11 +159,11 @@ class ReplyMessageWidget extends StatelessWidget {
                 ).marginOnly(left: 13, bottom: 4, right: 15)):
            Container(
              // color: Colors.red,
-             width: 100,
-             margin: EdgeInsets.only(left: 8,bottom: 8),
+             width: 70,
+             margin: EdgeInsets.only(left: 8,bottom: 8,right: 8),
              child: CustomCacheNetworkImage("${ApiEnd.baseUrlMedia}${orignalMsg??''}",
-               width: 55,
-               height: 55,
+               width: 60,
+               height: 60,
              radiusAll: 8,
                boxFit: BoxFit.cover,
                borderColor: greyColor,

@@ -50,7 +50,7 @@ class TaskThreadScreen extends GetView<TaskThreadController> {
                 ),
                 hGap(15),
                 Text(
-                  "(Threads)",
+                  "Task Reply",
                   style: BalooStyles.baloomediumTextStyle(color: appColorGreen),
                 ),
               ],
@@ -64,9 +64,9 @@ class TaskThreadScreen extends GetView<TaskThreadController> {
 
                 Container(
                   width: Get.width,
-                  padding: EdgeInsets.all(mq.width * .04),
+                  padding: EdgeInsets.all(12),
                   margin: EdgeInsets.symmetric(
-                      horizontal: mq.width * .05, vertical: mq.height * .01),
+                      horizontal: 12, vertical: 8),
                   decoration: BoxDecoration(
                       color: getTaskStatusColor(
                           controller.taskMessage?.currentStatus?.name?.capitalizeFirst)
@@ -76,9 +76,9 @@ class TaskThreadScreen extends GetView<TaskThreadController> {
                               controller.taskMessage?.currentStatus?.name?.capitalizeFirst)),
                       //making borders curved
                       borderRadius:  const BorderRadius.only(
-                          topLeft: Radius.circular(30),
-                          topRight: Radius.circular(30),
-                          bottomLeft: Radius.circular(30))),
+                          topLeft: Radius.circular(15),
+                          topRight: Radius.circular(14),
+                          bottomLeft: Radius.circular(15))),
                   child: Column(
                     mainAxisSize: MainAxisSize.min,
                     crossAxisAlignment: CrossAxisAlignment.start,
@@ -219,153 +219,145 @@ class TaskThreadScreen extends GetView<TaskThreadController> {
 
   Widget _chatMessageTile(
       {required TaskComments data, required bool sentByMe, formatedTime}) {
-    return InkWell(
-      onLongPress: () {
-        SystemChannels.textInput.invokeMethod('TextInput.hide');
-          _showBottomSheet(sentByMe, data: data);
-      },
-      child: Column(
-        crossAxisAlignment:
-        sentByMe ? CrossAxisAlignment.end : CrossAxisAlignment.start,
-        children: [
-          vGap(3),
-          /*data.replyToId != null
-              ? ReplyMessageWidget(
-              isCancel: false,
-              sentByMe: sentByMe,
-              empIdsender: data.fromUser?.userId.toString(),
-              chatdata: data,
-              empIdreceiver: data.toUser?.userId.toString(),
-              empName: data.fromUser?.userId.toString() ==
-                  controller.me?.userId?.toString()
-                  ? data.fromUser?.userName ?? ''
-                  : data.toUser?.userName ?? '',
-              message: data.replyToText ?? '')
-              .marginOnly(top: 4, bottom: 1)
-              : SizedBox(),*/
-          Row(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              // (data.commentText != null &&
-              //     (data.media ?? []).isNotEmpty &&
-              //     sentByMe)
-              //     ? IconButton(
-              //     onPressed: () {
-              //       // controller.handleForward(chatId: data.chatId);
-              //     },
-              //     icon: Transform(
-              //         alignment: Alignment.center,
-              //         transform: Matrix4.rotationX(math.pi),
-              //         child: Image.asset(
-              //           forwardIcon,
-              //           height: 25,
-              //         ))).paddingOnly(left: 10)
-              //     : SizedBox(),
-              Expanded(
-                child: Container(
-                  alignment: sentByMe
-                      ? Alignment.centerRight
-                      : Alignment.centerLeft,
-                  padding: EdgeInsets.only(
-                      top: 4,
-                      left: (sentByMe ? 0 : 15),
-                      right: (sentByMe ? 15 : 0)),
-                  child: Column(
-                    mainAxisSize: MainAxisSize.min,
-                    crossAxisAlignment: sentByMe
-                        ? CrossAxisAlignment.end
-                        : CrossAxisAlignment.start,
-                    children: [
-                      Container(
-                        padding: EdgeInsets.symmetric(
-                          horizontal:
-                          (data.media ?? []).isNotEmpty ? 8 : 15,
-                          vertical:
-                          (data.media ?? []).isNotEmpty ? 0 : 15,
-                        ),
-                        margin: sentByMe
-                            ? const EdgeInsets.only(left: 15, top: 0)
-                            : const EdgeInsets.only(right: 15, top: 3),
+    return Column(
+      crossAxisAlignment:
+      sentByMe ? CrossAxisAlignment.end : CrossAxisAlignment.start,
+      children: [
+        vGap(3),
+        /*data.replyToId != null
+            ? ReplyMessageWidget(
+            isCancel: false,
+            sentByMe: sentByMe,
+            empIdsender: data.fromUser?.userId.toString(),
+            chatdata: data,
+            empIdreceiver: data.toUser?.userId.toString(),
+            empName: data.fromUser?.userId.toString() ==
+                controller.me?.userId?.toString()
+                ? data.fromUser?.userName ?? ''
+                : data.toUser?.userName ?? '',
+            message: data.replyToText ?? '')
+            .marginOnly(top: 4, bottom: 1)
+            : SizedBox(),*/
+        Row(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            // (data.commentText != null &&
+            //     (data.media ?? []).isNotEmpty &&
+            //     sentByMe)
+            //     ? IconButton(
+            //     onPressed: () {
+            //       // controller.handleForward(chatId: data.chatId);
+            //     },
+            //     icon: Transform(
+            //         alignment: Alignment.center,
+            //         transform: Matrix4.rotationX(math.pi),
+            //         child: Image.asset(
+            //           forwardIcon,
+            //           height: 25,
+            //         ))).paddingOnly(left: 10)
+            //     : SizedBox(),
+            Expanded(
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: sentByMe
+                    ? CrossAxisAlignment.end
+                    : CrossAxisAlignment.start,
+                children: [
+                  InkWell(
+                    borderRadius: BorderRadius.circular(50),
+                    onDoubleTap: () {
+                      SystemChannels.textInput.invokeMethod('TextInput.hide');
+                      _showBottomSheet(sentByMe, data: data);
+                    },
+                    child: Container(
+                      padding: EdgeInsets.symmetric(
+                        horizontal:
+                        (data.media ?? []).isNotEmpty ? 8 : 15,
+                        vertical:
+                        (data.media ?? []).isNotEmpty ? 0 : 15,
+                      ),
+                      margin: sentByMe
+                          ? const EdgeInsets.only(left: 15, top: 10,right: 15)
+                          : const EdgeInsets.only(right: 15, top: 10,left: 15),
 
-                        decoration: BoxDecoration(
-                            color: /* widget.isTask
-                                          ? getTaskStatusColor(widget.message.taskDetails?.taskStatus)
-                                          .withOpacity(.1)
-                                          : */
-                            sentByMe
-                                ? appColorGreen.withOpacity(.1)
-                                : appColorPerple.withOpacity(.1),
-                            border: Border.all(
-                                color: /*widget.isTask
-                                              ? getTaskStatusColor(widget
-                                              .message.taskDetails?.taskStatus)
-                                              :*/
-                                sentByMe
-                                    ? appColorGreen
-                                    : appColorPerple),
-                            //making borders curved
-                            borderRadius: sentByMe
-                                ? BorderRadius.only(
-                                topLeft: Radius.circular(
-                                    (data.media ?? []).isNotEmpty
-                                        ? 15
-                                        : 30),
-                                topRight: Radius.circular(
-                                    (data.media ?? []).isNotEmpty
-                                        ? 15
-                                        : 30),
-                                bottomLeft: Radius.circular(
-                                    (data.media ?? []).isNotEmpty
-                                        ? 15
-                                        : 30))
-                                : BorderRadius.only(
-                                topLeft: Radius.circular(
-                                    (data.media ?? []).isNotEmpty ? 15 : 30),
-                                topRight: Radius.circular((data.media ?? []).isNotEmpty ? 15 : 30),
-                                bottomRight: Radius.circular((data.media ?? []).isNotEmpty ? 15 : 30))),
-                        child: messageTypeView(data, sentByMe: sentByMe),
-                      ).marginOnly(left: (0), top: 0),
-                    ],
+                      decoration: BoxDecoration(
+                          color: /* widget.isTask
+                                        ? getTaskStatusColor(widget.message.taskDetails?.taskStatus)
+                                        .withOpacity(.1)
+                                        : */
+                          sentByMe
+                              ? appColorGreen.withOpacity(.1)
+                              : appColorPerple.withOpacity(.1),
+                          border: Border.all(
+                              color: /*widget.isTask
+                                            ? getTaskStatusColor(widget
+                                            .message.taskDetails?.taskStatus)
+                                            :*/
+                              sentByMe
+                                  ? appColorGreen
+                                  : appColorPerple),
+                          //making borders curved
+                          borderRadius: sentByMe
+                              ? BorderRadius.only(
+                              topLeft: Radius.circular(
+                                  (data.media ?? []).isNotEmpty
+                                      ? 15
+                                      : 30),
+                              topRight: Radius.circular(
+                                  (data.media ?? []).isNotEmpty
+                                      ? 15
+                                      : 30),
+                              bottomLeft: Radius.circular(
+                                  (data.media ?? []).isNotEmpty
+                                      ? 15
+                                      : 30))
+                              : BorderRadius.only(
+                              topLeft: Radius.circular(
+                                  (data.media ?? []).isNotEmpty ? 15 : 30),
+                              topRight: Radius.circular((data.media ?? []).isNotEmpty ? 15 : 30),
+                              bottomRight: Radius.circular((data.media ?? []).isNotEmpty ? 15 : 30))),
+                      child: messageTypeView(data, sentByMe: sentByMe),
+                    ).marginOnly(left: (0), top: 0),
                   ),
-                ),
+                ],
               ),
-              // (data.commentText != null &&
-              //     (data.media ?? []).isNotEmpty &&
-              //     !sentByMe)
-              //     ? IconButton(
-              //     onPressed: () {
-              //       // controller.handleForward(chatId: data.chatId);
-              //     },
-              //     icon: Transform(
-              //         alignment: Alignment.center,
-              //         transform: Matrix4.rotationY(math.pi),
-              //         child: Image.asset(
-              //           forwardIcon,
-              //           height: 25,
-              //         ))).paddingOnly(right: 10)
-              //     : SizedBox()
-            ],
-          ),
-          vGap(3),
-          Row(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Text(
-                formatedTime ?? '',
-                textAlign: TextAlign.start,
-                style: BalooStyles.baloonormalTextStyle(
-                    color: Colors.grey, size: 13),
-              ),
-             /* hGap(5),
-              sentByMe?Icon(
-                data.readOn != null ? Icons.done_all : Icons.done,
-                size: 14,
-                color: data.readOn != null ? Colors.blue : Colors.grey,
-              ):SizedBox()*/
-            ],
-          ).marginOnly(left: 15, right: 15),
-        ],
-      ),
+            ),
+            // (data.commentText != null &&
+            //     (data.media ?? []).isNotEmpty &&
+            //     !sentByMe)
+            //     ? IconButton(
+            //     onPressed: () {
+            //       // controller.handleForward(chatId: data.chatId);
+            //     },
+            //     icon: Transform(
+            //         alignment: Alignment.center,
+            //         transform: Matrix4.rotationY(math.pi),
+            //         child: Image.asset(
+            //           forwardIcon,
+            //           height: 25,
+            //         ))).paddingOnly(right: 10)
+            //     : SizedBox()
+          ],
+        ),
+        vGap(3),
+        Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Text(
+              formatedTime ?? '',
+              textAlign: TextAlign.start,
+              style: BalooStyles.baloonormalTextStyle(
+                  color: Colors.grey, size: 13),
+            ),
+           /* hGap(5),
+            sentByMe?Icon(
+              data.readOn != null ? Icons.done_all : Icons.done,
+              size: 14,
+              color: data.readOn != null ? Colors.blue : Colors.grey,
+            ):SizedBox()*/
+          ],
+        ).marginOnly(left: 15, right: 15),
+      ],
     );
   }
 

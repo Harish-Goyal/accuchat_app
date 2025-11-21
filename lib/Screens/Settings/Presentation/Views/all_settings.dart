@@ -167,7 +167,7 @@ class AllSettingsScreen extends GetView<AllSettingsController> {
               toast('Under Development!');
             }),
         divider().paddingSymmetric(vertical: 12),
-        _buildTile(
+       kIsWeb?SizedBox(): _buildTile(
           icon: Icons.settings,
           title: 'App Settings',
           onTap: () => controller.openAppSettingsPage(),

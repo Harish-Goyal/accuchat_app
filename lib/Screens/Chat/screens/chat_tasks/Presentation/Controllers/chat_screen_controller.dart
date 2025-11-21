@@ -388,7 +388,7 @@ class ChatScreenController extends GetxController {
       hitAPIToGetChatHistory();
       if (user?.userCompany?.isGroup == 1 ||
           user?.userCompany?.isBroadcast == 1) {
-        hitAPIToGetMembers();
+        hitAPIToGetMembers(user);
       }
     });
     scrollListener();
@@ -415,7 +415,7 @@ class ChatScreenController extends GetxController {
   }
 
   List<UserDataAPI> members = [];
-  hitAPIToGetMembers() async {
+  hitAPIToGetMembers(UserDataAPI? user) async {
     isLoading = true;
     update();
     Get.find<PostApiServiceImpl>()
@@ -463,7 +463,7 @@ class ChatScreenController extends GetxController {
         .then((value) async {
       showPostShimmer = false;
       chatHisResModelAPI = value;
-      // chatHisList = value.data?.rows ?? [];
+      chatHisList = value.data?.rows ?? [];
       if ((value.data?.rows ?? []).isNotEmpty) {
         if (page == 1) {
           chatHisList = value.data?.rows ?? [];
@@ -490,10 +490,9 @@ class ChatScreenController extends GetxController {
         if (me?.userId == item.toUser?.userId) {
           markAllVisibleAsReadOnOpen();
         }
-
         return GroupChatElement(datais ?? DateTime.now(), item);
       }).toList();
-      rebuildFlatRows();
+      // rebuildFlatRows();
       update();
     }).onError((error, stackTrace) {
       showPostShimmer = false;
@@ -1000,7 +999,7 @@ class ChatScreenController extends GetxController {
     if (targetUcId != null &&
         me?.userCompany?.userCompanyId != null &&
         targetUcId == me?.userCompany?.userCompanyId) {
-      Get.snackbar('Oops', 'You cannot forward a message to yourself.');
+      Get.snackbar('Oops', 'You cannot forward a message to yourself.',backgroundColor: Colors.white,colorText: Colors.black);
       return;
     }
 

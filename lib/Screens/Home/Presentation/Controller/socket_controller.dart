@@ -54,7 +54,10 @@ class SocketController extends GetxController with WidgetsBindingObserver  {
 
   Future<void> initSocket() async {
     initial();
-    // allListerer();
+    final svc = CompanyService.to;
+    final myCompany =svc.selected;
+    connectUserEmitter(myCompany?.companyId);   // already in your code
+    allListerer();
   }
 
   initial() {
@@ -87,10 +90,7 @@ class SocketController extends GetxController with WidgetsBindingObserver  {
     socket?.connect();
 
     socket?.onConnect((_) {
-      final svc = CompanyService.to;
-      final myCompany =svc.selected;
-      connectUserEmitter(myCompany?.companyId);   // already in your code
-      allListerer();          // ← ADD: make sure listeners are wired on first connect
+            // ← ADD: make sure listeners are wired on first connect
     });
 
     socket?.onReconnectAttempt((_) {
@@ -210,6 +210,7 @@ class SocketController extends GetxController with WidgetsBindingObserver  {
 
 
   socket?.off('add_task_comment_listener');
+
     socket?.on('add_task_comment_listener', (messages) {
       debugPrint("Comments Listing task......4");
       debugPrint("add_task_comment_listener ${jsonEncode(messages.toString())}");

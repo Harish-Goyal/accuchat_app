@@ -1,6 +1,7 @@
 import 'package:AccuChat/Constants/assets.dart';
 import 'package:AccuChat/Constants/colors.dart';
 import 'package:AccuChat/Constants/themes.dart';
+import 'package:AccuChat/Screens/Chat/screens/chat_tasks/Presentation/Views/task_chat_screen.dart';
 import 'package:AccuChat/routes/app_routes.dart';
 import 'package:AccuChat/utils/loading_indicator.dart';
 import 'package:flutter/cupertino.dart';
@@ -59,87 +60,109 @@ class TaskHomeScreen extends GetView<TaskHomeController> {
                 // }
                 return Future.value(true);
               },
-              child: controller.isLoading?ChatHomeShimmer(itemCount: 12):Scaffold(
+              child: controller.isLoading?const ChatHomeShimmer(itemCount: 12):Scaffold(
                 //app bar
                 // backgroundColor: isTaskMode?appColorYellow.withOpacity(.05):Colors.white,
                   appBar: AppBar(
                     automaticallyImplyLeading: false,
-                    title: controller.isSearching
-                        ? TextField(
-                      controller: controller.seacrhCon,
-                      cursorColor: appColorGreen,
-                      decoration: const InputDecoration(
-                          border: InputBorder.none,
-                          hintText: 'Search User, Group & Collection ...',
-                          contentPadding:
-                          EdgeInsets.symmetric(vertical: 0, horizontal: 10),
-                          constraints: BoxConstraints(maxHeight: 45)),
-                      autofocus: true,
-                      style: const TextStyle(fontSize: 13, letterSpacing: 0.5),
-                      onChanged: (val) {
-                        controller.searchQuery = val;
-                        controller.onSearch(val);
-                      },
-                    ).marginSymmetric(vertical: 10)
-                        : Row(
-                          children: [
+                    backgroundColor: Colors.white,   // white color
+                    elevation: 1,                    // remove shadow
+                    scrolledUnderElevation: 0,       // ✨ prevents color change on scroll
+                    surfaceTintColor: Colors.white,
+                    title: Obx(
+                       () {
+                        return controller.isSearching.value
+                            ? TextField(
+                          controller: controller.seacrhCon,
+                          cursorColor: appColorGreen,
+                          decoration: const InputDecoration(
+                              border: InputBorder.none,
+                              hintText: 'Search User, Group & Collection ...',
+                              contentPadding:
+                              EdgeInsets.symmetric(vertical: 0, horizontal: 10),
+                              constraints: BoxConstraints(maxHeight: 45)),
+                          autofocus: true,
+                          style: const TextStyle(fontSize: 13, letterSpacing: 0.5),
+                          onChanged: (val) {
+                            controller.searchQuery = val;
+                            controller.onSearch(val);
+                          },
+                        ).marginSymmetric(vertical: 10)
+                            : Row(
+                              children: [
+                                SizedBox(
+                                  width: 45,
+                                  child: CustomCacheNetworkImage(
+                                    "${ApiEnd.baseUrlMedia}${controller.myCompany?.logo ?? ''}",
+                                    radiusAll:100,
+                                    height: 45,
+                                    defaultImage: appIcon,
+                                    borderColor: greyText,
+                                    boxFit: BoxFit.cover,
+                                  ),
+                                ).paddingAll(4),
+                                Expanded(
+                                  child: Column(
+                                    mainAxisAlignment: MainAxisAlignment.end,
+                                    mainAxisSize: MainAxisSize.min,
+                                    crossAxisAlignment: CrossAxisAlignment.start,
+                                    children: [
+                                  Text(
+                                   "Tasks",
+                                    style: BalooStyles.balooboldTitleTextStyle(
+                                        color:appColorYellow,size: 18),
+                                  ).paddingOnly(left: 8, top: 4),
+                                  Text(
+                                   ( controller.myCompany?.companyName??'').toUpperCase(),
+                                    style: BalooStyles.baloosemiBoldTextStyle(
+                                      color: appColorYellow,),
+                                    maxLines: 1,
+                                    overflow: TextOverflow.ellipsis,
+                                  ).paddingOnly(left: 8, top: 2),
 
-                            SizedBox(
-                              width: 45,
-                              child: CustomCacheNetworkImage(
-                                "${ApiEnd.baseUrlMedia}${controller.myCompany?.logo ?? ''}",
 
-                                radiusAll:100,
-                                height: 45,
-                                defaultImage: appIcon,
-                                borderColor: greyText,
-                                boxFit: BoxFit.cover,
-                              ),
-                            ).paddingAll(4),
-                            Expanded(
-                              child: Column(
-                                                    mainAxisAlignment: MainAxisAlignment.end,
-                                                    mainAxisSize: MainAxisSize.min,
-                                                    crossAxisAlignment: CrossAxisAlignment.start,
-                                                    children: [
-                              Text(
-                               "Tasks",
-                                style: BalooStyles.balooboldTitleTextStyle(
-                                    color:appColorYellow,size: 18),
-                              ).paddingOnly(left: 8, top: 4),
-                              Text(
-                               ( controller.myCompany?.companyName??'').toUpperCase(),
-                                style: BalooStyles.baloosemiBoldTextStyle(
-                                  color: appColorYellow,),
-                                maxLines: 1,
-                                overflow: TextOverflow.ellipsis,
-                              ).paddingOnly(left: 8, top: 2),
-                              
-                              
-                                                    ],
-                                                  ),
-                            ),
-                          ],
-                        ),
+                                                        ],
+                                                      ),
+                                ),
+                              ],
+                            );
+                      }
+                    ),
                     actions: [
                       //search user button
-                      IconButton(
+                      kIsWeb? IconButton(
                           onPressed: () {
-
-                            controller.isSearching = !controller.isSearching;
-                            controller.update();
+                            if (kIsWeb) {
+                              Get.offNamed(
+                                  "${AppRoutes.all_users}?isRecent='false'");
+                            } else {
+                              Get.toNamed(AppRoutes.all_users,
+                                  arguments: {"isRecent": 'false'});
+                            }
                           },
-                          icon: Icon(controller.isSearching
-                              ? CupertinoIcons.clear_circled_solid
-                              : Icons.search)
-                              .paddingOnly(top: 0, right: 10)),
+                          icon: Icon(Icons.add_comment_outlined,size: 20,color: Colors.black87,)):SizedBox(),
+                      hGap(10),
+                      Obx(
+                              () {
+                            return IconButton(
+                                onPressed: () {
+                                  controller.isSearching.value = !controller.isSearching.value;
+                                  controller.isSearching.refresh();
+                                  // controller.update();
+                                },
+                                icon:  Icon(controller.isSearching.value
+                                    ? CupertinoIcons.clear_circled_solid
+                                    : Icons.search)
+                            ).paddingOnly(top: 0, right: 10);
+                          }
+                      ),
 
 
                     ],
                   ),
 
                   //floating button to add new user
-                  floatingActionButton: Padding(
+                  floatingActionButton: kIsWeb?const SizedBox(): Padding(
                     padding:  const EdgeInsets.only(bottom: 10),
                     child: FloatingActionButton(
                         onPressed: () {
@@ -159,92 +182,147 @@ class TaskHomeScreen extends GetView<TaskHomeController> {
                   ),
 
 
-                  body:
-                 (controller.filteredList??[]).isEmpty?Center(
-                   child: InkWell(
-                     onTap: (){
-                       if(kIsWeb){
-                         Get.toNamed("${AppRoutes.all_users}?isRecent='false'");
-                       }else{
-                         Get.toNamed(AppRoutes.all_users,
-                             arguments: {"isRecent": 'false'});
-                       }
-                     },
-                     child: Column(
-                       mainAxisSize: MainAxisSize.min,
-                       mainAxisAlignment: MainAxisAlignment.center,
-                       crossAxisAlignment: CrossAxisAlignment.center,
-                       children: [
+                body: Obx(
+                        () {
+                      final selected = controller.selectedChat.value;
+                      return LayoutBuilder(
+                        builder: (context, constraints) {
+                          double w = constraints.maxWidth;
 
-                         Image.asset(emptyRecentPng,height: 90,),
-                         Text('Click to Start New Task ✍️',
-                             style: BalooStyles.baloosemiBoldTextStyle(color: appColorGreen)).paddingAll(12),
-                         vGap(12),
-                         IconButton(onPressed: () async => controller.hitAPIToGetRecentTasksUser(), icon: Icon(Icons.refresh,size: 35,color: appColorGreen,)).paddingOnly(right: 8)
+                          // ---------------- MOBILE ----------------
+                          if (w < 500) {
+                            return _recentTaskBody();  // your existing list
+                          }
 
-                       ],
-                     ),
-                   ),
-                 ) : RefreshIndicator(
-          backgroundColor: Colors.white,
-          color: appColorGreen,
-          onRefresh: () async => controller.hitAPIToGetRecentTasksUser(),
-          child: ListView.builder(
-          physics: const AlwaysScrollableScrollPhysics(),
-                    itemCount: controller.filteredList.length,
-                    controller: controller.scrollController,
-                    itemBuilder: (context, index) {
-                      final item = controller.filteredList[index];
-                      return  SwipeTo(
-                          iconOnLeftSwipe: Icons.delete_outline,
-                          iconColor: Colors.red,
-                          onLeftSwipe: (detail)async {
-                            final confirm = await showDialog(
-                              context: context,
-                              builder: (_) => AlertDialog(
-                                backgroundColor: Colors.white,
-                                title: Text(
-                                    "Remove ${ item.email == null || item.email == '' ? item.phone : item?.email}"),
-                                content: const Text(
-                                    "Are you sure you want to remove this member from recants?"),
-                                actions: [
-                                  TextButton(
-                                      onPressed: () =>
-                                          Navigator.pop(context, false),
-                                      child: const Text("Cancel")),
-                                  TextButton(
-                                      onPressed: () =>
-                                          Navigator.pop(context, true),
-                                      child: Text(
-                                        "Remove",
-                                        style: BalooStyles
-                                            .baloosemiBoldTextStyle(
-                                            color: Colors.red),
-                                      )),
-                                ],
-                              ),
+                          // ---------------- TABLET (Drawer + Recents) ----------------
+                          if (w < 600) {
+                            return Row(
+                              children: [
+                                // SizedBox(
+                                //   width: 250,
+                                //   child: buildSideNav(dashboardController),   // <--- add your drawer here
+                                // ),
+                                Expanded(
+                                  child: _recentTaskBody(),
+                                ),
+                              ],
                             );
+                          }
 
-                            if (confirm == true) {
-                              customLoader.show();
+                          // ---------------- WEB (Drawer + Recents + ChatScreen) ----------------
 
-                              // await APIs.deleteRecantUserAndChat(item.id);
-                              customLoader.hide();
-                              controller.update();
+                          return Row(
+                            children: [
+                              SizedBox(width: 320, child: _recentTaskBody()),
 
-                            }
-                          },
-                          child:
-                          ChatUserCard(user: item)
+                              Expanded(
+                                child: selected == null
+                                    ? const Center(child: Text("Select a chat to start messaging"))
+                                    : TaskScreen(taskUser: selected,showBack: false,),   // <- correct
+                              ),
+                            ],
+                          );
+
+
+                        },
                       );
-                    },
-                  )
-              ),
+                    }
+                ),
+
+
             ),
           ));
         }
     );
   }
+
+  Widget _recentTaskBody(){
+    return (controller.filteredList??[]).isEmpty?Center(
+      child: InkWell(
+        onTap: (){
+          if(kIsWeb){
+            Get.toNamed("${AppRoutes.all_users}?isRecent='false'");
+          }else{
+            Get.toNamed(AppRoutes.all_users,
+                arguments: {"isRecent": 'false'});
+          }
+        },
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          mainAxisAlignment: MainAxisAlignment.center,
+          crossAxisAlignment: CrossAxisAlignment.center,
+          children: [
+
+            Image.asset(emptyRecentPng,height: 90,),
+            Text('Click to Start New Task ✍️',
+                style: BalooStyles.baloosemiBoldTextStyle(color: appColorGreen)).paddingAll(12),
+            vGap(12),
+            IconButton(onPressed: () async => controller.hitAPIToGetRecentTasksUser(), icon: Icon(Icons.refresh,size: 35,color: appColorGreen,)).paddingOnly(right: 8)
+
+          ],
+        ),
+      ),
+    ) : RefreshIndicator(
+        backgroundColor: Colors.white,
+        color: appColorGreen,
+        onRefresh: () async => controller.hitAPIToGetRecentTasksUser(),
+        child: Obx(
+           () {
+            return ListView.builder(
+              physics: const AlwaysScrollableScrollPhysics(),
+              itemCount: controller.filteredList.length,
+              controller: controller.scrollController,
+              itemBuilder: (context, index) {
+                final item = controller.filteredList[index];
+                return  SwipeTo(
+                    iconOnLeftSwipe: Icons.delete_outline,
+                    iconColor: Colors.red,
+                    onLeftSwipe: (detail)async {
+                      final confirm = await showDialog(
+                        context: context,
+                        builder: (_) => AlertDialog(
+                          backgroundColor: Colors.white,
+                          title: Text(
+                              "Remove ${ item.email == null || item.email == '' ? item.phone : item.email}"),
+                          content: const Text(
+                              "Are you sure you want to remove this member from recants?"),
+                          actions: [
+                            TextButton(
+                                onPressed: () =>
+                                    Navigator.pop(context, false),
+                                child: const Text("Cancel")),
+                            TextButton(
+                                onPressed: () =>
+                                    Navigator.pop(context, true),
+                                child: Text(
+                                  "Remove",
+                                  style: BalooStyles
+                                      .baloosemiBoldTextStyle(
+                                      color: Colors.red),
+                                )),
+                          ],
+                        ),
+                      );
+
+                      if (confirm == true) {
+                        customLoader.show();
+
+                        // await APIs.deleteRecantUserAndChat(item.id);
+                        customLoader.hide();
+                        controller.update();
+
+                      }
+                    },
+                    child:
+                    ChatUserCard(user: item)
+                );
+              },
+            );
+          }
+        )
+    );
+  }
+
 
   Widget _buildHeader(String title) {
     return Padding(

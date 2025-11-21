@@ -143,7 +143,7 @@ class ChatScreen extends GetView<ChatScreenController> {
                 backgroundColor: const Color.fromARGB(255, 234, 248, 255),
 
                 //body
-                body:  (controller.user == null) ? Center(child: Text("No chat selected")):
+                body:
 
                 ScrollConfiguration( // ✅ nicer scrolling on web + no glow
                   behavior: const _NoGlowScrollBehavior(),
@@ -328,13 +328,74 @@ class ChatScreen extends GetView<ChatScreenController> {
   }
 
   groupListView() {
-    final initialIndex = (controller.flatRows.isEmpty)
+ /*   final initialIndex = (controller.flatRows.isEmpty)
         ? 0
-        : controller.flatRows.length - 1;
-    return controller.chatCatygory.isNotEmpty
-        ?
+        : controller.flatRows.length - 1;*/
+    return  controller.chatHisList!=[] || controller.chatHisList!.isNotEmpty
+            ? GroupedListView<GroupChatElement, DateTime>(
+            shrinkWrap: false,
+            padding: const EdgeInsets.only(bottom: 30),
+            controller: controller.scrollController,
+            elements: controller.chatCatygory,
+            order: GroupedListOrder.DESC,
+            reverse: true,
+            floatingHeader: true,
+            useStickyGroupSeparators: true,
+            groupBy: (GroupChatElement element) => DateTime(
+              element.date.year,
+              element.date.month,
+              element.date.day,
+            ),
+            groupHeaderBuilder: _createGroupHeader,
+            indexedItemBuilder:
+                (BuildContext context, GroupChatElement element, int index) {
+              String formatatedTime = '';
+              if (element.chatMessageItems.sentOn != null) {
+                var timeString = element.chatMessageItems.sentOn ?? '';
 
-    ScrollablePositionedList.builder(
+                formatatedTime = convertUtcToIndianTime(timeString);
+              }
+
+              var userid = controller.me?.userId;
+              return StaggeredAnimationListItem(
+                index: index,
+                child: SwipeTo(
+                  onRightSwipe: (detail) {
+                    if(element.chatMessageItems.isActivity == 1 ||(element.chatMessageItems.media??[]).isNotEmpty ){
+
+                    }else{
+                      // Set the message being replied to
+                      controller.refIdis = element.chatMessageItems.chatId;
+                      controller.userIDSender =
+                          element.chatMessageItems.fromUser?.userId;
+                      controller.userNameReceiver =
+                          element.chatMessageItems.toUser?.displayName ?? '';
+                      controller.userNameSender =
+                          element.chatMessageItems.fromUser?.displayName ?? '';
+                      controller.userIDReceiver =
+                          element.chatMessageItems.toUser?.userId;
+                      controller.replyToMessage = element.chatMessageItems;
+                      controller.update();
+                    }
+
+                  },
+                  child: _chatMessageTile(
+                      data: element.chatMessageItems,
+                      sentByMe: (userid
+                          ?.toString() ==
+                          element.chatMessageItems.fromUser?.userId
+                              ?.toString()
+                          ? true
+                          : false),
+                      formatedTime: formatatedTime),
+                ),
+              );
+            }): const Center(
+            child: Text('Say Hii! 👋', style: TextStyle(fontSize: 20)));
+
+
+
+    /*ScrollablePositionedList.builder(
       itemScrollController: controller.itemScrollController,
       itemPositionsListener: controller.itemPositionsListener,
       initialScrollIndex: initialIndex,        // start at bottom (chat-like)
@@ -342,6 +403,9 @@ class ChatScreen extends GetView<ChatScreenController> {
       shrinkWrap: true,// align bottom
       padding: const EdgeInsets.only(bottom: 30),
       itemCount: controller.flatRows.length,
+      addSemanticIndexes: false,
+      addAutomaticKeepAlives: false,
+      addRepaintBoundaries: true,
       itemBuilder: (context, index) {
         final row = controller.flatRows[index];
         if (row is ChatHeaderRow) {
@@ -387,7 +451,7 @@ class ChatScreen extends GetView<ChatScreenController> {
               child: Container(
                 // optional highlight
                 color: isHighlighted
-                    ? const Color(0xFFFFFF00).withOpacity(0.2)
+                    ? appColorPerple.withOpacity(0.2)
                     : null,
                 child: _chatMessageTile(
                   data: element.chatMessageItems,
@@ -403,10 +467,30 @@ class ChatScreen extends GetView<ChatScreenController> {
       },
     )
         : const Center(
-        child: Text('Say Hii! 👋', style: TextStyle(fontSize: 20)));
+        child: Text('Say Hii! 👋', style: TextStyle(fontSize: 20)));*/
   }
 
-  Widget _createGroupHeader(date) {
+
+  Widget _createGroupHeader(GroupChatElement element) {
+    return Container(
+      color: Colors.transparent,
+      child: Row(
+        children: [
+          Expanded(child: divider(color: appColorGreen.withOpacity(.3))),
+          CustomContainer(
+            elevation: 2,
+            vPadding: 3,
+            hPadding: 7,
+            color: AppTheme.whiteColor.withOpacity(.6),
+            childWidget: Text(DateFormat.yMMMd().format(element.date),
+              style: BalooStyles.balooregularTextStyle(),),
+          ),
+          Expanded(child: divider(color: appColorGreen.withOpacity(.3))),
+        ],
+      ),
+    );
+  }
+ /* Widget _createGroupHeader(date) {
     return Container(
       color: Colors.transparent,
       child: Row(
@@ -425,27 +509,30 @@ class ChatScreen extends GetView<ChatScreenController> {
         ],
       ),
     );
-  }
+  }*/
 
   Widget _chatMessageTile(
       {required ChatHisList data, required bool sentByMe, formatedTime}) {
     return data.isActivity == 1
         ? Center(
-      child: CustomContainer(
-          elevation: 0,
-          vPadding: 4,
-          hPadding: 8,
-          color: appColorGreen.withOpacity(.1),
-          childWidget:
-          Text((data.message ?? '').capitalizeFirst ?? '',
-              textAlign: TextAlign.start,
-              style: BalooStyles.baloothinTextStyle(
-                color: Colors.black54,
-                size: 13,
+          child: Container(
+              padding: EdgeInsets.symmetric(vertical: 4,horizontal: 8),
+              margin: EdgeInsets.symmetric(vertical: 4,horizontal: 8),
+
+              decoration: BoxDecoration(
+                color: appColorPerple.withOpacity(.1),
+                borderRadius: BorderRadius.circular(12),
               ),
-              overflow: TextOverflow.visible))
-          .marginSymmetric(horizontal: 5, vertical: 4),
-    )
+              child:
+              Text((data.message ?? '').capitalizeFirst ?? '',
+                  textAlign: TextAlign.start,
+                  style: BalooStyles.baloothinTextStyle(
+                    color: appColorPerple,
+                    size: 13,
+                  ),
+                  overflow: TextOverflow.visible))
+              .marginSymmetric(horizontal: 5, vertical: 4),
+        )
         :  Column(
         crossAxisAlignment:
         sentByMe ? CrossAxisAlignment.end : CrossAxisAlignment.start,
@@ -489,35 +576,31 @@ class ChatScreen extends GetView<ChatScreenController> {
                       ))).paddingOnly(left: 10)
                   : const SizedBox(),
               Expanded(
-                child:InkWell(
-                  splashColor: Colors.transparent,
-                  highlightColor: Colors.transparent,
-                  hoverColor: Colors.transparent,
-                  focusColor: Colors.transparent,
-                  overlayColor: MaterialStateProperty.all(Colors.transparent),
-                  mouseCursor: SystemMouseCursors.click,
-                  onLongPress: () {
-                    SystemChannels.textInput.invokeMethod('TextInput.hide');
-                    if (!isTaskMode) {
+                child:Column(
+                  mainAxisSize: MainAxisSize.min,
+                  crossAxisAlignment: sentByMe
+                      ? CrossAxisAlignment.end
+                      : CrossAxisAlignment.start,
+                  children: [
+                    InkWell(
+                      borderRadius: BorderRadius.circular(50),
+                      // mouseCursor: SystemMouseCursors.click,
+                      onDoubleTap: () {
+                        SystemChannels.textInput.invokeMethod('TextInput.hide');
+                        if (!isTaskMode) {
 
-                      _showBottomSheet(sentByMe, data: data);
-                    }
-                  },
-                  child: Column(
-                    mainAxisSize: MainAxisSize.min,
-                    crossAxisAlignment: sentByMe
-                        ? CrossAxisAlignment.end
-                        : CrossAxisAlignment.start,
-                    children: [
-                      Container(
+                          _showBottomSheet(sentByMe, data: data);
+                        }
+                      },
+                      child: Container(
                         // alignment: sentByMe
                         //     ? Alignment.centerRight
                         //     : Alignment.centerLeft,
                         padding: EdgeInsets.symmetric(
                           horizontal:
-                          (data.media ?? []).isNotEmpty ? 16 : 15,
+                          (data.media ?? []).isNotEmpty ? 12 : 15,
                           vertical:
-                          (data.media ?? []).isNotEmpty ? 0 : 15,
+                          (data.media ?? []).isNotEmpty ? 0 : 8,
                         ),
                         margin: sentByMe
                             ? const EdgeInsets.only(left: 15, top: 10,right: 15)
@@ -562,8 +645,8 @@ class ChatScreen extends GetView<ChatScreenController> {
                                 bottomRight: Radius.circular((data.media ?? []).isNotEmpty ? 15 : 30))),
                         child: messageTypeView(data, sentByMe: sentByMe),
                       ).marginOnly(left: (0), top: 0),
-                    ],
-                  ),
+                    ),
+                  ],
                 ),
               ),
               (data.message != null &&
@@ -612,10 +695,11 @@ class ChatScreen extends GetView<ChatScreenController> {
       child: Column(
 
         crossAxisAlignment: CrossAxisAlignment.start,
+        mainAxisSize: MainAxisSize.min,
         children: [
           controller.user?.userCompany?.isGroup == 1
               ? Row(
-            mainAxisSize: MainAxisSize.min,
+                          mainAxisSize: MainAxisSize.min,
                 children: [
                   Flexible(
                     child: Text(
@@ -869,7 +953,6 @@ class ChatScreen extends GetView<ChatScreenController> {
           iconColor: Colors.black87,
           onSelected: (value) {
             if (value == 'AddMember') {
-
               if(kIsWeb){
                 Get.toNamed(
                   "${AppRoutes.add_group_member}?groupChatId=${controller.user?.userId.toString()}",
@@ -953,7 +1036,7 @@ class ChatScreen extends GetView<ChatScreenController> {
     return Container(
       // height: Get.height*.4,
       padding: EdgeInsets.symmetric(
-          vertical: mq.height * 0, horizontal: mq.width * .025),
+          vertical: 0, horizontal: mq.width * .025),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.end,
         children: [
@@ -977,9 +1060,9 @@ class ChatScreen extends GetView<ChatScreenController> {
                       children: [
                         ConstrainedBox(
                           constraints: BoxConstraints(
-                              maxHeight: Get.height * .4, minHeight: 40),
+                              maxHeight: Get.height * .3, minHeight: 30),
                           child: Container(
-                            // color: Colors.red,
+                            margin: EdgeInsets.symmetric(vertical: 4),
                             decoration: BoxDecoration(
                                 borderRadius: BorderRadius.circular(8),
                                 border: Border.all(
@@ -1021,6 +1104,7 @@ class ChatScreen extends GetView<ChatScreenController> {
                                     },
 
                                     decoration: InputDecoration(
+                                      isDense: true,
                                       hintText: 'Type Something...',
                                       hintStyle: themeData.textTheme.bodySmall,
                                       contentPadding: const EdgeInsets.all(8),
@@ -1030,6 +1114,7 @@ class ChatScreen extends GetView<ChatScreenController> {
                                       errorBorder: InputBorder.none,
                                       focusedBorder: InputBorder.none,
                                     ),
+
                                   ),
                                 ),
                                 if (!isTaskMode)
@@ -1124,7 +1209,7 @@ class ChatScreen extends GetView<ChatScreenController> {
               ),
               child: const Icon(Icons.send, color: Colors.white),
             ),
-          )
+          ).marginOnly(bottom: 4)
         ],
       ),
     );

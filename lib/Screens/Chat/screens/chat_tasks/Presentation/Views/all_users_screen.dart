@@ -28,8 +28,7 @@ class AllUserScreen extends GetView<AllUserController> {
         builder: (controller) {
           return Scaffold(
             appBar: AppBar(
-              // automaticallyImplyLeading: false,
-              title:controller.isSearching
+              title: controller.isSearching
                   ? TextField(
                 controller: controller.seacrhCon,
                 cursorColor: appColorGreen,
@@ -40,7 +39,8 @@ class AllUserScreen extends GetView<AllUserController> {
                     EdgeInsets.symmetric(vertical: 0, horizontal: 10),
                     constraints: BoxConstraints(maxHeight: 45)),
                 autofocus: true,
-                style: const TextStyle(fontSize: 13, letterSpacing: 0.5),
+                style:
+                const TextStyle(fontSize: 13, letterSpacing: 0.5),
                 onChanged: (val) {
                   controller.searchQuery = val;
                   controller.onSearch(val);
@@ -48,13 +48,21 @@ class AllUserScreen extends GetView<AllUserController> {
               ).marginSymmetric(vertical: 10)
                   : Text(
                 'Users',
-                style:BalooStyles.balooboldTitleTextStyle(),
+                style: BalooStyles.balooboldTitleTextStyle(),
               ),
+              leading: IconButton(
+                  onPressed: () {
+                    Get.offAllNamed(AppRoutes.home);
+                  },
+                  icon: Icon(
+                    Icons.arrow_back,
+                    color: Colors.black,
+                  )),
               actions: [
                 IconButton(
                     onPressed: () {
-                        controller.isSearching = !controller.isSearching;
-                        controller.update();
+                      controller.isSearching = !controller.isSearching;
+                      controller.update();
                     },
                     icon: Icon(
                       controller.isSearching
@@ -64,76 +72,112 @@ class AllUserScreen extends GetView<AllUserController> {
                     ).paddingOnly(top: 10, right: 10)),
               ],
             ),
-            body: ListView.builder(
-              itemCount: controller.filteredList.length??0,
-              shrinkWrap: true,
-              padding: EdgeInsets.zero,
-              itemBuilder: (_, i) => ListTile(
-                leading: SizedBox(
-                  width: 55,
-                  child: CustomCacheNetworkImage(
-                    "${ApiEnd.baseUrlMedia}${controller.filteredList[i].userImage??''}",
-                    height: 55,
-                    width: 55,
-                    radiusAll: 100,
-                    borderColor: greyText,
-                    boxFit: BoxFit.cover,
 
-                    defaultImage: userIcon,
+            // ---------------- WEB RESPONSIVE WRAPPER ADDED ----------------
+            body: ConstrainedBox(
+              constraints: BoxConstraints(
+                maxWidth: kIsWeb ? 600 : double.infinity, // FIX WIDTH ON WEB
+              ),
+
+              child: Container(
+                margin: const EdgeInsets.symmetric(vertical: 6, horizontal: 10),
+                padding: const EdgeInsets.symmetric(vertical: 4),
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  borderRadius: BorderRadius.circular(12),
+                  boxShadow: kIsWeb
+                      ? [
+                    BoxShadow(
+                      color: Colors.black.withOpacity(0.05),
+                      blurRadius: 10,
+                      spreadRadius: 2,
+                      offset: const Offset(0, 3),
+                    )
+                  ]
+                      : [], // mobile keeps simple, no shadow
+                ),
+                child: ListView.builder(
+                  itemCount: controller.filteredList.length ?? 0,
+                  shrinkWrap: true,
+                  padding: EdgeInsets.zero,
+                  itemBuilder: (_, i) => ListTile(
+                    leading: SizedBox(
+                      width: 55,
+                      child: CustomCacheNetworkImage(
+                        "${ApiEnd.baseUrlMedia}${controller.filteredList[i].userImage ?? ''}",
+                        height: 55,
+                        width: 55,
+                        radiusAll: 100,
+                        borderColor: greyText,
+                        boxFit: BoxFit.cover,
+                        defaultImage: userIcon,
+                      ),
+                    ),
+                    title: Text(
+                      controller.filteredList[i].userId ==
+                          controller.me?.userId
+                          ? "Me"
+                          : (controller.filteredList[i].displayName
+                          .toString() ==
+                          '' ||
+                          controller.filteredList[i].displayName ==
+                              null)
+                          ? controller.filteredList[i].phone ?? ""
+                          : controller.filteredList[i].displayName ?? '',
+                      style: themeData.textTheme.bodySmall,
+                    ),
+                    subtitle: ((controller.filteredList[i].displayName
+                        .toString() ==
+                        '' ||
+                        controller.filteredList[i].displayName ==
+                            null) &&
+                        controller.filteredList[i].userId !=
+                            controller.me?.userId)
+                        ? SizedBox()
+                        : Text(
+                      controller.filteredList[i].email.toString() ==
+                          'null' ||
+                          controller.filteredList[i].email
+                              .toString() ==
+                              '' ||
+                          (controller.filteredList[i].email ?? '')
+                              .isEmpty ||
+                          controller.filteredList[i].email == null
+                          ? controller.filteredList[i].phone ?? ''
+                          : controller.filteredList[i].email ?? '',
+                      style: themeData.textTheme.bodySmall
+                          ?.copyWith(color: greyText),
+                    ),
+                    onTap: () {
+                      if (isTaskMode) {
+                        if (kIsWeb) {
+                          Get.toNamed(
+                            "${AppRoutes.tasks_li_r}?userId=${controller.filteredList[i].userId.toString()}",
+                          );
+                        } else {
+                          Get.toNamed(AppRoutes.tasks_li_r,
+                              arguments: {'user': controller.filteredList[i]});
+                        }
+                      } else {
+                        if (kIsWeb) {
+                          Get.toNamed(
+                            "${AppRoutes.chats_li_r}?userId=${controller.filteredList[i].userId.toString()}",
+                          );
+                        } else {
+                          Get.toNamed(AppRoutes.chats_li_r,
+                              arguments: {'user': controller.filteredList[i]});
+                        }
+                      }
+                    },
                   ),
                 ),
-                title: Text(
-                  controller.filteredList[i].userId == controller.me?.userId
-                      ? "Me"
-                      : (controller.filteredList[i].displayName.toString() == ''||controller.filteredList[i].displayName == null)
-                      ? controller.filteredList[i].phone??""
-                      : controller.filteredList[i].displayName??'',
-                  style: themeData.textTheme.bodySmall,
-                ),
-                subtitle: ((controller.filteredList[i].displayName.toString() == ''||controller.filteredList[i].displayName == null) &&
-                    controller.filteredList[i].userId != controller.me?.userId)
-                    ? SizedBox()
-                    : Text(
-                  controller.filteredList[i].email.toString() == 'null'||controller.filteredList[i].email.toString() == ''||(controller.filteredList[i].email??'').isEmpty||controller.filteredList[i].email==null
-                    ? controller.filteredList[i].phone??''
-                    : controller.filteredList[i].email??'',
-                  style: themeData.textTheme.bodySmall
-                      ?.copyWith(color: greyText),
-                ),
-                onTap: () {
-
-                  if(isTaskMode)  {
-                    if(kIsWeb){
-                      Get.toNamed(
-                        "${AppRoutes.tasks_li_r}?userId=${controller.filteredList[i].userId.toString()}",
-                      );
-                    }else{
-                      Get.toNamed(AppRoutes.tasks_li_r,arguments:
-                      {
-                        'user': controller.filteredList[i]
-                      }
-                      );
-                    }
-                  }else {
-                    if (kIsWeb) {
-                      Get.toNamed(
-                        "${AppRoutes.chats_li_r}?userId=${controller
-                            .filteredList[i].userId.toString()}",
-                      );
-                    } else {
-                      Get.toNamed(AppRoutes.chats_li_r, arguments:
-                      {
-                        'user': controller.filteredList[i]
-                      }
-                      );
-                    }
-                  }
-                },
               ),
             ),
+            // ---------------- END RESPONSIVE WRAPPER ----------------
           );
-        }
+        },
       ),
     );
   }
 }
+

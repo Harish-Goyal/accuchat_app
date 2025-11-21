@@ -19,17 +19,17 @@ class AddGroupMemController extends GetxController {
   @override
   void onInit() {
     super.onInit();
+    _getCompany();
     getArguments();
     _getMe();
-    _getCompany();
-    hitAPIToGetMembers();
-    hitAPIToAllGetMember();
+
+
   }
 
   getArguments() {
     if(kIsWeb){
       if (Get.parameters != null) {
-        final String? argUserId = Get.parameters['groupChatId'];
+         String? argUserId = Get.parameters['groupChatId'];
         if (argUserId != null) {
           getUserByIdApi(userId: int.parse(argUserId??''));
         }
@@ -49,6 +49,8 @@ class AddGroupMemController extends GetxController {
         .getUserByApiCall(userID: userId,comid: myCompany?.companyId)
         .then((value) async {
       group = value.data;
+      hitAPIToGetMembers();
+
       update();
     }).onError((error, stackTrace) {
       update();
@@ -84,11 +86,11 @@ class AddGroupMemController extends GetxController {
         .getComMemApiCall(myCompany?.companyId)
         .then((value) async {
       isLoading = false;
+
       allUsersList = value.data ?? [];
       final filteredUsers = allUsersList.where((user) => !membersIds.contains(user.userId)).toList();
       allUsersList = filteredUsers;
       Get.find<GrBrMembersController>().hitAPIToGetMembers();
-      // filteredList = userList;
       update();
     }).onError((error, stackTrace) {
       isLoading = false;
@@ -110,7 +112,7 @@ class AddGroupMemController extends GetxController {
           customLoader.hide();
           toast("Member added!");hitAPIToAllGetMember();
 
-         await Get.find<ChatScreenController>().hitAPIToGetMembers();
+         await Get.find<ChatScreenController>().hitAPIToGetMembers(group);
           await Get.find<GrBrMembersController>().hitAPIToGetMembers();
           Get.back();
 
@@ -136,6 +138,7 @@ class AddGroupMemController extends GetxController {
         membersIds.add(i.userId??0);
       }
       _compute();
+      hitAPIToAllGetMember();
       update();
     }).onError((error, stackTrace) {
       isLoading = false;

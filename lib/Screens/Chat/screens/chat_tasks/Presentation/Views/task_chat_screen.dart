@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'dart:io';
 import 'dart:math' as math;
+import 'package:AccuChat/Screens/Chat/screens/auth/models/get_uesr_Res_model.dart';
 import 'package:AccuChat/Screens/Chat/screens/chat_tasks/Presentation/Controllers/task_home_controller.dart';
 import 'package:AccuChat/Services/storage_service.dart';
 import 'package:file_picker/file_picker.dart';
@@ -98,10 +99,19 @@ double _textScaleClamp(BuildContext context) {
 
 class TaskScreen extends GetView<TaskController> {
   final GlobalKey _menuKey = GlobalKey();
-  TaskScreen({super.key});
+  TaskScreen({super.key,this.taskUser,this.showBack=true});
+  final UserDataAPI? taskUser;
+  bool showBack;
   @override
   Widget build(BuildContext context) {
-    return GetBuilder<TaskController>(builder: (controller) {
+    final taskController = Get.put(
+      TaskController(user: taskUser),
+      tag: "task_${taskUser?.userId ?? 'mobile'}",
+    );
+
+    return GetBuilder<TaskController>(
+        init: taskController,
+        builder: (controller) {
       return GestureDetector(
         onTap: () => FocusScope.of(context).unfocus(),
         child: SafeArea(
@@ -116,7 +126,10 @@ class TaskScreen extends GetView<TaskController> {
               child: Scaffold(
                 //app bar
                 appBar: AppBar(
-                  backgroundColor: Colors.white,
+                  backgroundColor: Colors.white,   // white color
+                  elevation: 1,                    // remove shadow
+                  scrolledUnderElevation: 0,       // ✨ prevents color change on scroll
+                  surfaceTintColor: Colors.white,
                   automaticallyImplyLeading: false,
                   flexibleSpace: MediaQuery(
                     // ✅ clamp text scale for web
@@ -287,7 +300,7 @@ class TaskScreen extends GetView<TaskController> {
                 index: index,
                 child: SwipeTo(
                   onRightSwipe: (detail) {
-                    controller.goToTaskThread(element);
+                    controller.openTaskThreadSmart(context: context,groupElement:element);
                     // Get.find<SocketController>().joinTaskEmitter(taskId: element.taskMsg.taskId??0);
                     //
                     // // Set the message being replied to
@@ -361,7 +374,7 @@ class TaskScreen extends GetView<TaskController> {
           globalPos: details.globalPosition, // from TapUpDetails
         );
       },
-      onLongPress: () {
+      onDoubleTap: () {
         SystemChannels.textInput.invokeMethod('TextInput.hide');
         _showBottomSheet(sentByMe,element ,data: data);
       },
@@ -736,7 +749,7 @@ class TaskScreen extends GetView<TaskController> {
             child: Row(
               children: [
                 //back button
-                IconButton(
+                !showBack?SizedBox(width: 14,):   IconButton(
                     onPressed: () {
                       if (Get.previousRoute.isNotEmpty) {
                         Get.back();
@@ -1010,12 +1023,12 @@ class TaskScreen extends GetView<TaskController> {
                                     keyboardType: TextInputType.multiline,
                                     cursorColor: AppTheme.appColor,
                                     maxLines: null,
+                                    readOnly: true,
                                     onChanged: (text) {
                                       // if (text.isNotEmpty) {
                                       //   list[0].isTyping = true;
                                       //   APIs.updateTypingStatus(true);
                                       //   if(isVisibleUpload){
-                                      //
                                       //     isVisibleUpload = false;
                                       //     controller.update();
                                       //   }
@@ -1023,7 +1036,6 @@ class TaskScreen extends GetView<TaskController> {
                                       //   list[0].isTyping = false;
                                       //   APIs.updateTypingStatus(false);
                                       //   if(!isVisibleUpload){
-                                      //
                                       //     isVisibleUpload = true;
                                       //     controller.update();
                                       //   }
@@ -1048,7 +1060,7 @@ class TaskScreen extends GetView<TaskController> {
                                       }
                                     },
                                     decoration: InputDecoration(
-                                      hintText: 'Type Something...',
+                                      hintText: 'Tap here to show task dialog...',
                                       hintStyle: themeData.textTheme.bodySmall,
                                       contentPadding: const EdgeInsets.all(8),
                                       border: InputBorder.none,
@@ -1352,7 +1364,7 @@ class TaskScreen extends GetView<TaskController> {
                   name: 'Reply',
                   onTap: () async {
                     Get.back();
-                    controller.goToTaskThread(element);
+                    controller.openTaskThreadSmart(context: Get.context!,groupElement: element);
                     // Dialogs.showSnackbar(context, 'Text Copied!');
                   }),
 

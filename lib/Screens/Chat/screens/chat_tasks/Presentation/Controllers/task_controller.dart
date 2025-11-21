@@ -29,9 +29,12 @@ import '../../../../models/task_status_res_model.dart';
 import '../../../auth/models/get_uesr_Res_model.dart';
 import 'package:dio/dio.dart' as multi;
 import 'package:path/path.dart' as p;
+import '../../Bindings/bindings.dart';
+import '../Views/task_treads_screen.dart';
 import '../Widgets/all_users_dialog.dart';
 
 class TaskController extends GetxController {
+  TaskController({required this.user});
   UserDataAPI? user;
   // Message? forwardMessage;
   String? selectedChatId;
@@ -86,11 +89,13 @@ class TaskController extends GetxController {
   getArguments() {
     if(kIsWeb){
       _getCompany();
-      if (Get.parameters != null) {
-        final String? argUserId = Get.parameters['userId'];
-        if (argUserId != null) {
-          getUserByIdApi(userId: int.parse(argUserId??''));
-        }
+      // if (Get.parameters != null) {
+      final String? argUserId = Get.parameters['userId'];
+      if (argUserId != null) {
+        getUserByIdApi(userId: int.parse(argUserId ?? ''));
+        // }
+      } else {
+        getUserByIdApi(userId: user?.userId);
       }
     }else{
       if (Get.arguments != null) {
@@ -142,7 +147,6 @@ class TaskController extends GetxController {
   CompanyData? myCompany = CompanyData();
   _getCompany() async {
     final svc = CompanyService.to;
-
     myCompany = svc.selected;
     update();
   }
@@ -189,6 +193,66 @@ class TaskController extends GetxController {
 
 
   }
+
+
+
+
+  void openTaskThreadSmart({
+    required BuildContext context,
+    GroupTaskElement? groupElement,
+  }) {
+    Get.find<SocketController>().joinTaskEmitter(taskId: groupElement?.taskMsg.taskId??0);
+
+    // Set the message being replied to
+    refIdis = groupElement?.taskMsg.taskId;
+    userIDSender = groupElement?.taskMsg.fromUser?.userId;
+    userNameReceiver =
+        groupElement?.taskMsg.toUser?.displayName ?? '';
+    userNameSender =
+        groupElement?.taskMsg.fromUser?.displayName ?? '';
+    userIDReceiver = groupElement?.taskMsg.toUser?.userId;
+    // controller.replyToMessage = element.taskMsg;
+
+    update();
+    if (kIsWeb) {
+
+      Get.parameters = {
+        "currentUserId": user?.userId.toString(),
+        "taskMsgId": groupElement?.taskMsg.taskId.toString(),
+      };
+      // Load binding manually
+      TaskThreadBinding().dependencies();
+
+      showDialog(
+        context: context,
+        barrierDismissible: true,
+        builder: (_) {
+          return Center(
+            child: ConstrainedBox(
+              constraints: const BoxConstraints(
+                maxWidth: 600,
+                maxHeight:600,
+              ),
+              child: Material(
+                color: Colors.white,
+                borderRadius: BorderRadius.circular(22),
+                clipBehavior: Clip.antiAlias,
+                child: TaskThreadScreen(),   // <- Your original Screen
+              ),
+            ),
+          ).marginAll(50);
+        },
+      );
+
+    } else {
+      // Mobile → normal navigation
+      Get.toNamed(AppRoutes.task_threads,
+          arguments: {
+            'taskMsg':  groupElement?.taskMsg, 'currentUser': user!
+          });
+    }
+  }
+
 
   /*Future<void> sendTaskApiCall() async {
     // Hide keyboard
@@ -1001,7 +1065,6 @@ class TaskController extends GetxController {
         .then((value) async {
       showPostShimmer = false;
       taskHisRes = value;
-      // chatHisList = value.data?.rows ?? [];
       if ((value.data?.rows ?? []).isNotEmpty) {
         if (page == 1) {
           taskHisList =value.data?.rows ?? [];
@@ -1348,7 +1411,7 @@ class TaskController extends GetxController {
     if (targetUcId != null &&
         me?.userCompany?.userCompanyId != null &&
         targetUcId == me?.userCompany?.userCompanyId) {
-      Get.snackbar('Oops', 'You cannot forward a message to yourself.');
+      Get.snackbar('Oops', 'You cannot forward a message to yourself.',backgroundColor: Colors.white,colorText: Colors.black);
       return;
     }
     // DIRECT — use UCID, NOT userId

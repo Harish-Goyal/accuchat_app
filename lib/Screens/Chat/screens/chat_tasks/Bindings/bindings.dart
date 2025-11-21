@@ -73,7 +73,7 @@ class ChatScreenBinding extends Bindings {
 class TaskScreenBinding extends Bindings {
   @override
   void dependencies() {
-    Get.put<TaskController>(TaskController());
+    // Get.put<TaskController>(TaskController());
   }
 }
 

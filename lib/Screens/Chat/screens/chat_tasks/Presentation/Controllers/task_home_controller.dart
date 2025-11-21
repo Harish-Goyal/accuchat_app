@@ -1,4 +1,5 @@
 import 'package:AccuChat/Screens/Chat/models/recent_chat_user_res_model.dart';
+import 'package:AccuChat/Screens/Chat/screens/chat_tasks/Presentation/Controllers/task_controller.dart';
 import 'package:get/get.dart';
 import 'package:AccuChat/Screens/Home/Presentation/Controller/home_controller.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
@@ -28,12 +29,11 @@ class TaskHomeController extends GetxController{
   List<ChatUser> list = [];
   List<ChatGroup> grouplist = [];
 
-  // for storing searched items
-  final List<ChatUser> searchList = [];
   // for storing search status
-  bool isSearching = false;
+  RxBool isSearching = false.obs;
   TextEditingController seacrhCon = TextEditingController();
   String searchQuery = '';
+  Rxn<UserDataAPI> selectedChat = Rxn<UserDataAPI>();
 
   Future<void> onCompanyChanged() async => hitAPIToGetRecentTasksUser();
 
@@ -114,7 +114,16 @@ class TaskHomeController extends GetxController{
       isLoading = false;
       recentTasksUserResModel=value;
       recentTaskUserList=recentTasksUserResModel.data?.rows??[];
-      filteredList = recentTaskUserList??[];
+      filteredList.assignAll(recentTaskUserList??[]);
+
+      if(filteredList.isNotEmpty) {
+        selectedChat.value = filteredList[0];
+        // final taskc = Get.find<TaskController>();
+        // taskc.user=selectedChat.value;
+        // taskc.openConversation(selectedChat.value);
+        // taskc.update();
+      }
+
       update();
       final List<UserDataAPI> newItems = [];
 
@@ -184,21 +193,22 @@ class TaskHomeController extends GetxController{
 
   TextEditingController groupController = TextEditingController();
   // List<dynamic> mergedList = [];
-  List<UserDataAPI> filteredList = [];
+  final filteredList = <UserDataAPI>[].obs;
 
   DashboardController dashboardController = Get.put(DashboardController());
 
   void onSearch(String query) {
     searchQuery = query.toLowerCase();
-    filteredList = (recentTaskUserList??[]).where((item) {
-      return (item.displayName??'').toLowerCase().contains(searchQuery) ||
-          (item.email??'').toLowerCase().contains(searchQuery)||
-          (item.userName??'').toLowerCase().contains(searchQuery)||
-          (item.phone??'').contains(searchQuery)
-      ;
-
-    }).toList();
-
-    update();
+    if (query.isEmpty) {
+      filteredList.assignAll(recentTaskUserList ?? []);
+    } else {
+      final result = recentTaskUserList!.where((item) {
+        return (item.displayName ?? '').toLowerCase().contains(searchQuery) ||
+            (item.email ?? '').toLowerCase().contains(searchQuery) ||
+            (item.userName ?? '').toLowerCase().contains(searchQuery) ||
+            (item.phone ?? '').contains(searchQuery);
+      }).toList();
+      filteredList.assignAll(result);
+    }
   }
 }

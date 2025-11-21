@@ -17,7 +17,332 @@ import '../../../../../../utils/custom_flashbar.dart';
 import '../../../../api/apis.dart';
 import '../../../../models/chat_user.dart';
 
+
+
+
+
 class GroupMembersScreen extends StatelessWidget {
+  const GroupMembersScreen({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    ThemeData themeData = Theme.of(context);
+
+    return GetBuilder<GrBrMembersController>(
+      builder: (controller) {
+        return Scaffold(
+          appBar: AppBar(
+            title: Text(
+              controller.groupOrBr?.userCompany?.isGroup == 1
+                  ? 'Group Members'
+                  : "Broadcast Members",
+              style: BalooStyles.balooboldTitleTextStyle(),
+            ),
+            actions: [
+              if (controller.groupOrBr?.createdBy ==
+                  controller.me?.userCompany?.userCompanyId)
+                PopupMenuButton<String>(
+                  color: Colors.white,
+                  icon: const Icon(Icons.more_vert,
+                      color: Colors.black87, size: 18),
+                  onSelected: (value) {
+                    if (value == 'delete') {
+                      controller.hitAPIToDeleteGrBr(
+                        isGroup: controller.groupOrBr?.userCompany?.isGroup == 1
+                            ? true
+                            : false,
+                      );
+                    } else if (value == 'add') {
+                      if (kIsWeb) {
+                        Get.toNamed(
+                          "${AppRoutes.add_group_member}?groupChatId=${controller.groupOrBr?.userId.toString()}",
+                        );
+                      } else {
+                        Get.toNamed(
+                          AppRoutes.add_group_member,
+                          arguments: {'groupChat': controller.groupOrBr},
+                        );
+                      }
+                    }
+                  },
+                  itemBuilder: (context) => [
+                    PopupMenuItem(
+                      value: 'delete',
+                      child: Row(
+                        children: [
+                          const Icon(Icons.delete_outline,
+                              color: Colors.black87, size: 18),
+                          hGap(5),
+                          Text('Delete',
+                              style: BalooStyles.baloonormalTextStyle()),
+                        ],
+                      ),
+                    ),
+                    PopupMenuItem(
+                      value: 'add',
+                      child: Row(
+                        children: [
+                          const Icon(Icons.person_add_outlined,
+                              color: Colors.black87, size: 18),
+                          hGap(5),
+                          Text('Add Member',
+                              style: BalooStyles.baloonormalTextStyle()),
+                        ],
+                      ),
+                    ),
+                  ],
+                )
+            ],
+          ),
+
+          // ---------------- WEB RESPONSIVE WRAPPER ADDED ----------------
+          body: Center(
+            child: ConstrainedBox(
+              constraints: BoxConstraints(
+                maxWidth: kIsWeb ? 650 : double.infinity,
+              ),
+              child: Column(
+                children: [
+                  const SizedBox(height: 10),
+                  const CircleAvatar(
+                    radius: 40,
+                    backgroundColor: Colors.white,
+                    backgroundImage: AssetImage(groupIcn),
+                  ),
+
+                  CustomTextField(
+                    hintText: controller.groupOrBr?.userCompany?.isGroup == 1
+                        ? "Group Name"
+                        : "Broadcast Name",
+                    labletext: "",
+                    readOnly:
+                    (controller.groupOrBr?.createdBy == controller.me?.createdBy)
+                        ? true
+                        : false,
+                    controller: controller.groupNameController,
+                    onChangee: (v) {
+                      controller.isUpdate = true;
+                      controller.update();
+                    },
+                    validator: (value) {
+                      return value?.isEmptyField(
+                          messageTitle:
+                          controller.groupOrBr?.userCompany?.isGroup == 1
+                              ? "Group Name"
+                              : "Broadcast Name");
+                    },
+                    prefix: Icon(
+                      Icons.group,
+                      color: appColorPerple,
+                    ),
+                  ).marginSymmetric(horizontal: 20, vertical: 20),
+
+                  if (controller.isUpdate)
+                    dynamicButton(
+                        name: "Update",
+                        onTap: controller.groupNameController.text.isNotEmpty
+                            ? () => controller.updateGroupBroadcastApi(
+                          isGroup: controller.groupOrBr?.userCompany
+                              ?.isGroup ==
+                              1
+                              ? 1
+                              : 0,
+                          isBroadcast: controller.groupOrBr?.userCompany
+                              ?.isBroadcast ==
+                              1
+                              ? 1
+                              : 0,
+                        )
+                            : () {
+                          toast("Name cannot be empty");
+                        },
+                        isShowText: true,
+                        isShowIconText: false,
+                        gradient: buttonGradient,
+                        leanIcon: chaticon),
+
+                  const SizedBox(height: 10),
+
+                  Expanded(
+                    child: ListView.builder(
+                      itemCount: controller.members.length,
+                      itemBuilder: (context, index) {
+                        final member = controller.members[index];
+                        final isAdmin = member.isAdmin == 1 ? true : false;
+                        final me = controller.me;
+
+                        final bool isSelf =
+                            member.userId == me?.userId;
+
+                        final int? creatorUserId =
+                            controller.groupOrBr?.createdBy ??
+                                controller.groupOrBr?.createdBy;
+
+                        final bool iAmCreator =
+                            me?.userCompany?.userCompanyId == creatorUserId;
+                        final bool targetIsCreator =
+                            member.userCompany?.userCompanyId == creatorUserId;
+
+                        final bool iAmAdmin = (me?.isAdmin ?? 0) == 1;
+                        final bool targetIsAdmin = (member.isAdmin ?? 0) == 1;
+
+                        final bool iAmMemberOnly =
+                            !iAmCreator && !iAmAdmin;
+
+                        final bool isGroup =
+                            (controller.groupOrBr?.userCompany?.isGroup ?? 0) == 1;
+
+                        final bool showMenu = !isSelf &&
+                            !iAmMemberOnly &&
+                            !(iAmAdmin && targetIsCreator);
+
+                        final bool canMakeAdmin = !targetIsAdmin &&
+                            (iAmCreator || iAmAdmin);
+
+                        final bool canRemove = (iAmCreator && !isSelf) ||
+                            (iAmAdmin && !targetIsCreator && !isSelf);
+
+                        return
+
+                          // ---------------- SHADOW CARD WRAPPER ADDED ----------------
+                          Container(
+                            margin: const EdgeInsets.symmetric(
+                                vertical: 6, horizontal: 10),
+                            decoration: BoxDecoration(
+                              color: Colors.white,
+                              borderRadius: BorderRadius.circular(12),
+                              boxShadow: kIsWeb
+                                  ? [
+                                BoxShadow(
+                                  color: Colors.black.withOpacity(0.06),
+                                  blurRadius: 12,
+                                  spreadRadius: 1,
+                                  offset: const Offset(0, 4),
+                                )
+                              ]
+                                  : [],
+                            ),
+
+                            child: ListTile(
+                              contentPadding: const EdgeInsets.symmetric(
+                                  vertical: 0, horizontal: 12),
+                              leading: SizedBox(
+                                width: 50,
+                                child: CustomCacheNetworkImage(
+                                  "${ApiEnd.baseUrlMedia}${member.userImage ?? ''}",
+                                  radiusAll: 100,
+                                  height: 50,
+                                  width: 50,
+                                  defaultImage: userIcon,
+                                  borderColor: greyColor,
+                                  boxFit: BoxFit.cover,
+                                ),
+                              ),
+
+                              title: Row(
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  Text(
+                                    member.displayName ?? '',
+                                    style: themeData.textTheme.bodyMedium,
+                                  ),
+                                  if (isAdmin ?? true)
+                                    Padding(
+                                      padding: const EdgeInsets.only(left: 6),
+                                      child: Container(
+                                        padding: const EdgeInsets.symmetric(
+                                            horizontal: 6, vertical: 2),
+                                        decoration: BoxDecoration(
+                                          color: appColorGreen,
+                                          borderRadius: BorderRadius.circular(4),
+                                        ),
+                                        child: const Text('admin',
+                                            style: TextStyle(
+                                                fontSize: 10,
+                                                color: Colors.white)),
+                                      ),
+                                    ),
+                                ],
+                              ),
+                              subtitle: Text(
+                                member.phone == '' ||
+                                    member.phone == null
+                                    ? member.email ?? ''
+                                    : member.phone ?? '',
+                                style: themeData.textTheme.bodySmall
+                                    ?.copyWith(color: greyText),
+                              ),
+                              trailing: showMenu
+                                  ? PopupMenuButton<String>(
+                                onSelected: (value) {
+                                  if (value == 'make_admin') {
+                                    controller.hitAPIToUpdateMember(
+                                      mode: "set_admin",
+                                      isGroup: isGroup,
+                                      id: member.userCompany?.userCompanyId,
+                                    );
+                                  } else if (value == 'remove') {
+                                    controller.hitAPIToUpdateMember(
+                                      mode: "remove",
+                                      isGroup: isGroup,
+                                      id: member.userCompany?.userCompanyId,
+                                    );
+                                  }
+                                },
+                                itemBuilder: (context) => [
+                                  if (canMakeAdmin)
+                                    PopupMenuItem(
+                                      value: 'make_admin',
+                                      child: Row(
+                                        children: [
+                                          Icon(Icons.circle_rounded,
+                                              size: 12,
+                                              color: appColorGreen),
+                                          hGap(5),
+                                          Text('Make Admin',
+                                              style: themeData
+                                                  .textTheme.bodySmall),
+                                        ],
+                                      ),
+                                    ),
+                                  if (canRemove)
+                                    PopupMenuItem(
+                                      value: 'remove',
+                                      child: Row(
+                                        children: [
+                                          Icon(Icons.remove_circle,
+                                              size: 12,
+                                              color: AppTheme.redErrorColor),
+                                          hGap(5),
+                                          Text('Remove Member',
+                                              style: themeData
+                                                  .textTheme.bodySmall),
+                                        ],
+                                      ),
+                                    ),
+                                ],
+                                color: Colors.white,
+                                icon: const Icon(Icons.more_vert),
+                              )
+                                  : null,
+                              onTap: () {},
+                            ),
+                          );
+                      },
+                    ),
+                  )
+                ],
+              ),
+            ),
+          ),
+          // ---------------- END RESPONSIVE WRAPPER ----------------
+        );
+      },
+    );
+  }
+}
+
+/*class GroupMembersScreen extends StatelessWidget {
 
   const GroupMembersScreen({super.key});
 
@@ -264,4 +589,4 @@ class GroupMembersScreen extends StatelessWidget {
     );
   }
 
-}
+}*/

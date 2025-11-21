@@ -30,22 +30,21 @@ class GrBrMembersController extends GetxController{
     _getMe();
     _getCompany();
     getArguments();
-    if(!kIsWeb) {
+    // if(!kIsWeb) {
       hitAPIToGetMembers();
-    }
+    // }
     super.onInit();
   }
 
   getArguments(){
-    if(!kIsWeb){
-    if(Get.arguments!=null) {
-      groupOrBr = Get.arguments['user'];
-      groupNameController.text = groupOrBr?.userName??'';
-    }
-    }else{
+    if(kIsWeb){
       if(Get.parameters!=null) {
         userId = Get.parameters['userId'];
         getUserByIdApi(userId: int.parse(userId??''),comId: myCompany?.companyId);
+      }
+    }else{
+      if(Get.arguments!=null) {
+        groupOrBr = Get.arguments['user'];
         groupNameController.text = groupOrBr?.userName??'';
       }
     }
@@ -58,6 +57,7 @@ class GrBrMembersController extends GetxController{
         .getUserByApiCall(userID: userId,comid: comId)
         .then((value) async {
       groupOrBr = value.data;
+      groupNameController.text = groupOrBr?.userName??'';
       hitAPIToGetMembers();
       update();
     }).onError((error, stackTrace) {
@@ -142,7 +142,7 @@ class GrBrMembersController extends GetxController{
         .addMemberToGrBrApiCall(dataBody: req)
         .then((value) async {
       customLoader.hide();
-      Get.find<ChatScreenController>().hitAPIToGetMembers();
+      Get.find<ChatScreenController>().hitAPIToGetMembers(groupOrBr);
       hitAPIToGetMembers();
       update();
     }).onError((error, stackTrace) {

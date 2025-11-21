@@ -1,5 +1,8 @@
 import 'package:AccuChat/Constants/assets.dart';
 import 'package:AccuChat/Constants/colors.dart';
+import 'package:AccuChat/Screens/Chat/screens/chat_tasks/Presentation/Controllers/chat_home_controller.dart';
+import 'package:AccuChat/Screens/Chat/screens/chat_tasks/Presentation/Controllers/chat_screen_controller.dart';
+import 'package:AccuChat/Screens/Chat/screens/chat_tasks/Presentation/Controllers/task_controller.dart';
 import 'package:AccuChat/Screens/Home/Presentation/Controller/home_controller.dart';
 import 'package:AccuChat/utils/text_style.dart';
 import 'package:flutter/material.dart';
@@ -257,6 +260,11 @@ Widget buildSideNav(DashboardController controller) {
             final isSetting = index == 3;
             if(isSetting){
               Get.toNamed(AppRoutes.all_settings);
+            }
+            if(index == 1){
+              Get.find<TaskController>().openConversation(dashboardController.user);
+            }else if(index == 0){
+              Get.find<ChatScreenController>().openConversation(dashboardController.user);
             }
             controller.update();
           },
