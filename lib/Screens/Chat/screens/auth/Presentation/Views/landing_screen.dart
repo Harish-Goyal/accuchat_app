@@ -81,8 +81,51 @@ class LandingPage extends GetView<LandingScreenController> {
                                 itemCount: controller.joinedCompaniesList.length,
                                 itemBuilder: (context, i) {
                                   final company = controller.joinedCompaniesList[i];
-                                  return InkWell(
-                                    onTap: () async {
+                                  return ChatCard(
+                                      iconWidget: SizedBox(
+                                        width: 50,
+                                        child: CustomCacheNetworkImage(
+                                          radiusAll: 100,
+                                          width: 50,
+                                          height: 50,
+                                          borderColor: greyText,
+                                          boxFit: BoxFit.cover,
+                                          "${ApiEnd.baseUrlMedia}${company.logo ?? ''}",
+                                        ),
+                                      ),
+                                      title: (company.companyName ?? '').toUpperCase(),
+                                      subtitle: 'Tap to enter this company',
+
+                                      onTap: () async {
+
+                                        customLoader.show();
+                                        if(Get.isRegistered<CompanyService>()) {
+                                          final svc = CompanyService.to;
+                                          await svc.select(company);
+                                        }else{
+                                          await Get.putAsync<CompanyService>(
+                                                () async => await CompanyService().init(),
+                                            permanent: true,
+                                          );
+
+                                          final svc = CompanyService.to;
+                                          await svc.select(company);
+                                        }
+
+
+                                        // final svc = CompanyService.to;
+                                        // await svc.select(company);
+                                        // final svc = Get.put<CompanyService>(CompanyService());
+                                        //
+                                        // await svc.init().then((v) async =>await svc.select(company));
+
+                                        StorageService.setLoggedIn(true);
+                                        customLoader.hide();
+                                        Get.offAllNamed(AppRoutes.home);
+
+                                      },
+                                    subtitleTap: ()async {
+
                                       customLoader.show();
                                       if(Get.isRegistered<CompanyService>()) {
                                         final svc = CompanyService.to;
@@ -97,84 +140,19 @@ class LandingPage extends GetView<LandingScreenController> {
                                         await svc.select(company);
                                       }
 
+
+                                      // final svc = CompanyService.to;
+                                      // await svc.select(company);
+                                      // final svc = Get.put<CompanyService>(CompanyService());
+                                      //
+                                      // await svc.init().then((v) async =>await svc.select(company));
+
                                       StorageService.setLoggedIn(true);
                                       customLoader.hide();
                                       Get.offAllNamed(AppRoutes.home);
-                                     /* Get.putAsync<Session>(() async {
-                                        final s = Session(Get.find<AuthApiServiceImpl>(), Get.find<AppStorage>());
 
-                                        CompanyData? selCompany;
-                                        try {
-                                          final svc = Get.find<CompanyService>();
-                                          // OPTIONAL: if you add a `Future<void> ready` in CompanyService, await it here:
-                                          // await svc.ready;
-                                          selCompany = svc.selected; // may be null on clean install
-                                        } catch (_) {}
-                                        // company may not exist yet on fresh install:
-                                        await s.initSafe(companyId: selCompany?.companyId??0); // <-- works with null/0
-                                        return s;
-                                      });
+                                    },
 
-
-
-
-*/
-                                      /*final svc = CompanyService.to;
-                                      await svc.select(company);
-                                      // final svc = Get.find<CompanyService>();
-                                      // await svc.select(company);
-                                      // storage.write(isLoggedIn,true);
-                                      StorageService.setLoggedIn(true);
-                                      // storage.write(companyIDKey, company.companyId);
-                                      customLoader.hide();
-                                      final session = Get.find<Session>();
-                                      await session.reinitWithCompany(company.companyId ?? 0);
-                                      Get.toNamed(AppRoutes.home);
-*/
-                                    } ,
-                                    child: ChatCard(
-                                        iconWidget: SizedBox(
-                                          width: 50,
-                                          child: CustomCacheNetworkImage(
-                                            radiusAll: 100,
-                                            width: 50,
-                                            height: 50,
-                                            borderColor: greyText,
-                                            boxFit: BoxFit.cover,
-                                            "${ApiEnd.baseUrlMedia}${company.logo ?? ''}",
-                                          ),
-                                        ),
-                                        title: (company.companyName ?? '').toUpperCase(),
-                                        subtitle: 'Tap to enter this company',
-                                        onTap: () async {
-
-                                          customLoader.show();
-                                          if(Get.isRegistered<CompanyService>()) {
-                                            final svc = CompanyService.to;
-                                            await svc.select(company);
-                                          }else{
-                                            await Get.putAsync<CompanyService>(
-                                                  () async => await CompanyService().init(),
-                                              permanent: true,
-                                            );
-
-                                            final svc = CompanyService.to;
-                                            await svc.select(company);
-                                          }
-
-
-                                          // final svc = CompanyService.to;
-                                          // await svc.select(company);
-                                          // final svc = Get.put<CompanyService>(CompanyService());
-                                          //
-                                          // await svc.init().then((v) async =>await svc.select(company));
-
-                                          StorageService.setLoggedIn(true);
-                                          customLoader.hide();
-                                          Get.offAllNamed(AppRoutes.home);
-
-                                        }
-                                    ),
                                   );
                                 },
                               )

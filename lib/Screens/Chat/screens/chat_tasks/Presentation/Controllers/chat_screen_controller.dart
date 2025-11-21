@@ -283,7 +283,7 @@ class ChatScreenController extends GetxController {
     }
     getArguments();
     user = Get.find<ChatHomeController>().selectedChat.value;
-    _initScroll();
+    // _initScroll();
     // markAllVisibleAsReadOnOpen();
 
     // WidgetsBinding.instance.addPostFrameCallback((_) {
@@ -337,12 +337,14 @@ class ChatScreenController extends GetxController {
 
   @override
   void onClose() {
+    super.onClose();
     newFolderCtrl.dispose();
+    // scrollController.dispose();
     // focusNode.dispose();
     // textController.dispose();
     imageCache.clearLiveImages();
     imageCache.clear();
-    super.onClose();
+
   }
 
   getArguments() {
@@ -445,10 +447,10 @@ class ChatScreenController extends GetxController {
 
   scrollListener() {
     scrollController.addListener(() {
-      if ((scrollController.position.extentAfter) <= 0 && !isLoading) {
-        hasMore = true;
-        page++;
-        update();
+      if (scrollController.position.pixels <=
+          scrollController.position.minScrollExtent + 50 &&
+          !isLoading &&
+          hasMore) {
         hitAPIToGetChatHistory();
       }
     });

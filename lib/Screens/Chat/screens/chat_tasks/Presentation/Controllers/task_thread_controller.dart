@@ -143,7 +143,18 @@ class TaskThreadController extends GetxController {
   TaskComments? replyToMessage;
   ScrollController scrollController = ScrollController();
 
+
   scrollListener() {
+    scrollController.addListener(() {
+      if (scrollController.position.pixels <=
+          scrollController.position.minScrollExtent + 50 &&
+          !isLoading &&
+          hasMore) {
+        hitAPIToGetCommentsHistory();
+      }
+    });
+  }
+/*  scrollListener() {
     scrollController.addListener(() {
       if ((scrollController.position.extentAfter) <= 0 && !isLoading) {
         hasMore = true;
@@ -152,7 +163,7 @@ class TaskThreadController extends GetxController {
         hitAPIToGetCommentsHistory();
       }
     });
-  }
+  }*/
 
   hitAPIToGetCommentsHistory() async {
     Get.find<PostApiServiceImpl>()

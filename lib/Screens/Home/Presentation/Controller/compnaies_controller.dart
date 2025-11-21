@@ -1,5 +1,6 @@
 import 'package:AccuChat/Screens/Chat/screens/auth/models/get_uesr_Res_model.dart';
 import 'package:AccuChat/Screens/Home/Presentation/Controller/company_service.dart';
+import 'package:AccuChat/Screens/Home/Presentation/Controller/socket_controller.dart';
 import 'package:AccuChat/utils/custom_flashbar.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
@@ -7,6 +8,7 @@ import 'package:get/get.dart';
 import '../../../../Services/APIs/local_keys.dart';
 import '../../../../Services/APIs/post/post_api_service_impl.dart';
 import '../../../../Services/subscription/billing_controller.dart';
+import '../../../../main.dart';
 import '../../../../routes/app_routes.dart';
 import '../../../Chat/api/apis.dart';
 import '../../../Chat/models/get_company_res_model.dart';
@@ -22,11 +24,9 @@ class CompaniesController extends GetxController {
     _getMe();
     hitAPIToGetCompanies();
     hitAPIToGetPendingInvites();
-    hitAPIToGetSentInvites();
+    hitAPIToGetSentInvites(companyData: selCompany);
     super.onInit();
   }
-
-
 
   void refreshCompanies() async {
     hitAPIToGetCompanies();
@@ -57,7 +57,7 @@ class CompaniesController extends GetxController {
   }
 
   PendingSentInvitesResModel pendingSentInvitesResModel =
-  PendingSentInvitesResModel();
+      PendingSentInvitesResModel();
 
   CompanyData? selCompany;
 
@@ -74,7 +74,7 @@ class CompaniesController extends GetxController {
     update();
   }
 
-  bool isLoadingInvited= false;
+  bool isLoadingInvited = false;
   List<PendingInvitesList> pendingInvitesList = [];
   hitAPIToGetPendingInvites() async {
     isLoadingInvited = true;
@@ -91,29 +91,33 @@ class CompaniesController extends GetxController {
     });
   }
 
+  List<SentInvitesData> sentInviteList = [];
 
-  List<SentInvitesData> sentInviteList=[];
+  bool isLoadingPending = true;
 
-  hitAPIToGetSentInvites() async {
-
-    Get.find<PostApiServiceImpl>()
-        .getPendingSentInvitesApiCall(selCompany?.companyId)
+  hitAPIToGetSentInvites(
+      {CompanyData? companyData, bool isMember = false}) async {
+    isLoadingPending = true;
+    update();
+    await Get.find<PostApiServiceImpl>()
+        .getPendingSentInvitesApiCall(companyData?.companyId)
         .then((value) async {
+      isLoadingPending = false;
       sentInviteList = value.data ?? [];
     }).onError((error, stackTrace) {
+      toast(error.toString());
+      customLoader.hide();
     });
   }
-
 
   companyNavigation(value, CompanyData companyData) async {
     final svc = CompanyService.to;
     if (value == "Pending") {
-      if(companyData.companyId == selCompany?.companyId) {
+      if (companyData.companyId == selCompany?.companyId) {
         if (kIsWeb) {
           if ((companyData.createdBy == me?.userId)) {
             Get.toNamed(
-              "${AppRoutes.invitations_r}?companyID=${companyData.companyId ??
-                  0}",
+              "${AppRoutes.invitations_r}?companyID=${companyData.companyId ?? 0}",
             );
           } else {
             toast("You are not allowed");
@@ -127,10 +131,9 @@ class CompaniesController extends GetxController {
             toast("You are not allowed");
           }
         }
-      }else{
+      } else {
         toast("Please select your company");
       }
-
     } else if (value == "Invite") {
       if (!kIsWeb) {
         if (companyData.companyId == selCompany?.companyId) {
@@ -141,8 +144,7 @@ class CompaniesController extends GetxController {
 
             Future.delayed(
                 const Duration(milliseconds: 500),
-                    () =>
-                (selCompany?.createdBy) == me?.userId
+                () => (selCompany?.createdBy) == me?.userId
                     ? _onInvite(companyData)
                     : toast("You are not allowed to perform this action!"));
           } else {
@@ -151,50 +153,48 @@ class CompaniesController extends GetxController {
         } else {
           toast("Please select your company");
         }
-      }else{
+      } else {
         toast("Download mobile apps to Invite your contacts");
       }
     } else if (value == "Update") {
-      if(companyData.companyId == selCompany?.companyId) {
-      await svc.select(companyData);
-      getCompany();
-      update();
-      Future.delayed(const Duration(milliseconds: 500), () {
-        if (kIsWeb) {
-          (companyData.createdBy == me?.userId)
-              ? Get.toNamed(
-            "${AppRoutes.company_update}?companyId=${companyData.companyId
-                .toString()}",
-          )
-              : toast("You are not allowed to perform this action!");
-        } else {
-          (companyData.createdBy == me?.userId )
-              ? Get.toNamed(
-            AppRoutes.company_update,
-            arguments: {'company': companyData},
-          )
-              : toast("You are not allowed to perform this action!");
-        }
-      });
-    }else{
-      toast("Please select your company");
-    }
+      if (companyData.companyId == selCompany?.companyId) {
+        await svc.select(companyData);
+        getCompany();
+        update();
+        Future.delayed(const Duration(milliseconds: 500), () {
+          if (kIsWeb) {
+            (companyData.createdBy == me?.userId)
+                ? Get.toNamed(
+                    "${AppRoutes.company_update}?companyId=${companyData.companyId.toString()}",
+                  )
+                : toast("You are not allowed to perform this action!");
+          } else {
+            (companyData.createdBy == me?.userId)
+                ? Get.toNamed(
+                    AppRoutes.company_update,
+                    arguments: {'company': companyData},
+                  )
+                : toast("You are not allowed to perform this action!");
+          }
+        });
+      } else {
+        toast("Please select your company");
+      }
     } else if (value == "All") {
-      if(companyData.companyId == selCompany?.companyId) {
-      await svc.select(companyData);
-      getCompany();
-      update();
+      if (companyData.companyId == selCompany?.companyId) {
+        await svc.select(companyData);
+        getCompany();
+        update();
         if (kIsWeb) {
           Get.toNamed(
-              '${AppRoutes.company_members}?companyId=${companyData
-                  .companyId}&companyName=${companyData.companyName ?? ''}');
+              '${AppRoutes.company_members}?companyId=${companyData.companyId}&companyName=${companyData.companyName ?? ''}');
         } else {
           Get.toNamed(AppRoutes.company_members, arguments: {
             'companyId': companyData.companyId ?? 0,
             'companyName': companyData.companyName ?? ''
           });
         }
-      }else{
+      } else {
         toast("Please select your company");
       }
     }
@@ -203,9 +203,7 @@ class CompaniesController extends GetxController {
   _onInvite(companyData) {
     if (kIsWeb) {
       Get.toNamed(
-          '${AppRoutes.invite_member}?companyId=${companyData.companyId
-              .toString()}&invitedBy=${companyData
-              .createdBy}&companyName=${companyData.companyName}');
+          '${AppRoutes.invite_member}?companyId=${companyData.companyId.toString()}&invitedBy=${companyData.createdBy}&companyName=${companyData.companyName}');
     } else {
       Get.toNamed(AppRoutes.invite_member, arguments: {
         'companyName': companyData.companyName,
@@ -225,17 +223,13 @@ class CompaniesController extends GetxController {
     // }
 */
     print(APIs.me.allowedCompanies);
-    if(APIs.me.allowedCompanies==0 || APIs.me.allowedCompanies==null) {
+    if (APIs.me.allowedCompanies == 0 || APIs.me.allowedCompanies == null) {
       await showDialog<BuyPackResult>(
         context: Get.context!,
         builder: (ctx) => BuyMultipleCompaniesDialog(),
       );
-
-
-    }else{
-      Get.toNamed(
-          AppRoutes.create_company,
-          arguments: {'isHome': '1'});
+    } else {
+      Get.toNamed(AppRoutes.create_company, arguments: {'isHome': '1'});
     }
 
 /*

@@ -63,8 +63,6 @@ class Session extends GetxService {
       }                                                          // ADD
 
       _companyId = companyId;
-      print("session user--${_companyId}");// ADD
-      print("session user");// ADD
       final res = await _api.getUserApiCall(companyId: _companyId);
       final fresh = res.data;
       if (fresh != null) {

@@ -331,9 +331,9 @@ class ChatScreen extends GetView<ChatScreenController> {
  /*   final initialIndex = (controller.flatRows.isEmpty)
         ? 0
         : controller.flatRows.length - 1;*/
-    return  controller.chatHisList!=[] || controller.chatHisList!.isNotEmpty
+    return  controller.chatCatygory!=[] || (controller.chatCatygory??[]).isNotEmpty
             ? GroupedListView<GroupChatElement, DateTime>(
-            shrinkWrap: false,
+            shrinkWrap: true,
             padding: const EdgeInsets.only(bottom: 30),
             controller: controller.scrollController,
             elements: controller.chatCatygory,
@@ -472,6 +472,10 @@ class ChatScreen extends GetView<ChatScreenController> {
 
 
   Widget _createGroupHeader(GroupChatElement element) {
+    final isToday = DateUtils.isSameDay(element.date, DateTime.now());
+    final dateText = isToday
+        ? "Today"
+        : DateFormat.yMMMd().format(element.date);
     return Container(
       color: Colors.transparent,
       child: Row(
@@ -482,7 +486,7 @@ class ChatScreen extends GetView<ChatScreenController> {
             vPadding: 3,
             hPadding: 7,
             color: AppTheme.whiteColor.withOpacity(.6),
-            childWidget: Text(DateFormat.yMMMd().format(element.date),
+            childWidget: Text(dateText,
               style: BalooStyles.balooregularTextStyle(),),
           ),
           Expanded(child: divider(color: appColorGreen.withOpacity(.3))),

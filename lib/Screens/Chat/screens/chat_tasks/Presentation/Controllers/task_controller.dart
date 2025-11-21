@@ -1042,7 +1042,18 @@ class TaskController extends GetxController {
 
   ScrollController scrollController = ScrollController();
 
+
   scrollListener() {
+    scrollController.addListener(() {
+      if (scrollController.position.pixels <=
+          scrollController.position.minScrollExtent + 50 &&
+          !isLoading &&
+          hasMore) {
+        hitAPIToGetTaskHistory();
+      }
+    });
+  }
+ /* scrollListener() {
     scrollController.addListener(() {
       if ((scrollController.position.extentAfter) <= 0 && !isLoading) {
         hasMore = true;
@@ -1051,7 +1062,7 @@ class TaskController extends GetxController {
         hitAPIToGetTaskHistory();
       }
     });
-  }
+  }*/
 
   hitAPIToGetTaskHistory({int? statusId,isFilter= false,isForward= false,fromDate,toDate}) async {
     Get.find<PostApiServiceImpl>()

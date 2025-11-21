@@ -619,7 +619,7 @@ class SocketController extends GetxController with WidgetsBindingObserver  {
           "forward_source_chat_id": forwardChatId
         });
         debugPrint(
-            "Message sent: $message ,receiverId: $receiverId Broadcast user id,: $brID , forwardChatId: $forwardChatId, fromid: ${APIs.me.userId}, comapnyid: ${APIs.me.userCompany?.userCompanyId}, group id: $groupId, alreadySaved: ${alreadySave}");
+            "Message sent: $message ,receiverId: $receiverId,replyToId: $replyToId, Broadcast user id,: $brID , forwardChatId: $forwardChatId, fromid: ${APIs.me.userId}, comapnyid: ${APIs.me.userCompany?.userCompanyId}, group id: $groupId, alreadySaved: ${alreadySave}");
         var token =  StorageService.getToken();
         debugPrint("authorization token is ********* $token");
         final svc = CompanyService.to;
