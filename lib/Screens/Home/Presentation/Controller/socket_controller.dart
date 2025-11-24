@@ -1,6 +1,8 @@
 import 'dart:convert';
 import 'package:AccuChat/Screens/Chat/models/task_commets_res_model.dart';
+import 'package:AccuChat/Screens/Chat/screens/chat_tasks/Presentation/Controllers/chat_home_controller.dart';
 import 'package:AccuChat/Screens/Chat/screens/chat_tasks/Presentation/Controllers/task_controller.dart';
+import 'package:AccuChat/Screens/Chat/screens/chat_tasks/Presentation/Controllers/task_home_controller.dart';
 import 'package:AccuChat/Screens/Chat/screens/chat_tasks/Presentation/Controllers/task_thread_controller.dart';
 import 'package:AccuChat/utils/custom_flashbar.dart';
 import 'package:flutter/cupertino.dart';
@@ -27,13 +29,16 @@ enum ChType {
 
 class SocketController extends GetxController with WidgetsBindingObserver  {
   late IO.Socket? socket;
-
+  bool initialized = false;
   @override
   void onInit() {
+    super.onInit();
     WidgetsBinding.instance.addObserver(this);
     _getMe();
-    initSocket();
-    super.onInit();
+    if (!initialized) {
+      initialized = true;
+      initSocket();
+    }
   }
 
   @override
@@ -57,7 +62,7 @@ class SocketController extends GetxController with WidgetsBindingObserver  {
     final svc = CompanyService.to;
     final myCompany =svc.selected;
     connectUserEmitter(myCompany?.companyId);   // already in your code
-    allListerer();
+    // allListerer();
   }
 
   initial() {
@@ -90,7 +95,7 @@ class SocketController extends GetxController with WidgetsBindingObserver  {
     socket?.connect();
 
     socket?.onConnect((_) {
-            // ← ADD: make sure listeners are wired on first connect
+      attachListenersOnce();
     });
 
     socket?.onReconnectAttempt((_) {
@@ -120,11 +125,64 @@ class SocketController extends GetxController with WidgetsBindingObserver  {
   _getMe() {
     me = getUser();
   }
+  bool listenersAttached = false;
+  void attachListenersOnce() {
+    if (listenersAttached) return;
+    listenersAttached = true;
+    allListerer();
+  }
 
   allListerer() {
 
     socket?.off('send_message_listener');
-    socket?.on('send_message_listener', (messages) {
+      socket?.on('send_message_listener', (messages) {
+        debugPrint("send_message_listener ${jsonEncode(messages.toString())}");
+        try {
+          ChatScreenController chatDetailController =
+          Get.find<ChatScreenController>();
+          ChatHisList receivedMessageDataModal = ChatHisList.fromJson(messages);
+          final selectedUserId = chatDetailController.user?.userId?.toString();
+          final meId           = me?.userId?.toString();
+
+          final msgFrom = receivedMessageDataModal.fromUser?.userId?.toString();
+          final msgTo   = receivedMessageDataModal.toUser?.userId?.toString();
+
+// allow only when the message belongs to CURRENT OPEN CHAT
+          final isMessageForThisChat =
+              (msgFrom == selectedUserId && msgTo == meId) ||    // selectedUser → me
+                  (msgFrom == meId && msgTo == selectedUserId);
+          if (isMessageForThisChat) {
+            // safe to insert the message
+          ChatHisList chatMessageItems = ChatHisList(
+            chatId: receivedMessageDataModal.chatId,
+            fromUser: receivedMessageDataModal.fromUser,
+            toUser: receivedMessageDataModal.toUser,
+            message: receivedMessageDataModal.message,
+            sentOn: receivedMessageDataModal.sentOn,
+            media: receivedMessageDataModal.media,
+            replyToText: receivedMessageDataModal.replyToText,
+            replyToId: receivedMessageDataModal.replyToId,
+            replyToTime: receivedMessageDataModal.replyToTime,
+            replyToName: receivedMessageDataModal.replyToName,
+            isGroupChat: receivedMessageDataModal.isGroupChat,
+            isActivity: receivedMessageDataModal.isActivity,
+          );
+          chatDetailController.chatHisList?.insert(0, chatMessageItems);
+          chatDetailController.chatCatygory
+              .insert(0, GroupChatElement(DateTime.now(), chatMessageItems));
+          chatDetailController.rebuildFlatRows();
+          chatDetailController.update();
+
+
+          }
+
+          Get.find<ChatHomeController>().hitAPIToGetRecentChats();
+        } catch (e) {
+          debugPrint(e.toString());
+        }
+      });
+
+   /* socket?.on('send_message_listener', (messages) {
       debugPrint("Listing......3");
       debugPrint("send_message_listener ${jsonEncode(messages.toString())}");
       try {
@@ -160,7 +218,7 @@ class SocketController extends GetxController with WidgetsBindingObserver  {
       } catch (e) {
         debugPrint(e.toString());
       }
-    });
+    });*/
 
     // task listener
 
@@ -172,11 +230,17 @@ class SocketController extends GetxController with WidgetsBindingObserver  {
         TaskController taskController =
             Get.find<TaskController>();
         TaskData receivedMessageDataModal = TaskData.fromJson(messages);
+        final selectedUserId = taskController.user?.userId?.toString();
+        final meId       = me?.userId?.toString();
 
-        if ((receivedMessageDataModal.fromUser?.userId.toString() ==
-                (me?.userId).toString()) ||
-            (receivedMessageDataModal.toUser?.userId.toString() ==
-                (taskController.user?.userId.toString()))) {
+        final msgFrom = receivedMessageDataModal.fromUser?.userId?.toString();
+        final msgTo   = receivedMessageDataModal.toUser?.userId?.toString();
+
+// allow only when the message belongs to CURRENT OPEN CHAT
+        final isMessageForThisChat =
+            (msgFrom == selectedUserId && msgTo == meId) ||    // selectedUser → me
+                (msgFrom == meId && msgTo == selectedUserId);
+        if (isMessageForThisChat) {
           TaskData chatMessageItems = TaskData(
             taskId: receivedMessageDataModal.taskId,
             fromUser: receivedMessageDataModal.fromUser,
@@ -197,6 +261,7 @@ class SocketController extends GetxController with WidgetsBindingObserver  {
           // }
           taskController.update();
         }
+        Get.find<TaskHomeController>().hitAPIToGetRecentTasksUser();
       } catch (e) {
         debugPrint(e.toString());
       }
@@ -210,7 +275,6 @@ class SocketController extends GetxController with WidgetsBindingObserver  {
 
 
   socket?.off('add_task_comment_listener');
-
     socket?.on('add_task_comment_listener', (messages) {
       debugPrint("Comments Listing task......4");
       debugPrint("add_task_comment_listener ${jsonEncode(messages.toString())}");
@@ -310,8 +374,9 @@ class SocketController extends GetxController with WidgetsBindingObserver  {
     setupSocketListeners();
     _registerDeleteListener();
     _registerDeleteListenerTask();
-    socket?.off('joined_task');
 
+
+    socket?.off('joined_task');
     socket?.on('joined_task', (data) {
     try {
       print("Joined task listen");
@@ -476,12 +541,12 @@ class SocketController extends GetxController with WidgetsBindingObserver  {
   }
 
   void setupSocketListeners() {
-    socket?.off('read_message_listener');
+
 
     if(Get.isRegistered<ChatScreenController>()){
-
       ChatScreenController chatDetailController =
       Get.find<ChatScreenController>();
+      socket?.off('read_message_listener');
     socket?.on('read_message_listener', (data) {
       final int chatId = data['chat_id'];
       final String? readOnStr = data['read_on']; // assuming backend sends this

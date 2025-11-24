@@ -10,6 +10,7 @@ import 'package:AccuChat/Screens/Chat/screens/chat_tasks/Presentation/Views/add_
 import 'package:AccuChat/Screens/Chat/screens/chat_tasks/Presentation/Views/all_users_screen.dart';
 import 'package:AccuChat/Screens/Chat/screens/chat_tasks/Presentation/Views/chat_home_screen.dart';
 import 'package:AccuChat/Screens/Chat/screens/chat_tasks/Presentation/Views/chat_screen.dart';
+import 'package:AccuChat/Screens/Chat/screens/chat_tasks/Presentation/Views/taskThreadScreenWEb.dart';
 import 'package:AccuChat/Screens/Chat/screens/chat_tasks/Presentation/Views/task_chat_screen.dart';
 import 'package:AccuChat/Screens/Chat/screens/chat_tasks/Presentation/Views/task_treads_screen.dart';
 import 'package:AccuChat/Screens/Chat/screens/chat_tasks/Presentation/Views/view_profile_screen.dart';
@@ -166,6 +167,12 @@ class AppPages {
     GetPage(
       name: AppRoutes.task_threads,
       page: () => TaskThreadScreen(),
+      bindings: [TaskThreadBinding()],
+    ),
+
+    GetPage(
+      name: AppRoutes.task_threads_web,
+      page: () => TaskThreadScreenWeb(),
       bindings: [TaskThreadBinding()],
     ),
     GetPage(

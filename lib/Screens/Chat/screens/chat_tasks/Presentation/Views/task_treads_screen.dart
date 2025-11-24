@@ -38,6 +38,7 @@ class TaskThreadScreen extends GetView<TaskThreadController> {
       builder: (controller) {
         return Scaffold(
           appBar: AppBar(
+            automaticallyImplyLeading: false,
             title: Row(
               children: [
                 Expanded(
@@ -365,7 +366,26 @@ class TaskThreadScreen extends GetView<TaskThreadController> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-
+        Flexible(
+          child: Text(
+              sentByMe
+                  ? (data.fromUser?.displayName != null
+                  ? data.fromUser?.displayName ?? ''
+                  : data.fromUser?.phone ?? '')
+                  : (data.fromUser?.displayName != null
+                  ? data.fromUser?.displayName ?? ''
+                  : data.fromUser?.phone ?? ''),
+              textAlign: TextAlign.start,
+              style: BalooStyles.baloothinTextStyle(
+                color: Colors.black54,
+                size: 13,
+              ),
+              overflow: TextOverflow.visible)
+              .marginOnly(
+              left: sentByMe ? 0 : 0,
+              right: sentByMe ? 10 : 0,
+              bottom: 3,top: 8),
+        ),
         data.commentText != '' || data.commentText != null
             ? Text(data.commentText ?? '',
             textAlign: TextAlign.start,

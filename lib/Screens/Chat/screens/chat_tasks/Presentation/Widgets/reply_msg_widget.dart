@@ -67,38 +67,36 @@ class ReplyMessageWidget extends StatelessWidget {
           children: [
             Container(
               width: 4,
-              margin: EdgeInsets.symmetric(vertical: 6),
+              margin: const EdgeInsets.symmetric(vertical: 6),
               decoration: BoxDecoration(
                 borderRadius: BorderRadius.circular(30),
                 border: Border.all(color: greyText),
                 color: AppTheme.appColor,
               ),
             ),
-            const SizedBox(width: 2),
+
             isCancel!
                 ? Expanded(child: buildReplyMessage(isSendByME))
                 : Flexible(child: buildReplyMessage(isSendByME)),
           ],
-        ).marginOnly(
-          right: isCancel! ? 35 : 15,
-          left: isCancel! ? 10 : 15,
         ),
       ),
     );
   }
   Widget buildReplyMessage(isSendByME) {
     return InkWell(
+      hoverColor: Colors.transparent,
       onTap:(){
-        // final replyToId = chatdata?.replyToId;
-        // if (replyToId != null) {
-        //   Get.find<ChatScreenController>().scrollToChatId(replyToId);
-        // }
+      //   // final replyToId = chatdata?.replyToId;
+      //   // if (replyToId != null) {
+      //   //   Get.find<ChatScreenController>().scrollToChatId(replyToId);
+      //   // }
       },
       child: Container(
-        decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(12),
-            border: Border.all(color: greyText),
-            color:Colors.grey.shade100),
+        // decoration: BoxDecoration(
+        //     borderRadius: BorderRadius.circular(12),
+        //     border: Border.all(color: greyText),
+        //     color:Colors.grey.shade100),
         child: Column(
           crossAxisAlignment:isSendByME && !isCancel! ?CrossAxisAlignment.start:CrossAxisAlignment.start,
           mainAxisSize: MainAxisSize.min,
@@ -108,23 +106,7 @@ class ReplyMessageWidget extends StatelessWidget {
               mainAxisAlignment:MainAxisAlignment.start,
               mainAxisSize: isCancel! ? MainAxisSize.max: MainAxisSize.min,
               children: [
-               /* isCancel! ?     Expanded(
-                  child:chatdata?.isGroupChat==1? Text(
-                    (chatdata?.fromUser?.userCompany?.displayName!=null?
-                    chatdata?.fromUser?.userCompany?.displayName??'':chatdata?.fromUser?.phone??''),
-                    style: BalooStyles.baloonormalTextStyle(color: appColorYellow),
-                    overflow: TextOverflow.ellipsis,
-                    maxLines: 1,
-                    textAlign: TextAlign.start,
-                  ).paddingOnly(left: 8,right: 8):Text(
-                    isSendByME?(chatdata?.fromUser?.userCompany?.displayName!=null?
-                    chatdata?.fromUser?.userCompany?.displayName??'':chatdata?.fromUser?.phone??''):(chatdata?.toUser?.userCompany?.displayName!=null?chatdata?.toUser?.userCompany?.displayName??'':chatdata?.toUser?.phone??''),
-                    style: BalooStyles.baloonormalTextStyle(color: appColorYellow),
-                    overflow: TextOverflow.ellipsis,
-                    maxLines: 1,
-                    textAlign: TextAlign.start,
-                  ).paddingOnly(left: 8,right: 8),
-                ):*/ Flexible(
+          Flexible(
                   child: Text(
         chatdata?.replyToName??'',
                     style: BalooStyles.baloonormalTextStyle(color: appColorYellow),
@@ -160,7 +142,7 @@ class ReplyMessageWidget extends StatelessWidget {
            Container(
              // color: Colors.red,
              width: 70,
-             margin: EdgeInsets.only(left: 8,bottom: 8,right: 8),
+             margin: const EdgeInsets.only(left: 8,bottom: 8,right: 8),
              child: CustomCacheNetworkImage("${ApiEnd.baseUrlMedia}${orignalMsg??''}",
                width: 60,
                height: 60,

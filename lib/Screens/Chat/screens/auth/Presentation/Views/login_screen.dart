@@ -76,6 +76,7 @@ class LoginScreenG extends GetView<LoginGController> {
                           },
                           onFieldSubmitted: (String? value) {
                             FocusScope.of(Get.context!).unfocus();
+                            controller.hitAPIToSendOtp();
                           },
                           labletext: "Phone or Email",
                           prefix: !controller.showCountryCode

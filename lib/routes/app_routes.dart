@@ -31,6 +31,7 @@ abstract class AppRoutes {
   static const chats_broadcasts = '/chats_broadcasts';
   static const create_broadcast_dialog = '/create_broadcast_dialog';
   static const task_threads = '/task_threads';
+  static const task_threads_web = '/task_threads_web';
   static const view_profile = '/view_profile';
   static const all_settings = '/all_settings';
   static const create_role = '/create_role';

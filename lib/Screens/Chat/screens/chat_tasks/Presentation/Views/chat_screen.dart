@@ -1,5 +1,7 @@
 import 'dart:async';
 import 'dart:math' as math;
+import 'package:flutter_linkify/flutter_linkify.dart';
+import 'package:url_launcher/url_launcher.dart';
 import 'package:AccuChat/Extension/text_field_extenstion.dart';
 import 'package:AccuChat/Screens/Chat/models/chat_history_response_model.dart';
 import 'package:AccuChat/Screens/Chat/screens/chat_tasks/Presentation/Controllers/chat_home_controller.dart';
@@ -50,16 +52,18 @@ import 'package:intl/intl.dart';
 class _NoGlowScrollBehavior extends ScrollBehavior {
   const _NoGlowScrollBehavior();
   @override
-  Widget buildOverscrollIndicator(BuildContext context, Widget child, ScrollableDetails details) {
+  Widget buildOverscrollIndicator(
+      BuildContext context, Widget child, ScrollableDetails details) {
     return child;
   }
+
   @override
   Set<PointerDeviceKind> get dragDevices => {
-    PointerDeviceKind.touch,
-    PointerDeviceKind.mouse,
-    PointerDeviceKind.stylus,
-    PointerDeviceKind.unknown,
-  };
+        PointerDeviceKind.touch,
+        PointerDeviceKind.mouse,
+        PointerDeviceKind.stylus,
+        PointerDeviceKind.unknown,
+      };
 }
 
 double _maxChatWidth(BuildContext context) {
@@ -75,10 +79,11 @@ double _maxChatWidth(BuildContext context) {
 double _maxContentWidth(double w) {
   if (w >= 1400) return 920; // large desktop
   if (w >= 1100) return 820; // desktop
-  if (w >= 900) return 720;  // small desktop / landscape tablet
-  if (w >= 600) return 560;  // portrait tablet
+  if (w >= 900) return 720; // small desktop / landscape tablet
+  if (w >= 600) return 560; // portrait tablet
   return w; // phones -> full width (preserves mobile UI)
 }
+
 EdgeInsets _shellHPadding(BuildContext context) {
   if (!kIsWeb) return EdgeInsets.zero;
   final w = MediaQuery.of(context).size.width;
@@ -99,12 +104,14 @@ double _textScaleClamp(BuildContext context) {
   // prevent giant scaling on browser zoom
   return t.clamp(0.9, 1.2);
 }
-final FocusNode _focusNode = FocusNode();
-class ChatScreen extends GetView<ChatScreenController> {
-  final UserDataAPI? user;   // <- GET USER HERE
-   bool showBack=true;
 
-   ChatScreen({super.key, this.user,this.showBack=true});
+final FocusNode _focusNode = FocusNode();
+
+class ChatScreen extends GetView<ChatScreenController> {
+  final UserDataAPI? user; // <- GET USER HERE
+  bool showBack = true;
+
+  ChatScreen({super.key, this.user, this.showBack = true});
   @override
   Widget build(BuildContext context) {
     final chatController = Get.put(
@@ -113,186 +120,237 @@ class ChatScreen extends GetView<ChatScreenController> {
     );
 
     return GetBuilder<ChatScreenController>(
-     init: chatController,
+        init: chatController,
         builder: (controller) {
-      return GestureDetector(
-        onTap: () => FocusScope.of(context).unfocus(),
-        child: SafeArea(
-          child: WillPopScope(
-            //if emojis are shown & back button is pressed then hide emojis
-            //or else simple close current screen on back button click
-            onWillPop: () {
-              Get.find<ChatHomeController>().hitAPIToGetRecentChats();
-              return Future.value(true);
-            },
+          return GestureDetector(
+            onTap: () => FocusScope.of(context).unfocus(),
             child: SafeArea(
-              child: Scaffold(
-                //app bar
-                appBar: AppBar(
-                  backgroundColor: Colors.white,   // white color
-                  elevation: 1,                    // remove shadow
-                  scrolledUnderElevation: 0,       // ✨ prevents color change on scroll
-                  surfaceTintColor: Colors.white,
-                  automaticallyImplyLeading: false,
-                  flexibleSpace: MediaQuery( // ✅ clamp text scale for web
-                    data: MediaQuery.of(context).copyWith(textScaleFactor: _textScaleClamp(context)),
-                    child: _appBar(),
-                  ),
-                ),
+              child: WillPopScope(
+                //if emojis are shown & back button is pressed then hide emojis
+                //or else simple close current screen on back button click
+                onWillPop: () {
+                  Get.find<ChatHomeController>().hitAPIToGetRecentChats();
+                  return Future.value(true);
+                },
+                child: SafeArea(
+                  child: Scaffold(
+                    //app bar
+                    appBar: AppBar(
+                      backgroundColor: Colors.white, // white color
+                      elevation: 1, // remove shadow
+                      scrolledUnderElevation:
+                          0, // ✨ prevents color change on scroll
+                      surfaceTintColor: Colors.white,
+                      automaticallyImplyLeading: false,
+                      flexibleSpace: MediaQuery(
+                        // ✅ clamp text scale for web
+                        data: MediaQuery.of(context).copyWith(
+                            textScaleFactor: _textScaleClamp(context)),
+                        child: _appBar(),
+                      ),
+                    ),
 
-                backgroundColor: const Color.fromARGB(255, 234, 248, 255),
+                    backgroundColor: const Color.fromARGB(255, 234, 248, 255),
 
-                //body
-                body:
-
-                ScrollConfiguration( // ✅ nicer scrolling on web + no glow
-                  behavior: const _NoGlowScrollBehavior(),
-                  child: Center( // ✅ center content on wide screens
-                    child: ConstrainedBox(
-                      constraints: BoxConstraints(maxWidth: _maxChatWidth(context)),
-                      child: Padding(
-                        padding: _shellHPadding(context),
-                        child: Column(
-                          children: [
-
-                            Expanded(child: RepaintBoundary(child: chatMessageBuilder())),
-                            //chat input filed
-                            //TODO
-                            if (controller.replyToMessage != null)
-                              Container(
-                                padding: const EdgeInsets.all(2),
-                                margin:
-                                const EdgeInsets.only(bottom: 0, left: 10, right: 63),
-                                decoration: BoxDecoration(
-                                  color: Colors.white54,
-                                  border: Border.all(color: appColorGreen, width: .4),
-                                  borderRadius: BorderRadius.circular(8),
-                                ),
-                                child: Row(
-                                  children: [
-                                    Container(
-                                      height: 40,
-                                      width: 3,
-                                      color: appColorYellow,
+                    //body
+                    body: ScrollConfiguration(
+                      // ✅ nicer scrolling on web + no glow
+                      behavior: const _NoGlowScrollBehavior(),
+                      child: Center(
+                        // ✅ center content on wide screens
+                        child: ConstrainedBox(
+                          constraints:
+                              BoxConstraints(maxWidth: _maxChatWidth(context)),
+                          child: Padding(
+                            padding: _shellHPadding(context),
+                            child: Column(
+                              children: [
+                                Expanded(
+                                    child: RepaintBoundary(
+                                        child: chatMessageBuilder())),
+                                //chat input filed
+                                //TODO
+                                if (controller.replyToMessage != null)
+                                  Container(
+                                    padding: const EdgeInsets.all(2),
+                                    margin: const EdgeInsets.only(
+                                        bottom: 0, left: 10, right: 63),
+                                    decoration: BoxDecoration(
+                                      color: Colors.white54,
+                                      border: Border.all(
+                                          color: appColorGreen, width: .4),
+                                      borderRadius: BorderRadius.circular(8),
                                     ),
-                                    Icon(Icons.reply, color: appColorGreen,size: 18,),
-
-                                    Expanded(
-                                      child:
-                                      Row(
-                                        mainAxisSize: MainAxisSize.min,
-                                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                                        children: [
-                                          Flexible(
-                                            child: Column(
-                                              crossAxisAlignment: CrossAxisAlignment.start,
-                                              children: [
-                                                Text(
-                                                  "${controller.replyToMessage?.fromUser?.userId == controller.me?.userId ? 'You' : controller.user?.displayName ?? ''}",
-                                                  maxLines: 1,
-                                                  overflow: TextOverflow.ellipsis,
-                                                  style: themeData.textTheme.bodySmall
-                                                      ?.copyWith(color: greyText),
-                                                ),
-
-                                                controller.isImageOrVideo(controller.replyToMessage?.message??'')?  Text(
-                                                  "Media",
-                                                  maxLines: 2,
-                                                  overflow: TextOverflow.ellipsis,
-                                                  style: themeData.textTheme.bodySmall
-                                                      ?.copyWith(color: greyText),
-                                                ):SizedBox()
-                                              ],
-                                            ).paddingSymmetric(horizontal: 4),
-                                          ),
-
-                                          Text(
-                                            " : ",
-                                            maxLines: 1,
-                                            overflow: TextOverflow.ellipsis,
-                                            style: themeData.textTheme.bodySmall
-                                                ?.copyWith(color: appColorYellow),
-                                          ),
-
-                                         !controller.isImageOrVideo(controller.replyToMessage?.message??'')? Flexible(
-                                           flex: 2,
-                                           child: Text(
-                                              controller.replyToMessage?.message ?? '',
-                                              maxLines: 1,
-                                              overflow: TextOverflow.ellipsis,
-                                              style: themeData.textTheme.bodySmall
-                                                  ?.copyWith(color: greyText),
-                                            ),
-                                         ):Container(
-                                             width: 50,
-                                             height: 50,
-                                             decoration: BoxDecoration(borderRadius: BorderRadius.circular(8),
-                                             border: Border.all(color: appColorGreen,width: .3)),
-                                             child: CustomCacheNetworkImage(controller.replyToMessage?.message??'',
-                                               width: 50,
-                                               height: 50,
-                                               radiusAll: 8,
-                                               borderColor: appColorGreen,
-                                               boxFit: BoxFit.cover,
-                                             )),
-                                        ],
-                                      ) ,
-                                    ),
-                                    IconButton(
-                                        icon:  const Icon(
-                                          Icons.close,
-                                          color: blueColor,
+                                    child: Row(
+                                      children: [
+                                        Container(
+                                          height: 40,
+                                          width: 3,
+                                          color: appColorYellow,
+                                        ),
+                                        Icon(
+                                          Icons.reply,
+                                          color: appColorGreen,
                                           size: 18,
                                         ),
-                                        onPressed: () {
-                                          controller.replyToMessage = null;
-                                          controller.update();
-                                        }),
-                                  ],
-                                ),
-                              ),
-                            if (controller.isUploading)
-                              const Align(
-                                  alignment: Alignment.centerRight,
-                                  child: Padding(
-                                      padding: EdgeInsets.symmetric(
-                                          vertical: 8, horizontal: 20),
-                                      child:
-                                      CircularProgressIndicator(strokeWidth: 2))),
+                                        Expanded(
+                                          child: Row(
+                                            mainAxisSize: MainAxisSize.min,
+                                            mainAxisAlignment:
+                                                MainAxisAlignment.spaceBetween,
+                                            children: [
+                                              Flexible(
+                                                child: Column(
+                                                  crossAxisAlignment:
+                                                      CrossAxisAlignment.start,
+                                                  children: [
+                                                    Text(
+                                                      "${controller.replyToMessage?.fromUser?.userId == controller.me?.userId ? 'You' : controller.user?.displayName ?? ''}",
+                                                      maxLines: 1,
+                                                      overflow:
+                                                          TextOverflow.ellipsis,
+                                                      style: themeData
+                                                          .textTheme.bodySmall
+                                                          ?.copyWith(
+                                                              color: greyText),
+                                                    ),
+                                                    controller.isImageOrVideo(
+                                                            controller
+                                                                    .replyToMessage
+                                                                    ?.message ??
+                                                                '')
+                                                        ? Text(
+                                                            "Media",
+                                                            maxLines: 2,
+                                                            overflow:
+                                                                TextOverflow
+                                                                    .ellipsis,
+                                                            style: themeData
+                                                                .textTheme
+                                                                .bodySmall
+                                                                ?.copyWith(
+                                                                    color:
+                                                                        greyText),
+                                                          )
+                                                        : const SizedBox()
+                                                  ],
+                                                ).paddingSymmetric(
+                                                    horizontal: 4),
+                                              ),
+                                              Text(
+                                                " : ",
+                                                maxLines: 1,
+                                                overflow: TextOverflow.ellipsis,
+                                                style: themeData
+                                                    .textTheme.bodySmall
+                                                    ?.copyWith(
+                                                        color: appColorYellow),
+                                              ),
+                                              !controller.isImageOrVideo(
+                                                      controller.replyToMessage
+                                                              ?.message ??
+                                                          '')
+                                                  ? Flexible(
+                                                      flex: 2,
+                                                      child: Text(
+                                                        controller
+                                                                .replyToMessage
+                                                                ?.message ??
+                                                            '',
+                                                        maxLines: 1,
+                                                        overflow: TextOverflow
+                                                            .ellipsis,
+                                                        style: themeData
+                                                            .textTheme.bodySmall
+                                                            ?.copyWith(
+                                                                color:
+                                                                    greyText),
+                                                      ),
+                                                    )
+                                                  : Container(
+                                                      width: 50,
+                                                      height: 50,
+                                                      decoration: BoxDecoration(
+                                                          borderRadius:
+                                                              BorderRadius
+                                                                  .circular(8),
+                                                          border: Border.all(
+                                                              color:
+                                                                  appColorGreen,
+                                                              width: .3)),
+                                                      child:
+                                                          CustomCacheNetworkImage(
+                                                        controller
+                                                                .replyToMessage
+                                                                ?.message ??
+                                                            '',
+                                                        width: 50,
+                                                        height: 50,
+                                                        radiusAll: 8,
+                                                        borderColor:
+                                                            appColorGreen,
+                                                        boxFit: BoxFit.cover,
+                                                      )),
+                                            ],
+                                          ),
+                                        ),
+                                        IconButton(
+                                            icon: const Icon(
+                                              Icons.close,
+                                              color: blueColor,
+                                              size: 18,
+                                            ),
+                                            onPressed: () {
+                                              controller.replyToMessage = null;
+                                              controller.update();
+                                            }),
+                                      ],
+                                    ),
+                                  ),
+                                if (controller.isUploading)
+                                  const Align(
+                                      alignment: Alignment.centerRight,
+                                      child: Padding(
+                                          padding: EdgeInsets.symmetric(
+                                              vertical: 8, horizontal: 20),
+                                          child: CircularProgressIndicator(
+                                              strokeWidth: 2))),
 
-                            (controller.uploadProgress > 0 &&
-                                controller.uploadProgress < 100)
-                                ? Column(
-                              children: [
-                                LinearProgressIndicator(
-                                  value: controller.uploadProgress /
-                                      100, // 0.0 → 1.0
-                                  backgroundColor: Colors.grey[300],
-                                  color: Colors.blue,
-                                  minHeight: 6,
-                                ),
-                                const SizedBox(height: 4),
-                                Text(
-                                    "${controller.uploadProgress.toStringAsFixed(0)}%"),
+                                (controller.uploadProgress > 0 &&
+                                        controller.uploadProgress < 100)
+                                    ? Column(
+                                        children: [
+                                          LinearProgressIndicator(
+                                            value: controller.uploadProgress /
+                                                100, // 0.0 → 1.0
+                                            backgroundColor: Colors.grey[300],
+                                            color: Colors.blue,
+                                            minHeight: 6,
+                                          ),
+                                          const SizedBox(height: 4),
+                                          Text(
+                                              "${controller.uploadProgress.toStringAsFixed(0)}%"),
+                                        ],
+                                      )
+                                    : const SizedBox.shrink(),
+
+                                _chatInput(),
+                                //show emojis on keyboard emoji button click & vice versa
+                                // if (_showEmoji)
+                                // SizedBox(
+                                //   height: mq.height * .35,
+                                //   child: EmojiPicker(
+                                //     textEditingController: _textController,
+                                //     config: Config(
+                                //       bgColor: const Color.fromARGB(255, 234, 248, 255),
+                                //       columns: 8,
+                                //       emojiSizeMax: 32 * (Platform.isIOS ? 1.30 : 1.0),
+                                //     ),
+                                //   ),
+                                // )
                               ],
-                            )
-                                : const SizedBox.shrink(),
-
-                            _chatInput(),
-                            //show emojis on keyboard emoji button click & vice versa
-                            // if (_showEmoji)
-                            // SizedBox(
-                            //   height: mq.height * .35,
-                            //   child: EmojiPicker(
-                            //     textEditingController: _textController,
-                            //     config: Config(
-                            //       bgColor: const Color.fromARGB(255, 234, 248, 255),
-                            //       columns: 8,
-                            //       emojiSizeMax: 32 * (Platform.isIOS ? 1.30 : 1.0),
-                            //     ),
-                            //   ),
-                            // )
-                          ],
+                            ),
+                          ),
                         ),
                       ),
                     ),
@@ -300,10 +358,8 @@ class ChatScreen extends GetView<ChatScreenController> {
                 ),
               ),
             ),
-          ),
-        ),
-      );
-    });
+          );
+        });
   }
 
   Widget chatMessageBuilder() {
@@ -317,9 +373,9 @@ class ChatScreen extends GetView<ChatScreenController> {
             showShimmer: controller.showPostShimmer,
             shimmerWidget: shimmerlistView(
                 child: ChatHistoryShimmer(
-                  chatData: ChatHisList(),
-                )),
-            child:groupListView() /*AnimationLimiter(child: )*/,
+              chatData: ChatHisList(),
+            )),
+            child: groupListView() /*AnimationLimiter(child: )*/,
           ),
         ),
         // vGap(80)
@@ -328,11 +384,12 @@ class ChatScreen extends GetView<ChatScreenController> {
   }
 
   groupListView() {
- /*   final initialIndex = (controller.flatRows.isEmpty)
+    /*   final initialIndex = (controller.flatRows.isEmpty)
         ? 0
         : controller.flatRows.length - 1;*/
-    return  controller.chatCatygory!=[] || (controller.chatCatygory??[]).isNotEmpty
-            ? GroupedListView<GroupChatElement, DateTime>(
+    return controller.chatCatygory != [] ||
+            (controller.chatCatygory ?? []).isNotEmpty
+        ? GroupedListView<GroupChatElement, DateTime>(
             shrinkWrap: true,
             padding: const EdgeInsets.only(bottom: 30),
             controller: controller.scrollController,
@@ -342,10 +399,10 @@ class ChatScreen extends GetView<ChatScreenController> {
             floatingHeader: true,
             useStickyGroupSeparators: true,
             groupBy: (GroupChatElement element) => DateTime(
-              element.date.year,
-              element.date.month,
-              element.date.day,
-            ),
+                  element.date.year,
+                  element.date.month,
+                  element.date.day,
+                ),
             groupHeaderBuilder: _createGroupHeader,
             indexedItemBuilder:
                 (BuildContext context, GroupChatElement element, int index) {
@@ -360,40 +417,44 @@ class ChatScreen extends GetView<ChatScreenController> {
               return StaggeredAnimationListItem(
                 index: index,
                 child: SwipeTo(
-                  onRightSwipe: (detail) {
-                    if(element.chatMessageItems.isActivity == 1 ||(element.chatMessageItems.media??[]).isNotEmpty ){
-
-                    }else{
-                      // Set the message being replied to
-                      controller.refIdis = element.chatMessageItems.chatId;
-                      controller.userIDSender =
-                          element.chatMessageItems.fromUser?.userId;
-                      controller.userNameReceiver =
-                          element.chatMessageItems.toUser?.displayName ?? '';
-                      controller.userNameSender =
-                          element.chatMessageItems.fromUser?.displayName ?? '';
-                      controller.userIDReceiver =
-                          element.chatMessageItems.toUser?.userId;
-                      controller.replyToMessage = element.chatMessageItems;
-                      controller.update();
-                    }
-
-                  },
+                  onRightSwipe: element.chatMessageItems.isActivity == 1
+                      ? (v) {}
+                      : (detail) {
+                          if (element.chatMessageItems.isActivity == 1 ||
+                              (element.chatMessageItems.media ?? [])
+                                  .isNotEmpty) {
+                          } else {
+                            // Set the message being replied to
+                            controller.refIdis =
+                                element.chatMessageItems.chatId;
+                            controller.userIDSender =
+                                element.chatMessageItems.fromUser?.userId;
+                            controller.userNameReceiver =
+                                element.chatMessageItems.toUser?.displayName ??
+                                    '';
+                            controller.userNameSender = element
+                                    .chatMessageItems.fromUser?.displayName ??
+                                '';
+                            controller.userIDReceiver =
+                                element.chatMessageItems.toUser?.userId;
+                            controller.replyToMessage =
+                                element.chatMessageItems;
+                            controller.update();
+                          }
+                        },
                   child: _chatMessageTile(
                       data: element.chatMessageItems,
-                      sentByMe: (userid
-                          ?.toString() ==
-                          element.chatMessageItems.fromUser?.userId
-                              ?.toString()
+                      sentByMe: (userid?.toString() ==
+                              element.chatMessageItems.fromUser?.userId
+                                  ?.toString()
                           ? true
                           : false),
                       formatedTime: formatatedTime),
                 ),
               );
-            }): const Center(
+            })
+        : const Center(
             child: Text('Say Hii! 👋', style: TextStyle(fontSize: 20)));
-
-
 
     /*ScrollablePositionedList.builder(
       itemScrollController: controller.itemScrollController,
@@ -470,12 +531,10 @@ class ChatScreen extends GetView<ChatScreenController> {
         child: Text('Say Hii! 👋', style: TextStyle(fontSize: 20)));*/
   }
 
-
   Widget _createGroupHeader(GroupChatElement element) {
     final isToday = DateUtils.isSameDay(element.date, DateTime.now());
-    final dateText = isToday
-        ? "Today"
-        : DateFormat.yMMMd().format(element.date);
+    final dateText =
+        isToday ? "Today" : DateFormat.yMMMd().format(element.date);
     return Container(
       color: Colors.transparent,
       child: Row(
@@ -486,15 +545,17 @@ class ChatScreen extends GetView<ChatScreenController> {
             vPadding: 3,
             hPadding: 7,
             color: AppTheme.whiteColor.withOpacity(.6),
-            childWidget: Text(dateText,
-              style: BalooStyles.balooregularTextStyle(),),
+            childWidget: Text(
+              dateText,
+              style: BalooStyles.balooregularTextStyle(),
+            ),
           ),
           Expanded(child: divider(color: appColorGreen.withOpacity(.3))),
         ],
       ),
     );
   }
- /* Widget _createGroupHeader(date) {
+  /* Widget _createGroupHeader(date) {
     return Container(
       color: Colors.transparent,
       child: Row(
@@ -519,302 +580,322 @@ class ChatScreen extends GetView<ChatScreenController> {
       {required ChatHisList data, required bool sentByMe, formatedTime}) {
     return data.isActivity == 1
         ? Center(
-          child: Container(
-              padding: EdgeInsets.symmetric(vertical: 4,horizontal: 8),
-              margin: EdgeInsets.symmetric(vertical: 4,horizontal: 8),
-
-              decoration: BoxDecoration(
-                color: appColorPerple.withOpacity(.1),
-                borderRadius: BorderRadius.circular(12),
-              ),
-              child:
-              Text((data.message ?? '').capitalizeFirst ?? '',
-                  textAlign: TextAlign.start,
-                  style: BalooStyles.baloothinTextStyle(
-                    color: appColorPerple,
-                    size: 13,
-                  ),
-                  overflow: TextOverflow.visible))
-              .marginSymmetric(horizontal: 5, vertical: 4),
-        )
-        :  Column(
-        crossAxisAlignment:
-        sentByMe ? CrossAxisAlignment.end : CrossAxisAlignment.start,
-        children: [
-
-          data.replyToId != null
-              ? ReplyMessageWidget(
-              isCancel: false,
-              sentByMe: sentByMe,
-              empIdsender: data.fromUser?.userId.toString(),
-              chatdata: data,
-              empIdreceiver: data.toUser?.userId.toString(),
-              empName:data.isGroupChat ==1
-                  ? data.fromUser?.displayName ?? ''
-                  : data.fromUser?.userId.toString() ==
-                  controller.me?.userId?.toString()
-                  ? data.fromUser?.displayName ?? ''
-                  : data.toUser?.displayName ?? '',
-              message: data.replyToText ?? '',
-            orignalMsg :data.replyToText??''
-          )
-              .marginOnly(top: 8, bottom: 0)
-              : const SizedBox(),
-          Row(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              (data.message != null &&
-                  (data.media ?? []).isNotEmpty &&
-                  sentByMe)
-                  ? IconButton(
-                  onPressed: () {
-                    controller.handleForward(chatId: data.chatId);
-                  },
-                  icon: Transform(
-                      alignment: Alignment.center,
-                      transform: Matrix4.rotationX(math.pi),
-                      child: Image.asset(
-                        forwardIcon,
-                        height: 25,
-                      ))).paddingOnly(left: 10)
-                  : const SizedBox(),
-              Expanded(
-                child:Column(
-                  mainAxisSize: MainAxisSize.min,
-                  crossAxisAlignment: sentByMe
-                      ? CrossAxisAlignment.end
-                      : CrossAxisAlignment.start,
-                  children: [
-                    InkWell(
-                      borderRadius: BorderRadius.circular(50),
-                      // mouseCursor: SystemMouseCursors.click,
-                      onDoubleTap: () {
-                        SystemChannels.textInput.invokeMethod('TextInput.hide');
-                        if (!isTaskMode) {
-
-                          _showBottomSheet(sentByMe, data: data);
-                        }
-                      },
-                      child: Container(
-                        // alignment: sentByMe
-                        //     ? Alignment.centerRight
-                        //     : Alignment.centerLeft,
-                        padding: EdgeInsets.symmetric(
-                          horizontal:
-                          (data.media ?? []).isNotEmpty ? 12 : 15,
-                          vertical:
-                          (data.media ?? []).isNotEmpty ? 0 : 8,
+            child: Container(
+                    padding: const EdgeInsets.symmetric(vertical: 4, horizontal: 8),
+                    margin: const EdgeInsets.symmetric(vertical: 4, horizontal: 8),
+                    decoration: BoxDecoration(
+                      color: appColorPerple.withOpacity(.1),
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    child: Text((data.message ?? '').capitalizeFirst ?? '',
+                        textAlign: TextAlign.start,
+                        style: BalooStyles.baloothinTextStyle(
+                          color: appColorPerple,
+                          size: 13,
                         ),
-                        margin: sentByMe
-                            ? const EdgeInsets.only(left: 15, top: 10,right: 15)
-                            : const EdgeInsets.only(right: 15, top: 10,left: 15),
+                        overflow: TextOverflow.visible))
+                .marginSymmetric(horizontal: 5, vertical: 4),
+          )
+        : Column(
+            crossAxisAlignment:
+                sentByMe ? CrossAxisAlignment.end : CrossAxisAlignment.start,
+            children: [
+              Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  (data.message != null &&
+                          (data.media ?? []).isNotEmpty &&
+                          sentByMe)
+                      ? IconButton(
+                          onPressed: () {
+                            controller.handleForward(chatId: data.chatId);
+                          },
+                          icon: Transform(
+                              alignment: Alignment.center,
+                              transform: Matrix4.rotationX(math.pi),
+                              child: Image.asset(
+                                forwardIcon,
+                                height: 25,
+                              ))).paddingOnly(left: 10)
+                      : const SizedBox(),
+                  Expanded(
+                    child: Column(
+                      mainAxisSize: MainAxisSize.min,
+                      crossAxisAlignment: sentByMe
+                          ? CrossAxisAlignment.end
+                          : CrossAxisAlignment.start,
+                      children: [
+                        InkWell(
+                          borderRadius: BorderRadius.circular(50),
+                          // mouseCursor: SystemMouseCursors.click,
+                          onDoubleTap: () {
+                            SystemChannels.textInput
+                                .invokeMethod('TextInput.hide');
+                            if (!isTaskMode) {
+                              _showBottomSheet(sentByMe, data: data);
+                            }
+                          },
+                          child: Container(
+                            // alignment: sentByMe
+                            //     ? Alignment.centerRight
+                            //     : Alignment.centerLeft,
+                            padding: EdgeInsets.symmetric(
+                              horizontal:
+                                  (data.media ?? []).isNotEmpty ? 12 : 15,
+                              vertical: (data.media ?? []).isNotEmpty ? 0 : 8,
+                            ),
+                            margin: sentByMe
+                                ? const EdgeInsets.only(
+                                    left: 15, top: 10, right: 15)
+                                : const EdgeInsets.only(
+                                    right: 15, top: 10, left: 15),
 
-                        decoration: BoxDecoration(
-                            color: /* widget.isTask
+                            decoration: BoxDecoration(
+                                color: /* widget.isTask
                                           ? getTaskStatusColor(widget.message.taskDetails?.taskStatus)
                                           .withOpacity(.1)
                                           : */
 
-                            sentByMe
-                                ? appColorGreen.withOpacity(.1)
-                                : appColorPerple.withOpacity(.1),
-                            border: Border.all(
-                                color: /*widget.isTask
+                                    sentByMe
+                                        ? appColorGreen.withOpacity(.1)
+                                        : appColorPerple.withOpacity(.1),
+                                border: Border.all(
+                                    color: /*widget.isTask
                                               ? getTaskStatusColor(widget
                                               .message.taskDetails?.taskStatus)
                                               :*/
-                                sentByMe
-                                    ? appColorGreen
-                                    : appColorPerple),
-                            //making borders curved
-                            borderRadius: sentByMe
-                                ? BorderRadius.only(
-                                topLeft: Radius.circular(
-                                    (data.media ?? []).isNotEmpty
-                                        ? 15
-                                        : 30),
-                                topRight: Radius.circular(
-                                    (data.media ?? []).isNotEmpty
-                                        ? 15
-                                        : 30),
-                                bottomLeft: Radius.circular(
-                                    (data.media ?? []).isNotEmpty
-                                        ? 15
-                                        : 30))
-                                : BorderRadius.only(
-                                topLeft: Radius.circular(
-                                    (data.media ?? []).isNotEmpty ? 15 : 30),
-                                topRight: Radius.circular((data.media ?? []).isNotEmpty ? 15 : 30),
-                                bottomRight: Radius.circular((data.media ?? []).isNotEmpty ? 15 : 30))),
-                        child: messageTypeView(data, sentByMe: sentByMe),
-                      ).marginOnly(left: (0), top: 0),
+                                        sentByMe
+                                            ? appColorGreen
+                                            : appColorPerple),
+                                //making borders curved
+                                borderRadius: sentByMe
+                                    ? BorderRadius.only(
+                                        topLeft: Radius.circular(
+                                            (data.media ?? []).isNotEmpty
+                                                ? 15
+                                                : 30),
+                                        topRight: Radius.circular(
+                                            (data.media ?? []).isNotEmpty
+                                                ? 15
+                                                : 30),
+                                        bottomLeft: Radius.circular(
+                                            (data.media ?? []).isNotEmpty
+                                                ? 15
+                                                : 30))
+                                    : BorderRadius.only(
+                                        topLeft: Radius.circular(
+                                            (data.media ?? []).isNotEmpty ? 15 : 30),
+                                        topRight: Radius.circular((data.media ?? []).isNotEmpty ? 15 : 30),
+                                        bottomRight: Radius.circular((data.media ?? []).isNotEmpty ? 15 : 30))),
+                            child: messageTypeView(data, sentByMe: sentByMe),
+                          ).marginOnly(left: (0), top: 0),
+                        ),
+                      ],
                     ),
-                  ],
-                ),
+                  ),
+                  (data.message != null &&
+                          (data.media ?? []).isNotEmpty &&
+                          !sentByMe)
+                      ? IconButton(
+                          onPressed: () {
+                            controller.handleForward(chatId: data.chatId);
+                          },
+                          icon: Transform(
+                              alignment: Alignment.center,
+                              transform: Matrix4.rotationY(math.pi),
+                              child: Image.asset(
+                                forwardIcon,
+                                height: 25,
+                              ))).paddingOnly(right: 10)
+                      : const SizedBox()
+                ],
               ),
-              (data.message != null &&
-                  (data.media ?? []).isNotEmpty &&
-                  !sentByMe)
-                  ? IconButton(
-                  onPressed: () {
-                    controller.handleForward(chatId: data.chatId);
-                  },
-                  icon: Transform(
-                      alignment: Alignment.center,
-                      transform: Matrix4.rotationY(math.pi),
-                      child: Image.asset(
-                        forwardIcon,
-                        height: 25,
-                      ))).paddingOnly(right: 10)
-                  : const SizedBox()
+              vGap(3),
+              Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Text(
+                    formatedTime ?? '',
+                    textAlign: TextAlign.start,
+                    style: BalooStyles.baloonormalTextStyle(
+                        color: Colors.grey, size: 13),
+                  ),
+                  hGap(5),
+                  sentByMe
+                      ? Icon(
+                          data.readOn != null ? Icons.done_all : Icons.done,
+                          size: 14,
+                          color:
+                              data.readOn != null ? Colors.blue : Colors.grey,
+                        )
+                      : const SizedBox()
+                ],
+              ).marginOnly(left: 15, right: 15),
             ],
-          ),
-          vGap(3),
-          Row(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Text(
-                formatedTime ?? '',
-                textAlign: TextAlign.start,
-                style: BalooStyles.baloonormalTextStyle(
-                    color: Colors.grey, size: 13),
-              ),
-              hGap(5),
-              sentByMe?Icon(
-                data.readOn != null ? Icons.done_all : Icons.done,
-                size: 14,
-                color: data.readOn != null ? Colors.blue : Colors.grey,
-              ):const SizedBox()
-            ],
-          ).marginOnly(left: 15, right: 15),
-        ],
-      )
-    ;
+          );
   }
 
   messageTypeView(ChatHisList data, {required bool sentByMe}) {
     return Container(
       key: ValueKey('msg-${data.chatId}'),
       child: Column(
-
         crossAxisAlignment: CrossAxisAlignment.start,
         mainAxisSize: MainAxisSize.min,
         children: [
+          data.replyToId != null
+              ? ReplyMessageWidget(
+                      isCancel: false,
+                      sentByMe: sentByMe,
+                      empIdsender: data.fromUser?.userId.toString(),
+                      chatdata: data,
+                      empIdreceiver: data.toUser?.userId.toString(),
+                      empName: data.isGroupChat == 1
+                          ? data.fromUser?.displayName ?? ''
+                          : data.fromUser?.userId.toString() ==
+                                  controller.me?.userId?.toString()
+                              ? data.fromUser?.displayName ?? ''
+                              : data.toUser?.displayName ?? '',
+                      message: data.replyToText ?? '',
+                      orignalMsg: data.replyToText ?? '')
+                  .paddingOnly(bottom: 4)
+              : const SizedBox(),
           controller.user?.userCompany?.isGroup == 1
               ? Row(
-                          mainAxisSize: MainAxisSize.min,
-                children: [
-                  Flexible(
-                    child: Text(
-                    sentByMe
-                        ? (data.fromUser?.displayName != null
-                        ? data.fromUser?.displayName ?? ''
-                        : data.fromUser?.phone ?? '')
-                        : (data.fromUser?.displayName != null
-                        ? data.fromUser?.displayName ?? ''
-                        : data.fromUser?.phone ?? ''),
-                    textAlign: TextAlign.start,
-                    style: BalooStyles.baloothinTextStyle(
-                      color: Colors.black54,
-                      size: 13,
-                    ),
-                    overflow: TextOverflow.visible)
-                    .marginOnly(
-                    left: sentByMe ? 0 : 0,
-                    right: sentByMe ? 10 : 0,
-                    bottom: 3,top: 8),
-                  ),
-                  Flexible(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Flexible(
                       child: Text(
-                        data.fromUser?.userId == controller.me?.userId ? "You" : (data.fromUser?.displayName ?? ''),
-                        style: BalooStyles.baloonormalTextStyle(color: data.fromUser?.userId == controller.me?.userId ? Colors.green : Colors.purple),
+                              sentByMe
+                                  ? (data.fromUser?.displayName != null
+                                      ? data.fromUser?.displayName ?? ''
+                                      : data.fromUser?.phone ?? '')
+                                  : (data.fromUser?.displayName != null
+                                      ? data.fromUser?.displayName ?? ''
+                                      : data.fromUser?.phone ?? ''),
+                              textAlign: TextAlign.start,
+                              style: BalooStyles.baloothinTextStyle(
+                                color: Colors.black54,
+                                size: 13,
+                              ),
+                              overflow: TextOverflow.visible)
+                          .marginOnly(
+                              left: sentByMe ? 0 : 0,
+                              right: sentByMe ? 10 : 0,
+                              bottom: 3,
+                              top: 8),
+                    ),
+                    Flexible(
+                      child: Text(
+                        data.fromUser?.userId == controller.me?.userId
+                            ? "You"
+                            : (data.fromUser?.displayName ?? ''),
+                        style: BalooStyles.baloonormalTextStyle(
+                            color:
+                                data.fromUser?.userId == controller.me?.userId
+                                    ? Colors.green
+                                    : Colors.purple),
                         textAlign: TextAlign.end,
                       ).marginOnly(
                           right: sentByMe ? 0 : 0,
-                          left : sentByMe ? 10 : 0,
-                          bottom: 3,top: 8),
+                          left: sentByMe ? 10 : 0,
+                          bottom: 3,
+                          top: 8),
                     ),
-                ],
-              )
+                  ],
+                )
               : const SizedBox(),
-
           data.isForwarded == 1
               ? Text("Forwarded",
-              textAlign: TextAlign.start,
-              style: BalooStyles.baloonormalTextStyle(
-                  color: Colors.grey,
-                  size: 13,
-                  fontstyle: FontStyle.italic),
-              overflow: TextOverflow.visible)
-              .marginOnly(
-            left: sentByMe ? 0 : 10,
-            right: sentByMe ? 10 : 0,
-          )
+                      textAlign: TextAlign.start,
+                      style: BalooStyles.baloonormalTextStyle(
+                          color: Colors.grey,
+                          size: 13,
+                          fontstyle: FontStyle.italic),
+                      overflow: TextOverflow.visible)
+                  .marginOnly(
+                  left: sentByMe ? 0 : 10,
+                  right: sentByMe ? 10 : 0,
+                )
               : const SizedBox(),
           data.message != '' || data.message != null
-              ? Text(data.message ?? '',
-              textAlign: TextAlign.start,
-              style: BalooStyles.baloonormalTextStyle(
-                color: Colors.black87,
-                size: 15,
-              ),
-              overflow: TextOverflow.visible)
+              ? /*Text(data.message ?? '',
+                  textAlign: TextAlign.start,
+                  style: BalooStyles.baloonormalTextStyle(
+                    color: Colors.black87,
+                    size: 15,
+                  ),
+                  overflow: TextOverflow.visible)*/
+
+          SelectableLinkify(
+            text: data.message ?? '',
+            onOpen: (link) {
+              launchUrl(Uri.parse(link.url), mode: LaunchMode.externalApplication);
+            },
+            style: BalooStyles.baloonormalTextStyle(
+              color: Colors.black87,
+              size: 15,
+            ),
+            linkStyle: BalooStyles.baloonormalTextStyle(
+              color: Colors.blue,
+              size: 15,
+            ),
+          )
               : const SizedBox(),
           ((data.media ?? []).isNotEmpty)
-              ? LayoutBuilder(
-              builder: (context, constraints) {
-                final isWide = constraints.maxWidth >= 900;
-                final fieldWidth = isWide ? 420.0 : null;
+              ? LayoutBuilder(builder: (context, constraints) {
+                  final isWide = constraints.maxWidth >= 900;
+                  final fieldWidth = isWide ? 420.0 : null;
                   return SizedBox(
-                            width:kIsWeb? fieldWidth:null,
+                    // width: kIsWeb ? fieldWidth : null,
                     child: ChatMessageMedia(
-                              chat: data,
-                              isGroupMessage: data.isGroupChat==1?true:false,
-                              myId: (controller.me?.userId ?? 0).toString(),
-                              fromId: (data.fromUser?.userId ?? 0).toString(),
-                              senderName: data.fromUser?.displayName ?? '',
-                              baseUrl: ApiEnd.baseUrlMedia,
-                              defaultGallery: defaultGallery,
-                              onOpenDocument: (url) =>
-                      openDocumentFromUrl(url), // your existing function
-                              onOpenImageViewer: (mediaurls, startIndex) {
-                    // push your gallery view
-                    // Get.to(() => ImageViewer(urls: urls, initialIndex: startIndex));
-                    Get.to(
-                          () => GalleryViewerPage(onReply: (){
-                            Get.back();
-                            controller.refIdis = data.chatId;
-                            controller.userIDSender =
-                                data.fromUser?.userId;
-                            controller.userNameReceiver =
-                                data.toUser?.displayName ?? '';
-                            controller.userNameSender =
-                                data.fromUser?.displayName ?? '';
-                            controller.userIDReceiver =
-                                data.toUser?.userId;
-                            controller.replyToMessage =data;
-                            controller.replyToImage =data.media?[startIndex].fileName??'';
-                          },),
-                      binding: BindingsBuilder(() {
-                        Get.put(GalleryViewerController(
-                            urls: mediaurls, index: startIndex,
-                        chathis: data));
-                      }),
-                      fullscreenDialog: true,
-                      transition: Transition.fadeIn,
-                    );
-                              },
-                              onOpenVideo: (url) {
-                    // open video player route/sheet if available
-                              },
-                              onOpenAudio: (url) {
-                    // open audio player route/sheet if available
-                              },
-                            ),
+                      chat: data,
+                      isGroupMessage: data.isGroupChat == 1 ? true : false,
+                      myId: (controller.me?.userId ?? 0).toString(),
+                      fromId: (data.fromUser?.userId ?? 0).toString(),
+                      senderName: data.fromUser?.displayName ?? '',
+                      baseUrl: ApiEnd.baseUrlMedia,
+                      defaultGallery: defaultGallery,
+                      onOpenDocument: (url) =>
+                          openDocumentFromUrl(url), // your existing function
+                      onOpenImageViewer: (mediaurls, startIndex) {
+                        // push your gallery view
+                        // Get.to(() => ImageViewer(urls: urls, initialIndex: startIndex));
+                        Get.to(
+                          () => GalleryViewerPage(
+                            onReply: () {
+                              Get.back();
+                              controller.refIdis = data.chatId;
+                              controller.userIDSender = data.fromUser?.userId;
+                              controller.userNameReceiver =
+                                  data.toUser?.displayName ?? '';
+                              controller.userNameSender =
+                                  data.fromUser?.displayName ?? '';
+                              controller.userIDReceiver = data.toUser?.userId;
+                              controller.replyToMessage = data;
+                              controller.replyToImage =
+                                  data.media?[startIndex].fileName ?? '';
+                            },
+                          ),
+                          binding: BindingsBuilder(() {
+                            Get.put(GalleryViewerController(
+                                urls: mediaurls,
+                                index: startIndex,
+                                chathis: data));
+                          }),
+                          fullscreenDialog: true,
+                          transition: Transition.fadeIn,
+                        );
+                      },
+                      onOpenVideo: (url) {
+                        // open video player route/sheet if available
+                      },
+                      onOpenAudio: (url) {
+                        // open audio player route/sheet if available
+                      },
+                    ),
                   );
-                }
-              )
+                })
               : const SizedBox(),
         ],
       ),
@@ -830,52 +911,54 @@ class ChatScreen extends GetView<ChatScreenController> {
             onTap: () {
               if (!(controller.user?.userCompany?.isGroup == 1 ||
                   controller.user?.userCompany?.isBroadcast == 1)) {
-
-                if(kIsWeb){
+                if (kIsWeb) {
                   Get.toNamed(
                     "${AppRoutes.view_profile}?userId=${controller.user?.userId}",
                   );
-                }
-                else{
+                } else {
                   Get.toNamed(AppRoutes.view_profile,
                       arguments: {'user': controller.user});
                 }
               } else {
-                if(kIsWeb){
+                if (kIsWeb) {
                   Get.toNamed(
                     "${AppRoutes.member_sr}?userId=${controller.user?.userId}",
                   );
-                }
-                else{
+                } else {
                   Get.toNamed(AppRoutes.member_sr,
                       arguments: {'user': controller.user});
                 }
-
-
               }
               // APIs.updateActiveStatus(false);
             },
             child: Row(
               children: [
                 //back button
-                !showBack?SizedBox(width: 14,):    IconButton(
-                    onPressed: () {
-                      if (Get.previousRoute.isNotEmpty) {
-                        Get.back();
-                      } else {
-                        Get.offAllNamed(AppRoutes.home); // or your main route
-                      }
-                      if(!kIsWeb) {
-                        Get.find<ChatHomeController>().hitAPIToGetRecentChats();
-                        if (isTaskMode) {
-                          Get.find<DashboardController>().updateIndex(1);
-                        } else {
-                          Get.find<DashboardController>().updateIndex(0);
-                        }
-                      }
-                      // APIs.updateActiveStatus(false);
-                    },
-                    icon: const Icon(Icons.arrow_back, color: Colors.black54)),
+                !showBack
+                    ? const SizedBox(
+                        width: 14,
+                      )
+                    : IconButton(
+                        onPressed: () {
+                          if (Get.previousRoute.isNotEmpty) {
+                            Get.back();
+                          } else {
+                            Get.offAllNamed(
+                                AppRoutes.home); // or your main route
+                          }
+                          if (!kIsWeb) {
+                            Get.find<ChatHomeController>()
+                                .hitAPIToGetRecentChats();
+                            if (isTaskMode) {
+                              Get.find<DashboardController>().updateIndex(1);
+                            } else {
+                              Get.find<DashboardController>().updateIndex(0);
+                            }
+                          }
+                          // APIs.updateActiveStatus(false);
+                        },
+                        icon: const Icon(Icons.arrow_back,
+                            color: Colors.black54)),
 
                 CustomCacheNetworkImage(
                   radiusAll: 100,
@@ -886,8 +969,8 @@ class ChatScreen extends GetView<ChatScreenController> {
                   defaultImage: controller.user?.userCompany?.isGroup == 1
                       ? groupIcn
                       : controller.user?.userCompany?.isBroadcast == 1
-                      ? broadcastIcon
-                      : ICON_profile,
+                          ? broadcastIcon
+                          : ICON_profile,
                   borderColor: greyText,
                 ),
 
@@ -900,23 +983,30 @@ class ChatScreen extends GetView<ChatScreenController> {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     //user name
-                    (controller.user?.userCompany?.isGroup==1|| controller.user?.userCompany?.isBroadcast==1)? Text(
-                       (controller.user?.userName==''||controller.user?.userName==null)?controller.user?.phone??'':controller.user?.userName??'',
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                      style: themeData.textTheme.titleMedium,
-                    ):
-
-                    Text(
-                      (controller.user?.displayName==''||controller.user?.displayName==null)?controller.user?.phone??'':controller.user?.displayName??'',
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                      style: themeData.textTheme.titleMedium,
-                    ),
+                    (controller.user?.userCompany?.isGroup == 1 ||
+                            controller.user?.userCompany?.isBroadcast == 1)
+                        ? Text(
+                            (controller.user?.userName == '' ||
+                                    controller.user?.userName == null)
+                                ? controller.user?.phone ?? ''
+                                : controller.user?.userName ?? '',
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                            style: themeData.textTheme.titleMedium,
+                          )
+                        : Text(
+                            (controller.user?.displayName == '' ||
+                                    controller.user?.displayName == null)
+                                ? controller.user?.phone ?? ''
+                                : controller.user?.displayName ?? '',
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                            style: themeData.textTheme.titleMedium,
+                          ),
                     controller.user?.userCompany?.isGroup == 1 ||
-                        controller.user?.userCompany?.isBroadcast == 1
+                            controller.user?.userCompany?.isBroadcast == 1
                         ? Text('${controller.members.length} members',
-                        style: BalooStyles.baloonormalTextStyle())
+                            style: BalooStyles.baloonormalTextStyle())
                         : const SizedBox(),
 
                     vGap(2),
@@ -951,54 +1041,54 @@ class ChatScreen extends GetView<ChatScreenController> {
         /*: SizedBox()*/
 
         (controller.user?.userCompany?.isGroup == 1 ||
-            controller.user?.userCompany?.isBroadcast == 1)
+                controller.user?.userCompany?.isBroadcast == 1)
             ? PopupMenuButton<String>(
-          color: Colors.white,
-          iconColor: Colors.black87,
-          onSelected: (value) {
-            if (value == 'AddMember') {
-              if(kIsWeb){
-                Get.toNamed(
-                  "${AppRoutes.add_group_member}?groupChatId=${controller.user?.userId.toString()}",
-                );
-              }else{
-                Get.toNamed(
-                  AppRoutes.add_group_member,
-                  arguments: {'groupChat': controller.user},
-                );
-              }
-            }
-            if (value == 'Exit') {
-              toast("Under development");
-            }
-            if (value == 'Edit') {
-              if(kIsWeb){
-                Get.toNamed(
-                  "${AppRoutes.member_sr}?userId=${controller.user?.userId.toString()}",
-                );
-              }
-              else{
-                Get.toNamed(AppRoutes.member_sr,
-                    arguments: {'user': controller.user});
-              }
-            }
-          },
-          itemBuilder: (context) => [
-            PopupMenuItem(
-              value: 'AddMember',
-              child: Row(
-                children: [
-                  Icon(
-                    Icons.person_add_alt,
-                    color: appColorGreen,
-                    size: 18,
+                color: Colors.white,
+                iconColor: Colors.black87,
+                onSelected: (value) {
+                  if (value == 'AddMember') {
+                    if (kIsWeb) {
+                      Get.toNamed(
+                        "${AppRoutes.add_group_member}?groupChatId=${controller.user?.userId.toString()}",
+                      );
+                    } else {
+                      Get.toNamed(
+                        AppRoutes.add_group_member,
+                        arguments: {'groupChat': controller.user},
+                      );
+                    }
+                  }
+                  if (value == 'Exit') {
+                    toast("Under development");
+                  }
+                  if (value == 'Edit') {
+                    if (kIsWeb) {
+                      Get.toNamed(
+                        "${AppRoutes.member_sr}?userId=${controller.user?.userId.toString()}",
+                      );
+                    } else {
+                      Get.toNamed(AppRoutes.member_sr,
+                          arguments: {'user': controller.user});
+                    }
+                  }
+                },
+                itemBuilder: (context) => [
+                  PopupMenuItem(
+                    value: 'AddMember',
+                    child: Row(
+                      children: [
+                        Icon(
+                          Icons.person_add_alt,
+                          color: appColorGreen,
+                          size: 18,
+                        ),
+                        hGap(5),
+                        Text('Add Member',
+                            style: BalooStyles.baloonormalTextStyle()),
+                      ],
+                    ),
                   ),
-                  hGap(5),
-                  Text('Add Member',style: BalooStyles.baloonormalTextStyle()),
-                ],
-              ),
-            ),
-            /*PopupMenuItem(
+                  /*PopupMenuItem(
               value: 'Exit',
               child: Row(
                 children: [
@@ -1012,22 +1102,25 @@ class ChatScreen extends GetView<ChatScreenController> {
                 ],
               ),
             ),*/
-            PopupMenuItem(
-              value: 'Edit',
-              child: Row(
-                children: [
-                  Icon(
-                    Icons.edit_outlined,
-                    color: appColorGreen,
-                    size: 18,
+                  PopupMenuItem(
+                    value: 'Edit',
+                    child: Row(
+                      children: [
+                        Icon(
+                          Icons.edit_outlined,
+                          color: appColorGreen,
+                          size: 18,
+                        ),
+                        hGap(5),
+                        Text(
+                          'Edit',
+                          style: BalooStyles.baloonormalTextStyle(),
+                        ),
+                      ],
+                    ),
                   ),
-                  hGap(5),
-                  Text('Edit',style: BalooStyles.baloonormalTextStyle(),),
                 ],
-              ),
-            ),
-          ],
-        )
+              )
             : const SizedBox(),
       ],
     );
@@ -1039,8 +1132,7 @@ class ChatScreen extends GetView<ChatScreenController> {
   Widget _chatInput() {
     return Container(
       // height: Get.height*.4,
-      padding: EdgeInsets.symmetric(
-          vertical: 0, horizontal: mq.width * .025),
+      padding: EdgeInsets.symmetric(vertical: 0, horizontal: mq.width * .025),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.end,
         children: [
@@ -1062,7 +1154,102 @@ class ChatScreen extends GetView<ChatScreenController> {
                   child: SingleChildScrollView(
                     child: Column(
                       children: [
-                        ConstrainedBox(
+                        Focus(
+                          focusNode: controller.messageParentFocus,
+                          onKeyEvent: (node, event) {
+                            if (!kIsWeb) return KeyEventResult.ignored;
+
+                            if (event is KeyDownEvent &&
+                                event.logicalKey == LogicalKeyboardKey.enter) {
+
+                              final bool shiftPressed =
+                                  HardwareKeyboard.instance.logicalKeysPressed.contains(LogicalKeyboardKey.shiftLeft) ||
+                                      HardwareKeyboard.instance.logicalKeysPressed.contains(LogicalKeyboardKey.shiftRight);
+
+                              if (shiftPressed) {
+                                // SHIFT + ENTER → new line
+                                return KeyEventResult.ignored;
+                              } else {
+                                // ENTER → send
+                                _sendMessage();
+                                return KeyEventResult.handled;
+                              }
+                            }
+
+                            return KeyEventResult.ignored;
+                          },
+                          child: ConstrainedBox(
+                            constraints: BoxConstraints(
+                              maxHeight: Get.height * .3,
+                              minHeight: 30,
+                            ),
+                            child: Container(
+                              margin: const EdgeInsets.symmetric(vertical: 4),
+                              decoration: BoxDecoration(
+                                borderRadius: BorderRadius.circular(8),
+                                border: Border.all(
+                                    color: AppTheme.appColor.withOpacity(.2)),
+                              ),
+                              child: Row(
+                                children: [
+                                  Expanded(
+                                    child: TextFormField(
+                                      controller: controller.textController,
+                                      keyboardType: TextInputType.multiline,
+                                      textInputAction: TextInputAction.newline,
+                                      maxLines: null,
+                                      minLines: 1,
+                                      autofocus: true,
+                                      decoration: InputDecoration(
+                                        isDense: true,
+                                        hintText: 'Type Something...',
+                                        hintStyle:
+                                            themeData.textTheme.bodySmall,
+                                        contentPadding: const EdgeInsets.all(8),
+                                        border: InputBorder.none,
+                                        enabledBorder: InputBorder.none,
+                                        disabledBorder: InputBorder.none,
+                                        errorBorder: InputBorder.none,
+                                        focusedBorder: InputBorder.none,
+                                      ),
+                                      inputFormatters: [
+                                        FilteringTextInputFormatter.allow(
+                                          RegExp(r'[\s\S]'),
+                                        ),
+                                      ],
+                                    ),
+                                  ),
+                                  if (!isTaskMode)
+                                    Visibility(
+                                      visible: isVisibleUpload,
+                                      child: InkWell(
+                                        onTap: () =>
+                                            showUploadOptions(Get.context!),
+                                        child: Container(
+                                          padding: const EdgeInsets.all(5),
+                                          margin: const EdgeInsets.all(5),
+                                          decoration: BoxDecoration(
+                                            borderRadius:
+                                                BorderRadius.circular(8),
+                                            border: Border.all(
+                                                color: appColorGreen),
+                                            color:
+                                                appColorGreen.withOpacity(.1),
+                                          ),
+                                          child: Icon(
+                                            Icons.upload_outlined,
+                                            color: appColorGreen,
+                                          ),
+                                        ),
+                                      ),
+                                    ),
+                                ],
+                              ),
+                            ),
+                          ),
+                        )
+
+                        /*ConstrainedBox(
                           constraints: BoxConstraints(
                               maxHeight: Get.height * .3, minHeight: 30),
                           child: Container(
@@ -1076,12 +1263,17 @@ class ChatScreen extends GetView<ChatScreenController> {
                                 Expanded(
                                   child: TextFormField(
                                     controller: controller.textController,
-                                    keyboardType: TextInputType.multiline,
+                                    // keyboardType: TextInputType.multiline,
                                     cursorColor: AppTheme.appColor,
-                                    maxLines: kIsWeb ? 1 : null,
-                                    textInputAction: kIsWeb
-                                        ? TextInputAction.send
-                                        : TextInputAction.newline,
+                                    // maxLines: kIsWeb ? 1 : null,
+                                    // textInputAction: kIsWeb
+                                    //     ? TextInputAction.send
+                                    //     : TextInputAction.newline,
+                                    keyboardType: TextInputType.multiline,
+                                    textInputAction: TextInputAction.newline,
+                                    minLines: 1,
+                                    maxLines: null, // unlimited lines
+                                    expands: false,
                                     onChanged: (text) {
                                       // if (text.isNotEmpty) {
                                       //   list[0].isTyping = true;
@@ -1118,6 +1310,11 @@ class ChatScreen extends GetView<ChatScreenController> {
                                       errorBorder: InputBorder.none,
                                       focusedBorder: InputBorder.none,
                                     ),
+                                    inputFormatters: [
+                                      FilteringTextInputFormatter.allow(
+                                        RegExp(r'[\s\S]'), // allows everything including new lines
+                                      ),
+                                    ],
 
                                   ),
                                 ),
@@ -1144,7 +1341,7 @@ class ChatScreen extends GetView<ChatScreenController> {
                               ],
                             ),
                           ),
-                        ),
+                        ),*/
                       ],
                     ),
                   ),
@@ -1219,18 +1416,15 @@ class ChatScreen extends GetView<ChatScreenController> {
     );
   }
 
-
-
   KeyEventResult _handleKey(FocusNode node, KeyEvent event) {
     if (!kIsWeb) return KeyEventResult.ignored;
 
-    if (event is KeyDownEvent &&
-        event.logicalKey == LogicalKeyboardKey.enter) {
+    if (event is KeyDownEvent && event.logicalKey == LogicalKeyboardKey.enter) {
       // Check if SHIFT is pressed
       final bool shiftPressed =
           HardwareKeyboard.instance.logicalKeysPressed.contains(
-            LogicalKeyboardKey.shiftLeft,
-          ) ||
+                LogicalKeyboardKey.shiftLeft,
+              ) ||
               HardwareKeyboard.instance.logicalKeysPressed.contains(
                 LogicalKeyboardKey.shiftRight,
               );
@@ -1248,7 +1442,7 @@ class ChatScreen extends GetView<ChatScreenController> {
     return KeyEventResult.ignored;
   }
 
-  _sendMessage(){
+  _sendMessage() {
     if (controller.textController.text.isNotEmpty) {
       if (controller.user?.userCompany?.isGroup == 1) {
         Get.find<SocketController>().sendMessage(
@@ -1274,7 +1468,6 @@ class ChatScreen extends GetView<ChatScreenController> {
           type: "broadcast",
           companyId: controller.user?.userCompany?.companyId,
           alreadySave: false,
-
         );
         controller.textController.clear();
         controller.replyToMessage = null;
@@ -1287,18 +1480,15 @@ class ChatScreen extends GetView<ChatScreenController> {
             type: "direct",
             companyId: controller.user?.userCompany?.companyId,
             alreadySave: false,
-            replyToId: controller.replyToMessage
-                ?.chatId,
-            replyToText: controller.replyToImage
-        );
+            replyToId: controller.replyToMessage?.chatId,
+            replyToText: controller.replyToImage);
         controller.textController.clear();
         controller.replyToMessage = null;
         controller.replyToImage = null;
         controller.update();
       }
 
-
-      if(controller.me?.userId==controller.user?.userId){
+      if (controller.me?.userId == controller.user?.userId) {
         print("read=========");
         controller.markAllVisibleAsReadOnOpen();
       }
@@ -1321,12 +1511,18 @@ class ChatScreen extends GetView<ChatScreenController> {
       builder: (_) => SafeArea(
         child: Padding(
           padding:
-          const EdgeInsets.only(top: 16, left: 15, right: 15, bottom: 60),
+              const EdgeInsets.only(top: 16, left: 15, right: 15, bottom: 60),
           child: Wrap(
             children: [
               ListTile(
-                leading:  Icon(Icons.camera_alt_outlined,size: 20,),
-                title:  Text("Camera",style: BalooStyles.baloomediumTextStyle(),),
+                leading: const Icon(
+                  Icons.camera_alt_outlined,
+                  size: 20,
+                ),
+                title: Text(
+                  "Camera",
+                  style: BalooStyles.baloomediumTextStyle(),
+                ),
                 onTap: () async {
                   Get.back();
                   final ImagePicker picker = ImagePicker();
@@ -1344,15 +1540,21 @@ class ChatScreen extends GetView<ChatScreenController> {
                 },
               ),
               ListTile(
-                leading:  Icon(Icons.photo_library_outlined,size: 20,),
-                title:  Text("Gallery",style: BalooStyles.baloomediumTextStyle(),),
+                leading: const Icon(
+                  Icons.photo_library_outlined,
+                  size: 20,
+                ),
+                title: Text(
+                  "Gallery",
+                  style: BalooStyles.baloomediumTextStyle(),
+                ),
                 onTap: () async {
                   Get.back();
                   final ImagePicker picker = ImagePicker();
 
                   // Picking multiple images
                   final List<XFile> images =
-                  await picker.pickMultiImage(imageQuality: 40, limit: 10);
+                      await picker.pickMultiImage(imageQuality: 40, limit: 10);
 
                   // uploading & sending image one by one
                   controller.images.addAll(images);
@@ -1361,8 +1563,14 @@ class ChatScreen extends GetView<ChatScreenController> {
                 },
               ),
               ListTile(
-                leading:  Icon(Icons.picture_as_pdf_outlined,size: 20,),
-                title:  Text("Document",style: BalooStyles.baloomediumTextStyle(),),
+                leading: const Icon(
+                  Icons.picture_as_pdf_outlined,
+                  size: 20,
+                ),
+                title: Text(
+                  "Document",
+                  style: BalooStyles.baloomediumTextStyle(),
+                ),
                 onTap: () {
                   Get.back();
                   controller.pickDocument();
@@ -1375,7 +1583,6 @@ class ChatScreen extends GetView<ChatScreenController> {
     );
   }
 
-
   void showUploadOptionsWeb(BuildContext context) {
     showDialog(
       context: context,
@@ -1387,7 +1594,7 @@ class ChatScreen extends GetView<ChatScreenController> {
           children: [
             Text(
               'On web, use your computer’s picker to select images or documents.\n'
-                  'You can choose multiple images at once.',
+              'You can choose multiple images at once.',
               style: TextStyle(fontSize: 13),
             ),
           ],
@@ -1406,7 +1613,11 @@ class ChatScreen extends GetView<ChatScreenController> {
             },
             child: const Row(
               mainAxisSize: MainAxisSize.min,
-              children: [Icon(Icons.photo), SizedBox(width: 8), Text('Select Images')],
+              children: [
+                Icon(Icons.photo),
+                SizedBox(width: 8),
+                Text('Select Images')
+              ],
             ),
           ),
           TextButton(
@@ -1421,7 +1632,11 @@ class ChatScreen extends GetView<ChatScreenController> {
             },
             child: const Row(
               mainAxisSize: MainAxisSize.min,
-              children: [Icon(Icons.picture_as_pdf), SizedBox(width: 8), Text('Select Documents')],
+              children: [
+                Icon(Icons.picture_as_pdf),
+                SizedBox(width: 8),
+                Text('Select Documents')
+              ],
             ),
           ),
           TextButton(
@@ -1468,7 +1683,13 @@ class ChatScreen extends GetView<ChatScreenController> {
       allowMultiple: true,
       type: FileType.custom,
       allowedExtensions: const [
-        'pdf', 'doc', 'docx', 'xls', 'xlsx', 'csv', 'txt'
+        'pdf',
+        'doc',
+        'docx',
+        'xls',
+        'xlsx',
+        'csv',
+        'txt'
       ],
       withData: true,
       withReadStream: false,
@@ -1484,8 +1705,6 @@ class ChatScreen extends GetView<ChatScreenController> {
     if (lower.endsWith('.jpg') || lower.endsWith('.jpeg')) return 'image/jpeg';
     return 'image/*';
   }
-
-
 
   // bottom sheet for modifying message details
   void _showBottomSheet(bool isMe, {required ChatHisList data}) async {
@@ -1510,66 +1729,64 @@ class ChatScreen extends GetView<ChatScreenController> {
 
               data.message != ''
                   ?
-              //copy option
-              _OptionItem(
-                  icon: const Icon(Icons.copy_all_rounded,
-                      color: Colors.blue, size: 18),
-                  name: 'Copy Text',
-                  onTap: () async {
-                    await Clipboard.setData(
-                        ClipboardData(text: data.message ?? ''))
-                        .then((value) {
-                      //for hiding bottom sheet
-                      Get.back();
+                  //copy option
+                  _OptionItem(
+                      icon: const Icon(Icons.copy_all_rounded,
+                          color: Colors.blue, size: 18),
+                      name: 'Copy Text',
+                      onTap: () async {
+                        await Clipboard.setData(
+                                ClipboardData(text: data.message ?? ''))
+                            .then((value) {
+                          //for hiding bottom sheet
+                          Get.back();
 
-                      // Dialogs.showSnackbar(context, 'Text Copied!');
-                    });
-                  })
+                          // Dialogs.showSnackbar(context, 'Text Copied!');
+                        });
+                      })
                   : (data.media ?? []).isNotEmpty
-                  ?
-              //save option
-              !((data.media ?? []).isNotEmpty)?  _OptionItem(
-                  icon:  Icon(Icons.download_rounded,
-                      color: appColorYellow, size: 18),
-                  name: 'Save Image',
-                  onTap: () async {
-                    try {
-                      Get.back();
-                      controller.saveAll(
-                        data.media ?? [],
-                      );
-                    } catch (e) {
-                      toast('Something went wrong!');
-                    }
-                  })
-                  : const SizedBox()
+                      ?
+                      //save option
+                      !((data.media ?? []).isNotEmpty)
+                          ? _OptionItem(
+                              icon: Icon(Icons.download_rounded,
+                                  color: appColorYellow, size: 18),
+                              name: 'Save Image',
+                              onTap: () async {
+                                try {
+                                  Get.back();
+                                  controller.saveAll(
+                                    data.media ?? [],
+                                  );
+                                } catch (e) {
+                                  toast('Something went wrong!');
+                                }
+                              })
+                          : const SizedBox()
+                      : const SizedBox(),
+
+              !((data.media ?? []).isNotEmpty)
+                  ? _OptionItem(
+                      icon: Icon(Icons.reply, color: appColorYellow, size: 18),
+                      name: 'Reply',
+                      onTap: () async {
+                        try {
+                          Get.back();
+                          controller.refIdis = data.chatId;
+                          controller.userIDSender = data.fromUser?.userId;
+                          controller.userNameReceiver =
+                              data.toUser?.displayName ?? '';
+                          controller.userNameSender =
+                              data.fromUser?.displayName ?? '';
+                          controller.userIDReceiver = data.toUser?.userId;
+                          controller.replyToMessage = data;
+
+                          controller.update();
+                        } catch (e) {
+                          toast('Something went wrong!');
+                        }
+                      })
                   : const SizedBox(),
-
-
-              !((data.media ?? []).isNotEmpty)?     _OptionItem(
-                    icon:  Icon(Icons.reply,
-                        color: appColorYellow, size: 18),
-                    name: 'Reply',
-                    onTap: () async {
-                      try {
-                        Get.back();
-                        controller.refIdis = data.chatId;
-                        controller.userIDSender =
-                            data.fromUser?.userId;
-                        controller.userNameReceiver =
-                            data.toUser?.displayName ?? '';
-                        controller.userNameSender =
-                            data.fromUser?.displayName ?? '';
-                        controller.userIDReceiver =
-                            data.toUser?.userId;
-                        controller.replyToMessage = data;
-
-
-                        controller.update();
-                      } catch (e) {
-                        toast('Something went wrong!');
-                      }
-                    }):SizedBox(),
 
               /*_OptionItem(
                     icon:  Icon(Icons.document_scanner,
@@ -1633,8 +1850,8 @@ class ChatScreen extends GetView<ChatScreenController> {
                           mode: controller.user?.userCompany?.isGroup == 1
                               ? "group"
                               : controller.user?.userCompany?.isBroadcast == 1
-                              ? "broadcast"
-                              : "direct",
+                                  ? "broadcast"
+                                  : "direct",
                           chatId: data.chatId ?? 0,
                           groupId: controller.user?.userCompany?.isGroup == 1
                               ? controller.user?.userCompany?.userCompanyId
@@ -1688,10 +1905,10 @@ class ChatScreen extends GetView<ChatScreenController> {
           final double maxDialogWidth = screenW >= 1440
               ? 560
               : screenW >= 1024
-              ? 520
-              : screenW >= 768
-              ? 500
-              : screenW * 0.92;
+                  ? 520
+                  : screenW >= 768
+                      ? 500
+                      : screenW * 0.92;
 
           // Keep height comfortable and scroll if needed
           final double maxDialogHeight = screenH * 0.9;
@@ -1702,7 +1919,8 @@ class ChatScreen extends GetView<ChatScreenController> {
                 maxWidth: maxDialogWidth,
                 maxHeight: maxDialogHeight,
               ),
-              child: Material( // keeps proper text scaling/ink on web
+              child: Material(
+                // keeps proper text scaling/ink on web
                 type: MaterialType.transparency,
                 child: SingleChildScrollView(
                   padding: EdgeInsets.symmetric(
@@ -1732,8 +1950,8 @@ class ChatScreen extends GetView<ChatScreenController> {
                             FocusScope.of(Get.context!).unfocus();
                           },
                           labletext: "Document Name",
-                          validator: (value) =>
-                              value?.isEmptyField(messageTitle: "Document Name"),
+                          validator: (value) => value?.isEmptyField(
+                              messageTitle: "Document Name"),
                         ),
                         vGap(40),
                         Row(
@@ -1742,11 +1960,13 @@ class ChatScreen extends GetView<ChatScreenController> {
                               child: GradientButton(
                                 name: "Save",
                                 btnColor: appColorYellow,
-                                gradient: LinearGradient(colors: [appColorYellow, appColorYellow]),
+                                gradient: LinearGradient(
+                                    colors: [appColorYellow, appColorYellow]),
                                 vPadding: 6,
                                 onTap: () async {
                                   if (_formKeyDoc.currentState!.validate()) {
-                                    controller.onTapSaveToFolder(Get.context!,controller.user);
+                                    controller.onTapSaveToFolder(
+                                        Get.context!, controller.user);
                                   }
                                   // logoutLocal();
                                 },
@@ -1758,7 +1978,10 @@ class ChatScreen extends GetView<ChatScreenController> {
                                 name: "Cancel",
                                 btnColor: Colors.black,
                                 color: Colors.black,
-                                gradient: LinearGradient(colors: [AppTheme.whiteColor, AppTheme.whiteColor]),
+                                gradient: LinearGradient(colors: [
+                                  AppTheme.whiteColor,
+                                  AppTheme.whiteColor
+                                ]),
                                 vPadding: 6,
                                 onTap: () {
                                   Get.back();
@@ -1780,7 +2003,6 @@ class ChatScreen extends GetView<ChatScreenController> {
       onOkTap: () {},
     );
   }
-
 
   Widget buildMessageBubble(ChatHisList msg, {required bool isMine}) {
     final bool isDeleted = (msg.message == null || msg.message!.isEmpty);
@@ -1812,7 +2034,7 @@ class ChatScreen extends GetView<ChatScreenController> {
     return _chatMessageTile(
         data: msg,
         sentByMe: (controller.me?.userId.toString() ==
-            msg.fromUser?.userId?.toString()
+                msg.fromUser?.userId?.toString()
             ? true
             : false),
         formatedTime: formatatedTime);

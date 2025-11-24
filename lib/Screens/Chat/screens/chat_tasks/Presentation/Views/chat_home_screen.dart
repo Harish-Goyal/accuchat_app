@@ -28,6 +28,7 @@ import '../Widgets/broad_cast_card.dart';
 import '../Widgets/chat_group_card.dart';
 import '../Widgets/chat_user_card.dart';
 import '../Controllers/chat_home_controller.dart';
+import '../Widgets/chat_user_card_mobile.dart';
 import 'chat_groups.dart';
 import 'chat_task_shimmmer.dart';
 import 'chats_broadcasts.dart';
@@ -119,13 +120,14 @@ class ChatsHomeScreen extends GetView<ChatHomeController> {
                                       style:
                                           BalooStyles.balooboldTitleTextStyle(
                                               color: AppTheme.appColor,
-                                              size: 18),
+                                              size: 16),
                                     ).paddingOnly(left: 4, top: 4),
                                     Text(
                                       (controller.myCompany?.companyName ?? '')
                                           .toUpperCase(),
-                                      style: BalooStyles.baloosemiBoldTextStyle(
+                                      style: BalooStyles.baloomediumTextStyle(
                                         color: appColorYellow,
+                                        size:14
                                       ),
                                       maxLines: 1,
                                       overflow: TextOverflow.ellipsis,
@@ -151,7 +153,7 @@ class ChatsHomeScreen extends GetView<ChatHomeController> {
                             arguments: {"isRecent": 'false'});
                       }
                     },
-                    icon: Icon(Icons.add_comment_outlined,size: 20,color: Colors.black87,)):SizedBox(),
+                    icon: const Icon(Icons.add_comment_outlined,size: 20,color: Colors.black87,)):const SizedBox(),
                 hGap(10),
                 Obx(
                    () {
@@ -234,7 +236,7 @@ class ChatsHomeScreen extends GetView<ChatHomeController> {
             ),
 
             //floating button to add new user
-            floatingActionButton:kIsWeb?SizedBox(): Padding(
+            floatingActionButton:kIsWeb?const SizedBox(): Padding(
               padding: const EdgeInsets.only(bottom: 10),
               child: FloatingActionButton(
                   onPressed: () {
@@ -289,7 +291,7 @@ class ChatsHomeScreen extends GetView<ChatHomeController> {
 
                         Expanded(
                           child: selected == null
-                              ? Center(child: Text("Select a chat to start messaging"))
+                              ? const Center(child: Text("Select a chat to start messaging"))
                               : ChatScreen(user: selected,showBack: false,),   // <- correct
                         ),
                       ],
@@ -323,7 +325,7 @@ class ChatsHomeScreen extends GetView<ChatHomeController> {
             controller: controller.scrollController,
             itemBuilder: (context, index) {
               final item = controller.filteredList[index];
-              return ChatUserCard(user: item);
+              return  kIsWeb?ChatUserCard(user: item):ChatUserCardMobile(user: item);
             },
           );
         }
@@ -369,7 +371,7 @@ class ChatsHomeScreen extends GetView<ChatHomeController> {
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
       child: Text(title,
-          style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
+          style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
     );
   }
 
@@ -465,8 +467,8 @@ class ChatsHomeScreen extends GetView<ChatHomeController> {
                   borderRadius: BorderRadius.circular(20)),
 
               //title
-              title: Row(
-                children: const [
+              title: const Row(
+                children: [
                   Icon(
                     Icons.person_add,
                     color: Colors.blue,

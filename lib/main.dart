@@ -26,7 +26,6 @@ import 'Services/storage_service.dart';
 import 'Services/subscription/billing_controller.dart';
 import 'Services/subscription/billing_service.dart';
 import 'firebase_options.dart';
-import 'dart:html' as html;
 
 
 // 9882896000
@@ -64,11 +63,7 @@ Future<void> main() async {
   ));
 
   WidgetsFlutterBinding.ensureInitialized();
-  html.window.onBeforeUnload.listen((event) {
-    try {
-      SocketController().socket!.dispose();
-    } catch (_) {}
-  });
+
   await StorageService.init();
   await HiveBoot.init();
   await HiveBoot.openBoxOnce<CompanyData>(selectedCompanyBox);

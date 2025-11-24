@@ -3,6 +3,7 @@ import 'dart:io';
 import 'package:AccuChat/Screens/Chat/models/chat_his_res_model.dart';
 import 'package:AccuChat/Screens/Chat/models/chat_history_response_model.dart';
 import 'package:AccuChat/Screens/Chat/models/task_res_model.dart';
+import 'package:AccuChat/Screens/Chat/screens/chat_tasks/Presentation/Views/taskThreadScreenWEb.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
@@ -181,7 +182,7 @@ class TaskController extends GetxController {
     update();
 
     if(kIsWeb){
-      Get.toNamed("${AppRoutes.task_threads}?currentUserId=${user?.userId.toString()}&taskMsgId=${element.taskMsg.taskId.toString()}"
+      Get.toNamed("${AppRoutes.task_threads_web}?currentUserId=${user?.userId.toString()}&taskMsgId=${element.taskMsg.taskId.toString()}"
       );
 
     }else{
@@ -237,7 +238,7 @@ class TaskController extends GetxController {
                 color: Colors.white,
                 borderRadius: BorderRadius.circular(22),
                 clipBehavior: Clip.antiAlias,
-                child: TaskThreadScreen(),   // <- Your original Screen
+                child: TaskThreadScreenWeb(),   // <- Your original Screen
               ),
             ),
           ).marginAll(50);

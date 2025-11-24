@@ -38,12 +38,11 @@ class ChatUserCard extends StatefulWidget with WidgetsBindingObserver {
 
 class _ChatUserCardState extends State<ChatUserCard>
     with WidgetsBindingObserver {
-  //last message info (if null --> no message)
+  // last message info (if null --> no message)
   RecentChatUserList? _message;
 
   @override
   void didChangeAppLifecycleState(AppLifecycleState state) {
-
     switch (state) {
       case AppLifecycleState.resumed:
         // App is in the foreground
@@ -120,7 +119,6 @@ class _ChatUserCardState extends State<ChatUserCard>
                   }
 
                 }else{
-
                   if (kIsWeb) {
                     final homec = Get.find<ChatHomeController>();
                     final chatc = Get.find<ChatScreenController>();
@@ -184,12 +182,12 @@ class _ChatUserCardState extends State<ChatUserCard>
                   //user name
                   title:(widget.user?.userCompany?.isGroup==1|| widget.user?.userCompany?.isBroadcast==1)? Text(
                     (widget.user?.userId==APIs.me.userId)?"Me":  (widget.user?.userName==''||widget.user?.userName==null)?widget.user?.phone??'':widget.user?.userName??'',
-                    style: themeData.textTheme.titleSmall,
+                    style: BalooStyles.baloonormalTextStyle(),
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
                   ):Text(
                     (widget.user?.userId==APIs.me.userId)?"Me":  (widget.user?.displayName==''||widget.user?.displayName==null)?widget.user?.phone??'':widget.user?.displayName??'',
-                    style: themeData.textTheme.titleSmall,
+                    style: BalooStyles.baloonormalTextStyle(),
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
                   ),
@@ -198,7 +196,7 @@ class _ChatUserCardState extends State<ChatUserCard>
                   subtitle: Text(
                     widget.user?.lastMessage?.message??'',
                     maxLines: 1,
-                    style: BalooStyles.balooregularTextStyle(),
+                    style: BalooStyles.balooregularTextStyle(color: greyText,size: 13),
                     overflow: TextOverflow.ellipsis,
                   ),
 
@@ -234,3 +232,13 @@ class _ChatUserCardState extends State<ChatUserCard>
     );
   }
 }
+
+
+
+
+
+
+
+
+
+

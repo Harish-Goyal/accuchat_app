@@ -39,7 +39,7 @@ class ChatScreenController extends GetxController {
   ChatScreenController({required this.user});
   final formKeyDoc = GlobalKey<FormState>();
   UserDataAPI? user;
-
+  int? currentChatId;
   // Message? forwardMessage;
   final _alreadyEmitted = <int>{};
   String? selectedChatId;
@@ -48,6 +48,8 @@ class ChatScreenController extends GetxController {
   List<ChatHisResModel> msgList = [];
   final textController = TextEditingController();
   final FocusNode focusNode = FocusNode();
+  FocusNode messageParentFocus = FocusNode();   // for keyboard events only
+  FocusNode messageInputFocus = FocusNode();
   ChatHisList? replyToMessage;
   String? replyToImage;
   bool showEmoji = false, isUploading = false, isUploadingTaskDoc = false;
@@ -277,10 +279,10 @@ class ChatScreenController extends GetxController {
   void onInit() {
     super.onInit();
 
-    if (kIsWeb) {
-      // web pe type karte hi yehi node focused rahe
-      focusNode.requestFocus();
-    }
+    // if (kIsWeb) {
+    //   // web pe type karte hi yehi node focused rahe
+    //   focusNode.requestFocus();
+    // }
     getArguments();
     user = Get.find<ChatHomeController>().selectedChat.value;
     // _initScroll();
@@ -492,8 +494,10 @@ class ChatScreenController extends GetxController {
         if (me?.userId == item.toUser?.userId) {
           markAllVisibleAsReadOnOpen();
         }
+
         return GroupChatElement(datais ?? DateTime.now(), item);
       }).toList();
+
       // rebuildFlatRows();
       update();
     }).onError((error, stackTrace) {

@@ -28,6 +28,7 @@ import '../Widgets/broad_cast_card.dart';
 import '../Widgets/chat_group_card.dart';
 import '../Widgets/chat_user_card.dart';
 import '../Controllers/chat_home_controller.dart';
+import '../Widgets/chat_user_card_mobile.dart';
 import 'chat_groups.dart';
 import 'chat_task_shimmmer.dart';
 import 'chats_broadcasts.dart';
@@ -110,11 +111,11 @@ class TaskHomeScreen extends GetView<TaskHomeController> {
                                   Text(
                                    "Tasks",
                                     style: BalooStyles.balooboldTitleTextStyle(
-                                        color:appColorYellow,size: 18),
+                                        color:appColorYellow,size: 16),
                                   ).paddingOnly(left: 8, top: 4),
                                   Text(
                                    ( controller.myCompany?.companyName??'').toUpperCase(),
-                                    style: BalooStyles.baloosemiBoldTextStyle(
+                                    style: BalooStyles.baloomediumTextStyle(
                                       color: appColorYellow,),
                                     maxLines: 1,
                                     overflow: TextOverflow.ellipsis,
@@ -314,7 +315,7 @@ class TaskHomeScreen extends GetView<TaskHomeController> {
                       }
                     },
                     child:
-                    ChatUserCard(user: item)
+                    kIsWeb?ChatUserCard(user: item):ChatUserCardMobile(user: item)
                 );
               },
             );
