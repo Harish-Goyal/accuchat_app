@@ -105,11 +105,12 @@ class ChatHomeController extends GetxController{
       recentChatUserList=value.data?.rows??[];
       filteredList.assignAll(recentChatUserList??[]);
       if(filteredList.isNotEmpty) {
-        selectedChat.value = filteredList[0];
-        // final chatc = Get.find<ChatScreenController>();
-        // chatc.user=selectedChat.value;
-        // chatc.openConversation(selectedChat.value);
-        // chatc.update();
+        if(selectedChat.value?.userId!=null){
+
+        }else{
+          selectedChat.value = filteredList[0];
+        }
+
       }
 
 

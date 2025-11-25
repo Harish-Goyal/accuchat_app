@@ -123,10 +123,14 @@ class _ChatUserCardMobileState extends State<ChatUserCardMobile>
             //user name
             title:(widget.user?.userCompany?.isGroup==1|| widget.user?.userCompany?.isBroadcast==1)? Text(
               (widget.user?.userId==APIs.me.userId)?"Me":  (widget.user?.userName==''||widget.user?.userName==null)?widget.user?.phone??'':widget.user?.userName??'',
-              style: themeData.textTheme.titleMedium,
+              style: BalooStyles.baloonormalTextStyle(),
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
             ):Text(
               (widget.user?.userId==APIs.me.userId)?"Me":  (widget.user?.displayName==''||widget.user?.displayName==null)?widget.user?.phone??'':widget.user?.displayName??'',
-              style: themeData.textTheme.titleMedium,
+              style: BalooStyles.baloonormalTextStyle(),
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
             ),
 
             //last message
@@ -134,7 +138,7 @@ class _ChatUserCardMobileState extends State<ChatUserCardMobile>
               widget.user?.lastMessage?.message??''
               ,
               maxLines: 1,
-              style: BalooStyles.balooregularTextStyle(),
+              style: BalooStyles.balooregularTextStyle(color: greyText,size: 13),
               overflow: TextOverflow.ellipsis,
             ),
 
@@ -148,6 +152,8 @@ class _ChatUserCardMobileState extends State<ChatUserCardMobile>
                   child: Text(
                     "${widget.user?.pendingCount}",
                     style: BalooStyles.baloonormalTextStyle(color: Colors.white),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
                   ),
                 ):SizedBox(),
                 widget.user?.open_count!=null&&widget.user?.open_count!=0 ? Spacer():SizedBox(),
@@ -155,6 +161,8 @@ class _ChatUserCardMobileState extends State<ChatUserCardMobile>
                   MyDateUtil.getLastMessageTime(
                       context: context, time: widget.user?.lastMessage?.messageTime??''),
                   style: const TextStyle(color: Colors.black54),
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
                 ).paddingOnly(bottom: 2),
               ],
             ),

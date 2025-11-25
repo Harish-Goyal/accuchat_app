@@ -141,7 +141,7 @@ class TaskHomeScreen extends GetView<TaskHomeController> {
                                   arguments: {"isRecent": 'false'});
                             }
                           },
-                          icon: Icon(Icons.add_comment_outlined,size: 20,color: Colors.black87,)):SizedBox(),
+                          icon: Icon(Icons.add_comment_outlined)):SizedBox(),
                       hGap(10),
                       Obx(
                               () {
@@ -192,7 +192,7 @@ class TaskHomeScreen extends GetView<TaskHomeController> {
 
                           // ---------------- MOBILE ----------------
                           if (w < 500) {
-                            return _recentTaskBody();  // your existing list
+                            return _recentTaskBody(true);  // your existing list
                           }
 
                           // ---------------- TABLET (Drawer + Recents) ----------------
@@ -204,7 +204,7 @@ class TaskHomeScreen extends GetView<TaskHomeController> {
                                 //   child: buildSideNav(dashboardController),   // <--- add your drawer here
                                 // ),
                                 Expanded(
-                                  child: _recentTaskBody(),
+                                  child: _recentTaskBody(true),
                                 ),
                               ],
                             );
@@ -214,7 +214,7 @@ class TaskHomeScreen extends GetView<TaskHomeController> {
 
                           return Row(
                             children: [
-                              SizedBox(width: 320, child: _recentTaskBody()),
+                              SizedBox(width: 320, child: _recentTaskBody(false)),
 
                               Expanded(
                                 child: selected == null
@@ -237,7 +237,7 @@ class TaskHomeScreen extends GetView<TaskHomeController> {
     );
   }
 
-  Widget _recentTaskBody(){
+  Widget _recentTaskBody(bool isWebwidth){
     return (controller.filteredList??[]).isEmpty?Center(
       child: InkWell(
         onTap: (){
@@ -315,7 +315,7 @@ class TaskHomeScreen extends GetView<TaskHomeController> {
                       }
                     },
                     child:
-                    kIsWeb?ChatUserCard(user: item):ChatUserCardMobile(user: item)
+                     kIsWeb && !isWebwidth?ChatUserCard(user: item):ChatUserCardMobile(user: item)
                 );
               },
             );

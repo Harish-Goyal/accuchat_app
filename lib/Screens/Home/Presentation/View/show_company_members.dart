@@ -14,6 +14,7 @@ import 'package:swipe_to/swipe_to.dart';
 import 'package:flutter/foundation.dart' show kIsWeb; // added for web checks
 
 import '../../../../routes/app_routes.dart';
+import '../../../../utils/animated_badge.dart';
 import '../../../../utils/custom_flashbar.dart';
 import '../../../../utils/data_not_found.dart';
 import '../../../../utils/helper_widget.dart';
@@ -175,8 +176,8 @@ class CompanyMembers extends GetView<CompanyMemberController> {
               contentPadding:
               const EdgeInsets.symmetric(horizontal: 10, vertical: 0),
               leading:
-                  memData?.displayName == '' ||
-                  memData?.displayName == null
+                  memData?.userImage == '' ||
+                  memData?.userImage == null
                   ? InkWell(
                     onTap: (){
                       showDialog(
@@ -219,11 +220,43 @@ class CompanyMembers extends GetView<CompanyMemberController> {
                     onLongPress: (){
                       controller.removeCompanyMember(memData);
                     },
+                    onTap: (){
+                      dcController.updateIndex(0);
+
+                      isTaskMode = false;
+                      controller.update();
+                      // APIs.updateActiveStatus(true);
+
+
+                      if(isTaskMode) {
+                        if(kIsWeb){
+                          Get.toNamed(
+                            "${AppRoutes.tasks_li_r}?userId=${memData?.userId.toString()}",
+                          );
+                        }else{
+                          Get.toNamed(
+                            AppRoutes.tasks_li_r,
+                            arguments: {'user': memData},
+                          );
+                        }
+                      }else{
+                        if(kIsWeb){
+                          Get.toNamed(
+                            "${AppRoutes.chats_li_r}?userId=${memData?.userId.toString()}",
+                          );
+                        }else{
+                          Get.toNamed(
+                            AppRoutes.chats_li_r,
+                            arguments: {'user': memData},
+                          );
+                        }
+                      }
+                    },
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        memData?.displayName == '' ||
-                            memData?.displayName == null
+                        memData?.userCompany?.displayName == '' ||
+                            memData?.userCompany?.displayName == null
                             ? Text(
                           (memData?.email != null)
                               ? memData?.email ?? ''
@@ -233,7 +266,7 @@ class CompanyMembers extends GetView<CompanyMemberController> {
                           overflow: TextOverflow.ellipsis,
                         )
                             : Text(
-                          memData?.displayName ?? '',
+                          memData?.userCompany?.displayName ?? '',
                           style: BalooStyles.baloosemiBoldTextStyle(),
                           maxLines: 1,
                           overflow: TextOverflow.ellipsis,
@@ -241,8 +274,8 @@ class CompanyMembers extends GetView<CompanyMemberController> {
 
                         vGap(4),
 
-                        memData?.displayName == '' ||
-                            memData?.displayName == null
+                        memData?.userCompany?.displayName == '' ||
+                            memData?.userCompany?.displayName == null
                             ? const SizedBox(
                           height: 0,
                         )
@@ -280,95 +313,122 @@ class CompanyMembers extends GetView<CompanyMemberController> {
                     Row(
                       mainAxisSize: MainAxisSize.min,
                       children: [
-                        TextButton(
-                            onPressed: () {
 
-                              dcController.updateIndex(0);
+                        Stack(
+                          clipBehavior: Clip.none,
+                          children: [
+                            TextButton(
+                                onPressed: () {
 
-                              isTaskMode = false;
-                              controller.update();
-                              // APIs.updateActiveStatus(true);
+                                  dcController.updateIndex(0);
+
+                                  isTaskMode = false;
+                                  controller.update();
+                                  // APIs.updateActiveStatus(true);
 
 
-                              if(isTaskMode) {
-                                if(kIsWeb){
-                                  Get.toNamed(
-                                    "${AppRoutes.tasks_li_r}?userId=${memData?.userId.toString()}",
-                                  );
-                                }else{
-                                  Get.toNamed(
-                                    AppRoutes.tasks_li_r,
-                                    arguments: {'user': memData},
-                                  );
-                                }
-                              }else{
-                                if(kIsWeb){
-                                  Get.toNamed(
-                                    "${AppRoutes.chats_li_r}?userId=${memData?.userId.toString()}",
-                                  );
-                                }else{
-                                  Get.toNamed(
-                                    AppRoutes.chats_li_r,
-                                    arguments: {'user': memData},
-                                  );
-                                }
-                              }
-                            },
-                            style: TextButton.styleFrom(
-                              // backgroundColor: appColorGreen.withOpacity(.1), // Button background color
-                              foregroundColor: appColorGreen,
-                              padding: const EdgeInsets.symmetric(
-                                  horizontal: 7.0,
-                                  vertical: 3.0), // reduce as needed
-                              minimumSize: const Size(0,
-                                  0), // optional: allows tighter sizing
-                              tapTargetSize: MaterialTapTargetSize
-                                  .shrinkWrap, // optional: reduces touch target
+                                  if(isTaskMode) {
+                                    if(kIsWeb){
+                                      Get.toNamed(
+                                        "${AppRoutes.tasks_li_r}?userId=${memData?.userId.toString()}",
+                                      );
+                                    }else{
+                                      Get.toNamed(
+                                        AppRoutes.tasks_li_r,
+                                        arguments: {'user': memData},
+                                      );
+                                    }
+                                  }else{
+                                    if(kIsWeb){
+                                      Get.toNamed(
+                                        "${AppRoutes.chats_li_r}?userId=${memData?.userId.toString()}",
+                                      );
+                                    }else{
+                                      Get.toNamed(
+                                        AppRoutes.chats_li_r,
+                                        arguments: {'user': memData},
+                                      );
+                                    }
+                                  }
+                                },
+                                style: TextButton.styleFrom(
+                                  // backgroundColor: appColorGreen.withOpacity(.1), // Button background color
+                                  foregroundColor: appColorGreen,
+                                  padding: const EdgeInsets.symmetric(
+                                      horizontal: 7.0,
+                                      vertical: 3.0), // reduce as needed
+                                  minimumSize: const Size(0,
+                                      0), // optional: allows tighter sizing
+                                  tapTargetSize: MaterialTapTargetSize
+                                      .shrinkWrap, // optional: reduces touch target
+                                ),
+                                child: Image.asset(chatHome,color: appColorGreen,height: 20,)),
+
+                            Positioned(
+                                top: -13,
+                                right: -7,
+                              child: AnimatedBadge(count:2,),
                             ),
-                            child: Image.asset(chatHome,color: appColorGreen,height: 20,)),
-                        TextButton(
-                            onPressed: () {
+                          ],
+                        ),
 
-                              dcController.updateIndex(1);
-
-                              isTaskMode = true;
-                              controller.update();
-                              if(isTaskMode) {
+                        hGap(12),
 
 
-                                if(kIsWeb){
-                                  Get.toNamed(
-                                    "${AppRoutes.tasks_li_r}?userId=${memData?.userId.toString()}",
-                                  );
-                                }else{
-                                  Get.toNamed(
-                                    AppRoutes.tasks_li_r,
-                                    arguments: {'user': memData},
-                                  );
-                                }
-                              }else{
-                                if(kIsWeb){
-                                  Get.toNamed(
-                                    "${AppRoutes.chats_li_r}?userId=${memData?.userId.toString()}",
-                                  );
-                                }else{
-                                  Get.toNamed(
-                                    AppRoutes.chats_li_r,
-                                    arguments: {'user': memData},
-                                  );
-                                }
-                              }
-                            },
-                            style: TextButton.styleFrom(
-                              padding: const EdgeInsets.symmetric(
-                                  horizontal: 6.0,
-                                  vertical: 3.0), // reduce as needed
-                              minimumSize: const Size(0,
-                                  0), // optional: allows tighter sizing
-                              tapTargetSize: MaterialTapTargetSize
-                                  .shrinkWrap, // optional: reduces touch target
+                        Stack(
+                          clipBehavior: Clip.none,
+                          children: [
+                            TextButton(
+                                onPressed: () {
+
+                                  dcController.updateIndex(1);
+
+                                  isTaskMode = true;
+                                  controller.update();
+                                  if(isTaskMode) {
+
+
+                                    if(kIsWeb){
+                                      Get.toNamed(
+                                        "${AppRoutes.tasks_li_r}?userId=${memData?.userId.toString()}",
+                                      );
+                                    }else{
+                                      Get.toNamed(
+                                        AppRoutes.tasks_li_r,
+                                        arguments: {'user': memData},
+                                      );
+                                    }
+                                  }else{
+                                    if(kIsWeb){
+                                      Get.toNamed(
+                                        "${AppRoutes.chats_li_r}?userId=${memData?.userId.toString()}",
+                                      );
+                                    }else{
+                                      Get.toNamed(
+                                        AppRoutes.chats_li_r,
+                                        arguments: {'user': memData},
+                                      );
+                                    }
+                                  }
+                                },
+                                style: TextButton.styleFrom(
+                                  padding: const EdgeInsets.symmetric(
+                                      horizontal: 6.0,
+                                      vertical: 3.0), // reduce as needed
+                                  minimumSize: const Size(0,
+                                      0), // optional: allows tighter sizing
+                                  tapTargetSize: MaterialTapTargetSize
+                                      .shrinkWrap, // optional: reduces touch target
+                                ),
+                                child: Image.asset(tasksHome,color: appColorYellow,height: 20,)),
+
+                            Positioned(
+                              top: -13,
+                              right: -7, // 👈 top-left corner (change to right for top-right)
+                              child: AnimatedBadge(count:4,),
                             ),
-                            child: Image.asset(tasksHome,color: appColorYellow,height: 20,)),
+                          ],
+                        ),
                       ],
                     )
                   ]),

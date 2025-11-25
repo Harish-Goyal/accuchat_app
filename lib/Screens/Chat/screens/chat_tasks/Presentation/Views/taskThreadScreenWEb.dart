@@ -26,10 +26,10 @@ import '../../../../api/apis.dart';
 import '../Widgets/staggered_view.dart';
 
 class TaskThreadScreenWeb extends GetView<TaskThreadController> {
-  const TaskThreadScreenWeb({
+   TaskThreadScreenWeb({
     super.key,
   });
-
+ final controller = Get.put<TaskThreadController>(TaskThreadController());
   @override
   Widget build(BuildContext context) {
 

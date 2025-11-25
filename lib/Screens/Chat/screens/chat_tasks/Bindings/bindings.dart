@@ -94,7 +94,8 @@ class CreateBroadcastBinding extends Bindings {
 class TaskThreadBinding extends Bindings {
   @override
   void dependencies() {
-    Get.put<TaskThreadController>(TaskThreadController());
+    Get.lazyPut<TaskThreadController>(() => TaskThreadController(),
+        fenix: true);
   }
 }
 class ViewProfileBinding extends Bindings {

@@ -29,23 +29,24 @@ class TaskThreadController extends GetxController {
 
   @override
   void onInit() {
+    super.onInit();
     _getCompany();
     getArguments();
 
 
-    super.onInit();
+
   }
 
   getArguments() {
     if(kIsWeb){
+      print("nul param");
       if (Get.parameters != null) {
+        print("param${Get.parameters['taskMsgId']}");
         final String? taskMessageId = Get.parameters['taskMsgId'];
         final currentUserID = Get.parameters['currentUserId'];
 
-        //TODO implemnets getting  task details
-        getTaskByIdApi(taskid: int.parse(taskMessageId??''));
         getUserByIdApi(userId: int.parse(currentUserID??''));
-
+        getTaskByIdApi(taskid: int.parse(taskMessageId??''));
       }
     }
     else{
@@ -259,6 +260,17 @@ class TaskThreadController extends GetxController {
         isUploading = false;
         update();
     }*/
+  }
+  @override
+  void dispose() {
+    // TODO: implement dispose
+    super.dispose();
+  }
+
+  @override
+  void onClose() {
+    // TODO: implement onClose
+    super.onClose();
   }
 }
 

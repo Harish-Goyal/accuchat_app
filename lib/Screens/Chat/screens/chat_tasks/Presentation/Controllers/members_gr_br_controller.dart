@@ -9,6 +9,7 @@ import 'package:get/get.dart';
 import '../../../../../../Services/APIs/local_keys.dart';
 import '../../../../../../Services/APIs/post/post_api_service_impl.dart';
 import '../../../../../../main.dart';
+import '../../../../../../routes/app_routes.dart';
 import '../../../../../../utils/custom_flashbar.dart';
 import '../../../../../Home/Presentation/Controller/company_service.dart';
 import '../../../../models/get_company_res_model.dart';
@@ -163,10 +164,8 @@ class GrBrMembersController extends GetxController{
         .deleteGrBrApiCall(dataBody: req)
         .then((value) async {
       customLoader.hide();
-      Get.back();
-      Get.back();
-      Get.find<ChatHomeController>().hitAPIToGetRecentChats();
-
+      // Get.find<ChatHomeController>().hitAPIToGetRecentChats();
+      Get.offAllNamed(AppRoutes.home);
       update();
     }).onError((error, stackTrace) {
       customLoader.hide();

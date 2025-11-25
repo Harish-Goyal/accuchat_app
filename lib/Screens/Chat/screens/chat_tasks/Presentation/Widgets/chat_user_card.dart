@@ -120,13 +120,15 @@ class _ChatUserCardState extends State<ChatUserCard>
 
                 }else{
                   if (kIsWeb) {
+
                     final homec = Get.find<ChatHomeController>();
                     final chatc = Get.find<ChatScreenController>();
+                    homec.hitAPIToGetRecentChats();
                     homec.selectedChat.value = widget.user;
                     chatc.user =homec.selectedChat.value;
                     chatc.showPostShimmer =true;
                     chatc.openConversation(widget.user);
-                    homec.selectedChat.refresh();
+                    // homec.selectedChat.refresh();
                     chatc.update();
                   } else {
                     Get.toNamed(
@@ -219,6 +221,8 @@ class _ChatUserCardState extends State<ChatUserCard>
                         MyDateUtil.getLastMessageTime(
                             context: context, time: widget.user?.lastMessage?.messageTime??''),
                         style: const TextStyle(color: Colors.black54),
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
                       ).paddingOnly(bottom: 2),
                     ],
                   ),

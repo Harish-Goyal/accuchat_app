@@ -153,7 +153,7 @@ class ChatsHomeScreen extends GetView<ChatHomeController> {
                             arguments: {"isRecent": 'false'});
                       }
                     },
-                    icon: const Icon(Icons.add_comment_outlined,size: 20,color: Colors.black87,)):const SizedBox(),
+                    icon: const Icon(Icons.add_comment_outlined)):const SizedBox(),
                 hGap(10),
                 Obx(
                    () {
@@ -265,7 +265,7 @@ class ChatsHomeScreen extends GetView<ChatHomeController> {
 
                   // ---------------- MOBILE ----------------
                   if (w < 500) {
-                    return _recentChatsList(controller);  // your existing list
+                    return _recentChatsList(controller,true,w);  // your existing list
                   }
 
                   // ---------------- TABLET (Drawer + Recents) ----------------
@@ -277,7 +277,7 @@ class ChatsHomeScreen extends GetView<ChatHomeController> {
                         //   child: buildSideNav(dashboardController),   // <--- add your drawer here
                         // ),
                         Expanded(
-                          child: _recentChatsList(controller),
+                          child: _recentChatsList(controller,true,w),
                         ),
                       ],
                     );
@@ -287,7 +287,7 @@ class ChatsHomeScreen extends GetView<ChatHomeController> {
 
                     return Row(
                       children: [
-                        SizedBox(width: 320, child: _recentChatsList(controller)),
+                        SizedBox(width: 320, child: _recentChatsList(controller,false,w)),
 
                         Expanded(
                           child: selected == null
@@ -309,7 +309,7 @@ class ChatsHomeScreen extends GetView<ChatHomeController> {
     );
   }
 
-  Widget _recentChatsList(ChatHomeController controller) {
+  Widget _recentChatsList(ChatHomeController controller,bool isWebwidth,double width) {
     return (!controller.isLoading||controller.filteredList!=[])
         ? RefreshIndicator(
       backgroundColor: Colors.white,
@@ -325,7 +325,7 @@ class ChatsHomeScreen extends GetView<ChatHomeController> {
             controller: controller.scrollController,
             itemBuilder: (context, index) {
               final item = controller.filteredList[index];
-              return  kIsWeb?ChatUserCard(user: item):ChatUserCardMobile(user: item);
+              return  kIsWeb && !isWebwidth?ChatUserCard(user: item):ChatUserCardMobile(user: item);
             },
           );
         }

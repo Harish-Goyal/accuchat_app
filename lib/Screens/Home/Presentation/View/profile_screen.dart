@@ -70,21 +70,27 @@ class ProfileScreen extends GetView<HProfileController> {
         // for hiding keyboard
         onTap: () => FocusScope.of(context).unfocus(),
         child: Scaffold(
+          backgroundColor: Colors.white,
           appBar: AppBar(
+            backgroundColor: Colors.white,
             title: Text(
               'Profile',
               style: BalooStyles.balooboldTitleTextStyle(),
             ),
             actions: [
-              InkWell(
-                onTap: () async {
+              IconButton(
+                onPressed: () async {
                   showResponsiveLogoutDialog();
                 },
-                child: Container(
-                  padding: const EdgeInsets.all(10),
-                  child: const Icon(Icons.logout),
+                icon: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Text("Logout",style: BalooStyles.baloosemiBoldTextStyle(),),
+                    hGap(5),
+                    const Icon(Icons.logout,size: 16,),
+                  ],
                 ),
-              ),
+              ).marginSymmetric(horizontal: 15),
             ],
           ),
 

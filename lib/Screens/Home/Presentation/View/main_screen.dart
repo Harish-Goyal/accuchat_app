@@ -35,7 +35,7 @@ class AccuChatDashboard extends StatelessWidget {
                 child: buildSideNav(controller)), // For web/tablet
             Expanded(
               child: controller.screens.isEmpty
-                  ? SizedBox()
+                  ? const SizedBox()
                   : ConstrainedBox(
                       constraints: const BoxConstraints(maxWidth: 1000),
                       child: controller.screens[controller.currentIndex],
@@ -47,7 +47,7 @@ class AccuChatDashboard extends StatelessWidget {
         bottomNavigationBar: isWideScreen
             ? null
             : controller.screens.isEmpty
-                ? SizedBox()
+                ? const SizedBox()
                 : _bottomNavigationBar(),
       );
     }));
@@ -224,7 +224,7 @@ class AccuChatDashboard extends StatelessWidget {
         appColorYellow.withOpacity(.8)
       ]),
       selectedItemGradient:
-          LinearGradient(colors: [Colors.white, Colors.white]),
+          const LinearGradient(colors: [Colors.white, Colors.white]),
       showSelectedLabels: true,
       selectedLabelStyle:
           BalooStyles.baloonormalTextStyle(size: 14, color: Colors.white),
@@ -268,8 +268,8 @@ Widget buildSideNav(DashboardController controller) {
             }
             controller.update();
           },
-          unselectedIconTheme: IconThemeData(color: Colors.black45),
-          selectedIconTheme: IconThemeData(color: Colors.white),
+          unselectedIconTheme: const IconThemeData(color: Colors.black45),
+          selectedIconTheme: const IconThemeData(color: Colors.white),
           useIndicator: true,
           indicatorColor: appColorGreen,
           labelType: NavigationRailLabelType.all,
@@ -317,8 +317,8 @@ Widget buildSideNav(DashboardController controller) {
             Get.toNamed(AppRoutes.all_settings);
         },
         child: Container(
-          padding: EdgeInsets.all(15),
-          margin: EdgeInsets.all(2),
+          padding: const EdgeInsets.all(15),
+          margin: const EdgeInsets.all(2),
           color: Colors.white,
           child: Image.asset(
             settingPng,

@@ -3,6 +3,7 @@ import 'dart:io';
 import 'package:AccuChat/Screens/Chat/models/chat_his_res_model.dart';
 import 'package:AccuChat/Screens/Chat/models/chat_history_response_model.dart';
 import 'package:AccuChat/Screens/Chat/models/task_res_model.dart';
+import 'package:AccuChat/Screens/Chat/screens/chat_tasks/Presentation/Controllers/task_thread_controller.dart';
 import 'package:AccuChat/Screens/Chat/screens/chat_tasks/Presentation/Views/taskThreadScreenWEb.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/foundation.dart';
@@ -204,7 +205,7 @@ class TaskController extends GetxController {
   }) {
     Get.find<SocketController>().joinTaskEmitter(taskId: groupElement?.taskMsg.taskId??0);
 
-    // Set the message being replied to
+    // // Set the message being replied to
     refIdis = groupElement?.taskMsg.taskId;
     userIDSender = groupElement?.taskMsg.fromUser?.userId;
     userNameReceiver =
@@ -243,7 +244,9 @@ class TaskController extends GetxController {
             ),
           ).marginAll(50);
         },
-      );
+      ).then((_) {
+        Get.delete<TaskThreadController>(force: true);
+      });
 
     } else {
       // Mobile → normal navigation
@@ -836,6 +839,7 @@ class TaskController extends GetxController {
               taskDes: descController.text.trim(),
               taskStatusId: taskStatusId,
             );
+            Get.back();
           }
           clearFields();
           update();
