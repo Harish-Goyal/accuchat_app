@@ -1,5 +1,9 @@
+
+import 'dart:typed_data';
+
 import 'package:AccuChat/Screens/Chat/screens/auth/models/get_uesr_Res_model.dart';
 import 'package:flutter/cupertino.dart';
+import 'package:flutter/foundation.dart';
 import 'package:get/get.dart';
 import 'package:dio/dio.dart' as multi;
 import 'package:http_parser/http_parser.dart';
@@ -18,7 +22,7 @@ class HProfileController extends GetxController {
   String? image;
 
   String profileImg = '';
-
+  Uint8List? webImageBytes;
  TextEditingController nameC=TextEditingController();
  TextEditingController aboutC=TextEditingController();
  TextEditingController phoneC=TextEditingController();
@@ -89,6 +93,22 @@ class HProfileController extends GetxController {
       "user_name": nameC.text.trim(),
       "about": aboutC.text.trim(),
     });
+
+
+    if (kIsWeb) {
+      if (webImageBytes != null) {
+        reqData.files.add(
+          MapEntry(
+            "user_image",
+            multi.MultipartFile.fromBytes(
+              webImageBytes!,                       // Uint8List
+              filename: "profile_${DateTime.now().millisecondsSinceEpoch}.jpg",
+              contentType: MediaType("image", "jpeg"),
+            ),
+          ),
+        );
+      }
+    } else {
     if (image != '' && image != null ) {
       reqData.files.add(MapEntry(
           "user_image",
@@ -98,6 +118,7 @@ class HProfileController extends GetxController {
             contentType: MediaType("image", "jpeg"),
           )));
 
+    }
     }
 
     Get.find<AuthApiServiceImpl>().updateUserApiCall(

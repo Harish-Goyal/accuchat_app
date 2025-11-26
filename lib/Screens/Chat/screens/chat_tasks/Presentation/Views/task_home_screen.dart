@@ -141,7 +141,7 @@ class TaskHomeScreen extends GetView<TaskHomeController> {
                                   arguments: {"isRecent": 'false'});
                             }
                           },
-                          icon: Icon(Icons.add_comment_outlined)):SizedBox(),
+                          icon:  Image.asset(addNewChatPng,height:27,width:27)):SizedBox(),
                       hGap(10),
                       Obx(
                               () {
@@ -149,12 +149,17 @@ class TaskHomeScreen extends GetView<TaskHomeController> {
                                 onPressed: () {
                                   controller.isSearching.value = !controller.isSearching.value;
                                   controller.isSearching.refresh();
+                                  if(!controller.isSearching.value){
+                                    controller.searchQuery = '';
+                                    controller.onSearch('');
+                                    controller.seacrhCon.clear();
+                                  }
                                   // controller.update();
                                 },
-                                icon:  Icon(controller.isSearching.value
-                                    ? CupertinoIcons.clear_circled_solid
-                                    : Icons.search)
-                            ).paddingOnly(top: 0, right: 10);
+                                icon:controller.isSearching.value?  const Icon(
+                                     CupertinoIcons.clear_circled_solid)
+                                    : Image.asset(searchPng,height:25,width:25)
+                            ).paddingOnly(top: 0, right: 0);
                           }
                       ),
 

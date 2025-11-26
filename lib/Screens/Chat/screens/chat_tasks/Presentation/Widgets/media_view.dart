@@ -198,7 +198,7 @@ class ChatMessageMedia extends StatelessWidget {
               showHeaderName: isGroupMessage,
               whoText: fromId == myId ? 'You' : (senderName ?? ''),
               items: docs,
-              leadingBuilder: (item) => Icon(iconForFile(item.fileName), size: 40, color: Colors.indigo),
+              leadingBuilder: (item) => Icon(iconForFile(item.fileName), size: 35, color: Colors.indigo),
               onTap: (item) => onOpenDocument?.call(item.url),
             ),
           // ),
@@ -361,78 +361,77 @@ class _FileTiles extends StatelessWidget {
   Widget build(BuildContext context) {
     // ✅ keep header aligned and width-limited via parent _BubbleWrapper
     final textScale = MediaQuery.of(context).textScaleFactor.clamp(0.9, 1.2);
-    return MediaQuery(
-      data: MediaQuery.of(context).copyWith(textScaleFactor: textScale),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.end,
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          // if (showHeaderName)
-          //   Text(
-          //     whoText,
-          //     style: Theme.of(context)
-          //         .textTheme
-          //         .bodySmall
-          //         ?.copyWith(fontSize: 13, color: labelColorForSender),
-          //   ),
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.end,
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        // if (showHeaderName)
+        //   Text(
+        //     whoText,
+        //     style: Theme.of(context)
+        //         .textTheme
+        //         .bodySmall
+        //         ?.copyWith(fontSize: 13, color: labelColorForSender),
+        //   ),
 
-          ...items.map((item) {
-            final fileName = item.fileName;
-            const sizeText = '';
+        ...items.map((item) {
+          final fileName = item.fileName;
+          const sizeText = '';
 
-            // ✅ nicer hover + pointer on web
-            final tile = InkWell(
-              onTap: () => onTap(item),
-              child: Container(
-                margin: const EdgeInsets.only(bottom:16),
-                padding: const EdgeInsets.all(8),
-                decoration: BoxDecoration(
-                  color: Colors.grey.shade100,
-                  borderRadius: BorderRadius.circular(10),
-                  border: Border.all(color: Colors.blue.shade200),
-                ),
-                child: Row(
-                  crossAxisAlignment: CrossAxisAlignment.center,
-                  children: [
-                    leadingBuilder(item),
-                    const SizedBox(width: 5),
-                    Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          // On web we often want selection; but keeping Text simple as per your code
-                          Text(
-                            fileName,
-                            maxLines: 2,
-                            overflow: TextOverflow.ellipsis,
-                            style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w600),
-                          ),
-                          const SizedBox(height: 4),
-                          Row(
-                            children: [
-                              const Text("Tap to view", style: TextStyle(fontSize: 12, color: Colors.grey)),
-                              if (sizeText.isNotEmpty)
-                                Text(" • $sizeText", style: const TextStyle(fontSize: 12, color: Colors.grey)),
-                            ],
-                          ),
-                        ],
-                      ),
-                    ),
-                    const Icon(Icons.arrow_forward_ios, size: 14,color: Colors.black45,),
-                  ],
-                ),
+          // ✅ nicer hover + pointer on web
+          final tile = InkWell(
+            onTap: () => onTap(item),
+            child: Container(
+              margin: const EdgeInsets.only(bottom:14),
+              padding: const EdgeInsets.all(8),
+              decoration: BoxDecoration(
+                color: Colors.grey.shade100,
+                borderRadius: BorderRadius.circular(10),
+                border: Border.all(color: Colors.blue.shade200),
               ),
-            );
+              child: Row(
+                // crossAxisAlignment: CrossAxisAlignment.center,
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  leadingBuilder(item),
+                  const SizedBox(width: 5),
+                  Flexible(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        // On web we often want selection; but keeping Text simple as per your code
+                        Text(
+                          fileName,
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                          style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w600),
+                        ),
+                        const SizedBox(height: 4),
+                        Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            const Text("Tap to view", style: TextStyle(fontSize: 12, color: Colors.grey)),
+                            if (sizeText.isNotEmpty)
+                              Text(" • $sizeText", style: const TextStyle(fontSize: 12, color: Colors.grey)),
+                          ],
+                        ),
+                      ],
+                    ),
+                  ),
+                  const Icon(Icons.arrow_forward_ios, size: 14,color: Colors.black45,),
+                ],
+              ),
+            ),
+          );
 
-            if (!kIsWeb) return tile;
+          if (!kIsWeb) return tile;
 
-            return MouseRegion(
-              cursor: SystemMouseCursors.click,
-              child: tile,
-            );
-          }),
-        ],
-      ),
+          return MouseRegion(
+            cursor: SystemMouseCursors.click,
+            child: tile,
+          );
+        }),
+      ],
     );
   }
 }

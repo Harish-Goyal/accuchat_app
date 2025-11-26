@@ -117,11 +117,11 @@ class TaskHomeController extends GetxController{
       filteredList.assignAll(recentTaskUserList??[]);
 
       if(filteredList.isNotEmpty) {
-        selectedChat.value = filteredList[0];
-        // final taskc = Get.find<TaskController>();
-        // taskc.user=selectedChat.value;
-        // taskc.openConversation(selectedChat.value);
-        // taskc.update();
+        if(selectedChat.value?.userId!=null){
+
+        }else{
+          selectedChat.value = filteredList[0];
+        }
       }
 
       update();

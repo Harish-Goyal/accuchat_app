@@ -56,6 +56,7 @@ class VerifyOtpScreen extends GetView<VerifyOtpController> {
                                   lineStrokeCap: StrokeCap.square,
                                 ),
                                 currentCode: controller.otpFieldController.text,
+                                cursor: Cursor(color: appColorGreen,height: 20,width: 2,enabled: true),
                                 onCodeSubmitted: (code) {},
                                 onCodeChanged: (code) {
                                   if (code != null && code.length == 6) {

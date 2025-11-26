@@ -153,7 +153,7 @@ class ChatsHomeScreen extends GetView<ChatHomeController> {
                             arguments: {"isRecent": 'false'});
                       }
                     },
-                    icon: const Icon(Icons.add_comment_outlined)):const SizedBox(),
+                    icon: Image.asset(addNewChatPng,height:27,width:27)):const SizedBox(),
                 hGap(10),
                 Obx(
                    () {
@@ -161,12 +161,19 @@ class ChatsHomeScreen extends GetView<ChatHomeController> {
                         onPressed: () {
                           controller.isSearching.value = !controller.isSearching.value;
                           controller.isSearching.refresh();
+
+                          if(!controller.isSearching.value){
+
+                            controller.searchQuery = '';
+                            controller.onSearch('');
+                            controller.seacrhCon.clear();
+                          }
                           // controller.update();
                         },
-                        icon:  Icon(controller.isSearching.value
-                                    ? CupertinoIcons.clear_circled_solid
-                                    : Icons.search)
-                            ).paddingOnly(top: 0, right: 10);
+                        icon:  controller.isSearching.value?  const Icon(
+                            CupertinoIcons.clear_circled_solid)
+                            : Image.asset(searchPng,height:25,width:25)
+                            ).paddingOnly(top: 0, right: 0);
                   }
                 ),
 

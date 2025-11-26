@@ -16,6 +16,7 @@ import '../../../../../../main.dart';
 import '../../../../../../routes/app_routes.dart';
 import '../../../../helper/my_date_util.dart';
 import '../../../../models/chat_user.dart';
+import '../dialogs/profile_dialog.dart';
 
 //view profile screen -- to view profile of user
 class ViewProfileScreen extends GetView<ViewProfileController> {
@@ -83,7 +84,11 @@ class ViewProfileScreen extends GetView<ViewProfileController> {
                             onTap: () =>
                                 controller.user?.userId == APIs.me.userId
                                     ? Get.toNamed(AppRoutes.h_profile)
-                                    : null,
+                                    :
+                                    showDialog(
+                                        context: context,
+                                        builder: (_) => ProfileDialog(user: controller.user))
+                                 ,
                             child: CustomCacheNetworkImage(
                               "${ApiEnd.baseUrlMedia}${controller.user?.userImage ?? ''}",
                               height: 100,

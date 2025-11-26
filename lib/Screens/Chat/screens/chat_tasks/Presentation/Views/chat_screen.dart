@@ -17,12 +17,10 @@ import 'package:AccuChat/utils/helper_widget.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:flutter_staggered_animations/flutter_staggered_animations.dart';
 import 'package:get/get.dart';
 import 'package:grouped_list/grouped_list.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:intl/intl.dart';
-import 'package:scrollable_positioned_list/scrollable_positioned_list.dart';
 import 'package:swipe_to/swipe_to.dart';
 import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/gestures.dart';
@@ -39,12 +37,9 @@ import '../../../../../Home/Presentation/Controller/socket_controller.dart';
 import '../../../auth/models/get_uesr_Res_model.dart';
 import '../Widgets/reply_msg_widget.dart';
 import '../Widgets/staggered_view.dart';
-import '../../../../api/apis.dart';
 import '../Controllers/gallery_view_controller.dart';
 import '../Widgets/media_view.dart';
 import 'images_gallery_page.dart';
-import 'package:path_provider/path_provider.dart';
-import 'package:intl/intl.dart';
 
 /// -------------------------
 /// Responsive helpers (added)
@@ -430,10 +425,10 @@ class ChatScreen extends GetView<ChatScreenController> {
                             controller.userIDSender =
                                 element.chatMessageItems.fromUser?.userId;
                             controller.userNameReceiver =
-                                element.chatMessageItems.toUser?.displayName ??
+                                element.chatMessageItems.toUser?.userCompany?.displayName ??
                                     '';
                             controller.userNameSender = element
-                                    .chatMessageItems.fromUser?.displayName ??
+                                    .chatMessageItems.fromUser?.userCompany?.displayName ??
                                 '';
                             controller.userIDReceiver =
                                 element.chatMessageItems.toUser?.userId;
@@ -619,79 +614,76 @@ class ChatScreen extends GetView<ChatScreenController> {
                                 height: 25,
                               ))).paddingOnly(left: 10)
                       : const SizedBox(),
-                  Expanded(
-                    child: Column(
-                      mainAxisSize: MainAxisSize.min,
-                      crossAxisAlignment: sentByMe
-                          ? CrossAxisAlignment.end
-                          : CrossAxisAlignment.start,
-                      children: [
-                        InkWell(
-                          borderRadius: BorderRadius.circular(50),
-                          // mouseCursor: SystemMouseCursors.click,
-                          onDoubleTap: () {
-                            SystemChannels.textInput
-                                .invokeMethod('TextInput.hide');
-                            if (!isTaskMode) {
-                              _showBottomSheet(sentByMe, data: data);
-                            }
-                          },
-                          child: Container(
-                            // alignment: sentByMe
-                            //     ? Alignment.centerRight
-                            //     : Alignment.centerLeft,
-                            padding: EdgeInsets.symmetric(
-                              horizontal:
-                                  (data.media ?? []).isNotEmpty ? 12 : 15,
-                              vertical: (data.media ?? []).isNotEmpty ? 0 : 8,
-                            ),
-                            margin: sentByMe
-                                ? const EdgeInsets.only(
-                                    left: 15, top: 10, right: 15)
-                                : const EdgeInsets.only(
-                                    right: 15, top: 10, left: 15),
-
-                            decoration: BoxDecoration(
-                                color: /* widget.isTask
-                                          ? getTaskStatusColor(widget.message.taskDetails?.taskStatus)
-                                          .withOpacity(.1)
-                                          : */
-
-                                    sentByMe
-                                        ? appColorGreen.withOpacity(.1)
-                                        : appColorPerple.withOpacity(.1),
-                                border: Border.all(
-                                    color: /*widget.isTask
-                                              ? getTaskStatusColor(widget
-                                              .message.taskDetails?.taskStatus)
-                                              :*/
-                                        sentByMe
-                                            ? appColorGreen
-                                            : appColorPerple),
-                                //making borders curved
-                                borderRadius: sentByMe
-                                    ? BorderRadius.only(
-                                        topLeft: Radius.circular(
-                                            (data.media ?? []).isNotEmpty
-                                                ? 15
-                                                : 30),
-                                        topRight: Radius.circular(
-                                            (data.media ?? []).isNotEmpty
-                                                ? 15
-                                                : 30),
-                                        bottomLeft: Radius.circular(
-                                            (data.media ?? []).isNotEmpty
-                                                ? 15
-                                                : 30))
-                                    : BorderRadius.only(
-                                        topLeft: Radius.circular(
-                                            (data.media ?? []).isNotEmpty ? 15 : 30),
-                                        topRight: Radius.circular((data.media ?? []).isNotEmpty ? 15 : 30),
-                                        bottomRight: Radius.circular((data.media ?? []).isNotEmpty ? 15 : 30))),
-                            child: messageTypeView(data, sentByMe: sentByMe),
-                          ).marginOnly(left: (0), top: 0),
+                  Flexible(
+                    child: Align(
+                      alignment: sentByMe ? Alignment.centerRight : Alignment.centerLeft,
+                      child: IntrinsicWidth( // <-- MAGIC
+                        child: ConstrainedBox(
+                          constraints: BoxConstraints(
+                            maxWidth: Get.width * (kIsWeb ? 0.45 : 0.75),
+                          ),
+                          child: Column(
+                            // mainAxisSize: MainAxisSize.min,
+                            crossAxisAlignment: sentByMe
+                                ? CrossAxisAlignment.end
+                                : CrossAxisAlignment.start,
+                            children: [
+                              InkWell(
+                                borderRadius: BorderRadius.circular(50),
+                                // mouseCursor: SystemMouseCursors.click,
+                                onDoubleTap: () {
+                                  SystemChannels.textInput
+                                      .invokeMethod('TextInput.hide');
+                                  if (!isTaskMode) {
+                                    _showBottomSheet(sentByMe, data: data);
+                                  }
+                                },
+                                child: Container(
+                                  padding: EdgeInsets.symmetric(
+                                    horizontal:
+                                        (data.media ?? []).isNotEmpty ? 12 : 15,
+                                    vertical: (data.media ?? []).isNotEmpty ? 0 : 10,
+                                  ),
+                                  margin: sentByMe
+                                      ? const EdgeInsets.only(
+                                          left: 30, top: 10, right: 15)
+                                      : const EdgeInsets.only(
+                                          right: 30, top: 10, left: 15),
+                    
+                                  decoration: BoxDecoration(
+                                      color: sentByMe
+                                              ? appColorGreen.withOpacity(.1)
+                                              : appColorPerple.withOpacity(.1),
+                                      border: Border.all(
+                                          color: sentByMe
+                                                  ? appColorGreen
+                                                  : appColorPerple),
+                                      borderRadius: sentByMe
+                                          ? BorderRadius.only(
+                                              topLeft: Radius.circular(
+                                                  (data.media ?? []).isNotEmpty
+                                                      ? 15
+                                                      : 30),
+                                              topRight: Radius.circular(
+                                                  (data.media ?? []).isNotEmpty
+                                                      ? 15
+                                                      : 30),
+                                              bottomLeft: Radius.circular(
+                                                  (data.media ?? []).isNotEmpty
+                                                      ? 15
+                                                      : 30))
+                                          : BorderRadius.only(
+                                              topLeft: Radius.circular(
+                                                  (data.media ?? []).isNotEmpty ? 15 : 30),
+                                              topRight: Radius.circular((data.media ?? []).isNotEmpty ? 15 : 30),
+                                              bottomRight: Radius.circular((data.media ?? []).isNotEmpty ? 15 : 30))),
+                                  child: messageTypeView(data, sentByMe: sentByMe),
+                                ),
+                              ),
+                            ],
+                          ),
                         ),
-                      ],
+                      ),
                     ),
                   ),
                   (data.message != null &&
@@ -751,11 +743,11 @@ class ChatScreen extends GetView<ChatScreenController> {
                       chatdata: data,
                       empIdreceiver: data.toUser?.userId.toString(),
                       empName: data.isGroupChat == 1
-                          ? data.fromUser?.displayName ?? ''
+                          ? data.fromUser?.userCompany?.displayName ?? ''
                           : data.fromUser?.userId.toString() ==
                                   controller.me?.userId?.toString()
-                              ? data.fromUser?.displayName ?? ''
-                              : data.toUser?.displayName ?? '',
+                              ? data.fromUser?.userCompany?.displayName ?? ''
+                              : data.toUser?.userCompany?.displayName ?? '',
                       message: data.replyToText ?? '',
                       orignalMsg: data.replyToText ?? '')
                   .paddingOnly(bottom: 4)
@@ -764,38 +756,41 @@ class ChatScreen extends GetView<ChatScreenController> {
               ? Row(
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                    Flexible(
+                    /*Flexible(
                       child: Text(
                               sentByMe
-                                  ? (data.fromUser?.displayName != null
-                                      ? data.fromUser?.displayName ?? ''
+                                  ? (data.fromUser?.userCompany?.displayName != null
+                                      ? data.fromUser?.userCompany?.displayName ?? ''
                                       : data.fromUser?.phone ?? '')
-                                  : (data.fromUser?.displayName != null
-                                      ? data.fromUser?.displayName ?? ''
+                                  : (data.fromUser?.userCompany?.displayName != null
+                                      ? data.fromUser?.userCompany?.displayName ?? ''
                                       : data.fromUser?.phone ?? ''),
                               textAlign: TextAlign.start,
                               style: BalooStyles.baloothinTextStyle(
                                 color: Colors.black54,
                                 size: 13,
                               ),
-                              overflow: TextOverflow.visible)
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis)
                           .marginOnly(
                               left: sentByMe ? 0 : 0,
                               right: sentByMe ? 10 : 0,
                               bottom: 3,
                               top: 8),
-                    ),
+                    ),*/
                     Flexible(
                       child: Text(
                         data.fromUser?.userId == controller.me?.userId
                             ? "You"
-                            : (data.fromUser?.displayName ?? ''),
+                            :
+                        data.fromUser?.userCompany?.displayName!=null?  (data.fromUser?.userCompany?.displayName ?? ''):data.fromUser?.userName!=null? (data.fromUser?.userName ?? ''):(data.fromUser?.phone??''),
                         style: BalooStyles.baloonormalTextStyle(
                             color:
                                 data.fromUser?.userId == controller.me?.userId
                                     ? Colors.green
                                     : Colors.purple),
-                        textAlign: TextAlign.end,
+                        textAlign: TextAlign.end, maxLines: 1,
+                          overflow: TextOverflow.ellipsis
                       ).marginOnly(
                           right: sentByMe ? 0 : 0,
                           left: sentByMe ? 10 : 0,
@@ -812,7 +807,8 @@ class ChatScreen extends GetView<ChatScreenController> {
                           color: Colors.grey,
                           size: 13,
                           fontstyle: FontStyle.italic),
-                      overflow: TextOverflow.visible)
+                       maxLines: 1,
+              overflow: TextOverflow.ellipsis)
                   .marginOnly(
                   left: sentByMe ? 0 : 10,
                   right: sentByMe ? 10 : 0,
@@ -843,17 +839,14 @@ class ChatScreen extends GetView<ChatScreenController> {
           )
               : const SizedBox(),
           ((data.media ?? []).isNotEmpty)
-              ? LayoutBuilder(builder: (context, constraints) {
-                  final isWide = constraints.maxWidth >= 900;
-                  final fieldWidth = isWide ? 420.0 : null;
-                  return SizedBox(
-                    // width: kIsWeb ? fieldWidth : null,
+              ? IntrinsicWidth(
+                    // width:fieldWidth,
                     child: ChatMessageMedia(
                       chat: data,
                       isGroupMessage: data.isGroupChat == 1 ? true : false,
                       myId: (controller.me?.userId ?? 0).toString(),
                       fromId: (data.fromUser?.userId ?? 0).toString(),
-                      senderName: data.fromUser?.displayName ?? '',
+                      senderName: data.fromUser?.userCompany?.displayName ?? '',
                       baseUrl: ApiEnd.baseUrlMedia,
                       defaultGallery: defaultGallery,
                       onOpenDocument: (url) =>
@@ -868,9 +861,9 @@ class ChatScreen extends GetView<ChatScreenController> {
                               controller.refIdis = data.chatId;
                               controller.userIDSender = data.fromUser?.userId;
                               controller.userNameReceiver =
-                                  data.toUser?.displayName ?? '';
+                                  data.toUser?.userCompany?.displayName ?? '';
                               controller.userNameSender =
-                                  data.fromUser?.displayName ?? '';
+                                  data.fromUser?.userCompany?.displayName ?? '';
                               controller.userIDReceiver = data.toUser?.userId;
                               controller.replyToMessage = data;
                               controller.replyToImage =
@@ -894,8 +887,7 @@ class ChatScreen extends GetView<ChatScreenController> {
                         // open audio player route/sheet if available
                       },
                     ),
-                  );
-                })
+                  )
               : const SizedBox(),
         ],
       ),
@@ -995,14 +987,13 @@ class ChatScreen extends GetView<ChatScreenController> {
                             style: themeData.textTheme.titleMedium,
                           )
                         : Text(
-                            (controller.user?.displayName == '' ||
-                                    controller.user?.displayName == null)
-                                ? controller.user?.phone ?? ''
-                                : controller.user?.displayName ?? '',
-                            maxLines: 1,
-                            overflow: TextOverflow.ellipsis,
-                            style: themeData.textTheme.titleMedium,
-                          ),
+                      (controller.user?.userCompany?.displayName !=null)
+                          ? controller.user?.userCompany?.displayName ?? ''
+                          :controller.user?.userName!=null? controller.user?.userName ?? '': controller.user?.phone??'',
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: themeData.textTheme.titleMedium,
+                    ),
                     controller.user?.userCompany?.isGroup == 1 ||
                             controller.user?.userCompany?.isBroadcast == 1
                         ? Text('${controller.members.length} members',
@@ -1156,6 +1147,7 @@ class ChatScreen extends GetView<ChatScreenController> {
                       children: [
                         Focus(
                           focusNode: controller.messageParentFocus,
+                          autofocus: true,
                           onKeyEvent: (node, event) {
                             if (!kIsWeb) return KeyEventResult.ignored;
 
@@ -1775,9 +1767,9 @@ class ChatScreen extends GetView<ChatScreenController> {
                           controller.refIdis = data.chatId;
                           controller.userIDSender = data.fromUser?.userId;
                           controller.userNameReceiver =
-                              data.toUser?.displayName ?? '';
+                              data.toUser?.userCompany?.displayName ?? '';
                           controller.userNameSender =
-                              data.fromUser?.displayName ?? '';
+                              data.fromUser?.userCompany?.displayName ?? '';
                           controller.userIDReceiver = data.toUser?.userId;
                           controller.replyToMessage = data;
 

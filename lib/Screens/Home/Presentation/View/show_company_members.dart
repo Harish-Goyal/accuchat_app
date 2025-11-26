@@ -364,11 +364,11 @@ class CompanyMembers extends GetView<CompanyMemberController> {
                                 ),
                                 child: Image.asset(chatHome,color: appColorGreen,height: 20,)),
 
-                            Positioned(
+                           /* Positioned(
                                 top: -13,
                                 right: -7,
                               child: AnimatedBadge(count:2,),
-                            ),
+                            ),*/
                           ],
                         ),
 
@@ -422,11 +422,11 @@ class CompanyMembers extends GetView<CompanyMemberController> {
                                 ),
                                 child: Image.asset(tasksHome,color: appColorYellow,height: 20,)),
 
-                            Positioned(
+                           /* Positioned(
                               top: -13,
                               right: -7, // 👈 top-left corner (change to right for top-right)
                               child: AnimatedBadge(count:4,),
-                            ),
+                            ),*/
                           ],
                         ),
                       ],

@@ -49,6 +49,8 @@ class ChatHomeShimmer extends StatelessWidget {
                     const SizedBox(width: 12),
                     _circle(28), // search
                     const SizedBox(width: 12),
+                    _circle(28), // search
+                    const SizedBox(width: 12),
                     _circle(28), // menu
                   ],
                 ),

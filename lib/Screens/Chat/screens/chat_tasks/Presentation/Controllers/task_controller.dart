@@ -1,8 +1,10 @@
 import 'dart:async';
 import 'dart:io';
+import 'package:AccuChat/Screens/Chat/api/apis.dart';
 import 'package:AccuChat/Screens/Chat/models/chat_his_res_model.dart';
 import 'package:AccuChat/Screens/Chat/models/chat_history_response_model.dart';
 import 'package:AccuChat/Screens/Chat/models/task_res_model.dart';
+import 'package:AccuChat/Screens/Chat/screens/chat_tasks/Presentation/Controllers/task_home_controller.dart';
 import 'package:AccuChat/Screens/Chat/screens/chat_tasks/Presentation/Controllers/task_thread_controller.dart';
 import 'package:AccuChat/Screens/Chat/screens/chat_tasks/Presentation/Views/taskThreadScreenWEb.dart';
 import 'package:file_picker/file_picker.dart';
@@ -32,6 +34,7 @@ import '../../../auth/models/get_uesr_Res_model.dart';
 import 'package:dio/dio.dart' as multi;
 import 'package:path/path.dart' as p;
 import '../../Bindings/bindings.dart';
+import '../Views/task_chat_screen.dart';
 import '../Views/task_treads_screen.dart';
 import '../Widgets/all_users_dialog.dart';
 
@@ -92,13 +95,13 @@ class TaskController extends GetxController {
     if(kIsWeb){
       _getCompany();
       // if (Get.parameters != null) {
-      final String? argUserId = Get.parameters['userId'];
-      if (argUserId != null) {
-        getUserByIdApi(userId: int.parse(argUserId ?? ''));
-        // }
-      } else {
+      // final String? argUserId = Get.parameters['userId'];
+      // if (argUserId != null) {
+      //   getUserByIdApi(userId: int.parse(argUserId ?? ''));
+      //   }
+      // } else {
         getUserByIdApi(userId: user?.userId);
-      }
+      // }
     }else{
       if (Get.arguments != null) {
         final argUser = Get.arguments['user'];
@@ -128,7 +131,7 @@ class TaskController extends GetxController {
     user = useriii;
     update();
 
-    _getMe();
+    // _getMe();
     _getCompany();
 
     Future.delayed(Duration(milliseconds: 500), () {
@@ -140,11 +143,11 @@ class TaskController extends GetxController {
 
   String selectedFilter = 'all';
 
-  UserDataAPI? me = UserDataAPI();
-  _getMe() {
-    me = getUser();
-    update();
-  }
+  // UserDataAPI? me = UserDataAPI();
+  // _getMe() {
+  //   me = getUser();
+  //   update();
+  // }
 
   CompanyData? myCompany = CompanyData();
   _getCompany() async {
@@ -1422,11 +1425,10 @@ class TaskController extends GetxController {
     final socket = Get.find<SocketController>();
 
     // Safety: don’t forward to yourself
-    final user = selectedUser;
     final targetUcId = selectedUser.userCompany?.userCompanyId;
     if (targetUcId != null &&
-        me?.userCompany?.userCompanyId != null &&
-        targetUcId == me?.userCompany?.userCompanyId) {
+        APIs.me.userCompany?.userCompanyId != null &&
+        targetUcId ==  APIs.me.userCompany?.userCompanyId) {
       Get.snackbar('Oops', 'You cannot forward a message to yourself.',backgroundColor: Colors.white,colorText: Colors.black);
       return;
     }
@@ -1447,22 +1449,22 @@ class TaskController extends GetxController {
     update();
 
     // Replace current chat screen with the target chat
-    if (Get.currentRoute == AppRoutes.tasks_li_r &&
-        Get.isRegistered<TaskController>()) {
+    if (Get.isRegistered<TaskController>() && kIsWeb) {
       page =1;
-      Get.find<TaskController>().update();
+      Get.find<TaskHomeController>().selectedChat.value =selectedUser ;
       Get.find<TaskController>().openConversation(selectedUser);
     } else {
-
       if(kIsWeb){
-        Get.offNamed(
-          "${AppRoutes.tasks_li_r}?userId=${selectedUser.userId.toString()}",
-        );
+        Get.to(()=>TaskScreen(taskUser: selectedUser));
+        // Get.offNamed(
+        //   "${AppRoutes.tasks_li_r}?userId=${selectedUser.userId.toString()}",
+        // );
       }else{
-        Get.offNamed(
+        Get.toNamed(
           AppRoutes.tasks_li_r,
           arguments: {'user': selectedUser},
         );
+        // Get.to(()=>TaskScreen(taskUser: selectedUser));
       }
     }
   }

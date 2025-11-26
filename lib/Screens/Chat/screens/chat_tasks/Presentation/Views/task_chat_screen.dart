@@ -174,7 +174,7 @@ class TaskScreen extends GetView<TaskController> {
                                     const SizedBox(width: 8),
                                     Expanded(
                                       child: Text(
-                                        "${controller.replyToMessage?.fromUser?.userId == controller.me?.userId ? 'You' : controller.user?.displayName ?? ''}: ${controller.replyToMessage?.message ?? ''}",
+                                        "${controller.replyToMessage?.fromUser?.userId == APIs.me?.userId ? 'You' : controller.user?.displayName ?? ''}: ${controller.replyToMessage?.message ?? ''}",
                                         maxLines: 1,
                                         overflow: TextOverflow.ellipsis,
                                         style: themeData.textTheme.bodySmall
@@ -295,7 +295,7 @@ class TaskScreen extends GetView<TaskController> {
                 formatatedTime = controller.convertUtcToIndianTime(timeString);
               }
 
-              var userid = controller.me?.userId;
+              var userid = APIs.me?.userId;
               return StaggeredAnimationListItem(
                 index: index,
                 child: SwipeTo(
@@ -447,9 +447,7 @@ class TaskScreen extends GetView<TaskController> {
                       ),
                     ),
                   ),
-                  (data.title != null &&
-                          (data.media ?? []).isNotEmpty &&
-                          !sentByMe)
+                  (!sentByMe)
                       ? IconButton(
                           onPressed: () {
                             controller.handleForward(taskData: data);
@@ -756,7 +754,7 @@ class TaskScreen extends GetView<TaskController> {
                       } else {
                         Get.offAllNamed(AppRoutes.home); // or your main route
                       }
-                      if(!kIsWeb) {
+
                         Get.find<TaskHomeController>()
                             .hitAPIToGetRecentTasksUser();
 
@@ -765,7 +763,7 @@ class TaskScreen extends GetView<TaskController> {
                         } else {
                           dashboardController.updateIndex(0);
                         }
-                      }
+
                       // APIs.updateActiveStatus(false);
                     },
                     icon: const Icon(Icons.arrow_back, color: Colors.black54)),
@@ -1396,7 +1394,7 @@ class TaskScreen extends GetView<TaskController> {
                     }),
 
               // delete option
-              if ((controller.me?.userId == controller.myCompany?.createdBy))
+              if ((APIs.me?.userId == controller.myCompany?.createdBy))
                 _OptionItem(
                     icon: const Icon(Icons.delete_forever,
                         color: Colors.red, size: 18),
@@ -1628,7 +1626,7 @@ class TaskScreen extends GetView<TaskController> {
                         vGap(20),
                         GradientButton(
                           name:
-                          "Send Task to ${controller.user?.userId == controller.me?.userId ? 'You' : userName.isEmpty ? controller.user?.phone : userName}",
+                          "Send Task to ${controller.user?.userId == APIs.me?.userId ? 'You' : userName.isEmpty ? controller.user?.phone : userName}",
                           btnColor: AppTheme.appColor,
                           vPadding: 8,
                           onTap: () {

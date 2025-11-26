@@ -7,6 +7,7 @@ import 'package:AccuChat/Screens/Home/Presentation/Controller/profile_controller
 import 'package:AccuChat/Services/APIs/api_ends.dart';
 import 'package:AccuChat/utils/gradient_button.dart';
 import 'package:AccuChat/utils/loading_indicator.dart';
+import 'package:file_picker/file_picker.dart';
 import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -71,8 +72,11 @@ class ProfileScreen extends GetView<HProfileController> {
         onTap: () => FocusScope.of(context).unfocus(),
         child: Scaffold(
           backgroundColor: Colors.white,
+
           appBar: AppBar(
             backgroundColor: Colors.white,
+            foregroundColor: Colors.white,
+            shadowColor: Colors.white,
             title: Text(
               'Profile',
               style: BalooStyles.balooboldTitleTextStyle(),
@@ -271,8 +275,214 @@ class ProfileScreen extends GetView<HProfileController> {
 
 }
 
-/// Extracted avatar area with responsive sizing (mobile visual preserved)
 class _ProfileAvatar extends StatelessWidget {
+  const _ProfileAvatar({
+    required this.controller,
+    required this.size,
+  });
+
+  final HProfileController controller;
+  final double size;
+
+  @override
+  Widget build(BuildContext context) {
+    final border = Border.all(color: appColorGreen, width: 1);
+
+    return Stack(
+      children: [
+        // *****************************
+        // SHOW IMAGE FOR WEB + MOBILE
+        // *****************************
+        _buildProfileImage(border),
+
+        // *****************************
+        // EDIT BUTTON (WEB + MOBILE)
+        // *****************************
+        Positioned(
+          bottom: 0,
+          right: 0,
+          child: MaterialButton(
+            elevation: 1,
+            onPressed: () async {
+              if (kIsWeb) {
+                // WEB: pick image using file_picker
+                FilePickerResult? result = await FilePicker.platform.pickFiles(
+                  type: FileType.image,
+                  allowMultiple: false,
+                );
+
+                if (result != null) {
+                  controller.webImageBytes = result.files.first.bytes;
+                  controller.update();
+                }
+              } else {
+                // MOBILE: show bottom sheet
+                _showBottomSheet();
+              }
+            },
+            shape: const CircleBorder(),
+            color: Colors.white,
+            child: const Icon(Icons.edit, color: Colors.blue),
+          ),
+        ),
+      ],
+    );
+  }
+
+  // ================================================================
+  // PROFILE IMAGE HANDLER FOR WEB + MOBILE
+  // ================================================================
+  Widget _buildProfileImage(Border border) {
+    if (kIsWeb) {
+      // WEB IMAGE PICKED
+      if (controller.webImageBytes != null) {
+        return Container(
+          decoration: BoxDecoration(shape: BoxShape.circle, border: border),
+          child: ClipRRect(
+            borderRadius: BorderRadius.circular(size / 2),
+            child: Image.memory(
+              controller.webImageBytes!,
+              width: size,
+              height: size,
+              fit: BoxFit.cover,
+            ),
+          ),
+        );
+      }
+    } else {
+      // MOBILE IMAGE PICKED
+      if (controller.image != null) {
+        return Container(
+          decoration: BoxDecoration(shape: BoxShape.circle, border: border),
+          child: ClipRRect(
+            borderRadius: BorderRadius.circular(size / 2),
+            child: Image.file(
+              File(controller.image!),
+              width: size,
+              height: size,
+              fit: BoxFit.cover,
+              errorBuilder: (_, __, ___) =>
+                  Image.asset(userIcon, height: 40),
+            ),
+          ),
+        );
+      }
+    }
+
+    // NETWORK IMAGE (DEFAULT)
+    return CustomCacheNetworkImage(
+      "${ApiEnd.baseUrlMedia}${controller.profileImg}",
+      height: size,
+      width: size,
+      boxFit: BoxFit.cover,
+      radiusAll: 100,
+      defaultImage: userIcon,
+      borderColor: AppTheme.appColor,
+    );
+  }
+
+  // ================================================================
+  // MOBILE BOTTOM SHEET
+  // ================================================================
+  void _showBottomSheet() {
+    showModalBottomSheet(
+      context: Get.context!,
+      useSafeArea: true,
+      backgroundColor: Colors.white,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.only(
+          topLeft: Radius.circular(20),
+          topRight: Radius.circular(20),
+        ),
+      ),
+      builder: (_) {
+        final size = MediaQuery.of(Get.context!).size;
+        final isWide = size.width >= 900;
+
+        return ConstrainedBox(
+          constraints: BoxConstraints(
+            maxWidth: isWide ? 720 : size.width,
+          ),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              const Text(
+                'Pick Profile Picture',
+                style: TextStyle(fontSize: 20, fontWeight: FontWeight.w500),
+              ),
+
+              SizedBox(height: mq.height * .02),
+
+              Row(
+                children: [
+                  // ******** GALLERY *********
+                  Expanded(
+                    child: ElevatedButton(
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: Colors.white,
+                        shape: const CircleBorder(),
+                        fixedSize: Size(
+                          isWide ? 220 : mq.width * .2,
+                          isWide ? 140 : mq.height * .1,
+                        ),
+                      ),
+                      onPressed: () async {
+                        final ImagePicker picker = ImagePicker();
+                        final XFile? image = await picker.pickImage(
+                          source: ImageSource.gallery,
+                          imageQuality: 80,
+                        );
+                        if (image != null) {
+                          controller.image = image.path;
+                          controller.update();
+                          Get.back();
+                        }
+                      },
+                      child: Image.asset('assets/images/add_image.png'),
+                    ),
+                  ),
+
+                  // ******** CAMERA *********
+                  Expanded(
+                    child: ElevatedButton(
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: Colors.white,
+                        shape: const CircleBorder(),
+                        fixedSize: Size(
+                          isWide ? 220 : mq.width * .2,
+                          isWide ? 140 : mq.height * .1,
+                        ),
+                      ),
+                      onPressed: () async {
+                        final ImagePicker picker = ImagePicker();
+                        final XFile? image = await picker.pickImage(
+                          source: ImageSource.camera,
+                          imageQuality: 80,
+                        );
+                        if (image != null) {
+                          controller.image = image.path;
+                          controller.update();
+                          Get.back();
+                        }
+                      },
+                      child: Image.asset('assets/images/camera.png'),
+                    ),
+                  ),
+                ],
+              ),
+
+              vGap(40),
+            ],
+          ).paddingSymmetric(vertical: 30, horizontal: 20),
+        );
+      },
+    );
+  }
+}
+
+
+/// Extracted avatar area with responsive sizing (mobile visual preserved)
+/*class _ProfileAvatar extends StatelessWidget {
   const _ProfileAvatar({
     required this.controller,
     required this.size,
@@ -318,8 +528,25 @@ class _ProfileAvatar extends StatelessWidget {
           right: 0,
           child: MaterialButton(
             elevation: 1,
-            onPressed: () {
-              _showBottomSheet();
+            onPressed: () async {
+
+              if (kIsWeb) {
+                // WEB: pick image using file_picker
+                FilePickerResult? result = await FilePicker.platform.pickFiles(
+                  type: FileType.image,
+                  allowMultiple: false,
+                );
+
+                if (result != null) {
+                  Uint8List fileBytes = result.files.first.bytes!;
+                  controller.webImageBytes = fileBytes;
+                  controller.update();
+                  Get.back();
+                }
+              }else{
+                _showBottomSheet();
+              }
+
             },
             shape: const CircleBorder(),
             color: Colors.white,
@@ -419,4 +646,4 @@ class _ProfileAvatar extends StatelessWidget {
       },
     );
   }
-}
+}*/
