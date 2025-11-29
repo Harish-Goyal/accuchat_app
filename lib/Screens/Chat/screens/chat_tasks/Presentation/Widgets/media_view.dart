@@ -91,7 +91,7 @@ List<_ViewMedia> toViewMediaList({
     final file = m.fileName ?? '';
     final t = MediaTypeAPI.fromCode(m.mediaType?.mediaCode, fileName: file);
     final url = "${ApiEnd.baseUrlMedia}$file";
-    return _ViewMedia(url: url, type: t, fileName: file.split('/').last);
+    return _ViewMedia(url: url, type: t, fileName: m.orgFileName??'');
   }).toList();
 }
 
@@ -273,12 +273,16 @@ class _ImagesGrid extends StatelessWidget {
                   ).paddingOnly(bottom: 8,top: 0),
                 ),
               ),
-            )*/AspectRatio(
-              aspectRatio: kIsWeb ? 18/10 : 4 / 3,
+            )*/Container(
+              height: Get.height*.6,
+              width:kIsWeb? Get.height*.45:150,
+
               child: CustomCacheNetworkImage(
                 item.url,
                 radiusAll: 15, // radius handled by ClipRRect above
                 boxFit: BoxFit.cover,
+                height: Get.height*.6,
+                width:kIsWeb? Get.height*.45:150,
                 defaultImage: defaultGallery,
                 borderColor: greyText,
                 assetPadding: 0,

@@ -21,16 +21,16 @@ class AnimatedBadge extends StatelessWidget {
           height: 20,
           width: 20,
           decoration: BoxDecoration(
-            color:AppTheme.redColor,
-            border: Border.all(color: AppTheme.redColor),
-            borderRadius: BorderRadius.only(topRight: Radius.circular(100),topLeft:Radius.circular(100),bottomRight: Radius.circular(100) )
+            color:appColorGreen.withOpacity(.4),
+            border: Border.all(color: appColorGreen),
+            borderRadius: const BorderRadius.only(topRight: Radius.circular(100),topLeft:Radius.circular(100),bottomRight: Radius.circular(100) )
           ),
           child: Text(
             count.toString(),
             style: const TextStyle(
               fontSize: 10,
               fontWeight: FontWeight.bold,
-              color: Colors.white,
+              color: Colors.black54,
             ),
             textAlign: TextAlign.center,
           ),

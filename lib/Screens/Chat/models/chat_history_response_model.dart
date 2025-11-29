@@ -77,7 +77,6 @@ class ChatHisList {
   int? pendingCount;
   int? isGroupChat;
   int? broadcastUserId;
-  bool? isTask=false;
   int? replyToId;
   String? replyToText;
   String? replyToTime;
@@ -91,7 +90,7 @@ class ChatHisList {
     this.pendingCount,
     this.replyToTime,
     this.replyToName,
-    this.media,this.isGroupChat,this.broadcastUserId,this.isActivity,this.isTask, this.fromUser, this.toUser, this.message, this.sentOn});
+    this.media,this.isGroupChat,this.broadcastUserId,this.isActivity, this.fromUser, this.toUser, this.message, this.sentOn});
 
   ChatHisList.fromJson(Map<String, dynamic> json) {
     chatId = json['chat_id'];
@@ -184,7 +183,6 @@ class ChatHisList {
       sentOn: sentOn ?? this.sentOn,
       isGroupChat: isGroupChat ?? this.isGroupChat,
       broadcastUserId: broadcastUserId ?? this.broadcastUserId,
-      isTask: isTask ?? this.isTask,
       replyToId: replyToId ?? this.replyToId,
       replyToText: replyToText ?? this.replyToText,
       replyToTime: replyToTime ?? this.replyToTime,
@@ -200,6 +198,7 @@ class MediaList {
   int? chatId;
   int? mediaTypeId;
   String? fileName;
+  String? orgFileName;
   MediaTypeAPI? mediaType;
 
   MediaList(
@@ -207,6 +206,7 @@ class MediaList {
         this.chatId,
         this.mediaTypeId,
         this.fileName,
+        this.orgFileName,
         this.mediaType});
 
   MediaList.fromJson(Map<String, dynamic> json) {
@@ -214,6 +214,7 @@ class MediaList {
     chatId = json['chat_id'];
     mediaTypeId = json['media_type_id'];
     fileName = json['file_name'];
+    orgFileName = json['org_file_name'];
     mediaType = json['media_type'] != null
         ? new MediaTypeAPI.fromJson(json['media_type'])
         : null;
@@ -224,6 +225,7 @@ class MediaList {
     data['chat_media_id'] = this.chatMediaId;
     data['chat_id'] = this.chatId;
     data['media_type_id'] = this.mediaTypeId;
+    data['org_file_name'] = this.orgFileName;
     data['file_name'] = this.fileName;
     if (this.mediaType != null) {
       data['media_type'] = this.mediaType!.toJson();

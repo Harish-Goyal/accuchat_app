@@ -1,5 +1,6 @@
 import 'package:AccuChat/Constants/assets.dart';
 import 'package:AccuChat/Screens/Chat/screens/chat_tasks/Presentation/Controllers/all_user_controller.dart';
+import 'package:AccuChat/Screens/Chat/screens/chat_tasks/Presentation/Views/task_chat_screen.dart';
 import 'package:AccuChat/Services/APIs/api_ends.dart';
 import 'package:AccuChat/routes/app_routes.dart';
 import 'package:AccuChat/utils/loading_indicator.dart';
@@ -153,18 +154,15 @@ class AllUserScreen extends GetView<AllUserController> {
                       onTap: () {
                         if (isTaskMode) {
                           if (kIsWeb) {
-                            Get.toNamed(
-                              "${AppRoutes.tasks_li_r}?userId=${controller.filteredList[i].userId.toString()}",
-                            );
+                            Get.to(()=>TaskScreen(taskUser: controller.filteredList[i] ,showBack: true,));
                           } else {
                             Get.toNamed(AppRoutes.tasks_li_r,
                                 arguments: {'user': controller.filteredList[i]});
                           }
                         } else {
                           if (kIsWeb) {
-                            Get.toNamed(
-                              "${AppRoutes.chats_li_r}?userId=${controller.filteredList[i].userId.toString()}",
-                            );
+                            Get.to(()=>ChatScreen(user: controller.filteredList[i] ,showBack: true,));
+
                           } else {
                             Get.toNamed(AppRoutes.chats_li_r,
                                 arguments: {'user': controller.filteredList[i]});

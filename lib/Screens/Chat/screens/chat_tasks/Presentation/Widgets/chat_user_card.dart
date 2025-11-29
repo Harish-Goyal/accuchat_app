@@ -108,6 +108,7 @@ class _ChatUserCardState extends State<ChatUserCard>
                     final taskC = Get.find<TaskController>();
                         homec.selectedChat.value = widget.user;
                     taskC.user =homec.selectedChat.value ;
+                    taskC.replyToMessage=null;
                     taskC.showPostShimmer =true;
                     taskC.openConversation(homec.selectedChat.value);
                     homec.selectedChat.refresh();
@@ -120,10 +121,10 @@ class _ChatUserCardState extends State<ChatUserCard>
 
                 }else{
                   if (kIsWeb) {
-
                     final homec = Get.find<ChatHomeController>();
                     final chatc = Get.find<ChatScreenController>();
                     homec.hitAPIToGetRecentChats();
+                    chatc.replyToMessage=null;
                     homec.selectedChat.value = widget.user;
                     chatc.user =homec.selectedChat.value;
                     chatc.showPostShimmer =true;

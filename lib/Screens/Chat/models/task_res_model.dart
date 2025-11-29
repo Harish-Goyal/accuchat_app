@@ -72,6 +72,7 @@ class TaskData {
   String? startDate;
   String? endDate;
   String? deadline;
+  int? commentCount;
   List<TaskMedia>? media;
   CurrentStatus? currentStatus;
   List<StatusHistory>? statusHistory;
@@ -84,6 +85,7 @@ class TaskData {
         this.details,
         this.createdOn,
         this.startDate,
+        this.commentCount,
         this.endDate,
         this.deadline,
         this.media,
@@ -99,6 +101,7 @@ class TaskData {
     json['to_user'] != null ? new UserDataAPI.fromJson(json['to_user']) : null;
     title = json['title'];
     details = json['details'];
+    commentCount = json['comment_count'];
     createdOn = json['created_on'];
     startDate = json['start_date'];
     endDate = json['end_date'];
@@ -130,6 +133,7 @@ class TaskData {
       data['to_user'] = this.toUser!.toJson();
     }
     data['title'] = this.title;
+    data['comment_count'] = this.commentCount;
     data['details'] = this.details;
     data['created_on'] = this.createdOn;
     data['start_date'] = this.startDate;

@@ -46,6 +46,8 @@ class UserDataAPI {
   LastMessage? lastMessage;
   int? memberCount;
   int? pendingCount;
+  int? pending_task_count;
+  int? unread_msg_count;
   int? invitedBy;
   String? invitedOn;
   String? joinedOn;
@@ -59,6 +61,8 @@ class UserDataAPI {
         this.email,
         this.createdBy,
         this.isAdmin,
+        this.unread_msg_count,
+        this.pending_task_count,
         this.displayName,
         this.open_count,
         this.isActive,
@@ -85,6 +89,8 @@ class UserDataAPI {
     memberCount = json['member_count'];
     displayName = json['display_name'];
     userName = json['user_name'];
+    pending_task_count = json['pending_task_count'];
+    unread_msg_count = json['unread_msg_count'];
     open_count = json['open_count'];
     phone = json['phone'];
     email = json['email'];
@@ -121,6 +127,8 @@ class UserDataAPI {
     data['phone'] = this.phone;
     data['email'] = this.email;
     data['member_count'] = this.memberCount;
+    data['unread_msg_count'] = this.unread_msg_count;
+    data['pending_task_count'] = this.pending_task_count;
     data['is_active'] = this.isActive;
     data['user_image'] = this.userImage;
     data['about'] = this.about;

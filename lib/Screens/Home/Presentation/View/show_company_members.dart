@@ -1,6 +1,7 @@
 import 'package:AccuChat/Constants/assets.dart';
 import 'package:AccuChat/Constants/colors.dart';
 import 'package:AccuChat/Screens/Chat/api/apis.dart';
+import 'package:AccuChat/Screens/Chat/screens/chat_tasks/Presentation/Views/task_chat_screen.dart';
 import 'package:AccuChat/Screens/Home/Presentation/Controller/company_members_controller.dart';
 import 'package:AccuChat/Screens/Home/Presentation/Controller/home_controller.dart';
 import 'package:AccuChat/Screens/Home/Presentation/View/home_screen.dart';
@@ -364,30 +365,19 @@ class CompanyMembers extends GetView<CompanyMemberController> {
                                 ),
                                 child: Image.asset(chatHome,color: appColorGreen,height: 20,)),
 
-                           /* Positioned(
+                            Positioned(
                                 top: -13,
                                 right: -7,
-                              child: AnimatedBadge(count:2,),
-                            ),*/
-                          ],
-                        ),
+                              child: InkWell(
+                                onTap: (){
+                                  dcController.updateIndex(0);
 
-                        hGap(12),
-
-
-                        Stack(
-                          clipBehavior: Clip.none,
-                          children: [
-                            TextButton(
-                                onPressed: () {
-
-                                  dcController.updateIndex(1);
-
-                                  isTaskMode = true;
+                                  isTaskMode = false;
                                   controller.update();
+                                  // APIs.updateActiveStatus(true);
+
+
                                   if(isTaskMode) {
-
-
                                     if(kIsWeb){
                                       Get.toNamed(
                                         "${AppRoutes.tasks_li_r}?userId=${memData?.userId.toString()}",
@@ -411,23 +401,45 @@ class CompanyMembers extends GetView<CompanyMemberController> {
                                     }
                                   }
                                 },
-                                style: TextButton.styleFrom(
-                                  padding: const EdgeInsets.symmetric(
-                                      horizontal: 6.0,
-                                      vertical: 3.0), // reduce as needed
-                                  minimumSize: const Size(0,
-                                      0), // optional: allows tighter sizing
-                                  tapTargetSize: MaterialTapTargetSize
-                                      .shrinkWrap, // optional: reduces touch target
-                                ),
-                                child: Image.asset(tasksHome,color: appColorYellow,height: 20,)),
-
-                           /* Positioned(
-                              top: -13,
-                              right: -7, // 👈 top-left corner (change to right for top-right)
-                              child: AnimatedBadge(count:4,),
-                            ),*/
+                                  child: AnimatedBadge(count:memData?.unread_msg_count??0,)),
+                            ),
                           ],
+                        ),
+
+                        hGap(12),
+
+
+                        InkWell(
+                          onTap: () => _goToTask(memData),
+                          child: Stack(
+                            clipBehavior: Clip.none,
+                            children: [
+                              // invisible hit area (does not affect layout)
+                              Positioned.fill(
+                                child: Container(
+                                  color: Colors.transparent, // makes whole area clickable
+                                ),
+                              ),
+
+                              TextButton(
+                                onPressed: () => _goToTask(memData),
+                                style: TextButton.styleFrom(
+                                  padding: EdgeInsets.symmetric(horizontal: 6, vertical: 3),
+                                  minimumSize: Size(0, 0),
+                                  tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                                ),
+                                child: Image.asset(tasksHome, color: appColorYellow, height: 20),
+                              ),
+
+                              Positioned(
+                                top: -13,
+                                right: -7,
+                                child: AnimatedBadge(
+                                  count: memData?.pending_task_count ?? 0,
+                                ),
+                              ),
+                            ],
+                          ),
                         ),
                       ],
                     )
@@ -460,5 +472,31 @@ class CompanyMembers extends GetView<CompanyMemberController> {
         },
       ),
     );
+  }
+
+  _goToTask(memData){
+    dcController.updateIndex(1);
+
+    isTaskMode = true;
+    controller.update();
+    if(isTaskMode) {
+      if(kIsWeb){
+        Get.to(()=>TaskScreen(taskUser:memData ,showBack: true,));
+      }else{
+        Get.toNamed(
+          AppRoutes.tasks_li_r,
+          arguments: {'user': memData},
+        );
+      }
+    }else{
+      if(kIsWeb){
+        Get.to(()=>ChatScreen(user: memData,showBack: true,));
+      }else{
+        Get.toNamed(
+          AppRoutes.chats_li_r,
+          arguments: {'user': memData},
+        );
+      }
+    }
   }
 }

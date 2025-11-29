@@ -3,6 +3,7 @@ import 'package:AccuChat/Screens/Chat/screens/chat_tasks/Presentation/Controller
 import 'package:AccuChat/utils/text_style.dart';
 import 'package:dio/dio.dart' show Dio;
 import 'package:flutter/foundation.dart';
+import 'package:flutter_linkify/flutter_linkify.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:intl/intl.dart';
 import 'package:flutter/material.dart';
@@ -13,6 +14,7 @@ import 'package:grouped_list/grouped_list.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:open_filex/open_filex.dart';
 import 'package:swipe_to/swipe_to.dart';
+import 'package:url_launcher/url_launcher.dart';
 import '../../../../../../Constants/app_theme.dart';
 import '../../../../../../Constants/colors.dart';
 import '../../../../../../Constants/themes.dart';
@@ -40,6 +42,7 @@ class TaskThreadScreen extends GetView<TaskThreadController> {
           appBar: AppBar(
             automaticallyImplyLeading: false,
             title: Row(
+
               children: [
                 Expanded(
                   child: Text(
@@ -84,11 +87,60 @@ class TaskThreadScreen extends GetView<TaskThreadController> {
                     mainAxisSize: MainAxisSize.min,
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Text("📝 ${controller.taskMessage?.title}",
-                          style: BalooStyles.baloosemiBoldTextStyle()),
+                      DefaultSelectionStyle(
+                        selectionColor: appColorPerple.withOpacity(0.3),
+                        cursorColor: appColorPerple,
+                        child: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          crossAxisAlignment: CrossAxisAlignment.center,
+                          children: [
+                            Icon(
+                              Icons.task_outlined, // <-- your title icon
+                              size: 18,
+                              color: appColorGreen,
+                            ).paddingOnly(right: 6),
+
+                            // Text + links
+                            Expanded(
+                              child: SelectableLinkify(
+                                text: controller.taskMessage?.title??'',
+                                onOpen: (link) {
+                                  launchUrl(
+                                    Uri.parse(link.url),
+                                    mode: LaunchMode.externalApplication,
+                                  );
+                                },
+                                style: BalooStyles.baloosemiBoldTextStyle(
+                                  color: Colors.black87,
+                                  size: 15,
+                                ),
+                                linkStyle: BalooStyles.baloonormalTextStyle(
+                                  color: Colors.blue,
+                                  size: 15,
+                                ),
+                                linkifiers: const [
+                                  UrlLinkifier(),
+                                ],
+                                maxLines: 1,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+
                        vGap(5),
-                      Text(controller.taskMessage?.details ?? '',
-                          style:BalooStyles.balooregularTextStyle(),maxLines: 2,overflow: TextOverflow.ellipsis,),
+                      SingleChildScrollView(
+                        child: Column(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            SizedBox(
+                              height: 60,
+                              child: Text(controller.taskMessage?.details ?? '',
+                                  style:BalooStyles.balooregularTextStyle(),overflow: TextOverflow.ellipsis,),
+                            ),
+                          ],
+                        ),
+                      ),
                       if ((controller.taskMessage?.deadline ?? '')
                           .isNotEmpty) ...[
                         vGap(8),
@@ -460,58 +512,101 @@ class TaskThreadScreen extends GetView<TaskThreadController> {
             child: SingleChildScrollView(
               child: Column(
                 children: [
-                  ConstrainedBox(
-                    constraints: BoxConstraints(
-                        maxHeight: Get.height * .4, minHeight: 45),
-                    child: Container(
-                      // color: Colors.red,
-                      decoration: BoxDecoration(
-                          borderRadius: BorderRadius.circular(8),
-                          border: Border.all(color:appColorGreen .withOpacity(.2))
-                      ),
-                      child: Row(
-                        children: [
-                          Expanded(
-                            child: TextFormField(
-                              controller: controller.msgController,
-                              keyboardType: TextInputType.multiline,
-                              cursorColor: AppTheme.appColor,
-                              maxLines: kIsWeb ? 1 : null,
-                              textInputAction: kIsWeb
-                                  ? TextInputAction.send
-                                  : TextInputAction.newline,
-                              onChanged: (text) {},
-                              onTap: () {
-                                // if (_showEmoji)
-                                //   setState(() => _showEmoji = !_showEmoji);
-                              },
-                              onFieldSubmitted: (v){
-                                _sendThreadMessage();
-                              },
-                              decoration: InputDecoration(
-                                hintText: 'Type Something...',
-                                hintStyle: themeData.textTheme.bodySmall,
-                                contentPadding: const EdgeInsets.all(8),
-                                border: InputBorder.none,
-                                enabledBorder: InputBorder.none,
-                                disabledBorder: InputBorder.none,
-                                errorBorder: InputBorder.none,
-                                focusedBorder: InputBorder.none,
+
+                  Focus(
+                    focusNode: controller.messageParentFocus,
+                    autofocus: true,
+                    onKeyEvent: (node, event) {
+                      if (!kIsWeb) return KeyEventResult.ignored;
+
+                      if (event is KeyDownEvent &&
+                          event.logicalKey == LogicalKeyboardKey.enter) {
+
+                        final bool shiftPressed =
+                            HardwareKeyboard.instance.logicalKeysPressed.contains(LogicalKeyboardKey.shiftLeft) ||
+                                HardwareKeyboard.instance.logicalKeysPressed.contains(LogicalKeyboardKey.shiftRight);
+
+                        if (shiftPressed) {
+                          // SHIFT + ENTER → new line
+                          return KeyEventResult.ignored;
+                        } else {
+                          // ENTER → send
+                          _sendThreadMessage();
+                          return KeyEventResult.handled;
+                        }
+                      }
+
+                      return KeyEventResult.ignored;
+                    },
+                    child: ConstrainedBox(
+                      constraints: BoxConstraints(
+                          maxHeight: Get.height * .4, minHeight: 45),
+                      child: Container(
+                        // color: Colors.red,
+                        decoration: BoxDecoration(
+                            borderRadius: BorderRadius.circular(8),
+                            border: Border.all(color:appColorGreen .withOpacity(.2))
+                        ),
+                        child: Row(
+                          children: [
+                            Expanded(
+                              child: TextFormField(
+                                controller: controller.msgController,
+                                keyboardType: TextInputType.multiline,
+                                textInputAction: TextInputAction.newline,
+                                maxLines: null,
+                                minLines: 1,
+                                autofocus: true,
+                                decoration: InputDecoration(
+                                  isDense: true,
+                                  hintText: 'Type Something...',
+                                  hintStyle:
+                                  themeData.textTheme.bodySmall,
+                                  contentPadding: const EdgeInsets.all(8),
+                                  border: InputBorder.none,
+                                  enabledBorder: InputBorder.none,
+                                  disabledBorder: InputBorder.none,
+                                  errorBorder: InputBorder.none,
+                                  focusedBorder: InputBorder.none,
+                                ),
+                                inputFormatters: [
+                                  FilteringTextInputFormatter.allow(
+                                    RegExp(r'[\s\S]'),
+                                  ),
+                                ],
                               ),
                             ),
-                          ),
 
-                          Visibility(
-                              visible: controller.isVisibleUpload,
-                              child: InkWell(
-                                onTap: ()=>showUploadOptions(Get.context!),
-                                child: Icon(Icons.upload_outlined,color: Colors.black54,),
-                              ).paddingAll(3)
-                          )
-                        ],
+
+                              Visibility(
+                                visible: controller.isVisibleUpload,
+                                child: InkWell(
+                                  onTap: () =>
+                                      showUploadOptions(Get.context!),
+                                  child: Container(
+                                    padding: const EdgeInsets.all(5),
+                                    margin: const EdgeInsets.all(5),
+                                    decoration: BoxDecoration(
+                                      borderRadius:
+                                      BorderRadius.circular(8),
+                                      border: Border.all(
+                                          color: appColorGreen),
+                                      color:
+                                      appColorGreen.withOpacity(.1),
+                                    ),
+                                    child: Icon(
+                                      Icons.upload_outlined,
+                                      color: appColorGreen,
+                                    ),
+                                  ),
+                                ),
+                              ),
+                          ],
+                        ),
                       ),
                     ),
-                  ),
+                  )
+
                 ],
               ),
             ),

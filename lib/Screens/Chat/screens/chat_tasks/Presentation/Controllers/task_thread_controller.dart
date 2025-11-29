@@ -19,6 +19,7 @@ class TaskThreadController extends GetxController {
   TaskData? taskMessage;
   UserDataAPI? currentUser;
   TextEditingController msgController = TextEditingController();
+  FocusNode messageParentFocus = FocusNode();
   bool isVisibleUpload = true;
   var conversationId;
   var threadId;

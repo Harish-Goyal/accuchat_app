@@ -3,6 +3,7 @@ import 'package:AccuChat/Screens/Chat/screens/chat_tasks/Presentation/Controller
 import 'package:AccuChat/utils/text_style.dart';
 import 'package:dio/dio.dart' show Dio;
 import 'package:flutter/foundation.dart';
+import 'package:flutter_linkify/flutter_linkify.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:intl/intl.dart';
 import 'package:flutter/material.dart';
@@ -13,6 +14,7 @@ import 'package:grouped_list/grouped_list.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:open_filex/open_filex.dart';
 import 'package:swipe_to/swipe_to.dart';
+import 'package:url_launcher/url_launcher.dart';
 import '../../../../../../Constants/app_theme.dart';
 import '../../../../../../Constants/colors.dart';
 import '../../../../../../Constants/themes.dart';
@@ -26,94 +28,180 @@ import '../../../../api/apis.dart';
 import '../Widgets/staggered_view.dart';
 
 class TaskThreadScreenWeb extends GetView<TaskThreadController> {
-   TaskThreadScreenWeb({
+  TaskThreadScreenWeb({
     super.key,
   });
- final controller = Get.put<TaskThreadController>(TaskThreadController());
+  final controller = Get.put<TaskThreadController>(TaskThreadController());
   @override
   Widget build(BuildContext context) {
+    return GetBuilder<TaskThreadController>(builder: (controller) {
+      return Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        mainAxisAlignment: MainAxisAlignment.start,
+        children: [
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Text(
+                controller.currentUser?.displayName == null
+                    ? controller.currentUser?.phone ?? ''
+                    : controller.currentUser?.displayName ?? '',
+                style: BalooStyles.balooboldTitleTextStyle(),
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+              ),
+              hGap(15),
+              Text(
+                "Task Reply",
+                style: BalooStyles.baloomediumTextStyle(color: appColorGreen),
+              ),
+            ],
+          ),
+          vGap(12),
+          Container(
+            width: Get.width,
+            padding: EdgeInsets.all(12),
+            margin: EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+            decoration: BoxDecoration(
+                color: getTaskStatusColor(controller
+                        .taskMessage?.currentStatus?.name?.capitalizeFirst)
+                    .withOpacity(.1),
+                border: Border.all(
+                    color: getTaskStatusColor(controller
+                        .taskMessage?.currentStatus?.name?.capitalizeFirst)),
+                //making borders curved
+                borderRadius: const BorderRadius.only(
+                    topLeft: Radius.circular(15),
+                    topRight: Radius.circular(14),
+                    bottomLeft: Radius.circular(15))),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                DefaultSelectionStyle(
+                  selectionColor: appColorPerple.withOpacity(0.3),
+                  cursorColor: appColorPerple,
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    crossAxisAlignment: CrossAxisAlignment.center,
+                    children: [
+                      Icon(
+                        Icons.task_outlined, // <-- your title icon
+                        size: 18,
+                        color: appColorGreen,
+                      ).paddingOnly(right: 6),
 
+                      // Text + links
+                      Expanded(
+                        child: SelectableLinkify(
+                          text: controller.taskMessage?.title ?? '',
+                          onOpen: (link) {
+                            launchUrl(
+                              Uri.parse(link.url),
+                              mode: LaunchMode.externalApplication,
+                            );
+                          },
+                          style: BalooStyles.baloosemiBoldTextStyle(
+                            color: Colors.black87,
+                            size: 15,
+                          ),
+                          linkStyle: BalooStyles.baloonormalTextStyle(
+                            color: Colors.blue,
+                            size: 15,
+                          ),
+                          linkifiers: const [
+                            UrlLinkifier(),
+                          ],
+                          maxLines: 1,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
 
-    return GetBuilder<TaskThreadController>(
-        builder: (controller) {
-         return Column(
-           crossAxisAlignment: CrossAxisAlignment.start,
-           mainAxisAlignment: MainAxisAlignment.start,
-           children: [
-             Row(
-               mainAxisAlignment: MainAxisAlignment.spaceBetween,
-               children: [
-                 Text(
-                   controller.currentUser?.displayName==null?controller.currentUser?.phone??'':controller.currentUser?.displayName??'',
-                   style: BalooStyles.balooboldTitleTextStyle(),
-                   maxLines: 1,
-                   overflow: TextOverflow.ellipsis,
-                 ),
-                 hGap(15),
-                 Text(
-                   "Task Reply",
-                   style: BalooStyles.baloomediumTextStyle(color: appColorGreen),
-                 ),
-               ],
-             ),
-             vGap(12),
-             Container(
-               width: Get.width,
-               padding: EdgeInsets.all(12),
-               margin: EdgeInsets.symmetric(
-                   horizontal: 12, vertical: 8),
-               decoration: BoxDecoration(
-                   color: getTaskStatusColor(
-                       controller.taskMessage?.currentStatus?.name?.capitalizeFirst)
-                       .withOpacity(.1),
-                   border: Border.all(
-                       color: getTaskStatusColor(
-                           controller.taskMessage?.currentStatus?.name?.capitalizeFirst)),
-                   //making borders curved
-                   borderRadius:  const BorderRadius.only(
-                       topLeft: Radius.circular(15),
-                       topRight: Radius.circular(14),
-                       bottomLeft: Radius.circular(15))),
-               child: Column(
-                 mainAxisSize: MainAxisSize.min,
-                 crossAxisAlignment: CrossAxisAlignment.start,
-                 children: [
-                   Text("📝 ${controller.taskMessage?.title}",
-                       style: BalooStyles.baloosemiBoldTextStyle()),
-                   vGap(5),
-                   Text(controller.taskMessage?.details ?? '',
-                     style:BalooStyles.balooregularTextStyle(),maxLines: 2,overflow: TextOverflow.ellipsis,),
-                   if ((controller.taskMessage?.deadline ?? '')
-                       .isNotEmpty) ...[
-                     vGap(8),
-                     Text(
-                         "⏱️ Est. Time: ${estimateLabel(deadlineIso: controller.taskMessage?.deadline ?? '', createdIso: controller.taskMessage?.createdOn ?? '')}",
-                         style:BalooStyles.balooregularTextStyle(color: Colors.red)),
-                   ],
-                   vGap(8),
-                   Text("Member: ${controller.joined}",
-                       style: BalooStyles.baloothinTextStyle()),
-                 ],
-               ),
-             ),
-             Expanded(
-               child: RepaintBoundary(child:  chatMessageBuilder()),
-             ),
-
-             if (controller.isUploading)
-               const Align(
-                   alignment: Alignment.centerRight,
-                   child: Padding(
-                       padding:
-                       EdgeInsets.symmetric(vertical: 8, horizontal: 20),
-                       child: CircularProgressIndicator(strokeWidth: 2))),
-             _chatInput(),
-           ],
-         ).paddingSymmetric(horizontal: 15,vertical: 20);
-        }
-    );
+                /* DefaultSelectionStyle(
+                  selectionColor:
+                      appColorPerple.withOpacity(0.3), // text select background
+                  cursorColor: appColorPerple,
+                  child: SelectableLinkify(
+                    text: controller.taskMessage?.title ?? '',
+                    onOpen: (link) {
+                      launchUrl(Uri.parse(link.url),
+                          mode: LaunchMode.externalApplication);
+                    },
+                    style: BalooStyles.baloosemiBoldTextStyle(
+                      color: Colors.black87,
+                      size: 15,
+                    ),
+                    linkStyle: BalooStyles.baloonormalTextStyle(
+                      color: Colors.blue,
+                      size: 15,
+                    ),
+                    linkifiers: const [
+                      UrlLinkifier(), // <-- THIS handles multiple links inside single text
+                    ],
+                    maxLines: 1,
+                  ),
+                ),*/
+                vGap(5),
+                SingleChildScrollView(
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      SizedBox(
+                        height: 60,
+                        child: DefaultSelectionStyle(
+                          selectionColor: appColorPerple
+                              .withOpacity(0.3), // text select background
+                          cursorColor: appColorPerple,
+                          child: SelectableLinkify(
+                            text: controller.taskMessage?.details ?? '',
+                            onOpen: (link) {
+                              launchUrl(Uri.parse(link.url),
+                                  mode: LaunchMode.externalApplication);
+                            },
+                            style: BalooStyles.baloosemiBoldTextStyle(
+                              color: Colors.black87,
+                            ),
+                            linkStyle: BalooStyles.baloonormalTextStyle(
+                              color: Colors.blue,
+                            ),
+                            linkifiers: const [
+                              UrlLinkifier(), // <-- THIS handles multiple links inside single text
+                            ],
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                if ((controller.taskMessage?.deadline ?? '').isNotEmpty) ...[
+                  vGap(8),
+                  Text(
+                      "⏱️ Est. Time: ${estimateLabel(deadlineIso: controller.taskMessage?.deadline ?? '', createdIso: controller.taskMessage?.createdOn ?? '')}",
+                      style:
+                          BalooStyles.balooregularTextStyle(color: Colors.red)),
+                ],
+                vGap(8),
+                Text("Member: ${controller.joined}",
+                    style: BalooStyles.baloothinTextStyle()),
+              ],
+            ),
+          ),
+          Expanded(
+            child: RepaintBoundary(child: chatMessageBuilder()),
+          ),
+          if (controller.isUploading)
+            const Align(
+                alignment: Alignment.centerRight,
+                child: Padding(
+                    padding: EdgeInsets.symmetric(vertical: 8, horizontal: 20),
+                    child: CircularProgressIndicator(strokeWidth: 2))),
+          _chatInput(),
+        ],
+      ).paddingSymmetric(horizontal: 15, vertical: 20);
+    });
   }
-
 
   Widget chatMessageBuilder() {
     return Column(
@@ -126,8 +214,8 @@ class TaskThreadScreenWeb extends GetView<TaskThreadController> {
             showShimmer: controller.showPostShimmer,
             shimmerWidget: shimmerlistView(
                 child: ChatHistoryShimmer(
-                  chatData: ChatHisList(),
-                )),
+              chatData: ChatHisList(),
+            )),
             child: AnimationLimiter(child: groupListView()),
           ),
         ),
@@ -139,62 +227,58 @@ class TaskThreadScreenWeb extends GetView<TaskThreadController> {
   groupListView() {
     return controller.commentsCategory.isNotEmpty
         ? GroupedListView<GroupCommentsElement, DateTime>(
-        shrinkWrap: false,
-        padding: const EdgeInsets.only(bottom: 30),
-        controller: controller.scrollController,
-        elements: controller.commentsCategory,
-        order: GroupedListOrder.DESC,
-        reverse: true,
-        floatingHeader: true,
-        useStickyGroupSeparators: true,
-        groupBy: (GroupCommentsElement element) => DateTime(
-          element.date.year,
-          element.date.month,
-          element.date.day,
-        ),
-        groupHeaderBuilder: _createGroupHeader,
-        indexedItemBuilder:
-            (BuildContext context, GroupCommentsElement element, int index) {
-          String formatatedTime = '';
-          if (element.comments.sentOn != null) {
-            var timeString = element.comments.sentOn ?? '';
+            shrinkWrap: false,
+            padding: const EdgeInsets.only(bottom: 30),
+            controller: controller.scrollController,
+            elements: controller.commentsCategory,
+            order: GroupedListOrder.DESC,
+            reverse: true,
+            floatingHeader: true,
+            useStickyGroupSeparators: true,
+            groupBy: (GroupCommentsElement element) => DateTime(
+                  element.date.year,
+                  element.date.month,
+                  element.date.day,
+                ),
+            groupHeaderBuilder: _createGroupHeader,
+            indexedItemBuilder: (BuildContext context,
+                GroupCommentsElement element, int index) {
+              String formatatedTime = '';
+              if (element.comments.sentOn != null) {
+                var timeString = element.comments.sentOn ?? '';
 
-            formatatedTime = convertUtcToIndianTime(timeString);
-          }
+                formatatedTime = convertUtcToIndianTime(timeString);
+              }
 
-          var userid = APIs.me.userId;
-          return StaggeredAnimationListItem(
-            index: index,
-            child: SwipeTo(
-              onRightSwipe: (detail) {
-                // Set the message being replied to
-                controller.refIdis = element.comments.taskCommentId;
-                controller.userIDSender =
-                    element.comments.fromUser?.userId;
-                controller.userNameReceiver =
-                    element.comments.toUser?.displayName ?? '';
-                controller.userNameSender =
-                    element.comments.fromUser?.displayName ?? '';
-                controller.userIDReceiver =
-                    element.comments.toUser?.userId;
-                controller.replyToMessage = element.comments;
+              var userid = APIs.me.userId;
+              return StaggeredAnimationListItem(
+                index: index,
+                child: SwipeTo(
+                  onRightSwipe: (detail) {
+                    // Set the message being replied to
+                    controller.refIdis = element.comments.taskCommentId;
+                    controller.userIDSender = element.comments.fromUser?.userId;
+                    controller.userNameReceiver =
+                        element.comments.toUser?.displayName ?? '';
+                    controller.userNameSender =
+                        element.comments.fromUser?.displayName ?? '';
+                    controller.userIDReceiver = element.comments.toUser?.userId;
+                    controller.replyToMessage = element.comments;
 
-                controller.update();
-
-              },
-              child: _chatMessageTile(
-                  data: element.comments,
-                  sentByMe: (userid.toString() ==
-                      element.comments.fromUser?.userId
-                          ?.toString()
-                      ? true
-                      : false),
-                  formatedTime: formatatedTime),
-            ),
-          );
-        })
+                    controller.update();
+                  },
+                  child: _chatMessageTile(
+                      data: element.comments,
+                      sentByMe: (userid.toString() ==
+                              element.comments.fromUser?.userId?.toString()
+                          ? true
+                          : false),
+                      formatedTime: formatatedTime),
+                ),
+              );
+            })
         : const Center(
-        child: Text('Say Hii! 👋', style: TextStyle(fontSize: 20)));
+            child: Text('Say Hii! 👋', style: TextStyle(fontSize: 20)));
   }
 
   Widget _createGroupHeader(GroupCommentsElement element) {
@@ -214,7 +298,7 @@ class TaskThreadScreenWeb extends GetView<TaskThreadController> {
       {required TaskComments data, required bool sentByMe, formatedTime}) {
     return Column(
       crossAxisAlignment:
-      sentByMe ? CrossAxisAlignment.end : CrossAxisAlignment.start,
+          sentByMe ? CrossAxisAlignment.end : CrossAxisAlignment.start,
       children: [
         vGap(3),
         /*data.replyToId != null
@@ -264,51 +348,44 @@ class TaskThreadScreenWeb extends GetView<TaskThreadController> {
                     },
                     child: Container(
                       padding: EdgeInsets.symmetric(
-                        horizontal:
-                        (data.media ?? []).isNotEmpty ? 8 : 15,
-                        vertical:
-                        (data.media ?? []).isNotEmpty ? 0 : 15,
+                        horizontal: (data.media ?? []).isNotEmpty ? 8 : 15,
+                        vertical: (data.media ?? []).isNotEmpty ? 0 : 15,
                       ),
                       margin: sentByMe
-                          ? const EdgeInsets.only(left: 15, top: 10,right: 15)
-                          : const EdgeInsets.only(right: 15, top: 10,left: 15),
-
+                          ? const EdgeInsets.only(left: 15, top: 10, right: 15)
+                          : const EdgeInsets.only(right: 15, top: 10, left: 15),
                       decoration: BoxDecoration(
                           color: /* widget.isTask
                                         ? getTaskStatusColor(widget.message.taskDetails?.taskStatus)
                                         .withOpacity(.1)
                                         : */
-                          sentByMe
-                              ? appColorGreen.withOpacity(.1)
-                              : appColorPerple.withOpacity(.1),
+                              sentByMe
+                                  ? appColorGreen.withOpacity(.1)
+                                  : appColorPerple.withOpacity(.1),
                           border: Border.all(
                               color: /*widget.isTask
                                             ? getTaskStatusColor(widget
                                             .message.taskDetails?.taskStatus)
                                             :*/
-                              sentByMe
-                                  ? appColorGreen
-                                  : appColorPerple),
+                                  sentByMe ? appColorGreen : appColorPerple),
                           //making borders curved
                           borderRadius: sentByMe
                               ? BorderRadius.only(
-                              topLeft: Radius.circular(
-                                  (data.media ?? []).isNotEmpty
-                                      ? 15
-                                      : 30),
-                              topRight: Radius.circular(
-                                  (data.media ?? []).isNotEmpty
-                                      ? 15
-                                      : 30),
-                              bottomLeft: Radius.circular(
-                                  (data.media ?? []).isNotEmpty
-                                      ? 15
-                                      : 30))
+                                  topLeft: Radius.circular(
+                                      (data.media ?? []).isNotEmpty ? 15 : 30),
+                                  topRight: Radius.circular(
+                                      (data.media ?? []).isNotEmpty ? 15 : 30),
+                                  bottomLeft: Radius.circular(
+                                      (data.media ?? []).isNotEmpty ? 15 : 30))
                               : BorderRadius.only(
-                              topLeft: Radius.circular(
-                                  (data.media ?? []).isNotEmpty ? 15 : 30),
-                              topRight: Radius.circular((data.media ?? []).isNotEmpty ? 15 : 30),
-                              bottomRight: Radius.circular((data.media ?? []).isNotEmpty ? 15 : 30))),
+                                  topLeft: Radius.circular(
+                                      (data.media ?? []).isNotEmpty ? 15 : 30),
+                                  topRight: Radius.circular(
+                                      (data.media ?? []).isNotEmpty ? 15 : 30),
+                                  bottomRight: Radius.circular(
+                                      (data.media ?? []).isNotEmpty
+                                          ? 15
+                                          : 30))),
                       child: messageTypeView(data, sentByMe: sentByMe),
                     ).marginOnly(left: (0), top: 0),
                   ),
@@ -363,34 +440,53 @@ class TaskThreadScreenWeb extends GetView<TaskThreadController> {
           children: [
             Flexible(
               child: Text(
-                  sentByMe
-                      ? (data.fromUser?.displayName != null
-                      ? data.fromUser?.displayName ?? ''
-                      : data.fromUser?.phone ?? '')
-                      : (data.fromUser?.displayName != null
-                      ? data.fromUser?.displayName ?? ''
-                      : data.fromUser?.phone ?? ''),
-                  textAlign: TextAlign.start,
-                  style: BalooStyles.baloothinTextStyle(
-                    color: Colors.black54,
-                    size: 13,
-                  ),
-                  overflow: TextOverflow.visible)
+                      sentByMe
+                          ? (data.fromUser?.userCompany?.displayName != null
+                              ? data.fromUser?.userCompany?.displayName ?? ''
+                              : data.fromUser?.userName != null
+                                  ? data.fromUser?.userName ?? ''
+                                  : data.fromUser?.phone ?? '')
+                          : (data.toUser?.userCompany?.displayName != null
+                              ? data.toUser?.userCompany?.displayName ?? ''
+                              : data.toUser?.userName != null
+                                  ? data.toUser?.userName ?? ''
+                                  : data.toUser?.phone ?? ''),
+                      textAlign: TextAlign.start,
+                      style: BalooStyles.baloothinTextStyle(
+                        color: Colors.black54,
+                        size: 13,
+                      ),
+                      overflow: TextOverflow.visible)
                   .marginOnly(
-                  left: sentByMe ? 0 : 0,
-                  right: sentByMe ? 10 : 0,
-                  bottom: 3,top: 0),
+                      left: sentByMe ? 0 : 0,
+                      right: sentByMe ? 10 : 0,
+                      bottom: 3,
+                      top: 0),
             ),
           ],
         ),
         data.commentText != '' || data.commentText != null
-            ? Text(data.commentText ?? '',
-            textAlign: TextAlign.start,
-            style: BalooStyles.baloonormalTextStyle(
-              color: Colors.black87,
-              size: 15,
-            ),
-            overflow: TextOverflow.visible)
+            ? DefaultSelectionStyle(
+                selectionColor:
+                    appColorPerple.withOpacity(0.3), // text select background
+                cursorColor: appColorPerple,
+                child: SelectableLinkify(
+                  text: data.commentText ?? '',
+                  onOpen: (link) {
+                    launchUrl(Uri.parse(link.url),
+                        mode: LaunchMode.externalApplication);
+                  },
+                  style: BalooStyles.baloosemiBoldTextStyle(
+                    color: Colors.black87,
+                  ),
+                  linkStyle: BalooStyles.baloonormalTextStyle(
+                    color: Colors.blue,
+                  ),
+                  linkifiers: const [
+                    UrlLinkifier(), // <-- THIS handles multiple links inside single text
+                  ],
+                ),
+              )
             : const SizedBox(),
         /* ((data.media ?? []).isNotEmpty)
             ? ChatMessageMedia(
@@ -457,58 +553,93 @@ class TaskThreadScreenWeb extends GetView<TaskThreadController> {
             child: SingleChildScrollView(
               child: Column(
                 children: [
-                  ConstrainedBox(
-                    constraints: BoxConstraints(
-                        maxHeight: Get.height * .4, minHeight: 45),
-                    child: Container(
-                      // color: Colors.red,
-                      decoration: BoxDecoration(
-                          borderRadius: BorderRadius.circular(8),
-                          border: Border.all(color:appColorGreen .withOpacity(.2))
-                      ),
-                      child: Row(
-                        children: [
-                          Expanded(
-                            child: TextFormField(
-                              controller: controller.msgController,
-                              keyboardType: TextInputType.multiline,
-                              cursorColor: AppTheme.appColor,
-                              maxLines: kIsWeb ? 1 : null,
-                              textInputAction: kIsWeb
-                                  ? TextInputAction.send
-                                  : TextInputAction.newline,
-                              onChanged: (text) {},
-                              onTap: () {
-                                // if (_showEmoji)
-                                //   setState(() => _showEmoji = !_showEmoji);
-                              },
-                              onFieldSubmitted: (v){
-                                _sendThreadMessage();
-                              },
-                              decoration: InputDecoration(
-                                hintText: 'Type Something...',
-                                hintStyle: themeData.textTheme.bodySmall,
-                                contentPadding: const EdgeInsets.all(8),
-                                border: InputBorder.none,
-                                enabledBorder: InputBorder.none,
-                                disabledBorder: InputBorder.none,
-                                errorBorder: InputBorder.none,
-                                focusedBorder: InputBorder.none,
+                  Focus(
+                    focusNode: controller.messageParentFocus,
+                    autofocus: true,
+                    onKeyEvent: (node, event) {
+                      if (!kIsWeb) return KeyEventResult.ignored;
+
+                      if (event is KeyDownEvent &&
+                          event.logicalKey == LogicalKeyboardKey.enter) {
+                        final bool shiftPressed = HardwareKeyboard
+                                .instance.logicalKeysPressed
+                                .contains(LogicalKeyboardKey.shiftLeft) ||
+                            HardwareKeyboard.instance.logicalKeysPressed
+                                .contains(LogicalKeyboardKey.shiftRight);
+
+                        if (shiftPressed) {
+                          // SHIFT + ENTER → new line
+                          return KeyEventResult.ignored;
+                        } else {
+                          // ENTER → send
+                          _sendThreadMessage();
+                          return KeyEventResult.handled;
+                        }
+                      }
+
+                      return KeyEventResult.ignored;
+                    },
+                    child: ConstrainedBox(
+                      constraints: BoxConstraints(
+                          maxHeight: Get.height * .4, minHeight: 45),
+                      child: Container(
+                        // color: Colors.red,
+                        decoration: BoxDecoration(
+                            borderRadius: BorderRadius.circular(8),
+                            border: Border.all(
+                                color: appColorGreen.withOpacity(.2))),
+                        child: Row(
+                          children: [
+                            Expanded(
+                              child: TextFormField(
+                                controller: controller.msgController,
+                                keyboardType: TextInputType.multiline,
+                                textInputAction: TextInputAction.newline,
+                                maxLines: null,
+                                minLines: 1,
+                                autofocus: true,
+                                decoration: InputDecoration(
+                                  isDense: true,
+                                  hintText: 'Type Something...',
+                                  hintStyle: themeData.textTheme.bodySmall,
+                                  contentPadding: const EdgeInsets.all(8),
+                                  border: InputBorder.none,
+                                  enabledBorder: InputBorder.none,
+                                  disabledBorder: InputBorder.none,
+                                  errorBorder: InputBorder.none,
+                                  focusedBorder: InputBorder.none,
+                                ),
+                                inputFormatters: [
+                                  FilteringTextInputFormatter.allow(
+                                    RegExp(r'[\s\S]'),
+                                  ),
+                                ],
                               ),
                             ),
-                          ),
-
-                          Visibility(
+                            Visibility(
                               visible: controller.isVisibleUpload,
                               child: InkWell(
-                                onTap: ()=>showUploadOptions(Get.context!),
-                                child: Icon(Icons.upload_outlined,color: Colors.black54,),
-                              ).paddingAll(3)
-                          )
-                        ],
+                                onTap: () => showUploadOptions(Get.context!),
+                                child: Container(
+                                  padding: const EdgeInsets.all(5),
+                                  margin: const EdgeInsets.all(5),
+                                  decoration: BoxDecoration(
+                                    borderRadius: BorderRadius.circular(8),
+                                    border: Border.all(color: appColorGreen),
+                                    color: appColorGreen.withOpacity(.1),
+                                  ),
+                                  child: Icon(
+                                    Icons.upload_outlined,
+                                    color: appColorGreen,
+                                  ),
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
                       ),
                     ),
-                  ),
+                  )
                 ],
               ),
             ),
@@ -541,13 +672,14 @@ class TaskThreadScreenWeb extends GetView<TaskThreadController> {
       ),
       builder: (_) => SafeArea(
         child: Padding(
-          padding: const EdgeInsets.only(top: 16,left: 15,right: 15,bottom: 60),
+          padding:
+              const EdgeInsets.only(top: 16, left: 15, right: 15, bottom: 60),
           child: Wrap(
             children: [
               ListTile(
                 leading: const Icon(Icons.camera_alt),
                 title: const Text("Camera"),
-                onTap: ()async {
+                onTap: () async {
                   Get.back();
                   final ImagePicker picker = ImagePicker();
                   // Pick an image
@@ -565,13 +697,13 @@ class TaskThreadScreenWeb extends GetView<TaskThreadController> {
               ListTile(
                 leading: const Icon(Icons.photo),
                 title: const Text("Gallery"),
-                onTap: () async{
+                onTap: () async {
                   Get.back();
                   final ImagePicker picker = ImagePicker();
 
                   // Picking multiple images
                   final List<XFile> images =
-                  await picker.pickMultiImage(imageQuality: 50);
+                      await picker.pickMultiImage(imageQuality: 50);
 
                   // uploading & sending image one by one
                   for (var i in images) {
@@ -589,10 +721,10 @@ class TaskThreadScreenWeb extends GetView<TaskThreadController> {
               ListTile(
                 leading: const Icon(Icons.picture_as_pdf),
                 title: const Text("Document"),
-                onTap: (){
+                onTap: () {
                   Get.back();
                   controller.pickDocument();
-                } ,
+                },
               ),
             ],
           ),
@@ -601,8 +733,6 @@ class TaskThreadScreenWeb extends GetView<TaskThreadController> {
     );
   }
 
-
-
   void _sendThreadMessage() async {
     final text = controller.msgController.text;
     if (text.isEmpty) return;
@@ -610,11 +740,9 @@ class TaskThreadScreenWeb extends GetView<TaskThreadController> {
         toId: controller.taskMessage?.toUser?.userCompany?.userCompanyId ?? 0,
         message: controller.msgController.text.trim(),
         companyId: controller.myCompany?.companyId,
-        taskId: controller.taskMessage?.taskId
-    );
+        taskId: controller.taskMessage?.taskId);
     controller.msgController.clear();
   }
-
 
   void _showBottomSheet(bool isMe, {required TaskComments data}) async {
     await showModalBottomSheet(
@@ -638,40 +766,39 @@ class TaskThreadScreenWeb extends GetView<TaskThreadController> {
 
               data.commentText != ''
                   ?
-              //copy option
-              _OptionItemCommnets(
-                  icon: const Icon(Icons.copy_all_rounded,
-                      color: Colors.blue, size: 18),
-                  name: 'Copy Text',
-                  onTap: () async {
-                    await Clipboard.setData(
-                        ClipboardData(text: data.commentText ?? ''))
-                        .then((value) {
-                      //for hiding bottom sheet
-                      Get.back();
+                  //copy option
+                  _OptionItemCommnets(
+                      icon: const Icon(Icons.copy_all_rounded,
+                          color: Colors.blue, size: 18),
+                      name: 'Copy Text',
+                      onTap: () async {
+                        await Clipboard.setData(
+                                ClipboardData(text: data.commentText ?? ''))
+                            .then((value) {
+                          //for hiding bottom sheet
+                          Get.back();
 
-                      // Dialogs.showSnackbar(context, 'Text Copied!');
-                    });
-                  })
+                          // Dialogs.showSnackbar(context, 'Text Copied!');
+                        });
+                      })
                   : (data.media ?? []).isNotEmpty
-                  ?
-              //save option
-              _OptionItemCommnets(
-                  icon: const Icon(Icons.download_rounded,
-                      color: Colors.blue, size: 18),
-                  name: 'Save Image',
-                  onTap: () async {
-                    try {
-                      Get.back();
-                      // controller.saveAll(
-                      //   data.media ?? [],
-                      // );
-                    } catch (e) {
-                      toast('Something went wrong!');
-                    }
-                  })
-                  : const SizedBox(),
-
+                      ?
+                      //save option
+                      _OptionItemCommnets(
+                          icon: const Icon(Icons.download_rounded,
+                              color: Colors.blue, size: 18),
+                          name: 'Save Image',
+                          onTap: () async {
+                            try {
+                              Get.back();
+                              // controller.saveAll(
+                              //   data.media ?? [],
+                              // );
+                            } catch (e) {
+                              toast('Something went wrong!');
+                            }
+                          })
+                      : const SizedBox(),
 
               _OptionItemCommnets(
                   icon: const Icon(Icons.download_rounded,
@@ -681,14 +808,12 @@ class TaskThreadScreenWeb extends GetView<TaskThreadController> {
                     try {
                       Get.back();
                       controller.refIdis = data.taskCommentId;
-                      controller.userIDSender =
-                          data.fromUser?.userId;
+                      controller.userIDSender = data.fromUser?.userId;
                       controller.userNameReceiver =
                           data.toUser?.displayName ?? '';
                       controller.userNameSender =
                           data.fromUser?.displayName ?? '';
-                      controller.userIDReceiver =
-                          data.toUser?.userId;
+                      controller.userIDReceiver = data.toUser?.userId;
                       controller.replyToMessage = data;
 
                       controller.update();
@@ -774,10 +899,8 @@ class TaskThreadScreenWeb extends GetView<TaskThreadController> {
           );
         });
   }
-
-
-
 }
+
 class _OptionItemCommnets extends StatelessWidget {
   final Icon icon;
   final String name;

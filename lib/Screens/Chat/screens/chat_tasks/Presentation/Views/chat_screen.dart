@@ -1,6 +1,9 @@
 import 'dart:async';
 import 'dart:math' as math;
+import 'package:AccuChat/Screens/Chat/screens/chat_tasks/Presentation/Controllers/task_home_controller.dart';
+import 'package:AccuChat/utils/text_button.dart';
 import 'package:flutter_linkify/flutter_linkify.dart';
+import 'package:share_plus/share_plus.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:AccuChat/Extension/text_field_extenstion.dart';
 import 'package:AccuChat/Screens/Chat/models/chat_history_response_model.dart';
@@ -32,9 +35,11 @@ import '../../../../../../utils/custom_dialogue.dart';
 import '../../../../../../utils/custom_flashbar.dart';
 import '../../../../../../utils/gradient_button.dart';
 import '../../../../../../utils/product_shimmer_widget.dart';
+import '../../../../../../utils/share_helper.dart';
 import '../../../../../../utils/text_style.dart';
 import '../../../../../Home/Presentation/Controller/socket_controller.dart';
 import '../../../auth/models/get_uesr_Res_model.dart';
+import '../Controllers/task_controller.dart';
 import '../Widgets/reply_msg_widget.dart';
 import '../Widgets/staggered_view.dart';
 import '../Controllers/gallery_view_controller.dart';
@@ -614,75 +619,71 @@ class ChatScreen extends GetView<ChatScreenController> {
                                 height: 25,
                               ))).paddingOnly(left: 10)
                       : const SizedBox(),
-                  Flexible(
-                    child: Align(
-                      alignment: sentByMe ? Alignment.centerRight : Alignment.centerLeft,
-                      child: IntrinsicWidth( // <-- MAGIC
-                        child: ConstrainedBox(
-                          constraints: BoxConstraints(
-                            maxWidth: Get.width * (kIsWeb ? 0.45 : 0.75),
-                          ),
-                          child: Column(
-                            // mainAxisSize: MainAxisSize.min,
-                            crossAxisAlignment: sentByMe
-                                ? CrossAxisAlignment.end
-                                : CrossAxisAlignment.start,
-                            children: [
-                              InkWell(
-                                borderRadius: BorderRadius.circular(50),
-                                // mouseCursor: SystemMouseCursors.click,
-                                onDoubleTap: () {
-                                  SystemChannels.textInput
-                                      .invokeMethod('TextInput.hide');
-                                  if (!isTaskMode) {
-                                    _showBottomSheet(sentByMe, data: data);
-                                  }
-                                },
-                                child: Container(
-                                  padding: EdgeInsets.symmetric(
-                                    horizontal:
-                                        (data.media ?? []).isNotEmpty ? 12 : 15,
-                                    vertical: (data.media ?? []).isNotEmpty ? 0 : 10,
-                                  ),
-                                  margin: sentByMe
-                                      ? const EdgeInsets.only(
-                                          left: 30, top: 10, right: 15)
-                                      : const EdgeInsets.only(
-                                          right: 30, top: 10, left: 15),
-                    
-                                  decoration: BoxDecoration(
-                                      color: sentByMe
-                                              ? appColorGreen.withOpacity(.1)
-                                              : appColorPerple.withOpacity(.1),
-                                      border: Border.all(
-                                          color: sentByMe
-                                                  ? appColorGreen
-                                                  : appColorPerple),
-                                      borderRadius: sentByMe
-                                          ? BorderRadius.only(
-                                              topLeft: Radius.circular(
-                                                  (data.media ?? []).isNotEmpty
-                                                      ? 15
-                                                      : 30),
-                                              topRight: Radius.circular(
-                                                  (data.media ?? []).isNotEmpty
-                                                      ? 15
-                                                      : 30),
-                                              bottomLeft: Radius.circular(
-                                                  (data.media ?? []).isNotEmpty
-                                                      ? 15
-                                                      : 30))
-                                          : BorderRadius.only(
-                                              topLeft: Radius.circular(
-                                                  (data.media ?? []).isNotEmpty ? 15 : 30),
-                                              topRight: Radius.circular((data.media ?? []).isNotEmpty ? 15 : 30),
-                                              bottomRight: Radius.circular((data.media ?? []).isNotEmpty ? 15 : 30))),
-                                  child: messageTypeView(data, sentByMe: sentByMe),
-                                ),
+                  Align(
+                    alignment: sentByMe ? Alignment.centerRight : Alignment.centerLeft,
+                    child: ConstrainedBox(
+                      constraints: BoxConstraints(
+                        maxWidth: Get.width * (kIsWeb ? 0.45 : 0.75),
+                      ),
+                      child: Column(
+                        // mainAxisSize: MainAxisSize.min,
+                        crossAxisAlignment: sentByMe
+                            ? CrossAxisAlignment.end
+                            : CrossAxisAlignment.start,
+                        children: [
+                          InkWell(
+                            borderRadius: BorderRadius.circular(50),
+                            // mouseCursor: SystemMouseCursors.click,
+                            onDoubleTap: () {
+                              SystemChannels.textInput
+                                  .invokeMethod('TextInput.hide');
+                              if (!isTaskMode) {
+                                _showBottomSheet(sentByMe, data: data);
+                              }
+                            },
+                            child: Container(
+                              padding: EdgeInsets.symmetric(
+                                horizontal:
+                                    (data.media ?? []).isNotEmpty ? 12 : 15,
+                                vertical: (data.media ?? []).isNotEmpty ? 0 : 10,
                               ),
-                            ],
+                              margin: sentByMe
+                                  ? const EdgeInsets.only(
+                                      left: 30, top: 10, right: 15)
+                                  : const EdgeInsets.only(
+                                      right: 30, top: 10, left: 15),
+
+                              decoration: BoxDecoration(
+                                  color: sentByMe
+                                          ? appColorGreen.withOpacity(.1)
+                                          : appColorPerple.withOpacity(.1),
+                                  border: Border.all(
+                                      color: sentByMe
+                                              ? appColorGreen
+                                              : appColorPerple),
+                                  borderRadius: sentByMe
+                                      ? BorderRadius.only(
+                                          topLeft: Radius.circular(
+                                              (data.media ?? []).isNotEmpty
+                                                  ? 15
+                                                  : 30),
+                                          topRight: Radius.circular(
+                                              (data.media ?? []).isNotEmpty
+                                                  ? 15
+                                                  : 30),
+                                          bottomLeft: Radius.circular(
+                                              (data.media ?? []).isNotEmpty
+                                                  ? 15
+                                                  : 30))
+                                      : BorderRadius.only(
+                                          topLeft: Radius.circular(
+                                              (data.media ?? []).isNotEmpty ? 15 : 30),
+                                          topRight: Radius.circular((data.media ?? []).isNotEmpty ? 15 : 30),
+                                          bottomRight: Radius.circular((data.media ?? []).isNotEmpty ? 15 : 30))),
+                              child: messageTypeView(data, sentByMe: sentByMe),
+                            ),
                           ),
-                        ),
+                        ],
                       ),
                     ),
                   ),
@@ -752,142 +753,119 @@ class ChatScreen extends GetView<ChatScreenController> {
                       orignalMsg: data.replyToText ?? '')
                   .paddingOnly(bottom: 4)
               : const SizedBox(),
-          controller.user?.userCompany?.isGroup == 1
-              ? Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    /*Flexible(
-                      child: Text(
-                              sentByMe
-                                  ? (data.fromUser?.userCompany?.displayName != null
-                                      ? data.fromUser?.userCompany?.displayName ?? ''
-                                      : data.fromUser?.phone ?? '')
-                                  : (data.fromUser?.userCompany?.displayName != null
-                                      ? data.fromUser?.userCompany?.displayName ?? ''
-                                      : data.fromUser?.phone ?? ''),
-                              textAlign: TextAlign.start,
-                              style: BalooStyles.baloothinTextStyle(
-                                color: Colors.black54,
-                                size: 13,
-                              ),
-                              maxLines: 1,
-                              overflow: TextOverflow.ellipsis)
-                          .marginOnly(
-                              left: sentByMe ? 0 : 0,
-                              right: sentByMe ? 10 : 0,
-                              bottom: 3,
-                              top: 8),
-                    ),*/
-                    Flexible(
-                      child: Text(
-                        data.fromUser?.userId == controller.me?.userId
-                            ? "You"
-                            :
-                        data.fromUser?.userCompany?.displayName!=null?  (data.fromUser?.userCompany?.displayName ?? ''):data.fromUser?.userName!=null? (data.fromUser?.userName ?? ''):(data.fromUser?.phone??''),
-                        style: BalooStyles.baloonormalTextStyle(
-                            color:
-                                data.fromUser?.userId == controller.me?.userId
-                                    ? Colors.green
-                                    : Colors.purple),
-                        textAlign: TextAlign.end, maxLines: 1,
-                          overflow: TextOverflow.ellipsis
-                      ).marginOnly(
-                          right: sentByMe ? 0 : 0,
-                          left: sentByMe ? 10 : 0,
-                          bottom: 3,
-                          top: 8),
-                    ),
-                  ],
-                )
-              : const SizedBox(),
-          data.isForwarded == 1
-              ? Text("Forwarded",
-                      textAlign: TextAlign.start,
-                      style: BalooStyles.baloonormalTextStyle(
-                          color: Colors.grey,
-                          size: 13,
-                          fontstyle: FontStyle.italic),
-                       maxLines: 1,
-              overflow: TextOverflow.ellipsis)
-                  .marginOnly(
-                  left: sentByMe ? 0 : 10,
-                  right: sentByMe ? 10 : 0,
-                )
-              : const SizedBox(),
+          // controller.user?.userCompany?.isGroup == 1
+          //     ? Row(
+          //         mainAxisSize: MainAxisSize.min,
+          //         children: [
+          //
+          //           Flexible(
+          //             child: Text(
+          //               data.fromUser?.userId == controller.me?.userId
+          //                   ? "You"
+          //                   :
+          //               data.fromUser?.userCompany?.displayName!=null?  (data.fromUser?.userCompany?.displayName ?? ''):data.fromUser?.userName!=null? (data.fromUser?.userName ?? ''):(data.fromUser?.phone??''),
+          //               style: BalooStyles.baloonormalTextStyle(
+          //                   color:
+          //                       data.fromUser?.userId == controller.me?.userId
+          //                           ? Colors.green
+          //                           : Colors.purple),
+          //               textAlign: TextAlign.end, maxLines: 1,
+          //                 overflow: TextOverflow.ellipsis
+          //             ).marginOnly(
+          //                 right: sentByMe ? 0 : 0,
+          //                 left: sentByMe ? 10 : 0,
+          //                 bottom: 3,
+          //                 top: 8),
+          //           ),
+          //         ],
+          //       )
+          //     : const SizedBox(),
+          // data.isForwarded == 1
+          //     ? Text("Forwarded",
+          //             textAlign: TextAlign.start,
+          //             style: BalooStyles.baloonormalTextStyle(
+          //                 color: Colors.grey,
+          //                 size: 13,
+          //                 fontstyle: FontStyle.italic),
+          //              maxLines: 1,
+          //     overflow: TextOverflow.ellipsis)
+          //         .marginOnly(
+          //         left: sentByMe ? 0 : 10,
+          //         right: sentByMe ? 10 : 0,
+          //       )
+          //     : const SizedBox(),
           data.message != '' || data.message != null
-              ? /*Text(data.message ?? '',
-                  textAlign: TextAlign.start,
-                  style: BalooStyles.baloonormalTextStyle(
-                    color: Colors.black87,
-                    size: 15,
-                  ),
-                  overflow: TextOverflow.visible)*/
+              ?
 
-          SelectableLinkify(
-            text: data.message ?? '',
-            onOpen: (link) {
-              launchUrl(Uri.parse(link.url), mode: LaunchMode.externalApplication);
-            },
-            style: BalooStyles.baloonormalTextStyle(
-              color: Colors.black87,
-              size: 15,
-            ),
-            linkStyle: BalooStyles.baloonormalTextStyle(
-              color: Colors.blue,
-              size: 15,
+          DefaultSelectionStyle(
+            selectionColor: appColorPerple.withOpacity(0.3),
+            cursorColor: appColorPerple,
+            child: SelectableLinkify(
+              text: data.message ?? '',
+              onOpen: (link) {
+                launchUrl(Uri.parse(link.url), mode: LaunchMode.externalApplication);
+              },
+              style: BalooStyles.baloonormalTextStyle(
+                color: Colors.black87,
+                size: 15,
+              ),
+              linkStyle: BalooStyles.baloonormalTextStyle(
+                color: Colors.blue,
+                size: 15,
+              ),
+              linkifiers: const [
+                UrlLinkifier(),
+              ],
             ),
           )
               : const SizedBox(),
           ((data.media ?? []).isNotEmpty)
-              ? IntrinsicWidth(
-                    // width:fieldWidth,
-                    child: ChatMessageMedia(
-                      chat: data,
-                      isGroupMessage: data.isGroupChat == 1 ? true : false,
-                      myId: (controller.me?.userId ?? 0).toString(),
-                      fromId: (data.fromUser?.userId ?? 0).toString(),
-                      senderName: data.fromUser?.userCompany?.displayName ?? '',
-                      baseUrl: ApiEnd.baseUrlMedia,
-                      defaultGallery: defaultGallery,
-                      onOpenDocument: (url) =>
-                          openDocumentFromUrl(url), // your existing function
-                      onOpenImageViewer: (mediaurls, startIndex) {
-                        // push your gallery view
-                        // Get.to(() => ImageViewer(urls: urls, initialIndex: startIndex));
-                        Get.to(
-                          () => GalleryViewerPage(
-                            onReply: () {
-                              Get.back();
-                              controller.refIdis = data.chatId;
-                              controller.userIDSender = data.fromUser?.userId;
-                              controller.userNameReceiver =
-                                  data.toUser?.userCompany?.displayName ?? '';
-                              controller.userNameSender =
-                                  data.fromUser?.userCompany?.displayName ?? '';
-                              controller.userIDReceiver = data.toUser?.userId;
-                              controller.replyToMessage = data;
-                              controller.replyToImage =
-                                  data.media?[startIndex].fileName ?? '';
-                            },
-                          ),
-                          binding: BindingsBuilder(() {
-                            Get.put(GalleryViewerController(
-                                urls: mediaurls,
-                                index: startIndex,
-                                chathis: data));
-                          }),
-                          fullscreenDialog: true,
-                          transition: Transition.fadeIn,
-                        );
-                      },
-                      onOpenVideo: (url) {
-                        // open video player route/sheet if available
-                      },
-                      onOpenAudio: (url) {
-                        // open audio player route/sheet if available
+              ? ChatMessageMedia(
+                chat: data,
+                isGroupMessage: data.isGroupChat == 1 ? true : false,
+                myId: (controller.me?.userId ?? 0).toString(),
+                fromId: (data.fromUser?.userId ?? 0).toString(),
+                senderName: data.fromUser?.userCompany?.displayName ?? '',
+                baseUrl: ApiEnd.baseUrlMedia,
+                defaultGallery: defaultGallery,
+                onOpenDocument: (url) =>
+                    openDocumentFromUrl(url), // your existing function
+                onOpenImageViewer: (mediaurls, startIndex) {
+                  // push your gallery view
+                  // Get.to(() => ImageViewer(urls: urls, initialIndex: startIndex));
+                  Get.to(
+                    () => GalleryViewerPage(
+                      onReply: () {
+                        Get.back();
+                        controller.refIdis = data.chatId;
+                        controller.userIDSender = data.fromUser?.userId;
+                        controller.userNameReceiver =
+                            data.toUser?.userCompany?.displayName ?? '';
+                        controller.userNameSender =
+                            data.fromUser?.userCompany?.displayName ?? '';
+                        controller.userIDReceiver = data.toUser?.userId;
+                        controller.replyToMessage = data;
+                        controller.replyToImage =
+                            data.media?[startIndex].orgFileName ?? '';
                       },
                     ),
-                  )
+                    binding: BindingsBuilder(() {
+                      Get.put(GalleryViewerController(
+                          urls: mediaurls,
+                          index: startIndex,
+                          chathis: data));
+                    }),
+                    fullscreenDialog: true,
+                    transition: Transition.fadeIn,
+                  );
+                },
+                onOpenVideo: (url) {
+                  // open video player route/sheet if available
+                },
+                onOpenAudio: (url) {
+                  // open audio player route/sheet if available
+                },
+              )
               : const SizedBox(),
         ],
       ),
@@ -1031,6 +1009,29 @@ class ChatScreen extends GetView<ChatScreenController> {
             ? */
         /*: SizedBox()*/
 
+        (controller.user?.userCompany?.isBroadcast==1 ||controller.user?.userCompany?.isGroup==1) ?SizedBox():  CustomTextButton(onTap: (){
+          isTaskMode = true;
+          Get.find<DashboardController>().updateIndex(1);
+
+          // ensure TaskHomeController exists
+          if (!Get.isRegistered<TaskHomeController>()) {
+            Get.put(TaskHomeController());
+          }
+          // ensure TaskController exists
+          if (!Get.isRegistered<TaskController>()) {
+            Get.put(TaskController(user: controller.user));
+          }
+
+          final taskHome = Get.find<TaskHomeController>();
+          final taskC = Get.find<TaskController>();
+
+          taskHome.selectedChat.value = controller.user;
+          taskC.user = controller.user;
+          taskC.openConversation(controller.user);
+
+          taskHome.selectedChat.refresh();
+        }, title: "Go to Task"),
+        hGap(10),
         (controller.user?.userCompany?.isGroup == 1 ||
                 controller.user?.userCompany?.isBroadcast == 1)
             ? PopupMenuButton<String>(
@@ -1113,6 +1114,7 @@ class ChatScreen extends GetView<ChatScreenController> {
                 ],
               )
             : const SizedBox(),
+        hGap(8)
       ],
     );
   }
@@ -1188,6 +1190,7 @@ class ChatScreen extends GetView<ChatScreenController> {
                                     child: TextFormField(
                                       controller: controller.textController,
                                       keyboardType: TextInputType.multiline,
+                                      focusNode: controller.messageInputFocus,
                                       textInputAction: TextInputAction.newline,
                                       maxLines: null,
                                       minLines: 1,
@@ -1672,16 +1675,37 @@ class ChatScreen extends GetView<ChatScreenController> {
 
   Future<List<PlatformFile>> _pickWebDocs() async {
     final result = await FilePicker.platform.pickFiles(
-      allowMultiple: true,
+      allowMultiple: false,
       type: FileType.custom,
+      allowCompression: true,
+      compressionQuality: 60,
       allowedExtensions: const [
         'pdf',
         'doc',
         'docx',
+        'txt',
         'xls',
         'xlsx',
         'csv',
-        'txt'
+        'xml',
+        'json',
+        'ppt',
+        'pptx',
+        'zip',
+        'rar',
+        'PDF',
+        'DOC',
+        'DOCX',
+        'TXT',
+        'XLS',
+        'XLSX',
+        'CSV',
+        'XML',
+        'JSON',
+        'PPT',
+        'PPTX',
+        'ZIP',
+        'RAR',
       ],
       withData: true,
       withReadStream: false,
@@ -1759,11 +1783,12 @@ class ChatScreen extends GetView<ChatScreenController> {
 
               !((data.media ?? []).isNotEmpty)
                   ? _OptionItem(
-                      icon: Icon(Icons.reply, color: appColorYellow, size: 18),
+                      icon: Icon(Icons.reply, color: appColorGreen, size: 18),
                       name: 'Reply',
                       onTap: () async {
                         try {
                           Get.back();
+
                           controller.refIdis = data.chatId;
                           controller.userIDSender = data.fromUser?.userId;
                           controller.userNameReceiver =
@@ -1774,6 +1799,9 @@ class ChatScreen extends GetView<ChatScreenController> {
                           controller.replyToMessage = data;
 
                           controller.update();
+
+                          controller.messageInputFocus.requestFocus();
+
                         } catch (e) {
                           toast('Something went wrong!');
                         }
@@ -1806,29 +1834,29 @@ class ChatScreen extends GetView<ChatScreenController> {
                 ),
 
               //edit option
-              /*  if (data.message != "" && isMe)
+              if (data.message != "" && isMe)
                 _OptionItem(
-                    icon: const Icon(Icons.edit, color: Colors.blue,  size: 18),
+                    icon:  Icon(Icons.edit, color: appColorGreen,  size: 18),
                     name: 'Edit Message',
                     onTap: () {
                       //for hiding bottom sheet
                       Get.back();
 
-                      */ /* final currentStatus =
-                          widget.message.taskDetails?.taskStatus ?? 'Pending';
-
-                      isTaskMode && !widget.isForward
-                          ? (['Done', 'Completed', 'Cancelled']
-                                  .contains(currentStatus))
-                              ? toast(
-                                  "⛔ Task status is '$currentStatus' — update not allowed.")
-                              : showDialog(
-                                  context: Get.context!,
-                                  builder: (_) => _updateTasksDialogWidget(
-                                      userName, widget.message.taskDetails!))
-                          : */ /*
-                      _showMessageUpdateDialog();
-                    }),*/
+                      //  final currentStatus =
+                      //     widget.message.taskDetails?.taskStatus ?? 'Pending';
+                      //
+                      // isTaskMode && !widget.isForward
+                      //     ? (['Done', 'Completed', 'Cancelled']
+                      //             .contains(currentStatus))
+                      //         ? toast(
+                      //             "⛔ Task status is '$currentStatus' — update not allowed.")
+                      //         : showDialog(
+                      //             context: Get.context!,
+                      //             builder: (_) => _updateTasksDialogWidget(
+                      //                 userName, widget.message.taskDetails!))
+                      //     :
+                      _showMessageUpdateDialog(data,Get.context!);
+                    }),
 
               // delete option
               if (controller.me?.userId == controller.myCompany?.createdBy)
@@ -1837,7 +1865,6 @@ class ChatScreen extends GetView<ChatScreenController> {
                         color: Colors.red, size: 18),
                     name: 'Delete Message',
                     onTap: () async {
-                      print("sdfsdfsf${data.chatId ?? 0}");
                       Get.find<SocketController>().deleteMsgEmitter(
                           mode: controller.user?.userCompany?.isGroup == 1
                               ? "group"
@@ -1849,8 +1876,21 @@ class ChatScreen extends GetView<ChatScreenController> {
                               ? controller.user?.userCompany?.userCompanyId
                               : null);
                     }),
+
+             (data.message!=null&&(data.media?.isEmpty??true))?
+
+             _OptionItem(
+                 icon:  Icon(Icons.share,
+                     color: appColorGreen, size: 18),
+                 name: 'Share on WhatsApp',
+                 onTap: () async {
+                   if(kIsWeb){
+                     final msg = data.message ?? '';
+                     ShareHelper.shareOnWhatsApp(msg);
+                   }
+                 }):SizedBox()
               //separator or divider
-              /*  if (!widget.isForward)
+              /* if (!widget.isForward)
                 Divider(
                   color: Colors.black54,
                   endIndent: mq.width * .04,
@@ -1887,7 +1927,6 @@ class ChatScreen extends GetView<ChatScreenController> {
     return CustomDialogue(
       title: "Documents",
       isShowAppIcon: false,
-      // ⬇️ Add a responsive wrapper so the dialog doesn't take full web width/height
       content: LayoutBuilder(
         builder: (context, constraints) {
           final screenW = MediaQuery.of(context).size.width;
@@ -2033,12 +2072,13 @@ class ChatScreen extends GetView<ChatScreenController> {
   }
 
   //dialog for updating message content
-  void _showMessageUpdateDialog() {
-/*    String updatedMsg = widget.message.msg;
-
+  void _showMessageUpdateDialog(ChatHisList message,context) {
+    controller.updateMsgController.text = message.message??'';
     showDialog(
         context: context,
+
         builder: (_) => AlertDialog(
+          backgroundColor: Colors.white,
               contentPadding: const EdgeInsets.only(
                   left: 24, right: 24, top: 20, bottom: 10),
 
@@ -2046,22 +2086,23 @@ class ChatScreen extends GetView<ChatScreenController> {
                   borderRadius: BorderRadius.circular(20)),
 
               //title
-              title: const Row(
+              title:  Row(
                 children: [
                   Icon(
                     Icons.message,
-                    color: Colors.blue,
-                    size: 28,
+                    color: appColorGreen,
+                    size: 20,
                   ),
-                  Text(' Update Message')
+                  hGap(5),
+                  Text('Update Message',style: BalooStyles.baloosemiBoldTextStyle(),)
                 ],
               ),
 
               //content
               content: TextFormField(
-                initialValue: updatedMsg,
+                controller: controller.updateMsgController ,
                 maxLines: null,
-                onChanged: (value) => updatedMsg = value,
+                onChanged: (value) => message.message = value,
                 decoration: InputDecoration(
                     border: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(15))),
@@ -2081,20 +2122,21 @@ class ChatScreen extends GetView<ChatScreenController> {
                     )),
 
                 //update button
-                MaterialButton(
-                    onPressed: () {
-                      //hide alert dialog
-                      APIs.updateMessage(widget.message, updatedMsg)
-                          .whenComplete(() {
-                        Get.back();
-                      });
-                    },
-                    child: const Text(
-                      'Update',
-                      style: TextStyle(color: Colors.blue, fontSize: 16),
-                    ))
+
+                CustomTextButton(onTap: (){
+                  try {
+                    Get.find<SocketController>().updateChatMessage(
+                        chatId: message.chatId,
+                        toUcId: message.toUser?.userCompany?.userCompanyId,
+                        message: controller.updateMsgController.text
+                    );
+                  }catch(e){
+                    toast(e.toString());
+                  }
+                }, title: 'Update')
+
               ],
-            ));*/
+            ));
   }
 }
 

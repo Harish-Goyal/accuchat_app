@@ -129,7 +129,6 @@ class TaskController extends GetxController {
 
   void openConversation(UserDataAPI? useriii) {
     user = useriii;
-    update();
 
     // _getMe();
     _getCompany();
@@ -153,7 +152,7 @@ class TaskController extends GetxController {
   _getCompany() async {
     final svc = CompanyService.to;
     myCompany = svc.selected;
-    update();
+
   }
 
   List<StatusData> taskStatus = [];
@@ -686,170 +685,185 @@ class TaskController extends GetxController {
       // ===========================
       //   CASE 1: WITH ATTACHMENTS
       // ===========================
-      if (attachedFiles.isNotEmpty) {
-        isUploading = true;
-        update();
 
-        final List<multi.MultipartFile> mediaFiles = [];
 
-        // 🔁 Jo bhi attachedFiles me hai (existing + new) sabko Multipart bana ke upload karenge
-        for (final raw in attachedFiles) {
-          final Map<String, dynamic> item =
-          Map<String, dynamic>.from(raw as Map);
+        if (taskStatusId != null) {
+          Get.find<SocketController>().updateTaskMessage(
+            taskID: task.taskId,
+            taskStatusId: taskStatusId,
+            receiverId: user?.userCompany?.userCompanyId,
+            companyId: myCompany?.companyId,
+            taskTitle: task.title,
+            taskDes: task.details,
+          );
+          clearFields();
+          update();
+          return;
+        } else {
+          if (attachedFiles.isNotEmpty ) {
+            isUploading = true;
+            update();
 
-          final String? name = (item['name'] as String?)?.trim();
-          final String filename =
-          (name != null && name.isNotEmpty) ? name : 'file';
+            final List<multi.MultipartFile> mediaFiles = [];
 
-          final mt = _mediaTypeForPath(filename);
-          final bool isLocal = item['isLocal'] == true;
+            // 🔁 Jo bhi attachedFiles me hai (existing + new) sabko Multipart bana ke upload karenge
+            for (final raw in attachedFiles) {
+              final Map<String, dynamic> item =
+              Map<String, dynamic>.from(raw as Map);
 
-          multi.MultipartFile? mf;
+              final String? name = (item['name'] as String?)?.trim();
+              final String filename =
+              (name != null && name.isNotEmpty) ? name : 'file';
 
-          if (isLocal) {
-            // 🔹 NEW LOCAL FILE
-            if (kIsWeb) {
-              // 🌐 WEB: use bytes
-              final bytes = item['bytes'];
-              if (bytes == null) {
-                // invalid local item, skip
-                continue;
+              final mt = _mediaTypeForPath(filename);
+              final bool isLocal = item['isLocal'] == true;
+
+              multi.MultipartFile? mf;
+
+              if (isLocal) {
+                // 🔹 NEW LOCAL FILE
+                if (kIsWeb) {
+                  // 🌐 WEB: use bytes
+                  final bytes = item['bytes'];
+                  if (bytes == null) {
+                    // invalid local item, skip
+                    continue;
+                  }
+
+                  mf = multi.MultipartFile.fromBytes(
+                    (bytes as List<int>),
+                    filename: filename,
+                    contentType: mt,
+                  );
+                } else {
+                  // 📱 MOBILE / DESKTOP: use File
+                  final file = item['file'];
+                  if (file == null) {
+                    continue;
+                  }
+
+                  final String path = (file as File).path;
+
+                  mf = await multi.MultipartFile.fromFile(
+                    path,
+                    filename: filename,
+                    contentType: mt,
+                  );
+                }
+              } else {
+                // 🔹 EXISTING SERVER FILE → re-upload via URL
+                final String? url = item['url'] as String?;
+                if (url == null || url.isEmpty) {
+                  continue;
+                }
+
+                try {
+                  final uri = Uri.parse(url);
+                  final res = await http.get(uri);
+
+                  if (res.statusCode != 200) {
+                    // download fail → skip this particular media
+                    continue;
+                  }
+
+                  mf = multi.MultipartFile.fromBytes(
+                    res.bodyBytes,
+                    filename: filename,
+                    contentType: mt,
+                  );
+                } catch (e) {
+                  // network / parse error → skip this media
+                  continue;
+                }
               }
 
-              mf = multi.MultipartFile.fromBytes(
-                (bytes as List<int>),
-                filename: filename,
-                contentType: mt,
-              );
-            } else {
-              // 📱 MOBILE / DESKTOP: use File
-              final file = item['file'];
-              if (file == null) {
-                continue;
+              if (mf != null) {
+                mediaFiles.add(mf);
               }
 
-              final String path = (file as File).path;
+              print("mediaFiles");
+              print(mediaFiles);
+            }
 
-              mf = await multi.MultipartFile.fromFile(
-                path,
-                filename: filename,
-                contentType: mt,
+            // Agar kisi reason se koi bhi media valid na ban paya
+            if (mediaFiles.isEmpty) {
+              isUploading = false;
+              update();
+
+              // Fallback: sirf text update bhej sakti ho ya attachmentsList empty bhej do
+              Get.find<SocketController>().updateTaskMessage(
+                taskID: task.taskId,
+                receiverId: user?.userCompany?.userCompanyId,
+                companyId: myCompany?.companyId,
+                taskTitle: titleController.text.trim(),
+                taskDes: descController.text.trim(),
+                taskDeadline: time,
+                attachmentsList: [],
               );
+              Get.back();
+              return;
             }
-          } else {
-            // 🔹 EXISTING SERVER FILE → re-upload via URL
-            final String? url = item['url'] as String?;
-            if (url == null || url.isEmpty) {
-              continue;
-            }
+
+            // 🔴 IMPORTANT: Yaha **saare** media (existing + new) upload ho rahe hain
+            final formData = multi.FormData.fromMap({
+              'task_media': mediaFiles,
+            });
+
+            final resp =
+            await Get.find<PostApiServiceImpl>().uplaodTaskAttachmentsAPICall(
+              dataBody: formData,
+            );
+
+            isUploading = false;
+            update();
+
+            final attachments = resp.data?.files ?? [];
 
             try {
-              final uri = Uri.parse(url);
-              final res = await http.get(uri);
-
-              if (res.statusCode != 200) {
-                // download fail → skip this particular media
-                continue;
-              }
-
-              mf = multi.MultipartFile.fromBytes(
-                res.bodyBytes,
-                filename: filename,
-                contentType: mt,
+              Get.find<SocketController>().updateTaskMessage(
+                taskID: task.taskId,
+                receiverId: user?.userCompany?.userCompanyId,
+                companyId: myCompany?.companyId,
+                taskTitle: titleController.text.trim(),
+                taskDes: descController.text.trim(),
+                taskDeadline: time,
+                // 👇 Fresh full list from API
+                attachmentsList: attachments,
               );
+              Get.back();
+              update();
             } catch (e) {
-              // network / parse error → skip this media
-              continue;
+              print(e.toString());
             }
-          }
 
-          if (mf != null) {
-            mediaFiles.add(mf);
-          }
-        }
-
-        // Agar kisi reason se koi bhi media valid na ban paya
-        if (mediaFiles.isEmpty) {
-          isUploading = false;
-          update();
-
-          // Fallback: sirf text update bhej sakti ho ya attachmentsList empty bhej do
-          Get.find<SocketController>().updateTaskMessage(
-            taskID: task.taskId,
-            receiverId: user?.userCompany?.userCompanyId,
-            companyId: myCompany?.companyId,
-            taskTitle: titleController.text.trim(),
-            taskDes: descController.text.trim(),
-            taskDeadline: time,
-            attachmentsList: [],
-          );
-          Get.back();
-          return;
-        }
-
-        // 🔴 IMPORTANT: Yaha **saare** media (existing + new) upload ho rahe hain
-        final formData = multi.FormData.fromMap({
-          'task_media': mediaFiles,
-        });
-
-        final resp =
-        await Get.find<PostApiServiceImpl>().uplaodTaskAttachmentsAPICall(
-          dataBody: formData,
-        );
-
-        isUploading = false;
-        update();
-
-        final attachments = resp.data?.files ?? [];
-
-        try {
-          Get.find<SocketController>().updateTaskMessage(
-            taskID: task.taskId,
-            receiverId: user?.userCompany?.userCompanyId,
-            companyId: myCompany?.companyId,
-            taskTitle: titleController.text.trim(),
-            taskDes: descController.text.trim(),
-            taskDeadline: time,
-            // 👇 Fresh full list from API
-            attachmentsList: attachments,
-          );
-          Get.back();
-          update();
-        } catch (e) {
-          print(e.toString());
-        }
-
-        // ===========================
-        //   CASE 2: NO ATTACHMENTS
-        // ===========================
-      } else {
-        try {
-          if (taskStatusId != null) {
-            Get.find<SocketController>().updateTaskMessage(
-              taskID: task.taskId,
-              taskStatusId: taskStatusId,
-              receiverId: user?.userCompany?.userCompanyId,
-              companyId: myCompany?.companyId,
-              taskTitle: task.title,
-              taskDes: task.details,
-            );
+            // ===========================
+            //   CASE 2: NO ATTACHMENTS
+            // ===========================
           } else {
+
+
+            isUploading = false;
+            update();
+
+            // Fallback: sirf text update bhej sakti ho ya attachmentsList empty bhej do
             Get.find<SocketController>().updateTaskMessage(
               taskID: task.taskId,
               receiverId: user?.userCompany?.userCompanyId,
               companyId: myCompany?.companyId,
               taskTitle: titleController.text.trim(),
               taskDes: descController.text.trim(),
-              taskStatusId: taskStatusId,
+              taskDeadline: time,
+              attachmentsList: [],
             );
             Get.back();
+            return;
           }
-          clearFields();
-          update();
-        } catch (e) {
-          print(e.toString());
         }
-      }
+
+
+
+
+
     } catch (e) {
       isUploading = false;
       update();

@@ -1,6 +1,9 @@
 import 'dart:io';
+import 'package:AccuChat/Services/APIs/local_keys.dart';
 import 'package:AccuChat/Services/error_res.dart';
+import 'package:AccuChat/routes/app_routes.dart';
 import 'package:dio/dio.dart';
+import 'package:get/get.dart';
 
 import '../Constants/strings.dart';
 
@@ -36,6 +39,8 @@ class NetworkExceptions {
                //   }
                // }
               case 401:
+                logoutLocal();
+                Get.offAllNamed(AppRoutes.login_r);
                 return ErrorResponseModel.fromJson(error.response?.data).message;
 
               case 403:

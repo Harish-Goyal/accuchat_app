@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'package:AccuChat/Screens/Chat/models/task_attachment_res_model.dart';
 import 'package:AccuChat/Screens/Chat/models/task_commets_res_model.dart';
 import 'package:AccuChat/Screens/Chat/screens/chat_tasks/Presentation/Controllers/chat_home_controller.dart';
 import 'package:AccuChat/Screens/Chat/screens/chat_tasks/Presentation/Controllers/task_controller.dart';
@@ -306,9 +307,61 @@ class SocketController extends GetxController with WidgetsBindingObserver  {
       }
     });
 
+    socket?.off('update_message_listener');
+    socket?.on('update_message_listener', (payload) {
+      debugPrint("Listing update message......8");
+      debugPrint("update message listener ${jsonEncode(payload.toString())}");
+
+      try {
+
+        final chatController = Get.find<ChatScreenController>();
+        final updated = ChatHisList.fromJson(payload);
+
+        final meId = APIs.me.userId?.toString();
+        final fromId = updated.fromUser?.userId?.toString();
+        final toId   = updated.toUser?.userId?.toString();
+
+        if (fromId == meId || toId == meId) {
+          final list = chatController.chatHisList ?? [];
+          final idx  = list.indexWhere((t) => t.chatId == updated.chatId);
+
+          if (idx != -1) {
+            final old = list[idx];
+            old.chatId= updated.chatId??old.chatId;
+            old.fromUser= updated.fromUser??old.fromUser;
+            old.toUser= updated.toUser??old.toUser;
+            old.message= updated.message??old.message;
+            old.isActivity= updated.isActivity??old.isActivity;
+            old.isForwarded= updated.isForwarded??old.isForwarded;
+            old.sentOn= updated.sentOn??old.sentOn;
+            old.readOn= updated.readOn??old.readOn;
+            old.pendingCount= updated.pendingCount??old.pendingCount;
+            old.isGroupChat= updated.isGroupChat??old.isGroupChat;
+            old.broadcastUserId= updated.broadcastUserId??old.broadcastUserId;
+            old.replyToId= updated.replyToId??old.replyToId;
+            old.replyToText= updated.replyToText??old.replyToText;
+            old.replyToTime= updated.replyToTime??old.replyToTime;
+            old.replyToName= updated.replyToName??old.replyToName;
+            old.media=(updated.media?.isNotEmpty ?? false)? updated.media:old.media;
+            chatController.update();
+            final gIdx = chatController.chatCatygory
+                .indexWhere((g) => g.chatMessageItems.chatId == updated.chatId);
+            if (gIdx != -1) {
+              chatController.chatCatygory[gIdx].chatMessageItems.chatId= old.chatId;
+            }
+          } else {
+            list.insert(0, updated);
+            chatController.update();
+          }
+        }
+      } catch (e) {
+        debugPrint('update_task_listener error: $e');
+      }
+    });
+
     socket?.off('update_task_listener');
     socket?.on('update_task_listener', (payload) {
-      debugPrint("Listing update task......8");
+      debugPrint("Listing task message listener......9");
       debugPrint("update task  listener ${jsonEncode(payload.toString())}");
 
       try {
@@ -784,7 +837,7 @@ class SocketController extends GetxController with WidgetsBindingObserver  {
     taskDeadline,
     status,
     taskStatusId,
-    attachmentsList,
+    List<AttachmentFiles>? attachmentsList,
     pushToken,
     bool isForward = false,
     UserDataAPI? forwardUser,
@@ -802,10 +855,50 @@ class SocketController extends GetxController with WidgetsBindingObserver  {
           "task_status_id": taskStatusId,
           "files": attachmentsList
         });
-        debugPrint("Update task sent: ======== task_id: $taskID, title:  $taskTitle ,receiverId: $receiverId ,companyId : $companyId, taskStatusId:$taskStatusId");
+        debugPrint("Update task sent: ======== task_id: $taskID,task_id: ${attachmentsList}, title:  $taskTitle ,receiverId: $receiverId ,companyId : $companyId, taskStatusId:$taskStatusId");
 
         final svc = CompanyService.to;
         final myCompany = svc.selected;
+
+        // if (pushToken != '' && pushToken != APIs.me.pushToken) {
+        //   // await LocalNotificationService.showChatNotification(
+        //   //   title: '💬 New Message from ${APIs.me.name}',
+        //   //   body: msg??'',
+        //   // );
+        //   await NotificationService.sendTaskNotification(
+        //     targetToken: pushToken,
+        //     assignerName: APIs.me.userName ?? '',
+        //     company: myCompany,
+        //     taskSummary: taskTitle,
+        //   );
+        // }
+      } catch (e) {
+        debugPrint(e.toString());
+      }
+    } else {
+      debugPrint("Socket is not connected");
+    }
+  }
+
+  Future<void> updateChatMessage({
+    int? chatId,
+    int? receiverId,
+    var toUcId,
+    message,
+    pushToken,
+  }) async {
+    if (socket != null && socket!.connected) {
+      debugPrint("Update chat sent:---------- $message");
+      try {
+        socket?.emit('update_task', {
+          "chat_id": chatId,
+          "to_uc_id": toUcId,
+          "text": message,
+        });
+        debugPrint("Update task sent: ======== task_id: $chatId,message: $message,toUcId: $toUcId");
+
+        // final svc = CompanyService.to;
+        // final myCompany = svc.selected;
 
         // if (pushToken != '' && pushToken != APIs.me.pushToken) {
         //   // await LocalNotificationService.showChatNotification(

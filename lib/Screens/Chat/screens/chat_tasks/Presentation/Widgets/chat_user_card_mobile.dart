@@ -88,7 +88,6 @@ class _ChatUserCardMobileState extends State<ChatUserCardMobile>
           onTap: () {
             //for navigating to chat screen
             // APIs.updateActiveStatus(true);
-
             if(isTaskMode) {
                 Get.to(()=>TaskScreen(taskUser: widget.user,));
             }else{

@@ -84,6 +84,7 @@ class CompaniesScreen extends GetView<CompaniesController> {
                   return RefreshIndicator(
                     onRefresh: () async => controller.refreshCompanies(),
                     child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Row(
                           crossAxisAlignment: CrossAxisAlignment.start,
@@ -149,10 +150,11 @@ class CompaniesScreen extends GetView<CompaniesController> {
                                   final bool isSelected =
                                       companyData.companyId ==
                                           controller.selCompany?.companyId;
-                                  return Center(
+                                  return Align(
+                                    alignment: Alignment.centerLeft,
                                       child: ConstrainedBox(
                                     constraints: BoxConstraints(
-                                      maxWidth: kIsWeb ? 600 : double.infinity,
+                                      maxWidth: kIsWeb ? 500 : double.infinity,
                                     ),
                                     child: Stack(
                                       clipBehavior: Clip.none,

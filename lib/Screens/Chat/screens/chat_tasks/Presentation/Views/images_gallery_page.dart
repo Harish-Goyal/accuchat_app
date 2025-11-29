@@ -2,12 +2,15 @@ import 'package:AccuChat/Constants/assets.dart';
 import 'package:AccuChat/Screens/Chat/screens/chat_tasks/Presentation/Controllers/chat_screen_controller.dart';
 import 'package:AccuChat/utils/helper_widget.dart';
 import 'package:AccuChat/utils/networl_shimmer_image.dart';
+import 'package:AccuChat/utils/text_style.dart';
 import 'package:cached_network_image/cached_network_image.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:photo_view/photo_view.dart';
 import 'package:photo_view/photo_view_gallery.dart';
 
+import '../../../../../../utils/share_helper.dart';
 import '../../../../models/chat_history_response_model.dart';
 import '../Controllers/gallery_view_controller.dart';
 
@@ -22,7 +25,6 @@ class GalleryViewerPage extends StatelessWidget {
   Widget build(BuildContext context) {
     return GetBuilder<GalleryViewerController>(
       builder: (c) {
-
         return Scaffold(
           backgroundColor: Colors.white,
           appBar: AppBar(
@@ -43,6 +45,15 @@ class GalleryViewerPage extends StatelessWidget {
                   if (v == 'save_all'){
                     for(String url in c.urls ){
                       await saveImageToGallery(url);
+                    }
+
+                  }
+
+                  if(v == 'share_this'){
+                    if(kIsWeb){
+                      ShareHelper.shareOnWhatsApp(c.urls[c.index]);
+                    }else{
+                      ShareHelper.shareNetworkImage(c.urls[c.index]);
                     }
 
                   }
@@ -73,10 +84,6 @@ class GalleryViewerPage extends StatelessWidget {
                             // replyToText:getFileNameFromUrl(c.urls[c.index]),
                         );
 
-                    print("c.urls[c.index]");
-                    print(c.urls[c.index]);
-                    print(getFileNameFromUrl(c.urls[c.index]));
-
                     chatC.update();
                     c.update();
                     Get.back();
@@ -92,15 +99,20 @@ class GalleryViewerPage extends StatelessWidget {
                       child: Text('Save', style: TextStyle(color: Colors.white)),
                     ));
                   }else{
-                    items.add(const PopupMenuItem(
+                    items.add( PopupMenuItem(
                       value: 'save_one',
-                      child: Text('Save', style: TextStyle(color: Colors.white)),
-                    )); items.add(const PopupMenuItem(
+                      child: Text('Save', style:  BalooStyles.baloonormalTextStyle(color: Colors.white)),
+                    )); items.add( PopupMenuItem(
                       value: 'save_all',
-                      child: Text('Save all', style: TextStyle(color: Colors.white)),
-                    )); items.add(const PopupMenuItem(
+                      child: Text('Save all', style: BalooStyles.baloonormalTextStyle(color: Colors.white)),
+                    )); items.add( PopupMenuItem(
                       value: 'reply',
-                      child: Text('Reply', style: TextStyle(color: Colors.white)),
+                      child: Text('Reply', style:  BalooStyles.baloonormalTextStyle(color: Colors.white)),
+                    ));
+
+                     items.add( PopupMenuItem(
+                      value: 'share_this',
+                      child: Text('Share on WhatsApp', style:  BalooStyles.baloonormalTextStyle(color: Colors.white)),
                     ));
                   }
 

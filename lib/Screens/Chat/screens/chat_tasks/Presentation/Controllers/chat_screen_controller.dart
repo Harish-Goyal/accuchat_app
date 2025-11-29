@@ -283,6 +283,7 @@ class ChatScreenController extends GetxController {
     //   // web pe type karte hi yehi node focused rahe
     //   focusNode.requestFocus();
     // }
+    replyToMessage = null;
     getArguments();
     user = Get.find<ChatHomeController>().selectedChat.value;
     // _initScroll();
@@ -403,6 +404,7 @@ class ChatScreenController extends GetxController {
   String selectedFilter = 'all';
 
   UserDataAPI? me = UserDataAPI();
+  TextEditingController updateMsgController= TextEditingController();
   _getMe() {
     me = getUser();
     update();
@@ -934,7 +936,7 @@ class ChatScreenController extends GetxController {
       allowMultiple: true,
       type: FileType.custom,
       allowCompression: true,
-      compressionQuality: 40,
+      compressionQuality: 60,
       withData: kIsWeb,
       allowedExtensions: [
         'pdf',
@@ -950,6 +952,19 @@ class ChatScreenController extends GetxController {
         'pptx',
         'zip',
         'rar',
+        'PDF',
+        'DOC',
+        'DOCX',
+        'TXT',
+        'XLS',
+        'XLSX',
+        'CSV',
+        'XML',
+        'JSON',
+        'PPT',
+        'PPTX',
+        'ZIP',
+        'RAR',
       ],
     );
 
