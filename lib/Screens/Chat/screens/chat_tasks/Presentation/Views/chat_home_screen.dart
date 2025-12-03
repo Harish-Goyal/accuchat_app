@@ -127,7 +127,7 @@ class ChatsHomeScreen extends GetView<ChatHomeController> {
                                           .toUpperCase(),
                                       style: BalooStyles.baloomediumTextStyle(
                                         color: appColorYellow,
-                                        size:14
+                                        size:12
                                       ),
                                       maxLines: 1,
                                       overflow: TextOverflow.ellipsis,

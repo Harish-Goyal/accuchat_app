@@ -36,7 +36,7 @@ import '../Widgets/create_custom_folder.dart';
 import 'chat_home_controller.dart';
 
 class ChatScreenController extends GetxController {
-  ChatScreenController({required this.user});
+  ChatScreenController({this.user});
   final formKeyDoc = GlobalKey<FormState>();
   UserDataAPI? user;
   int? currentChatId;
@@ -329,13 +329,9 @@ class ChatScreenController extends GetxController {
     });
   }
 
-  void markAllVisibleAsReadOnOpen() {
-    for (ChatHisList m in (chatHisList ?? [])) {
-      if (user?.pendingCount != 0) {
-        Get.find<SocketController>().readMsgEmitter(chatId: m.chatId ?? 0);
-      }
-      // your existing emitter
-    }
+  void markAllVisibleAsReadOnOpen(toUcID,fromUcId,isGroupChat) {
+    Get.find<SocketController>().connectUserEmitter(myCompany?.companyId );
+        Get.find<SocketController>().readMsgEmitter(ucID:toUcID,fromUcID:fromUcId,companyId:myCompany?.companyId,is_group_chat:  isGroupChat );
   }
 
   @override
@@ -493,15 +489,16 @@ class ChatScreenController extends GetxController {
         if (item.sentOn != null) {
           datais = DateTime.parse(item.sentOn ?? '');
         }
-        if (me?.userId == item.toUser?.userId) {
-          markAllVisibleAsReadOnOpen();
-        }
+
 
         return GroupChatElement(datais ?? DateTime.now(), item);
       }).toList();
-
+      if (user?.pendingCount!=0) {
+        markAllVisibleAsReadOnOpen(user?.userCompany?.userCompanyId,APIs.me.userCompany?.userCompanyId,user?.userCompany?.isGroup==1? 1:0);
+      }
       // rebuildFlatRows();
       update();
+      messageInputFocus.requestFocus();
     }).onError((error, stackTrace) {
       showPostShimmer = false;
       update();

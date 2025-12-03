@@ -44,19 +44,23 @@ class TaskThreadScreen extends GetView<TaskThreadController> {
             title: Row(
 
               children: [
+
+                Text(
+                  "Task Reply",
+                  style: BalooStyles.baloomediumTextStyle(color: appColorGreen),
+                ),
+                hGap(15),
                 Expanded(
                   child: Text(
-                    controller.currentUser?.displayName==null?controller.currentUser?.phone??'':controller.currentUser?.displayName??'',
+                    controller.currentUser?.displayName == null
+                        ?controller.currentUser?.userName !=null?controller.currentUser?.userName ?? ''
+                        :controller.currentUser?.displayName ?? '' :controller.currentUser?.phone ?? '',
                     style: BalooStyles.balooboldTitleTextStyle(),
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
                   ),
                 ),
-                hGap(15),
-                Text(
-                  "Task Reply",
-                  style: BalooStyles.baloomediumTextStyle(color: appColorGreen),
-                ),
+
               ],
             ),
           ),
@@ -135,8 +139,27 @@ class TaskThreadScreen extends GetView<TaskThreadController> {
                           children: [
                             SizedBox(
                               height: 60,
-                              child: Text(controller.taskMessage?.details ?? '',
-                                  style:BalooStyles.balooregularTextStyle(),overflow: TextOverflow.ellipsis,),
+                              child:
+                              SelectableLinkify(
+                                text: controller.taskMessage?.details ?? '',
+                                onOpen: (link) {
+                                  launchUrl(
+                                    Uri.parse(link.url),
+                                    mode: LaunchMode.externalApplication,
+                                  );
+                                },
+                                style: BalooStyles.baloonormalTextStyle(
+                                  color: Colors.black87,
+                                  size: 14,
+                                ),
+                                linkStyle: BalooStyles.baloonormalTextStyle(
+                                  color: Colors.blue,
+                                  size: 14,
+                                ),
+                                linkifiers: const [
+                                  UrlLinkifier(),
+                                ],
+                              ),
                             ),
                           ],
                         ),
@@ -226,6 +249,7 @@ class TaskThreadScreen extends GetView<TaskThreadController> {
           return StaggeredAnimationListItem(
             index: index,
             child: SwipeTo(
+              iconColor: appColorGreen,
               onRightSwipe: (detail) {
                 // Set the message being replied to
                 controller.refIdis = element.comments.taskCommentId;

@@ -129,9 +129,11 @@ class _ChatUserCardState extends State<ChatUserCard>
                     chatc.user =homec.selectedChat.value;
                     chatc.showPostShimmer =true;
                     chatc.openConversation(widget.user);
+                    chatc.markAllVisibleAsReadOnOpen(APIs.me?.userCompany?.userCompanyId,chatc.user?.userCompany?.userCompanyId,chatc.user?.userCompany?.isGroup==1?1:0);
                     // homec.selectedChat.refresh();
                     chatc.update();
                   } else {
+
                     Get.toNamed(
                       AppRoutes.chats_li_r,
                       arguments: {'user': widget.user},
@@ -184,12 +186,12 @@ class _ChatUserCardState extends State<ChatUserCard>
 
                   //user name
                   title:(widget.user?.userCompany?.isGroup==1|| widget.user?.userCompany?.isBroadcast==1)? Text(
-                    (widget.user?.userId==APIs.me.userId)?"Me":  (widget.user?.userName==''||widget.user?.userName==null)?widget.user?.phone??'':widget.user?.userName??'',
+                    (widget.user?.userId==APIs.me.userId)?"Me":  (widget.user?.userName==''||widget.user?.userName==null)?widget.user?.phone??'':widget.user?.userName?.capitalizeFirst??'',
                     style: BalooStyles.baloonormalTextStyle(),
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
                   ):Text(
-                    (widget.user?.userId==APIs.me.userId)?"Me":  (widget.user?.displayName==''||widget.user?.displayName==null)?widget.user?.phone??'':widget.user?.displayName??'',
+                    (widget.user?.userId==APIs.me.userId)?"Me":  (widget.user?.displayName==''||widget.user?.displayName==null)?widget.user?.phone??'':widget.user?.displayName?.capitalizeFirst??'',
                     style: BalooStyles.baloonormalTextStyle(),
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
@@ -217,7 +219,7 @@ class _ChatUserCardState extends State<ChatUserCard>
                           overflow: TextOverflow.ellipsis,
                         ),
                       ):SizedBox(),
-                      widget.user?.open_count!=null&&widget.user?.open_count!=0 ? Spacer():SizedBox(),
+                      widget.user?.pendingCount!=null&&widget.user?.pendingCount!=0 ? Spacer():SizedBox(),
                       Text(
                         MyDateUtil.getLastMessageTime(
                             context: context, time: widget.user?.lastMessage?.messageTime??''),

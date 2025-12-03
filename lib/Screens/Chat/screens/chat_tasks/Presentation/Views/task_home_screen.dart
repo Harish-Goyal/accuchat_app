@@ -92,11 +92,12 @@ class TaskHomeScreen extends GetView<TaskHomeController> {
                             : Row(
                               children: [
                                 SizedBox(
-                                  width: 45,
+                                  width: 40,
                                   child: CustomCacheNetworkImage(
                                     "${ApiEnd.baseUrlMedia}${controller.myCompany?.logo ?? ''}",
-                                    radiusAll:100,
-                                    height: 45,
+                                    radiusAll: 100,
+                                    height: 40,
+                                    width: 40,
                                     defaultImage: appIcon,
                                     borderColor: greyText,
                                     boxFit: BoxFit.cover,
@@ -116,7 +117,8 @@ class TaskHomeScreen extends GetView<TaskHomeController> {
                                   Text(
                                    ( controller.myCompany?.companyName??'').toUpperCase(),
                                     style: BalooStyles.baloomediumTextStyle(
-                                      color: appColorYellow,),
+                                      color: appColorYellow,
+                                    size: 12),
                                     maxLines: 1,
                                     overflow: TextOverflow.ellipsis,
                                   ).paddingOnly(left: 8, top: 2),

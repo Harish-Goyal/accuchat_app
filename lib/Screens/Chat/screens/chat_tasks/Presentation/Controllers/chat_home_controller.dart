@@ -169,6 +169,10 @@ class ChatHomeController extends GetxController{
   var filteredList = <UserDataAPI>[].obs;
 
 
+
+
+
+
   void onSearch(String query) {
     searchQuery = query.toLowerCase();
 

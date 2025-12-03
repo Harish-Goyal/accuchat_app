@@ -1,4 +1,5 @@
 import 'package:AccuChat/Constants/colors.dart';
+import 'package:AccuChat/Screens/Chat/screens/chat_tasks/Presentation/Controllers/chat_screen_controller.dart';
 import 'package:AccuChat/Screens/Chat/screens/chat_tasks/Presentation/Views/chat_screen.dart';
 import 'package:AccuChat/Screens/Chat/screens/chat_tasks/Presentation/Views/task_chat_screen.dart';
 import 'package:AccuChat/Services/APIs/api_ends.dart';
@@ -89,9 +90,10 @@ class _ChatUserCardMobileState extends State<ChatUserCardMobile>
             //for navigating to chat screen
             // APIs.updateActiveStatus(true);
             if(isTaskMode) {
-                Get.to(()=>TaskScreen(taskUser: widget.user,));
+              Get.to(()=>TaskScreen(taskUser: widget.user,));
             }else{
-                Get.to(()=>ChatScreen(user: widget.user,));
+              // Get.find<ChatScreenController>().openConversation(widget.user);
+                Get.toNamed(AppRoutes.chats_li_r,arguments: {'user':widget.user});
             }
           },
           child:ListTile(
@@ -121,12 +123,12 @@ class _ChatUserCardMobileState extends State<ChatUserCardMobile>
 
             //user name
             title:(widget.user?.userCompany?.isGroup==1|| widget.user?.userCompany?.isBroadcast==1)? Text(
-              (widget.user?.userId==APIs.me.userId)?"Me":  (widget.user?.userName==''||widget.user?.userName==null)?widget.user?.phone??'':widget.user?.userName??'',
+              (widget.user?.userId==APIs.me.userId)?"Me":  (widget.user?.userName==''||widget.user?.userName==null)?widget.user?.phone??'':widget.user?.userName?.capitalizeFirst??'',
               style: BalooStyles.baloonormalTextStyle(),
               maxLines: 1,
               overflow: TextOverflow.ellipsis,
             ):Text(
-              (widget.user?.userId==APIs.me.userId)?"Me":  (widget.user?.displayName==''||widget.user?.displayName==null)?widget.user?.phone??'':widget.user?.displayName??'',
+              (widget.user?.userId==APIs.me.userId)?"Me":  (widget.user?.displayName==''||widget.user?.displayName==null)?widget.user?.phone??'':widget.user?.displayName?.capitalizeFirst??'',
               style: BalooStyles.baloonormalTextStyle(),
               maxLines: 1,
               overflow: TextOverflow.ellipsis,

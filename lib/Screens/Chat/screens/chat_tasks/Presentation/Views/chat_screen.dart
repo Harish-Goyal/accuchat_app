@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'dart:math' as math;
+import 'package:AccuChat/Screens/Chat/api/apis.dart';
 import 'package:AccuChat/Screens/Chat/screens/chat_tasks/Presentation/Controllers/task_home_controller.dart';
 import 'package:AccuChat/utils/text_button.dart';
 import 'package:flutter_linkify/flutter_linkify.dart';
@@ -417,6 +418,7 @@ class ChatScreen extends GetView<ChatScreenController> {
               return StaggeredAnimationListItem(
                 index: index,
                 child: SwipeTo(
+                  iconColor: appColorGreen,
                   onRightSwipe: element.chatMessageItems.isActivity == 1
                       ? (v) {}
                       : (detail) {
@@ -440,6 +442,7 @@ class ChatScreen extends GetView<ChatScreenController> {
                             controller.replyToMessage =
                                 element.chatMessageItems;
                             controller.update();
+                            controller.messageInputFocus.requestFocus();
                           }
                         },
                   child: _chatMessageTile(
@@ -632,7 +635,7 @@ class ChatScreen extends GetView<ChatScreenController> {
                             : CrossAxisAlignment.start,
                         children: [
                           InkWell(
-                            borderRadius: BorderRadius.circular(50),
+                            borderRadius: BorderRadius.circular(20),
                             // mouseCursor: SystemMouseCursors.click,
                             onDoubleTap: () {
                               SystemChannels.textInput
@@ -753,47 +756,47 @@ class ChatScreen extends GetView<ChatScreenController> {
                       orignalMsg: data.replyToText ?? '')
                   .paddingOnly(bottom: 4)
               : const SizedBox(),
-          // controller.user?.userCompany?.isGroup == 1
-          //     ? Row(
-          //         mainAxisSize: MainAxisSize.min,
-          //         children: [
-          //
-          //           Flexible(
-          //             child: Text(
-          //               data.fromUser?.userId == controller.me?.userId
-          //                   ? "You"
-          //                   :
-          //               data.fromUser?.userCompany?.displayName!=null?  (data.fromUser?.userCompany?.displayName ?? ''):data.fromUser?.userName!=null? (data.fromUser?.userName ?? ''):(data.fromUser?.phone??''),
-          //               style: BalooStyles.baloonormalTextStyle(
-          //                   color:
-          //                       data.fromUser?.userId == controller.me?.userId
-          //                           ? Colors.green
-          //                           : Colors.purple),
-          //               textAlign: TextAlign.end, maxLines: 1,
-          //                 overflow: TextOverflow.ellipsis
-          //             ).marginOnly(
-          //                 right: sentByMe ? 0 : 0,
-          //                 left: sentByMe ? 10 : 0,
-          //                 bottom: 3,
-          //                 top: 8),
-          //           ),
-          //         ],
-          //       )
-          //     : const SizedBox(),
-          // data.isForwarded == 1
-          //     ? Text("Forwarded",
-          //             textAlign: TextAlign.start,
-          //             style: BalooStyles.baloonormalTextStyle(
-          //                 color: Colors.grey,
-          //                 size: 13,
-          //                 fontstyle: FontStyle.italic),
-          //              maxLines: 1,
-          //     overflow: TextOverflow.ellipsis)
-          //         .marginOnly(
-          //         left: sentByMe ? 0 : 10,
-          //         right: sentByMe ? 10 : 0,
-          //       )
-          //     : const SizedBox(),
+          controller.user?.userCompany?.isGroup == 1
+              ? Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+
+                    Flexible(
+                      child: Text(
+                        data.fromUser?.userId == controller.me?.userId
+                            ? "You"
+                            :
+                        data.fromUser?.userCompany?.displayName!=null?  (data.fromUser?.userCompany?.displayName ?? ''):data.fromUser?.userName!=null? (data.fromUser?.userName ?? ''):(data.fromUser?.phone??''),
+                        style: BalooStyles.baloonormalTextStyle(
+                            color:
+                                data.fromUser?.userId == controller.me?.userId
+                                    ? Colors.green
+                                    : Colors.purple),
+                        textAlign: TextAlign.end, maxLines: 1,
+                          overflow: TextOverflow.ellipsis
+                      ).marginOnly(
+                          right: sentByMe ? 0 : 0,
+                          left: sentByMe ? 10 : 0,
+                          bottom: 3,
+                          top: 0),
+                    ),
+                  ],
+                )
+              : const SizedBox(),
+          data.isForwarded == 1
+              ? Text("Forwarded",
+                      textAlign: TextAlign.start,
+                      style: BalooStyles.baloonormalTextStyle(
+                          color: Colors.grey,
+                          size: 13,
+                          fontstyle: FontStyle.italic),
+                       maxLines: 1,
+              overflow: TextOverflow.ellipsis)
+                  .marginOnly(
+                  left: sentByMe ? 0 : 10,
+                  right: sentByMe ? 10 : 0,
+                )
+              : const SizedBox(),
           data.message != '' || data.message != null
               ?
 
@@ -1005,10 +1008,6 @@ class ChatScreen extends GetView<ChatScreenController> {
             ),
           ),
         ),
-        /*(controller.me?.userId == controller.user?.createdby || controller.me?.userCompany?.isAdmin==1)
-            ? */
-        /*: SizedBox()*/
-
         (controller.user?.userCompany?.isBroadcast==1 ||controller.user?.userCompany?.isGroup==1) ?SizedBox():  CustomTextButton(onTap: (){
           isTaskMode = true;
           Get.find<DashboardController>().updateIndex(1);
@@ -1028,6 +1027,7 @@ class ChatScreen extends GetView<ChatScreenController> {
           taskHome.selectedChat.value = controller.user;
           taskC.user = controller.user;
           taskC.openConversation(controller.user);
+
 
           taskHome.selectedChat.refresh();
         }, title: "Go to Task"),
@@ -1195,6 +1195,9 @@ class ChatScreen extends GetView<ChatScreenController> {
                                       maxLines: null,
                                       minLines: 1,
                                       autofocus: true,
+                                      onTap: (){
+                                        controller.messageInputFocus.requestFocus();
+                                      },
                                       decoration: InputDecoration(
                                         isDense: true,
                                         hintText: 'Type Something...',
@@ -1483,10 +1486,6 @@ class ChatScreen extends GetView<ChatScreenController> {
         controller.update();
       }
 
-      if (controller.me?.userId == controller.user?.userId) {
-        print("read=========");
-        controller.markAllVisibleAsReadOnOpen();
-      }
       controller.update();
       // APIs.updateTypingStatus(false);
     }
@@ -1724,6 +1723,9 @@ class ChatScreen extends GetView<ChatScreenController> {
 
   // bottom sheet for modifying message details
   void _showBottomSheet(bool isMe, {required ChatHisList data}) async {
+    DateTime msg  = DateTime.parse(data.sentOn??'');
+    DateTime nowtime = DateTime.now();
+    int diffMinutes = nowtime.difference(msg).inMinutes;
     await showModalBottomSheet(
         context: Get.context!,
         backgroundColor: Colors.white,
@@ -1788,7 +1790,6 @@ class ChatScreen extends GetView<ChatScreenController> {
                       onTap: () async {
                         try {
                           Get.back();
-
                           controller.refIdis = data.chatId;
                           controller.userIDSender = data.fromUser?.userId;
                           controller.userNameReceiver =
@@ -1797,11 +1798,8 @@ class ChatScreen extends GetView<ChatScreenController> {
                               data.fromUser?.userCompany?.displayName ?? '';
                           controller.userIDReceiver = data.toUser?.userId;
                           controller.replyToMessage = data;
-
                           controller.update();
-
                           controller.messageInputFocus.requestFocus();
-
                         } catch (e) {
                           toast('Something went wrong!');
                         }
@@ -1834,27 +1832,22 @@ class ChatScreen extends GetView<ChatScreenController> {
                 ),
 
               //edit option
-              if (data.message != "" && isMe)
+
+              if (data.message != "" && isMe && diffMinutes <= 15 && !(APIs.me.createdBy ==controller.user?.createdBy) )
                 _OptionItem(
                     icon:  Icon(Icons.edit, color: appColorGreen,  size: 18),
                     name: 'Edit Message',
                     onTap: () {
-                      //for hiding bottom sheet
                       Get.back();
+                      _showMessageUpdateDialog(data,Get.context!);
+                    }),
 
-                      //  final currentStatus =
-                      //     widget.message.taskDetails?.taskStatus ?? 'Pending';
-                      //
-                      // isTaskMode && !widget.isForward
-                      //     ? (['Done', 'Completed', 'Cancelled']
-                      //             .contains(currentStatus))
-                      //         ? toast(
-                      //             "⛔ Task status is '$currentStatus' — update not allowed.")
-                      //         : showDialog(
-                      //             context: Get.context!,
-                      //             builder: (_) => _updateTasksDialogWidget(
-                      //                 userName, widget.message.taskDetails!))
-                      //     :
+              if ((APIs.me.createdBy ==controller.user?.createdBy))
+                _OptionItem(
+                    icon:  Icon(Icons.edit, color: appColorGreen,  size: 18),
+                    name: 'Edit Message',
+                    onTap: () {
+                      Get.back();
                       _showMessageUpdateDialog(data,Get.context!);
                     }),
 
@@ -2128,8 +2121,9 @@ class ChatScreen extends GetView<ChatScreenController> {
                     Get.find<SocketController>().updateChatMessage(
                         chatId: message.chatId,
                         toUcId: message.toUser?.userCompany?.userCompanyId,
-                        message: controller.updateMsgController.text
+                        message: controller.updateMsgController.text.trim()
                     );
+                    Get.back();
                   }catch(e){
                     toast(e.toString());
                   }

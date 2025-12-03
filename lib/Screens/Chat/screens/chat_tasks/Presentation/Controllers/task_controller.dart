@@ -129,11 +129,9 @@ class TaskController extends GetxController {
 
   void openConversation(UserDataAPI? useriii) {
     user = useriii;
-
     // _getMe();
     _getCompany();
-
-    Future.delayed(Duration(milliseconds: 500), () {
+    Future.delayed(const Duration(milliseconds: 500), () {
       hitAPIToGetTaskHistory();
     });
     hitAPIToGetTaskStatus();
@@ -1482,6 +1480,7 @@ class TaskController extends GetxController {
       }
     }
   }
+
 
   String formatWhen(String utcISO) {
     final t = DateTime.parse(utcISO).toLocal();

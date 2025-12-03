@@ -255,6 +255,7 @@ class _ImagesGrid extends StatelessWidget {
             ).paddingAll(0),*/
           InkWell(
             onTap: () => onTapImage(0),
+            borderRadius:BorderRadius.circular(15),
             child: /*ClipRRect(
               borderRadius: BorderRadius.circular(15),
               child: ConstrainedBox(
@@ -273,20 +274,21 @@ class _ImagesGrid extends StatelessWidget {
                   ).paddingOnly(bottom: 8,top: 0),
                 ),
               ),
-            )*/Container(
-              height: Get.height*.6,
-              width:kIsWeb? Get.height*.45:150,
-
-              child: CustomCacheNetworkImage(
-                item.url,
-                radiusAll: 15, // radius handled by ClipRRect above
-                boxFit: BoxFit.cover,
-                height: Get.height*.6,
-                width:kIsWeb? Get.height*.45:150,
-                defaultImage: defaultGallery,
-                borderColor: greyText,
-                assetPadding: 0,
-              ).paddingOnly(bottom: 16,top: 2),
+            )*/Transform.translate(
+              offset: Offset(0, -14),
+              child: AspectRatio(
+                aspectRatio: kIsWeb ? 4/3 : 4 / 3,
+                child: CustomCacheNetworkImage(
+                  item.url,
+                  radiusAll: 15, // radius handled by ClipRRect above
+                  boxFit: BoxFit.cover,
+                  // height: Get.height*.6,
+                  // width:kIsWeb? Get.height*.45:150,
+                  defaultImage: defaultGallery,
+                  borderColor: greyText,
+                  assetPadding: 0,
+                ).paddingOnly(bottom: 0,top: 2),
+              ),
             ),
           ),
         ],
@@ -300,46 +302,49 @@ class _ImagesGrid extends StatelessWidget {
     final gap = _gridGapForWidth(width);
     final aspect = _childAspectForWidth(width);
 
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.end,
-      children: [
-        // if (isGroupMessage)
-        //   Text(
-        //     fromId == myId ? "You" : (senderName ?? ''),
-        //     style: Theme.of(context)
-        //         .textTheme
-        //         .bodySmall
-        //         ?.copyWith(fontSize: 13, color: fromId == myId ? Colors.green : Colors.purple),
-        //   ),
-        GridView.builder(
-          shrinkWrap: true,
-          physics: const NeverScrollableScrollPhysics(),
-          itemCount: count,
-          padding: EdgeInsets.zero,
-          gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-            crossAxisCount: crossAxisCount,
-            mainAxisSpacing: gap,
-            crossAxisSpacing: gap,
-            childAspectRatio: aspect,
-          ),
-          itemBuilder: (context, index) {
-            final item = items[index];
-            return MouseRegion(
-                cursor: SystemMouseCursors.basic, // no hand cursor
-                child: GestureDetector(
-                behavior: HitTestBehavior.opaque,
-                onTap: () => onTapImage(index),
-                child: CustomCacheNetworkImage(
-                  item.url,
-                  radiusAll: 12,
-                  boxFit: BoxFit.cover,
-                  defaultImage: defaultGallery,
+    return Transform.translate(
+      offset: Offset(0, -13),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.end,
+        children: [
+          // if (isGroupMessage)
+          //   Text(
+          //     fromId == myId ? "You" : (senderName ?? ''),
+          //     style: Theme.of(context)
+          //         .textTheme
+          //         .bodySmall
+          //         ?.copyWith(fontSize: 13, color: fromId == myId ? Colors.green : Colors.purple),
+          //   ),
+          GridView.builder(
+            shrinkWrap: true,
+            physics: const NeverScrollableScrollPhysics(),
+            itemCount: count,
+            padding: EdgeInsets.zero,
+            gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+              crossAxisCount: crossAxisCount,
+              mainAxisSpacing: gap,
+              crossAxisSpacing: gap,
+              childAspectRatio: aspect,
+            ),
+            itemBuilder: (context, index) {
+              final item = items[index];
+              return MouseRegion(
+                  cursor: SystemMouseCursors.basic, // no hand cursor
+                  child: GestureDetector(
+                  behavior: HitTestBehavior.opaque,
+                  onTap: () => onTapImage(index),
+                  child: CustomCacheNetworkImage(
+                    item.url,
+                    radiusAll: 12,
+                    boxFit: BoxFit.cover,
+                    defaultImage: defaultGallery,
+                  ),
                 ),
-              ),
-            );
-          },
-        ).paddingOnly(bottom: 16,top: 0),
-      ],
+              );
+            },
+          ).paddingOnly(bottom: 0,top: 0),
+        ],
+      ),
     );
   }
 }
@@ -383,47 +388,50 @@ class _FileTiles extends StatelessWidget {
           const sizeText = '';
 
           // ✅ nicer hover + pointer on web
-          final tile = InkWell(
-            onTap: () => onTap(item),
-            child: Container(
-              margin: const EdgeInsets.only(bottom:14),
-              padding: const EdgeInsets.all(8),
-              decoration: BoxDecoration(
-                color: Colors.grey.shade100,
-                borderRadius: BorderRadius.circular(10),
-                border: Border.all(color: Colors.blue.shade200),
-              ),
-              child: Row(
-                // crossAxisAlignment: CrossAxisAlignment.center,
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  leadingBuilder(item),
-                  const SizedBox(width: 5),
-                  Flexible(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        // On web we often want selection; but keeping Text simple as per your code
-                        Text(
-                          fileName,
-                          maxLines: 1,
-                          overflow: TextOverflow.ellipsis,
-                          style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w600),
-                        ),
-                        const SizedBox(height: 4),
-                        Row(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            const Text("Tap to view", style: TextStyle(fontSize: 12, color: Colors.grey)),
-                            if (sizeText.isNotEmpty)
-                              Text(" • $sizeText", style: const TextStyle(fontSize: 12, color: Colors.grey)),
-                          ],
-                        ),
-                      ],
+          final tile = Transform.translate(
+            offset: Offset(0, -13),
+            child: InkWell(
+              onTap: () => onTap(item),
+              child: Container(
+                // margin: const EdgeInsets.only(bottom:14),
+                padding: const EdgeInsets.all(8),
+                decoration: BoxDecoration(
+                  color: Colors.grey.shade100,
+                  borderRadius: BorderRadius.circular(10),
+                  border: Border.all(color: Colors.blue.shade200),
+                ),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.start,
+                  // mainAxisSize: MainAxisSize.min,
+                  children: [
+                    leadingBuilder(item),
+                    const SizedBox(width: 5),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          // On web we often want selection; but keeping Text simple as per your code
+                          Text(
+                            fileName,
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                            style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w600),
+                          ),
+                          const SizedBox(height: 4),
+                          Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              const Text("Tap to view", style: TextStyle(fontSize: 12, color: Colors.grey)),
+                              if (sizeText.isNotEmpty)
+                                Text(" • $sizeText", style: const TextStyle(fontSize: 12, color: Colors.grey)),
+                            ],
+                          ),
+                        ],
+                      ),
                     ),
-                  ),
-                  const Icon(Icons.arrow_forward_ios, size: 14,color: Colors.black45,),
-                ],
+                    const Icon(Icons.arrow_forward_ios, size: 14,color: Colors.black45,),
+                  ],
+                ),
               ),
             ),
           );

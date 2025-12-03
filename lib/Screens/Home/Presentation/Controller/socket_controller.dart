@@ -173,17 +173,81 @@ class SocketController extends GetxController with WidgetsBindingObserver  {
               .insert(0, GroupChatElement(DateTime.now(), chatMessageItems));
           chatDetailController.rebuildFlatRows();
           chatDetailController.update();
-
-
           }
 
-          Get.find<ChatHomeController>().hitAPIToGetRecentChats();
+          if(meId != msgFrom ){
+            chatDetailController.markAllVisibleAsReadOnOpen(receivedMessageDataModal.fromUser?.userCompany?.userCompanyId,receivedMessageDataModal.toUser?.userCompany?.userCompanyId,receivedMessageDataModal.toUser?.userCompany?.isGroup==1?1:0);
+          }
+
+          // Get.find<ChatHomeController>().hitAPIToGetRecentChats();
         } catch (e) {
           debugPrint(e.toString());
         }
       });
 
-   /* socket?.on('send_message_listener', (messages) {
+      socket?.off('send_message_error');
+      socket?.on('send_message_error', (messages) {
+        debugPrint("send_message_error ${jsonEncode(messages.toString())}");
+      });
+    socket?.off('update_recent_list');
+    socket?.on('update_recent_list', (messages) {
+      debugPrint("update_recent_list ${jsonEncode(messages.toString())}");
+
+      try {
+        final chatController = Get.find<ChatHomeController>();
+        final updated = UserDataAPI.fromJson(messages);
+
+        // ALWAYS use the RxList directly
+        final list = chatController.filteredList;
+
+        // 1️⃣ Remove old entry
+        list.removeWhere((e) =>
+        e.userCompany?.userCompanyId ==
+            updated.userCompany?.userCompanyId);
+
+        // 2️⃣ Insert new one at TOP
+        list.insert(0, updated);
+
+        // 3️⃣ Force RxList rebuild
+        chatController.filteredList.refresh();
+
+      } catch (e) {
+        debugPrint("recent update error: $e");
+      }
+    });
+
+
+    /*socket?.off('update_recent_list');
+    socket?.on('update_recent_list', (messages) {
+      debugPrint("update_recent_list ${jsonEncode(messages.toString())}");
+
+      try {
+        final chatController = Get.find<ChatHomeController>();
+        final updated = UserDataAPI.fromJson(messages);
+
+        final list = chatController.filteredList;
+
+        // FIND USER
+        final idx = list.indexWhere(
+                (t) => t.userId == updated.userId
+        );
+
+        // IF EXISTS → REPLACE OBJECT
+        if (idx != -1) {
+          chatController.filteredList[idx] = updated;   // ⭐ IMPORTANT ⭐
+        }
+        // IF NOT EXISTS → ADD AT TOP
+        else {
+          chatController.filteredList.insert(0, updated);
+        }
+
+      } catch (e) {
+        debugPrint('update_recent error: $e');
+      }
+    });
+*/
+
+    /* socket?.on('send_message_listener', (messages) {
       debugPrint("Listing......3");
       debugPrint("send_message_listener ${jsonEncode(messages.toString())}");
       try {
@@ -307,13 +371,19 @@ class SocketController extends GetxController with WidgetsBindingObserver  {
       }
     });
 
+    socket?.off('update_message_error');
+    socket?.on('update_message_error', (payload) {
+      debugPrint("Listing update message......8");
+      errorDialog('Time Exceeded');
+
+    });
+
+
     socket?.off('update_message_listener');
     socket?.on('update_message_listener', (payload) {
       debugPrint("Listing update message......8");
       debugPrint("update message listener ${jsonEncode(payload.toString())}");
-
       try {
-
         final chatController = Get.find<ChatScreenController>();
         final updated = ChatHisList.fromJson(payload);
 
@@ -437,6 +507,125 @@ class SocketController extends GetxController with WidgetsBindingObserver  {
         catch(e){
           print("Something went wrong Joined task");
         }
+    });
+  }
+
+  _updateRecentsUserListener(){
+    socket?.off('update_recent_list');
+    socket?.on('update_recent_list', (messages) {
+      debugPrint("update_recent_list ${jsonEncode(messages.toString())}");
+      try {
+        final chatController = Get.find<ChatHomeController>();
+        final updated = UserDataAPI.fromJson(messages);
+
+        final meId = APIs.me.userId?.toString();
+        // final fromId = updated.fromUser?.userId?.toString();
+        // final toId   = updated.toUser?.userId?.toString();
+
+        // if (fromId == meId || toId == meId) {
+          final list = chatController.filteredList.value ?? [];
+          final idx  = list.indexWhere((t) => t.userId == updated.userId);
+
+          if (idx != -1) {
+            final old = list[idx];
+            old.userId= updated.userId??old.userId;
+            old.userName= updated.userName??old.userName;
+            old.displayName= updated.displayName??old.displayName;
+            old.phone= updated.phone??old.phone;
+            old.createdBy= updated.createdBy??old.createdBy;
+            old.isAdmin= updated.isAdmin??old.isAdmin;
+            old.email= updated.email??old.email;
+            old.about= updated.about??old.about;
+            old.createdOn= updated.createdOn??old.createdOn;
+            old.isActive= updated.isActive??old.isActive;
+            old.userImage= updated.userImage??old.userImage;
+            old.userKey= updated.userKey??old.userKey;
+            old.updatedOn= updated.updatedOn??old.updatedOn;
+            old.otp= updated.otp??old.otp;
+            old.allowedCompanies= updated.allowedCompanies??old.allowedCompanies;
+            old.isDeleted= updated.isDeleted ??old.isDeleted;
+            old.userCompany= updated.userCompany ??old.userCompany;
+            old.lastMessage= updated.lastMessage ??old.lastMessage;
+            old.memberCount= updated.memberCount ??old.memberCount;
+            old.pendingCount= updated.pendingCount ??old.pendingCount;
+            old.pending_task_count= updated.pending_task_count ??old.pending_task_count;
+            old.unread_msg_count= updated.unread_msg_count ??old.unread_msg_count;
+            old.invitedBy= updated.invitedBy ??old.invitedBy;
+            old.invitedOn= updated.invitedOn ??old.invitedOn;
+            old.joinedOn= updated.joinedOn ??old.joinedOn;
+            old.open_count= updated.open_count ??old.open_count;
+            old.pushToken= updated.pushToken ??old.pushToken;
+            // old.media=(updated.media?.isNotEmpty ?? false)? updated.media:old.media;
+            chatController.update();
+            final gIdx = chatController.filteredList
+                .indexWhere((g) => g.userId == updated.userId);
+            if (gIdx != -1) {
+              chatController.filteredList[gIdx].userId= old.userId;
+            }
+          } else {
+            list.insert(0, updated);
+            chatController.filteredList.refresh();
+          }
+        // }
+      } catch (e) {
+        debugPrint('update_recent error: $e');
+      }
+
+
+
+
+
+
+
+
+/*
+      try {
+        final chatHome = Get.find<ChatHomeController>();
+
+        final receivedMessageDataModal = UserDataAPI.fromJson(messages);
+
+        // --- 1. remove if already exists (avoid duplicates)
+        chatHome.filteredList.removeWhere(
+                (u) => u.userCompany?.userCompanyId == receivedMessageDataModal.userCompany?.userCompanyId
+        );
+        UserDataAPI chatMessageItems = UserDataAPI(
+          userId: receivedMessageDataModal.userId,
+          userName: receivedMessageDataModal.userName,
+          displayName: receivedMessageDataModal.displayName,
+          phone: receivedMessageDataModal.phone,
+          createdBy: receivedMessageDataModal.createdBy,
+          isAdmin: receivedMessageDataModal.isAdmin,
+          email: receivedMessageDataModal.email,
+          about: receivedMessageDataModal.about,
+          createdOn: receivedMessageDataModal.createdOn,
+          isActive: receivedMessageDataModal.isActive,
+          userImage: receivedMessageDataModal.userImage,
+          userKey: receivedMessageDataModal.userKey,
+          updatedOn: receivedMessageDataModal.updatedOn,
+          otp: receivedMessageDataModal.otp,
+          allowedCompanies: receivedMessageDataModal.allowedCompanies,
+          isDeleted: receivedMessageDataModal.isDeleted,
+          userCompany: receivedMessageDataModal.userCompany,
+          lastMessage: receivedMessageDataModal.lastMessage,
+          memberCount: receivedMessageDataModal.memberCount,
+          pendingCount: receivedMessageDataModal.pendingCount,
+          pending_task_count: receivedMessageDataModal.pending_task_count,
+          unread_msg_count: receivedMessageDataModal.unread_msg_count,
+          invitedBy: receivedMessageDataModal.invitedBy,
+          invitedOn: receivedMessageDataModal.invitedOn,
+          joinedOn: receivedMessageDataModal.joinedOn,
+          open_count: receivedMessageDataModal.open_count,
+          pushToken: receivedMessageDataModal.pushToken,
+        );
+        // --- 2. insert at top
+        chatHome.filteredList?.insert(0, chatMessageItems);
+        chatHome.filteredList.refresh();
+        chatHome.update();
+        // --- 3. update UI
+      } catch (e) {
+        debugPrint(e.toString());
+      }*/
+
     });
   }
 
@@ -587,10 +776,17 @@ class SocketController extends GetxController with WidgetsBindingObserver  {
   }
 
   void readMsgEmitter(
-      {required int chatId}) {
+      {required int ucID,companyId,fromUcID,is_group_chat}) {
+
+    print("Reading-=============");
+
     socket?.emit('read_message', {
-      "chat_id": chatId,
+      "to_uc_id": ucID,
+      "company_id": companyId,
+      "from_uc_id": fromUcID,
+      "is_group_chat": is_group_chat,
     });
+    print("to_uc_id: $ucID,company_id : $companyId,from_uc_id : $fromUcID ,is_group_chat : $is_group_chat");
   }
 
   void setupSocketListeners() {
@@ -601,10 +797,11 @@ class SocketController extends GetxController with WidgetsBindingObserver  {
       Get.find<ChatScreenController>();
       socket?.off('read_message_listener');
     socket?.on('read_message_listener', (data) {
+
       final int chatId = data['chat_id'];
       final String? readOnStr = data['read_on']; // assuming backend sends this
       final String? readOn = readOnStr != null ?readOnStr: null;
-
+      print('chatId : $chatId , readOnStr : $readOnStr,data : ${jsonEncode(data)} ');
       final idx = (chatDetailController.chatHisList ?? []).indexWhere((m) => m.chatId == chatId);
       if (idx != -1) {
 
@@ -779,6 +976,7 @@ class SocketController extends GetxController with WidgetsBindingObserver  {
 
 
 
+
   Future<void> sendTaskMessage({
     int? receiverId,
     var companyId,
@@ -890,7 +1088,7 @@ class SocketController extends GetxController with WidgetsBindingObserver  {
     if (socket != null && socket!.connected) {
       debugPrint("Update chat sent:---------- $message");
       try {
-        socket?.emit('update_task', {
+        socket?.emit('update_message', {
           "chat_id": chatId,
           "to_uc_id": toUcId,
           "text": message,

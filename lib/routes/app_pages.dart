@@ -30,6 +30,7 @@ import '../Screens/Chat/screens/auth/Presentation/Views/landing_screen.dart';
 import '../Screens/Chat/screens/chat_tasks/Bindings/bindings.dart';
 import '../Screens/Chat/screens/chat_tasks/Presentation/Controllers/chat_home_controller.dart';
 import '../Screens/Chat/screens/chat_tasks/Presentation/Views/chat_groups.dart';
+import '../Screens/Chat/screens/chat_tasks/Presentation/Views/chat_screen_mobile.dart';
 import '../Screens/Chat/screens/chat_tasks/Presentation/Views/chats_broadcasts.dart';
 import '../Screens/Chat/screens/chat_tasks/Presentation/Views/create_broadcast_dialog_screen.dart';
 import '../Screens/Chat/screens/chat_tasks/Presentation/Views/show_groups_members_screen.dart';
@@ -146,7 +147,7 @@ class AppPages {
     ),
     GetPage(
       name: AppRoutes.chats_li_r,
-      page: () => ChatScreen(),
+      page: () => ChatScreenMobile(),
       bindings: [ChatScreenBinding()],
     ),
     GetPage(

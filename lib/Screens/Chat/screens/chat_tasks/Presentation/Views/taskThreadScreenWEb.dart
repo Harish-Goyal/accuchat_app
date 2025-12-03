@@ -43,18 +43,20 @@ class TaskThreadScreenWeb extends GetView<TaskThreadController> {
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
               Text(
+                "Task Reply",
+                style: BalooStyles.baloomediumTextStyle(color: appColorGreen),
+              ),
+              hGap(15),
+              Text(
                 controller.currentUser?.displayName == null
-                    ? controller.currentUser?.phone ?? ''
-                    : controller.currentUser?.displayName ?? '',
+                    ?controller.currentUser?.userName !=null?controller.currentUser?.userName ?? ''
+                    :controller.currentUser?.displayName ?? '' :controller.currentUser?.phone ?? '',
                 style: BalooStyles.balooboldTitleTextStyle(),
                 maxLines: 1,
                 overflow: TextOverflow.ellipsis,
               ),
-              hGap(15),
-              Text(
-                "Task Reply",
-                style: BalooStyles.baloomediumTextStyle(color: appColorGreen),
-              ),
+
+
             ],
           ),
           vGap(12),
@@ -160,7 +162,7 @@ class TaskThreadScreenWeb extends GetView<TaskThreadController> {
                               launchUrl(Uri.parse(link.url),
                                   mode: LaunchMode.externalApplication);
                             },
-                            style: BalooStyles.baloosemiBoldTextStyle(
+                            style: BalooStyles.baloonormalTextStyle(
                               color: Colors.black87,
                             ),
                             linkStyle: BalooStyles.baloonormalTextStyle(
@@ -254,6 +256,7 @@ class TaskThreadScreenWeb extends GetView<TaskThreadController> {
               return StaggeredAnimationListItem(
                 index: index,
                 child: SwipeTo(
+                  iconColor: appColorGreen,
                   onRightSwipe: (detail) {
                     // Set the message being replied to
                     controller.refIdis = element.comments.taskCommentId;
@@ -476,7 +479,7 @@ class TaskThreadScreenWeb extends GetView<TaskThreadController> {
                     launchUrl(Uri.parse(link.url),
                         mode: LaunchMode.externalApplication);
                   },
-                  style: BalooStyles.baloosemiBoldTextStyle(
+                  style: BalooStyles.baloonormalTextStyle(
                     color: Colors.black87,
                   ),
                   linkStyle: BalooStyles.baloonormalTextStyle(

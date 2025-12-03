@@ -66,7 +66,7 @@ class ChatHomeBinding extends Bindings {
 class ChatScreenBinding extends Bindings {
   @override
   void dependencies() {
-    // Get.put<ChatScreenController>(ChatScreenController(user: APIs.me));
+    Get.put<ChatScreenController>(ChatScreenController());
   }
 }
 

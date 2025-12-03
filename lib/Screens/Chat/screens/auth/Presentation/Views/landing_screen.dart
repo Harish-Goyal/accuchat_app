@@ -105,7 +105,7 @@ class LandingPage extends GetView<LandingScreenController> {
                                         }else{
                                           await Get.putAsync<CompanyService>(
                                                 () async => await CompanyService().init(),
-                                            permanent: true,
+                                            // permanent: true,
                                           );
 
                                           final svc = CompanyService.to;

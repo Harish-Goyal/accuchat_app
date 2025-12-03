@@ -310,6 +310,7 @@ class TaskScreen extends GetView<TaskController> {
               return StaggeredAnimationListItem(
                 index: index,
                 child: SwipeTo(
+                  iconColor: appColorGreen,
                   onRightSwipe: (detail) {
                     controller.openTaskThreadSmart(
                         context: context, groupElement: element);
@@ -375,14 +376,7 @@ class TaskScreen extends GetView<TaskController> {
   }) {
     return GestureDetector(
       behavior: HitTestBehavior.opaque, // makes the whole area tappable
-      onTapUp: (details) {
-        _showStatusPopup(
-          isME: sentByMe,
-          task: data,
-          contextt: contexts, // use the local BuildContext
-          globalPos: details.globalPosition, // from TapUpDetails
-        );
-      },
+
       onDoubleTap: () {
         SystemChannels.textInput.invokeMethod('TextInput.hide');
         _showBottomSheet(sentByMe, element, data: data);
@@ -394,82 +388,85 @@ class TaskScreen extends GetView<TaskController> {
             crossAxisAlignment:
                 sentByMe ? CrossAxisAlignment.end : CrossAxisAlignment.start,
             children: [
-              Row(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  (sentByMe)
-                      ? IconButton(
-                          onPressed: () {
-                            controller.handleForward(taskData: data);
-                          },
-                          icon: Transform(
-                              alignment: Alignment.center,
-                              transform: Matrix4.rotationX(math.pi),
-                              child: Image.asset(
-                                forwardIcon,
-                                height: 25,
-                              ))).paddingOnly(left: 10)
-                      : const SizedBox(),
-                  Expanded(
-                    child: Container(
-                      alignment: sentByMe
-                          ? Alignment.centerRight
-                          : Alignment.centerLeft,
-                      padding: EdgeInsets.only(
-                          top: 4,
-                          left: (sentByMe ? 0 : 15),
-                          right: (sentByMe ? 15 : 0)),
-                      child: Column(
-                        mainAxisSize: MainAxisSize.min,
-                        crossAxisAlignment: sentByMe
-                            ? CrossAxisAlignment.end
-                            : CrossAxisAlignment.start,
-                        children: [
-                          Container(
-                            padding: const EdgeInsets.symmetric(
-                              horizontal: 15,
-                              vertical: 15,
-                            ),
-                            margin: sentByMe
-                                ? const EdgeInsets.only(left: 15, top: 0)
-                                : const EdgeInsets.only(right: 15, top: 3),
-                            decoration: BoxDecoration(
-                                color:
-                                    getTaskStatusColor(data.currentStatus?.name)
-                                        .withOpacity(.1),
-                                border: Border.all(
-                                    color: getTaskStatusColor(
-                                        data.currentStatus?.name)),
-                                //making borders curved
-                                borderRadius: sentByMe
-                                    ? const BorderRadius.only(
-                                        topLeft: Radius.circular(30),
-                                        topRight: Radius.circular(30),
-                                        bottomLeft: Radius.circular(30))
-                                    : const BorderRadius.only(
-                                        topLeft: Radius.circular(30),
-                                        topRight: Radius.circular(30),
-                                        bottomRight: Radius.circular(30))),
-                            child: _taskCard(message: data, element: element),
-                          ).marginOnly(left: (0), top: 0),
-                        ],
+              Align(
+                alignment: sentByMe ? Alignment.centerRight : Alignment.centerLeft,
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    (sentByMe)
+                        ? IconButton(
+                            onPressed: () {
+                              controller.handleForward(taskData: data);
+                            },
+                            icon: Transform(
+                                alignment: Alignment.center,
+                                transform: Matrix4.rotationX(math.pi),
+                                child: Image.asset(
+                                  forwardIcon,
+                                  height: 25,
+                                ))).paddingOnly(left: 10)
+                        : const SizedBox(),
+                    Align(
+                        alignment: sentByMe
+                            ? Alignment.centerRight
+                            : Alignment.centerLeft,
+                      child:
+                        ConstrainedBox(
+                          constraints: BoxConstraints(
+                            maxWidth: Get.width * (kIsWeb ? 0.45 : 0.75)),
+                        child: Column(
+                          mainAxisSize: MainAxisSize.min,
+                          crossAxisAlignment: sentByMe
+                              ? CrossAxisAlignment.end
+                              : CrossAxisAlignment.start,
+                          children: [
+                            Container(
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 15,
+                                vertical: 15,
+                              ),
+                              margin: sentByMe
+                                  ? const EdgeInsets.only(left: 15, top: 0)
+                                  : const EdgeInsets.only(right: 15, top: 3),
+                              decoration: BoxDecoration(
+                                  color:
+                                      getTaskStatusColor(data.currentStatus?.name)
+                                          .withOpacity(.1),
+                                  border: Border.all(
+                                      color: getTaskStatusColor(
+                                          data.currentStatus?.name)),
+                                  //making borders curved
+                                  borderRadius: sentByMe
+                                      ? const BorderRadius.only(
+                                          topLeft: Radius.circular(30),
+                                          topRight: Radius.circular(30),
+                                          bottomLeft: Radius.circular(30))
+                                      : const BorderRadius.only(
+                                          topLeft: Radius.circular(30),
+                                          topRight: Radius.circular(30),
+                                          bottomRight: Radius.circular(30))),
+                              child: _taskCard(message: data, element: element),
+                            ).marginOnly(left: (0), top: 0),
+                          ],
+                        ),
                       ),
                     ),
-                  ),
-                  (!sentByMe)
-                      ? IconButton(
-                          onPressed: () {
-                            controller.handleForward(taskData: data);
-                          },
-                          icon: Transform(
-                              alignment: Alignment.center,
-                              transform: Matrix4.rotationY(math.pi),
-                              child: Image.asset(
-                                forwardIcon,
-                                height: 25,
-                              ))).paddingOnly(right: 10)
-                      : const SizedBox()
-                ],
+                    (!sentByMe)
+                        ? IconButton(
+                            onPressed: () {
+                              controller.handleForward(taskData: data);
+                            },
+                            icon: Transform(
+                                alignment: Alignment.center,
+                                transform: Matrix4.rotationY(math.pi),
+                                child: Image.asset(
+                                  forwardIcon,
+                                  height: 25,
+                                ))).paddingOnly(right: 10)
+                        : const SizedBox()
+                  ],
+                ),
               ),
               vGap(3),
               if ((StorageService.checkFirstTimeTask()) && isTaskMode)
@@ -505,38 +502,50 @@ class TaskScreen extends GetView<TaskController> {
           Positioned(
               right: sentByMe ? 22 : null,
               left: sentByMe ? null : 22,
-              top: -8,
-              child: statusHistroryPopUp(
-                  status: data.currentStatus, statusHis: data.statusHistory)),
+              top: -10,
+              child: GestureDetector(
+                // borderRadius: BorderRadius.circular(12),
+                onTapUp: (details){
+                  _showStatusPopup(
+                    isME: sentByMe,
+                    task: data,
+                    contextt: contexts, // use the local BuildContext
+                    globalPos: details.globalPosition, // from TapUpDetails
+                  );
+                },
+                child: Container(
+                  padding: EdgeInsets.symmetric(vertical: 5,horizontal: 12 ),
+                  decoration: BoxDecoration(
+                    borderRadius: BorderRadius.circular(12),
+                    color: getTaskStatusColor(data.currentStatus?.name?.capitalizeFirst)
+                  ),
+                  child: Text(data.currentStatus?.name??'',style: BalooStyles.baloonormalTextStyle(color: Colors.white,size: 13),),
+                ),
+              ),
+              ),
         ],
       ),
     );
   }
 
-  statusHistroryPopUp({List<StatusHistory>? statusHis, CurrentStatus? status}) {
+  Widget statusHistroryPopUp({List<StatusHistory>? statusHis, CurrentStatus? status}) {
     return PopupMenuButton<int>(
-      tooltip: 'Status history',
+      tooltip: 'Status History',
       elevation: 2,
       offset: const Offset(0, 8),
       color: Colors.white,
+      borderRadius:  BorderRadius.circular(30) ,
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
       itemBuilder: (_) =>
           _buildMenuItems(statusHis ?? [], APIs.me.displayName ?? ''),
       child: Container(
         // alignment: Alignment.center,
-        padding: const EdgeInsets.only(left: 12, right: 12, top: 4, bottom: 4),
+        padding: const EdgeInsets.only(left: 8, right: 8, top: 4, bottom: 4),
         decoration: BoxDecoration(
             borderRadius: BorderRadius.circular(30),
-            color: getTaskStatusColor(status?.name?.capitalizeFirst)),
-        child: Text(
-          "${status?.name} /${statusHis?.length ?? 0}",
-          style: const TextStyle(
-            fontStyle: FontStyle.italic,
-            fontSize: 13,
-            color: Colors.white,
-          ),
-          textAlign: TextAlign.center,
-        ),
+            // color: getTaskStatusColor(status?.name?.capitalizeFirst)
+    ),
+        child: Icon(Icons.history_outlined,size: 18,color: Colors.blue,),
       ),
     );
   }
@@ -624,7 +633,7 @@ class TaskScreen extends GetView<TaskController> {
               ).paddingOnly(right: 6),
 
               // Text + links
-              Expanded(
+              Flexible(
                 child: SelectableLinkify(
                   text: message.title ?? '',
                   onOpen: (link) {
@@ -648,39 +657,53 @@ class TaskScreen extends GetView<TaskController> {
           ),
         ),
         vGap(5),
-        DefaultSelectionStyle(
-          selectionColor:
-              appColorPerple.withOpacity(0.3), // text select background
-          cursorColor: appColorPerple,
-          child: SelectableLinkify(
-            text: message.details ?? '',
-            onOpen: (link) {
-              launchUrl(Uri.parse(link.url),
-                  mode: LaunchMode.externalApplication);
-            },
-            style: BalooStyles.baloosemiBoldTextStyle(
-              color: Colors.black87,
-            ),
-            linkStyle: BalooStyles.baloonormalTextStyle(
-              color: Colors.blue,
-            ),
-            linkifiers: const [
-              UrlLinkifier(), // <-- THIS handles multiple links inside single text
-            ],
+
+        SizedBox(
+          width:200,
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
+            children:[
+              Flexible(
+              child:DefaultSelectionStyle(
+                selectionColor:
+                appColorPerple.withOpacity(0.3), // text select background
+                cursorColor: appColorPerple,
+                child: SelectableLinkify(
+                  text: message.details ?? '',
+                  onOpen: (link) {
+                    launchUrl(Uri.parse(link.url),
+                        mode: LaunchMode.externalApplication);
+                  },
+                  style: BalooStyles.baloonormalTextStyle(
+                    color: Colors.black87,
+                    size: 14,
+                  ),
+                  linkStyle: BalooStyles.baloonormalTextStyle(
+                    color: Colors.blue,
+                  ),
+                  linkifiers: const [
+                    UrlLinkifier(),
+                  ],
+                ),
+              ),
+              )
+            ]
           ),
         ),
+
         if ((message.deadline ?? '').isNotEmpty) ...[
           vGap(10),
           Text(
               "⏱️ Est. Time: ${estimateLabel(deadlineIso: message.deadline ?? '', createdIso: message.createdOn ?? '')}",
-              style: TextStyle(fontSize: 14, color: AppTheme.redErrorColor)),
+              style: BalooStyles.baloonormalTextStyle()),
         ],
         vGap(8),
         Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          mainAxisSize: MainAxisSize.min,
+          // mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
 
-            Expanded(
+            Flexible(
               child: Container(
                 child: (message.media) != null
                     ? buildTaskAttachments(message.media)
@@ -688,7 +711,7 @@ class TaskScreen extends GetView<TaskController> {
               ),
             ),
 
-             message.commentCount!=0?  InkWell(
+          InkWell(
               borderRadius: BorderRadius.circular(30),
               onTap: () {
                 controller.openTaskThreadSmart(
@@ -712,7 +735,13 @@ class TaskScreen extends GetView<TaskController> {
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
                   )),
-            ):SizedBox(),
+            ),
+
+            SizedBox(
+              width: 40,
+              child: statusHistroryPopUp(
+                  status: message.currentStatus, statusHis: message.statusHistory),
+            )
           ],
         )
       ],
@@ -1057,9 +1086,9 @@ class TaskScreen extends GetView<TaskController> {
                   decoration: BoxDecoration(
                       shape: BoxShape.circle,
                       color: appColorGreen.withOpacity(.2)),
-                  child: const Icon(
+                  child:  Icon(
                     Icons.filter_alt_outlined,
-                    color: Colors.black87,
+                    color: appColorGreen,
                     size: 20,
                   )),
               onSelected: (v) {
