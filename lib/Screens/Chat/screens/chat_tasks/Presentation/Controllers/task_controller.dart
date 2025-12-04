@@ -39,7 +39,7 @@ import '../Views/task_treads_screen.dart';
 import '../Widgets/all_users_dialog.dart';
 
 class TaskController extends GetxController {
-  TaskController({required this.user});
+  TaskController({this.user});
   UserDataAPI? user;
   // Message? forwardMessage;
   String? selectedChatId;

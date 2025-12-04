@@ -52,9 +52,8 @@ class TaskThreadScreen extends GetView<TaskThreadController> {
                 hGap(15),
                 Expanded(
                   child: Text(
-                    controller.currentUser?.displayName == null
-                        ?controller.currentUser?.userName !=null?controller.currentUser?.userName ?? ''
-                        :controller.currentUser?.displayName ?? '' :controller.currentUser?.phone ?? '',
+                    controller.currentUser?.displayName != null ? controller.currentUser?.displayName??'' :controller.currentUser?.userName !=null? controller.currentUser?.userName ?? ''
+                        :controller.currentUser?.phone ?? '' ,
                     style: BalooStyles.balooboldTitleTextStyle(),
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
@@ -442,32 +441,41 @@ class TaskThreadScreen extends GetView<TaskThreadController> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Flexible(
-          child: Text(
-              sentByMe
-                  ? (data.fromUser?.displayName != null
-                  ? data.fromUser?.displayName ?? ''
-                  : data.fromUser?.phone ?? '')
-                  : (data.fromUser?.displayName != null
-                  ? data.fromUser?.displayName ?? ''
-                  : data.fromUser?.phone ?? ''),
-              textAlign: TextAlign.start,
-              style: BalooStyles.baloothinTextStyle(
-                color: Colors.black54,
-                size: 13,
-              ),
-              overflow: TextOverflow.visible)
-              .marginOnly(
-              left: sentByMe ? 0 : 0,
-              right: sentByMe ? 10 : 0,
-              bottom: 3,top: 8),
+        Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Flexible(
+              child: Text(
+                  sentByMe
+                      ? (data.fromUser?.userCompany?.displayName != null
+                      ? data.fromUser?.userCompany?.displayName ?? ''
+                      : data.fromUser?.userName != null
+                      ? data.fromUser?.userName ?? ''
+                      : data.fromUser?.phone ?? '')
+                      : (data.toUser?.userCompany?.displayName != null
+                      ? data.toUser?.userCompany?.displayName ?? ''
+                      : data.toUser?.userName != null
+                      ? data.toUser?.userName ?? ''
+                      : data.toUser?.phone ?? ''),
+                  textAlign: TextAlign.start,
+                  style: BalooStyles.baloothinTextStyle(
+                    color: Colors.black54,
+                    size: 13,
+                  ),
+                  overflow: TextOverflow.visible)
+                  .marginOnly(
+                  left: sentByMe ? 0 : 0,
+                  right: sentByMe ? 10 : 0,
+                  bottom: 3,
+                  top: 0),
+            ),
+          ],
         ),
         data.commentText != '' || data.commentText != null
             ? Text(data.commentText ?? '',
             textAlign: TextAlign.start,
             style: BalooStyles.baloonormalTextStyle(
               color: Colors.black87,
-              size: 15,
             ),
             overflow: TextOverflow.visible)
             : const SizedBox(),

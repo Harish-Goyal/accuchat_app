@@ -48,9 +48,8 @@ class TaskThreadScreenWeb extends GetView<TaskThreadController> {
               ),
               hGap(15),
               Text(
-                controller.currentUser?.displayName == null
-                    ?controller.currentUser?.userName !=null?controller.currentUser?.userName ?? ''
-                    :controller.currentUser?.displayName ?? '' :controller.currentUser?.phone ?? '',
+                controller.currentUser?.displayName != null ? controller.currentUser?.displayName??'' :controller.currentUser?.userName !=null? controller.currentUser?.userName ?? ''
+                    :controller.currentUser?.phone ?? '' ,
                 style: BalooStyles.balooboldTitleTextStyle(),
                 maxLines: 1,
                 overflow: TextOverflow.ellipsis,

@@ -90,7 +90,7 @@ class _ChatUserCardMobileState extends State<ChatUserCardMobile>
             //for navigating to chat screen
             // APIs.updateActiveStatus(true);
             if(isTaskMode) {
-              Get.to(()=>TaskScreen(taskUser: widget.user,));
+              Get.toNamed(AppRoutes.tasks_li_r,arguments: {'user':widget.user});
             }else{
               // Get.find<ChatScreenController>().openConversation(widget.user);
                 Get.toNamed(AppRoutes.chats_li_r,arguments: {'user':widget.user});

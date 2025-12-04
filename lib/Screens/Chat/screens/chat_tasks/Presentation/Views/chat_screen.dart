@@ -832,7 +832,7 @@ class ChatScreen extends GetView<ChatScreenController> {
                   isGroupMessage: data.isGroupChat == 1 ? true : false,
                   myId: (controller.me?.userId ?? 0).toString(),
                   fromId: (data.fromUser?.userId ?? 0).toString(),
-                  senderName: data.fromUser?.userCompany?.displayName ?? '',
+                  senderName:data.fromUser?.displayName!=null? data.fromUser?.displayName ?? '':data.fromUser?.userName??'',
                   baseUrl: ApiEnd.baseUrlMedia,
                   defaultGallery: defaultGallery,
                   onOpenDocument: (url) =>

@@ -66,11 +66,11 @@ class _NoGlowScrollBehavior extends ScrollBehavior {
 
   @override
   Set<PointerDeviceKind> get dragDevices => {
-        PointerDeviceKind.touch,
-        PointerDeviceKind.mouse,
-        PointerDeviceKind.stylus,
-        PointerDeviceKind.unknown,
-      };
+    PointerDeviceKind.touch,
+    PointerDeviceKind.mouse,
+    PointerDeviceKind.stylus,
+    PointerDeviceKind.unknown,
+  };
 }
 
 double _maxChatWidth(BuildContext context) {
@@ -104,20 +104,13 @@ double _textScaleClamp(BuildContext context) {
   return t.clamp(0.9, 1.2);
 }
 
-class TaskScreen extends GetView<TaskController> {
+class TaskScreenMobile extends GetView<TaskController> {
   final GlobalKey _menuKey = GlobalKey();
-  TaskScreen({super.key, this.taskUser, this.showBack = true});
-  final UserDataAPI? taskUser;
-  bool showBack;
+  TaskScreenMobile({super.key});
   @override
   Widget build(BuildContext context) {
-    final taskController = Get.put(
-      TaskController(user: taskUser),
-      tag: "task_${taskUser?.userId ?? 'mobile'}",
-    );
 
     return GetBuilder<TaskController>(
-        init: taskController,
         builder: (controller) {
           return GestureDetector(
             onTap: () => FocusScope.of(context).unfocus(),
@@ -136,7 +129,7 @@ class TaskScreen extends GetView<TaskController> {
                       backgroundColor: Colors.white, // white color
                       elevation: 1, // remove shadow
                       scrolledUnderElevation:
-                          0, // ✨ prevents color change on scroll
+                      0, // ✨ prevents color change on scroll
                       surfaceTintColor: Colors.white,
                       automaticallyImplyLeading: false,
                       flexibleSpace: MediaQuery(
@@ -157,7 +150,7 @@ class TaskScreen extends GetView<TaskController> {
                         // ✅ center content on wide screens
                         child: ConstrainedBox(
                           constraints:
-                              BoxConstraints(maxWidth: _maxChatWidth(context)),
+                          BoxConstraints(maxWidth: _maxChatWidth(context)),
                           child: Padding(
                             padding: _shellHPadding(context),
                             child: Column(
@@ -213,21 +206,21 @@ class TaskScreen extends GetView<TaskController> {
                                               strokeWidth: 2))),
 
                                 (controller.uploadProgress > 0 &&
-                                        controller.uploadProgress < 100)
+                                    controller.uploadProgress < 100)
                                     ? Column(
-                                        children: [
-                                          LinearProgressIndicator(
-                                            value: controller.uploadProgress /
-                                                100, // 0.0 → 1.0
-                                            backgroundColor: Colors.grey[300],
-                                            color: Colors.blue,
-                                            minHeight: 6,
-                                          ),
-                                          const SizedBox(height: 4),
-                                          Text(
-                                              "${controller.uploadProgress.toStringAsFixed(0)}%"),
-                                        ],
-                                      )
+                                  children: [
+                                    LinearProgressIndicator(
+                                      value: controller.uploadProgress /
+                                          100, // 0.0 → 1.0
+                                      backgroundColor: Colors.grey[300],
+                                      color: Colors.blue,
+                                      minHeight: 6,
+                                    ),
+                                    const SizedBox(height: 4),
+                                    Text(
+                                        "${controller.uploadProgress.toStringAsFixed(0)}%"),
+                                  ],
+                                )
                                     : const SizedBox.shrink(),
 
                                 _chatInput(),
@@ -269,8 +262,8 @@ class TaskScreen extends GetView<TaskController> {
             showShimmer: controller.showPostShimmer,
             shimmerWidget: shimmerlistView(
                 child: ChatHistoryShimmer(
-              chatData: ChatHisList(),
-            )),
+                  chatData: ChatHisList(),
+                )),
             child: AnimationLimiter(child: groupListView()),
           ),
         ),
@@ -281,77 +274,77 @@ class TaskScreen extends GetView<TaskController> {
 
   groupListView() {
     return controller.taskCategory.isNotEmpty &&
-            (controller.taskHisList ?? []).isNotEmpty
+        (controller.taskHisList ?? []).isNotEmpty
         ? GroupedListView<GroupTaskElement, DateTime>(
-            shrinkWrap: false,
-            padding: const EdgeInsets.only(bottom: 30),
-            controller: controller.scrollController,
-            elements: controller.taskCategory,
-            order: GroupedListOrder.DESC,
-            reverse: true,
-            floatingHeader: true,
-            useStickyGroupSeparators: true,
-            groupBy: (GroupTaskElement element) => DateTime(
-                  element.date.year,
-                  element.date.month,
-                  element.date.day,
-                ),
-            groupHeaderBuilder: _createGroupHeader,
-            indexedItemBuilder:
-                (BuildContext context, GroupTaskElement element, int index) {
-              String formatatedTime = '';
-              if (element.taskMsg.createdOn != null) {
-                var timeString = element.taskMsg.createdOn ?? '';
+        shrinkWrap: false,
+        padding: const EdgeInsets.only(bottom: 30),
+        controller: controller.scrollController,
+        elements: controller.taskCategory,
+        order: GroupedListOrder.DESC,
+        reverse: true,
+        floatingHeader: true,
+        useStickyGroupSeparators: true,
+        groupBy: (GroupTaskElement element) => DateTime(
+          element.date.year,
+          element.date.month,
+          element.date.day,
+        ),
+        groupHeaderBuilder: _createGroupHeader,
+        indexedItemBuilder:
+            (BuildContext context, GroupTaskElement element, int index) {
+          String formatatedTime = '';
+          if (element.taskMsg.createdOn != null) {
+            var timeString = element.taskMsg.createdOn ?? '';
 
-                formatatedTime = controller.convertUtcToIndianTime(timeString);
-              }
+            formatatedTime = controller.convertUtcToIndianTime(timeString);
+          }
 
-              var userid = APIs.me?.userId;
-              return StaggeredAnimationListItem(
-                index: index,
-                child: SwipeTo(
-                  iconColor: appColorGreen,
-                  onRightSwipe: (detail) {
-                    controller.openTaskThreadSmart(
-                        context: context, groupElement: element);
-                    // Get.find<SocketController>().joinTaskEmitter(taskId: element.taskMsg.taskId??0);
-                    //
-                    // // Set the message being replied to
-                    // controller.refIdis = element.taskMsg.taskId;
-                    // controller.userIDSender = element.taskMsg.fromUser?.userId;
-                    // controller.userNameReceiver =
-                    //     element.taskMsg.toUser?.userName ?? '';
-                    // controller.userNameSender =
-                    //     element.taskMsg.fromUser?.userName ?? '';
-                    // controller.userIDReceiver = element.taskMsg.toUser?.userId;
-                    // // controller.replyToMessage = element.taskMsg;
-                    //
-                    // controller.update();
-                    //
-                    // if(kIsWeb){
-                    //   Get.toNamed("${AppRoutes.task_threads}?currentUserId=${controller.user?.userId.toString()}&taskMsgId=${element.taskMsg.taskId.toString()}"
-                    //     );
-                    //
-                    // }else{
-                    //   Get.toNamed(AppRoutes.task_threads,
-                    //       arguments: {
-                    //         'taskMsg':  element.taskMsg, 'currentUser': controller.user!
-                    //       });
-                    // }
-                  },
-                  child: _chatMessageTile(element,
-                      data: element.taskMsg,
-                      sentByMe: (userid.toString() ==
-                              element.taskMsg.fromUser?.userId?.toString()
-                          ? true
-                          : false),
-                      formatedTime: formatatedTime,
-                      contexts: context),
-                ),
-              );
-            })
+          var userid = APIs.me?.userId;
+          return StaggeredAnimationListItem(
+            index: index,
+            child: SwipeTo(
+              iconColor: appColorGreen,
+              onRightSwipe: (detail) {
+                controller.openTaskThreadSmart(
+                    context: context, groupElement: element);
+                // Get.find<SocketController>().joinTaskEmitter(taskId: element.taskMsg.taskId??0);
+                //
+                // // Set the message being replied to
+                // controller.refIdis = element.taskMsg.taskId;
+                // controller.userIDSender = element.taskMsg.fromUser?.userId;
+                // controller.userNameReceiver =
+                //     element.taskMsg.toUser?.userName ?? '';
+                // controller.userNameSender =
+                //     element.taskMsg.fromUser?.userName ?? '';
+                // controller.userIDReceiver = element.taskMsg.toUser?.userId;
+                // // controller.replyToMessage = element.taskMsg;
+                //
+                // controller.update();
+                //
+                // if(kIsWeb){
+                //   Get.toNamed("${AppRoutes.task_threads}?currentUserId=${controller.user?.userId.toString()}&taskMsgId=${element.taskMsg.taskId.toString()}"
+                //     );
+                //
+                // }else{
+                //   Get.toNamed(AppRoutes.task_threads,
+                //       arguments: {
+                //         'taskMsg':  element.taskMsg, 'currentUser': controller.user!
+                //       });
+                // }
+              },
+              child: _chatMessageTile(element,
+                  data: element.taskMsg,
+                  sentByMe: (userid.toString() ==
+                      element.taskMsg.fromUser?.userId?.toString()
+                      ? true
+                      : false),
+                  formatedTime: formatatedTime,
+                  contexts: context),
+            ),
+          );
+        })
         : const Center(
-            child: Text('Task Send as Chat!', style: TextStyle(fontSize: 20)));
+        child: Text('Task Send as Chat!', style: TextStyle(fontSize: 20)));
   }
 
   Widget _createGroupHeader(GroupTaskElement element) {
@@ -368,12 +361,12 @@ class TaskScreen extends GetView<TaskController> {
   }
 
   Widget _chatMessageTile(
-    GroupTaskElement element, {
-    required TaskData data,
-    required bool sentByMe,
-    formatedTime,
-    required BuildContext contexts,
-  }) {
+      GroupTaskElement element, {
+        required TaskData data,
+        required bool sentByMe,
+        formatedTime,
+        required BuildContext contexts,
+      }) {
     return GestureDetector(
       behavior: HitTestBehavior.opaque, // makes the whole area tappable
 
@@ -386,7 +379,7 @@ class TaskScreen extends GetView<TaskController> {
         children: [
           Column(
             crossAxisAlignment:
-                sentByMe ? CrossAxisAlignment.end : CrossAxisAlignment.start,
+            sentByMe ? CrossAxisAlignment.end : CrossAxisAlignment.start,
             children: [
               Align(
                 alignment: sentByMe ? Alignment.centerRight : Alignment.centerLeft,
@@ -396,24 +389,24 @@ class TaskScreen extends GetView<TaskController> {
                   children: [
                     (sentByMe)
                         ? IconButton(
-                            onPressed: () {
-                              controller.handleForward(taskData: data);
-                            },
-                            icon: Transform(
-                                alignment: Alignment.center,
-                                transform: Matrix4.rotationX(math.pi),
-                                child: Image.asset(
-                                  forwardIcon,
-                                  height: 25,
-                                ))).paddingOnly(left: 10)
+                        onPressed: () {
+                          controller.handleForward(taskData: data);
+                        },
+                        icon: Transform(
+                            alignment: Alignment.center,
+                            transform: Matrix4.rotationX(math.pi),
+                            child: Image.asset(
+                              forwardIcon,
+                              height: 25,
+                            ))).paddingOnly(left: 10)
                         : const SizedBox(),
                     Align(
-                        alignment: sentByMe
-                            ? Alignment.centerRight
-                            : Alignment.centerLeft,
+                      alignment: sentByMe
+                          ? Alignment.centerRight
+                          : Alignment.centerLeft,
                       child:
-                        ConstrainedBox(
-                          constraints: BoxConstraints(
+                      ConstrainedBox(
+                        constraints: BoxConstraints(
                             maxWidth: Get.width * (kIsWeb ? 0.45 : 0.75)),
                         child: Column(
                           mainAxisSize: MainAxisSize.min,
@@ -431,21 +424,21 @@ class TaskScreen extends GetView<TaskController> {
                                   : const EdgeInsets.only(right: 15, top: 3),
                               decoration: BoxDecoration(
                                   color:
-                                      getTaskStatusColor(data.currentStatus?.name)
-                                          .withOpacity(.1),
+                                  getTaskStatusColor(data.currentStatus?.name)
+                                      .withOpacity(.1),
                                   border: Border.all(
                                       color: getTaskStatusColor(
                                           data.currentStatus?.name)),
                                   //making borders curved
                                   borderRadius: sentByMe
                                       ? const BorderRadius.only(
-                                          topLeft: Radius.circular(30),
-                                          topRight: Radius.circular(30),
-                                          bottomLeft: Radius.circular(30))
+                                      topLeft: Radius.circular(30),
+                                      topRight: Radius.circular(30),
+                                      bottomLeft: Radius.circular(30))
                                       : const BorderRadius.only(
-                                          topLeft: Radius.circular(30),
-                                          topRight: Radius.circular(30),
-                                          bottomRight: Radius.circular(30))),
+                                      topLeft: Radius.circular(30),
+                                      topRight: Radius.circular(30),
+                                      bottomRight: Radius.circular(30))),
                               child: _taskCard(message: data, element: element),
                             ).marginOnly(left: (0), top: 0),
                           ],
@@ -454,16 +447,16 @@ class TaskScreen extends GetView<TaskController> {
                     ),
                     (!sentByMe)
                         ? IconButton(
-                            onPressed: () {
-                              controller.handleForward(taskData: data);
-                            },
-                            icon: Transform(
-                                alignment: Alignment.center,
-                                transform: Matrix4.rotationY(math.pi),
-                                child: Image.asset(
-                                  forwardIcon,
-                                  height: 25,
-                                ))).paddingOnly(right: 10)
+                        onPressed: () {
+                          controller.handleForward(taskData: data);
+                        },
+                        icon: Transform(
+                            alignment: Alignment.center,
+                            transform: Matrix4.rotationY(math.pi),
+                            child: Image.asset(
+                              forwardIcon,
+                              height: 25,
+                            ))).paddingOnly(right: 10)
                         : const SizedBox()
                   ],
                 ),
@@ -500,29 +493,29 @@ class TaskScreen extends GetView<TaskController> {
             ],
           ),
           Positioned(
-              right: sentByMe ? 22 : null,
-              left: sentByMe ? null : 22,
-              top: -10,
-              child: GestureDetector(
-                // borderRadius: BorderRadius.circular(12),
-                onTapUp: (details){
-                  _showStatusPopup(
-                    isME: sentByMe,
-                    task: data,
-                    contextt: contexts, // use the local BuildContext
-                    globalPos: details.globalPosition, // from TapUpDetails
-                  );
-                },
-                child: Container(
-                  padding: EdgeInsets.symmetric(vertical: 5,horizontal: 12 ),
-                  decoration: BoxDecoration(
+            right: sentByMe ? 22 : null,
+            left: sentByMe ? null : 22,
+            top: -10,
+            child: GestureDetector(
+              // borderRadius: BorderRadius.circular(12),
+              onTapUp: (details){
+                _showStatusPopup(
+                  isME: sentByMe,
+                  task: data,
+                  contextt: contexts, // use the local BuildContext
+                  globalPos: details.globalPosition, // from TapUpDetails
+                );
+              },
+              child: Container(
+                padding: EdgeInsets.symmetric(vertical: 5,horizontal: 12 ),
+                decoration: BoxDecoration(
                     borderRadius: BorderRadius.circular(12),
                     color: getTaskStatusColor(data.currentStatus?.name?.capitalizeFirst)
-                  ),
-                  child: Text(data.currentStatus?.name??'',style: BalooStyles.baloonormalTextStyle(color: Colors.white,size: 13),),
                 ),
+                child: Text(data.currentStatus?.name??'',style: BalooStyles.baloonormalTextStyle(color: Colors.white,size: 13),),
               ),
-              ),
+            ),
+          ),
         ],
       ),
     );
@@ -542,18 +535,18 @@ class TaskScreen extends GetView<TaskController> {
         // alignment: Alignment.center,
         padding: const EdgeInsets.only(left: 8, right: 8, top: 4, bottom: 4),
         decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(30),
-            // color: getTaskStatusColor(status?.name?.capitalizeFirst)
-    ),
+          borderRadius: BorderRadius.circular(30),
+          // color: getTaskStatusColor(status?.name?.capitalizeFirst)
+        ),
         child: Image.asset(historyIcon,height: 17,width:17,),
       ),
     );
   }
 
   List<PopupMenuEntry<int>> _buildMenuItems(
-    List<StatusHistory> history,
-    String resolveName,
-  ) {
+      List<StatusHistory> history,
+      String resolveName,
+      ) {
     if (history.isEmpty) {
       return const [
         PopupMenuItem<int>(
@@ -579,7 +572,7 @@ class TaskScreen extends GetView<TaskController> {
       PopupMenuItem<int>(
         enabled: false,
         child:
-            Text('Status History', style: BalooStyles.baloosemiBoldTextStyle()),
+        Text('Status History', style: BalooStyles.baloosemiBoldTextStyle()),
       ),
     ];
 
@@ -620,7 +613,7 @@ class TaskScreen extends GetView<TaskController> {
       children: [
         DefaultSelectionStyle(
           selectionColor:
-              appColorPerple.withOpacity(0.3), // text select background
+          appColorPerple.withOpacity(0.3), // text select background
           cursorColor: appColorPerple,
           child: Row(
             mainAxisSize: MainAxisSize.min,
@@ -658,40 +651,40 @@ class TaskScreen extends GetView<TaskController> {
         ),
         vGap(5),
 
-    ConstrainedBox(
-    constraints: BoxConstraints(
-    maxWidth: Get.width * (kIsWeb ? 0.35 : 0.65)),
+        ConstrainedBox(
+          constraints: BoxConstraints(
+              maxWidth: Get.width * (kIsWeb ? 0.35 : 0.65)),
 
-            child: Row(
+          child: Row(
               mainAxisSize: MainAxisSize.min,
               children:[
                 Flexible(
-                child:DefaultSelectionStyle(
-                  selectionColor:
-                  appColorPerple.withOpacity(0.3),
-                  cursorColor: appColorPerple,
-                  child: SelectableLinkify(
-                    text: message.details ?? '',
-                    onOpen: (link) {
-                      launchUrl(Uri.parse(link.url),
-                          mode: LaunchMode.externalApplication);
-                    },
-                    style: BalooStyles.baloonormalTextStyle(
-                      color: Colors.black87,
-                      size: 14,
+                  child:DefaultSelectionStyle(
+                    selectionColor:
+                    appColorPerple.withOpacity(0.3),
+                    cursorColor: appColorPerple,
+                    child: SelectableLinkify(
+                      text: message.details ?? '',
+                      onOpen: (link) {
+                        launchUrl(Uri.parse(link.url),
+                            mode: LaunchMode.externalApplication);
+                      },
+                      style: BalooStyles.baloonormalTextStyle(
+                        color: Colors.black87,
+                        size: 14,
+                      ),
+                      linkStyle: BalooStyles.baloonormalTextStyle(
+                        color: Colors.blue,
+                      ),
+                      linkifiers: const [
+                        UrlLinkifier(),
+                      ],
                     ),
-                    linkStyle: BalooStyles.baloonormalTextStyle(
-                      color: Colors.blue,
-                    ),
-                    linkifiers: const [
-                      UrlLinkifier(),
-                    ],
                   ),
-                ),
                 )
               ]
-            ),
           ),
+        ),
 
 
         if ((message.deadline ?? '').isNotEmpty) ...[
@@ -714,7 +707,7 @@ class TaskScreen extends GetView<TaskController> {
               ),
             ),
 
-          InkWell(
+            InkWell(
               borderRadius: BorderRadius.circular(30),
               onTap: () {
                 controller.openTaskThreadSmart(
@@ -803,7 +796,7 @@ class TaskScreen extends GetView<TaskController> {
     required Offset globalPos,
   }) async {
     final overlay =
-        Overlay.of(contextt).context.findRenderObject() as RenderBox;
+    Overlay.of(contextt).context.findRenderObject() as RenderBox;
 
     final result = await showMenu<dynamic>(
       context: contextt,
@@ -817,14 +810,14 @@ class TaskScreen extends GetView<TaskController> {
       items: controller.taskStatus
           .map(
             (option) => PopupMenuItem(
-              value: option.taskStatusId,
-              child: Text(
-                option.status ?? '',
-                style: TextStyle(
-                    color: getTaskStatusColor(option.status?.capitalizeFirst)),
-              ),
-            ),
-          )
+          value: option.taskStatusId,
+          child: Text(
+            option.status ?? '',
+            style: TextStyle(
+                color: getTaskStatusColor(option.status?.capitalizeFirst)),
+          ),
+        ),
+      )
           .toList(),
     );
     if (result != null) {
@@ -868,33 +861,28 @@ class TaskScreen extends GetView<TaskController> {
             },
             child: Row(
               children: [
-                //back button
-                !showBack
-                    ? const SizedBox(
-                        width: 14,
-                      )
-                    : IconButton(
-                        onPressed: () {
-                          if (Get.previousRoute.isNotEmpty) {
-                            Get.back();
-                          } else {
-                            Get.offAllNamed(
-                                AppRoutes.home); // or your main route
-                          }
+        IconButton(
+                    onPressed: () {
+                      if (Get.previousRoute.isNotEmpty) {
+                        Get.back();
+                      } else {
+                        Get.offAllNamed(
+                            AppRoutes.home); // or your main route
+                      }
 
-                          Get.find<TaskHomeController>()
-                              .hitAPIToGetRecentTasksUser();
+                      Get.find<TaskHomeController>()
+                          .hitAPIToGetRecentTasksUser();
 
-                          if (isTaskMode) {
-                            dashboardController.updateIndex(1);
-                          } else {
-                            dashboardController.updateIndex(0);
-                          }
+                      if (isTaskMode) {
+                        dashboardController.updateIndex(1);
+                      } else {
+                        dashboardController.updateIndex(0);
+                      }
 
-                          // APIs.updateActiveStatus(false);
-                        },
-                        icon: const Icon(Icons.arrow_back,
-                            color: Colors.black54)),
+                      // APIs.updateActiveStatus(false);
+                    },
+                    icon: const Icon(Icons.arrow_back,
+                        color: Colors.black54)),
 
                 CustomCacheNetworkImage(
                   radiusAll: 100,
@@ -905,8 +893,8 @@ class TaskScreen extends GetView<TaskController> {
                   defaultImage: controller.user?.userCompany?.isGroup == 1
                       ? groupIcn
                       : controller.user?.userCompany?.isBroadcast == 1
-                          ? broadcastIcon
-                          : ICON_profile,
+                      ? broadcastIcon
+                      : ICON_profile,
                 ),
 
                 //for adding some space
@@ -919,7 +907,7 @@ class TaskScreen extends GetView<TaskController> {
                   children: [
                     //user name
 
-                    Text(
+                  Text(
                       controller.user?.displayName != null ? controller.user?.displayName??'' :controller.user?.userName !=null? controller.user?.userName ?? ''
                           :controller.user?.phone ?? '' ,
                       maxLines: 1,
@@ -957,101 +945,97 @@ class TaskScreen extends GetView<TaskController> {
         /*: SizedBox()*/
 
         (controller.user?.userCompany?.isBroadcast==1 ||controller.user?.userCompany?.isGroup==1) ?SizedBox():CustomTextButton(onTap: (){
+          Get.back();
           isTaskMode = false;
-
           Get.find<DashboardController>().updateIndex(0);
 
-          // ensure ChatHomeController exists
+          // ensure TaskHomeController exists
           if (!Get.isRegistered<ChatHomeController>()) {
             Get.put(ChatHomeController());
           }
-          // ensure ChatScreenController exists
           if (!Get.isRegistered<ChatScreenController>()) {
             Get.put(ChatScreenController(user: controller.user));
           }
-
-          final chatHome = Get.find<ChatHomeController>();
-          final chatC = Get.find<ChatScreenController>();
-
-          chatHome.selectedChat.value = controller.user;
-          chatC.user = controller.user;
-          chatC.openConversation(controller.user);
-
-          chatHome.selectedChat.refresh();
+          final taskHome = Get.find<ChatHomeController>();
+          final taskC = Get.find<ChatScreenController>();
+          taskHome.selectedChat.value = controller.user;
+          taskC.user = controller.user;
+          taskC.openConversation(controller.user);
+          taskHome.selectedChat.refresh();
         }, title: "Go to Chat"),
 
         hGap(10),
         (controller.user?.userCompany?.isGroup == 1 ||
-                controller.user?.userCompany?.isBroadcast == 1)
+            controller.user?.userCompany?.isBroadcast == 1)
             ? PopupMenuButton<String>(
-                color: Colors.white,
-                iconColor: Colors.black87,
-                onSelected: (value) {
-                  if (value == 'AddMember') {
-                    if (kIsWeb) {
-                      Get.toNamed(
-                        "${AppRoutes.add_group_member}?groupChatId=${controller.user?.userId.toString()}",
-                      );
-                    } else {
-                      Get.toNamed(
-                        AppRoutes.add_group_member,
-                        arguments: {'groupChat': controller.user},
-                      );
-                    }
-                  }
-                  if (value == 'Exit') {
-                    toast("Under development");
-                  }
-                  if (value == 'Edit') {
-                    Get.toNamed(AppRoutes.member_sr,
-                        arguments: {'user': controller.user});
-                  }
-                },
-                itemBuilder: (context) => [
-                  PopupMenuItem(
-                    value: 'AddMember',
-                    child: Row(
-                      children: [
-                        Icon(
-                          Icons.person_add_alt,
-                          color: appColorGreen,
-                          size: 18,
-                        ),
-                        hGap(5),
-                        const Text('Add Member'),
-                      ],
-                    ),
+          color: Colors.white,
+          iconColor: Colors.black87,
+          onSelected: (value) {
+            if (value == 'AddMember') {
+              if (kIsWeb) {
+                Get.toNamed(
+                  "${AppRoutes.add_group_member}?groupChatId=${controller.user?.userId.toString()}",
+                );
+              } else {
+                Get.toNamed(
+                  AppRoutes.add_group_member,
+                  arguments: {'groupChat': controller.user},
+                );
+              }
+            }
+            if (value == 'Exit') {
+              toast("Under development");
+            }
+            if (value == 'Edit') {
+              Get.toNamed(AppRoutes.member_sr,
+                  arguments: {'user': controller.user});
+            }
+          },
+          itemBuilder: (context) => [
+            PopupMenuItem(
+              value: 'AddMember',
+              child: Row(
+                children: [
+                  Icon(
+                    Icons.person_add_alt,
+                    color: appColorGreen,
+                    size: 18,
                   ),
-                  PopupMenuItem(
-                    value: 'Exit',
-                    child: Row(
-                      children: [
-                        Icon(
-                          Icons.exit_to_app_rounded,
-                          color: appColorGreen,
-                          size: 18,
-                        ),
-                        hGap(5),
-                        const Text('Exit'),
-                      ],
-                    ),
-                  ),
-                  PopupMenuItem(
-                    value: 'Edit',
-                    child: Row(
-                      children: [
-                        Icon(
-                          Icons.edit_outlined,
-                          color: appColorGreen,
-                          size: 18,
-                        ),
-                        hGap(5),
-                        const Text('Edit'),
-                      ],
-                    ),
-                  ),
+                  hGap(5),
+                  const Text('Add Member'),
                 ],
-              )
+              ),
+            ),
+            PopupMenuItem(
+              value: 'Exit',
+              child: Row(
+                children: [
+                  Icon(
+                    Icons.exit_to_app_rounded,
+                    color: appColorGreen,
+                    size: 18,
+                  ),
+                  hGap(5),
+                  const Text('Exit'),
+                ],
+              ),
+            ),
+            PopupMenuItem(
+              value: 'Edit',
+              child: Row(
+                children: [
+                  Icon(
+                    Icons.edit_outlined,
+                    color: appColorGreen,
+                    size: 18,
+                  ),
+                  hGap(5),
+                  const Text('Edit'),
+                ],
+              ),
+            ),
+          ],
+        )
             : const SizedBox(),
         GetBuilder<TaskController>(
           id: 'statusMenu',
@@ -1114,10 +1098,10 @@ class TaskScreen extends GetView<TaskController> {
                   const PopupMenuDivider(),
                   // --- Dynamic statuses from API ---
                   ...controller.taskStatus.map((s) => PopupMenuItem(
-                        value: s.taskStatusId, // pass ID to onSelected
-                        child: Text(s.status ?? 'Unknown',
-                            style: BalooStyles.baloonormalTextStyle()),
-                      )),
+                    value: s.taskStatusId, // pass ID to onSelected
+                    child: Text(s.status ?? 'Unknown',
+                        style: BalooStyles.baloonormalTextStyle()),
+                  )),
                   const PopupMenuDivider(),
                   PopupMenuItem(
                       value: TimeFilter.today,
@@ -1217,7 +1201,7 @@ class TaskScreen extends GetView<TaskController> {
                                             builder: (_) =>
                                                 _createTasksDialogWidget(
                                                     controller.user
-                                                            ?.displayName ??
+                                                        ?.displayName ??
                                                         '')).then((pickedTime) {
                                           if (pickedTime != null) {
                                             controller.update();
@@ -1228,7 +1212,7 @@ class TaskScreen extends GetView<TaskController> {
                                     },
                                     decoration: InputDecoration(
                                       hintText:
-                                          'Tap here to show task dialog...',
+                                      'Tap here to show task dialog...',
                                       hintStyle: themeData.textTheme.bodySmall,
                                       contentPadding: const EdgeInsets.all(8),
                                       border: InputBorder.none,
@@ -1372,7 +1356,7 @@ class TaskScreen extends GetView<TaskController> {
         context: context,
         builder: (_) => AlertDialog(
           shape:
-              RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+          RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
           backgroundColor: Colors.white,
           title: const Text('Add Attachments'),
           content: const Text('Select images or documents from your computer.'),
@@ -1413,7 +1397,7 @@ class TaskScreen extends GetView<TaskController> {
       builder: (_) => SafeArea(
         child: Padding(
           padding:
-              const EdgeInsets.only(top: 16, left: 15, right: 15, bottom: 60),
+          const EdgeInsets.only(top: 16, left: 15, right: 15, bottom: 60),
           child: Wrap(
             children: [
               ListTile(
@@ -1466,7 +1450,7 @@ class TaskScreen extends GetView<TaskController> {
                     final ImagePicker picker = ImagePicker();
 
                     final List<XFile> images =
-                        await picker.pickMultiImage(imageQuality: 50, limit: 3);
+                    await picker.pickMultiImage(imageQuality: 50, limit: 3);
                     final remainingSlots = 3 - controller.attachedFiles.length;
                     if (images.length > remainingSlots) {
                       images.removeRange(remainingSlots, images.length);
@@ -1568,9 +1552,9 @@ class TaskScreen extends GetView<TaskController> {
                           data.currentStatus?.name?.toLowerCase() ?? 'Pending';
 
                       (['Done', 'Completed', 'Cancelled']
-                              .contains(currentStatus))
+                          .contains(currentStatus))
                           ? toast(
-                              "⛔ Task status is '$currentStatus' — update not allowed.")
+                          "⛔ Task status is '$currentStatus' — update not allowed.")
                           : openUpdateTaskDialog(data);
                     }),
 
@@ -1635,7 +1619,7 @@ class TaskScreen extends GetView<TaskController> {
       return StatefulBuilder(builder: (context, setStateInside) {
         return CustomDialogue(
           title:
-              "Create Task for ${controller.user?.userId == APIs.me.userId ? 'You' : userName.isEmpty ? controller.user?.phone : userName}",
+          "Create Task for ${controller.user?.userId == APIs.me.userId ? 'You' : userName.isEmpty ? controller.user?.phone : userName}",
           isShowAppIcon: false,
           content: Center(
             child: ConstrainedBox(
@@ -1694,7 +1678,7 @@ class TaskScreen extends GetView<TaskController> {
                                 height: 75,
                                 decoration: BoxDecoration(
                                   border:
-                                      Border.all(color: Colors.grey.shade400),
+                                  Border.all(color: Colors.grey.shade400),
                                   borderRadius: BorderRadius.circular(8),
                                 ),
                                 child: ClipRRect(
@@ -1713,7 +1697,7 @@ class TaskScreen extends GetView<TaskController> {
                                 height: 75,
                                 decoration: BoxDecoration(
                                   border:
-                                      Border.all(color: Colors.grey.shade400),
+                                  Border.all(color: Colors.grey.shade400),
                                   borderRadius: BorderRadius.circular(8),
                                 ),
                                 child: ClipRRect(
@@ -1746,7 +1730,7 @@ class TaskScreen extends GetView<TaskController> {
                               width: 75,
                               height: 75,
                               padding:
-                                  const EdgeInsets.symmetric(horizontal: 2),
+                              const EdgeInsets.symmetric(horizontal: 2),
                               decoration: BoxDecoration(
                                 border: Border.all(color: Colors.grey.shade400),
                                 borderRadius: BorderRadius.circular(8),
@@ -1808,21 +1792,21 @@ class TaskScreen extends GetView<TaskController> {
                       vGap(20),
                       GradientButton(
                         name:
-                            "Send Task to ${controller.user?.userId == APIs.me?.userId ? 'You' : userName.isEmpty ? controller.user?.phone : userName}",
+                        "Send Task to ${controller.user?.userId == APIs.me?.userId ? 'You' : userName.isEmpty ? controller.user?.phone : userName}",
                         btnColor: AppTheme.appColor,
                         vPadding: 8,
                         onTap: () {
                           if (controller.tasksFormKey.currentState!
                               .validate()) {
                             if (controller.getEstimatedTime(setStateInside) !=
-                                    "" &&
+                                "" &&
                                 controller.selectedDate != null &&
                                 controller.selectedTime != null) {
                               if (controller.getEstimatedTime(setStateInside) ==
                                   "Oops! The selected time is in the past. Please choose a valid future time.") {
                                 setStateInside(() {
                                   controller.validString =
-                                      "Please select valid time check AM PM correctly";
+                                  "Please select valid time check AM PM correctly";
                                 });
                               } else {
                                 if (!controller.isUploadingTaskDoc) {
@@ -1963,12 +1947,12 @@ class TaskScreen extends GetView<TaskController> {
                   Flexible(
                     child: Text(
                       (controller.selectedDate != null &&
-                              controller.selectedTime != null)
+                          controller.selectedTime != null)
                           ? "Est. Time : ${controller.getEstimatedTime(setStateInside)}"
                           : "Select task deadline",
                       style: themeData.textTheme.bodySmall?.copyWith(
                         color: controller.getEstimatedTime(setStateInside) ==
-                                "Oops! The selected time is in the past. Please choose a valid future time."
+                            "Oops! The selected time is in the past. Please choose a valid future time."
                             ? AppTheme.redErrorColor
                             : Colors.black,
                       ),
@@ -2008,7 +1992,7 @@ class TaskScreen extends GetView<TaskController> {
       padding: const EdgeInsets.symmetric(vertical: 0),
       // alignment: Alignment.center,
       decoration: BoxDecoration(
-          borderRadius: BorderRadius.circular(12),),
+        borderRadius: BorderRadius.circular(12),),
       child: Wrap(
         spacing: 8,
         runSpacing: 8,
@@ -2048,7 +2032,7 @@ class TaskScreen extends GetView<TaskController> {
             child: Container(
               padding: const EdgeInsets.all(8),
               margin:
-                  const EdgeInsets.only(top: 4, bottom: 4, left: 8, right: 8),
+              const EdgeInsets.only(top: 4, bottom: 4, left: 8, right: 8),
               decoration: BoxDecoration(
                 color: Colors.white,
                 border: Border.all(color: Colors.grey.shade300),
@@ -2206,7 +2190,7 @@ class TaskScreen extends GetView<TaskController> {
           // url MUST be String only; guard against File/other
           final dynamic urlRaw = m['url'];
           final String? url =
-              (urlRaw is String && urlRaw.isNotEmpty) ? urlRaw : null;
+          (urlRaw is String && urlRaw.isNotEmpty) ? urlRaw : null;
 
           // PlatformFile? (web or picker)
           final dynamic pfRaw = m['bytes'];
@@ -2442,14 +2426,14 @@ class TaskScreen extends GetView<TaskController> {
                                 _removedExistingMediaIds.toList();
 
                             if (controller.getEstimatedTime(setStateInside) !=
-                                    "" &&
+                                "" &&
                                 controller.selectedDate != null &&
                                 controller.selectedTime != null) {
                               if (controller.getEstimatedTime(setStateInside) ==
                                   "Oops! The selected time is in the past. Please choose a valid future time.") {
                                 setStateInside(() {
                                   controller.validString =
-                                      "Please select valid time check AM PM correctly";
+                                  "Please select valid time check AM PM correctly";
                                 });
                               } else {
                                 if (!controller.isUploadingTaskDoc) {
@@ -2591,26 +2575,26 @@ class TaskScreen extends GetView<TaskController> {
 
   String _getEstimatedTime(setStateInside, estimateTime) {
     DateTime estimate =
-        DateTime.fromMillisecondsSinceEpoch(int.parse(estimateTime ?? 0));
+    DateTime.fromMillisecondsSinceEpoch(int.parse(estimateTime ?? 0));
 
     if (estimate == null) return "";
 
     final selectedDateTime = (controller.newSelectedTime != null &&
-            controller.newSelectedDate != null)
+        controller.newSelectedDate != null)
         ? DateTime(
-            controller.newSelectedDate!.year,
-            controller.newSelectedDate!.month,
-            controller.newSelectedDate!.day,
-            controller.newSelectedTime!.hour,
-            controller.newSelectedTime!.minute,
-          )
+      controller.newSelectedDate!.year,
+      controller.newSelectedDate!.month,
+      controller.newSelectedDate!.day,
+      controller.newSelectedTime!.hour,
+      controller.newSelectedTime!.minute,
+    )
         : DateTime(
-            estimate.year,
-            estimate.month,
-            estimate.day,
-            estimate.hour,
-            estimate.minute,
-          );
+      estimate.year,
+      estimate.month,
+      estimate.day,
+      estimate.hour,
+      estimate.minute,
+    );
 
     setStateInside(() {
       controller.newSelectedDateTime = selectedDateTime;

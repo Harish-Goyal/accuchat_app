@@ -211,45 +211,81 @@ class UpdateCompanyController extends GetxController {
   }
 
   Future<void> deleteCompany(BuildContext context) async {
+
+    final ctx = Get.context!;
+    final size = MediaQuery.of(ctx).size;
+
+    // Responsive width breakpoints (desktop / tablet / large phone / phone)
+    double targetWidth;
+    if (size.width >= 1280) {
+      targetWidth = size.width * 0.25; // desktop
+    } else if (size.width >= 992) {
+      targetWidth = size.width * 0.35;
+    } else if (size.width >= 768) {
+      targetWidth = size.width * 0.5; // tablet
+    } else {
+      targetWidth = size.width * 0.85; // phones / small windows
+    }
+    // Keep width within reasonable min/max
+    targetWidth = targetWidth.clamp(360.0, 560.0);
+
+    final maxHeight = size.height * 0.90;
     final confirm = await showDialog<bool>(
       context: context,
-      builder: (_) => AlertDialog(
-        title: const Text("Delete Company"),
-        backgroundColor: Colors.white,
-        content: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.center,
-          children: [
-            vGap(20),
-            Text(
-              "⚠️ Are you sure you want to delete this company?",
-              style: BalooStyles.balooboldTextStyle(
-                  color: AppTheme.redErrorColor, size: 16),
+      builder: (_) => SafeArea(
+        child: Center(
+          child: ConstrainedBox(
+            constraints: BoxConstraints(
+              maxWidth: targetWidth,
+              maxHeight: maxHeight,
             ),
-            vGap(20),
-            Text(
-              "All related members, invitations, and references will be permanently removed. You cannot retrieve it again in future, make sure before delete!",
-              style: BalooStyles.baloomediumTextStyle(
-                  color: AppTheme.redErrorColor),
+            child: Material(
+              color: Colors.transparent,
+              child: ClipRRect(
+                borderRadius: BorderRadius.circular(16),
+                child: SingleChildScrollView(
+                  child: AlertDialog(
+                    title: const Text("Delete Company"),
+                    backgroundColor: Colors.white,
+                    content: Column(
+                      mainAxisSize: MainAxisSize.min,
+                      crossAxisAlignment: CrossAxisAlignment.center,
+                      children: [
+                        vGap(20),
+                        Text(
+                          "⚠️ Are you sure you want to delete this company?",
+                          style: BalooStyles.balooboldTextStyle(
+                              color: AppTheme.redErrorColor, size: 16),
+                        ),
+                        vGap(20),
+                        Text(
+                          "All related members, invitations, and references will be permanently removed. You cannot retrieve it again in future, make sure before delete!",
+                          style: BalooStyles.baloomediumTextStyle(
+                              color: AppTheme.redErrorColor),
+                        ),
+                        vGap(20),
+                      ],
+                    ),
+                    actions: [
+                      TextButton(
+                          onPressed: () => Navigator.pop(context, false),
+                          child: const Text("Cancel")),
+                      ElevatedButton(
+                          onPressed: () => Navigator.pop(context, true),
+                          child: const Text("Delete")),
+                    ],
+                  ),
+                ),
+              ),
             ),
-            vGap(20),
-          ],
+          ),
         ),
-        actions: [
-          TextButton(
-              onPressed: () => Navigator.pop(context, false),
-              child: const Text("Cancel")),
-          ElevatedButton(
-              onPressed: () => Navigator.pop(context, true),
-              child: const Text("Delete")),
-        ],
       ),
     );
 
     if (confirm != true) return;
 
     deleteCompanyApi();
-
-
   }
+
 }

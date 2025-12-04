@@ -189,6 +189,8 @@ class ChatsHomeScreen extends GetView<ChatHomeController> {
                       showDialog(
                           context: Get.context!,
                           builder: (_) => BroadcastCreateDialog());
+                    }else if (value == 'settings') {
+                        Get.toNamed(AppRoutes.all_settings);
                     }
                   },
                   itemBuilder: (context) => [
@@ -222,6 +224,22 @@ class ChatsHomeScreen extends GetView<ChatHomeController> {
                         hGap(5),
                         Text(
                           'Create Broadcast',
+                          style: themeData.textTheme.bodySmall,
+                        )
+                      ]),
+                    ),
+                    PopupMenuItem(
+                      value: 'settings',
+                      child:
+                          Row(mainAxisSize: MainAxisSize.min, children: [
+                        Image.asset(
+                          settingPng,
+                          height: 15,
+                          color: Colors.black87,
+                        ),
+                        hGap(5),
+                        Text(
+                          'Settings',
                           style: themeData.textTheme.bodySmall,
                         )
                       ]),

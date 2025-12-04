@@ -285,8 +285,12 @@ class ChatScreenController extends GetxController {
     // }
     replyToMessage = null;
     getArguments();
-    user = Get.find<ChatHomeController>().selectedChat.value;
-    // _initScroll();
+
+    if(kIsWeb){
+      user = Get.find<ChatHomeController>().selectedChat.value;
+      // _initScroll();
+    }
+
     // markAllVisibleAsReadOnOpen();
 
     // WidgetsBinding.instance.addPostFrameCallback((_) {
@@ -496,7 +500,7 @@ class ChatScreenController extends GetxController {
       if (user?.pendingCount!=0) {
         markAllVisibleAsReadOnOpen(user?.userCompany?.userCompanyId,APIs.me.userCompany?.userCompanyId,user?.userCompany?.isGroup==1? 1:0);
       }
-      // rebuildFlatRows();
+      rebuildFlatRows();
       update();
       messageInputFocus.requestFocus();
     }).onError((error, stackTrace) {

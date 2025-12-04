@@ -34,6 +34,7 @@ import '../Screens/Chat/screens/chat_tasks/Presentation/Views/chat_screen_mobile
 import '../Screens/Chat/screens/chat_tasks/Presentation/Views/chats_broadcasts.dart';
 import '../Screens/Chat/screens/chat_tasks/Presentation/Views/create_broadcast_dialog_screen.dart';
 import '../Screens/Chat/screens/chat_tasks/Presentation/Views/show_groups_members_screen.dart';
+import '../Screens/Chat/screens/chat_tasks/Presentation/Views/task_chat_screen_mobile.dart';
 import '../Screens/Home/Bindings/home_bindings.dart';
 import '../Screens/Home/Presentation/View/invite_user_with_role.dart';
 import '../Screens/Home/Presentation/View/profile_screen.dart';
@@ -152,7 +153,7 @@ class AppPages {
     ),
     GetPage(
       name: AppRoutes.tasks_li_r,
-      page: () => TaskScreen(),
+      page: () => TaskScreenMobile(),
       bindings: [TaskScreenBinding()],
     ),
     GetPage(
