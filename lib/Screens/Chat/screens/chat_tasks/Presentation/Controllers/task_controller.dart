@@ -1138,15 +1138,15 @@ class TaskController extends GetxController {
 
 
   timeExceed(taskDetails) {
-    Timer.periodic(const Duration(seconds: 15), (timer) {
-      final end =
-          DateTime.fromMillisecondsSinceEpoch(taskDetails['estimatedEndTime']);
-      if (DateTime.now().isAfter(end) && taskDetails['status'] != 'Done') {
-        // play sound or show badge
-        // showDeadlineExceededAlert();
-        timer.cancel();
-      }
-    });
+    // Timer.periodic(const Duration(seconds: 15), (t) {
+    //   final end =
+    //       DateTime.fromMillisecondsSinceEpoch(taskDetails['estimatedEndTime']);
+    //   if (DateTime.now().isAfter(end) && taskDetails['status'] != 'Done') {
+    //     // play sound or show badge
+    //     // showDeadlineExceededAlert();
+    //     timer.cancel();
+    //   }
+    // });
   }
 
   final tasksFormKey = GlobalKey<FormState>();

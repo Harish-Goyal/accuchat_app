@@ -40,7 +40,7 @@ class GroupMembersScreen extends StatelessWidget {
             ),
             actions: [
               if (controller.groupOrBr?.createdBy ==
-                  controller.me?.userCompany?.userCompanyId)
+                  controller.me?.userId)
                 PopupMenuButton<String>(
                   color: Colors.white,
                   icon: const Icon(Icons.more_vert,
@@ -116,7 +116,7 @@ class GroupMembersScreen extends StatelessWidget {
                         : "Broadcast Name",
                     labletext: "",
                     readOnly:
-                    (controller.groupOrBr?.createdBy == controller.me?.createdBy)
+                    (controller.groupOrBr?.createdBy == controller.me?.userId)
                         ? true
                         : false,
                     controller: controller.groupNameController,

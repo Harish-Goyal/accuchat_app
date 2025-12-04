@@ -1730,7 +1730,9 @@ class ChatScreen extends GetView<ChatScreenController> {
   void _showBottomSheet(bool isMe, {required ChatHisList data}) async {
     DateTime msg  = DateTime.parse(data.sentOn??'');
     DateTime nowtime = DateTime.now();
+
     int diffMinutes = nowtime.difference(msg).inMinutes;
+    print(diffMinutes);
     await showModalBottomSheet(
         context: Get.context!,
         backgroundColor: Colors.white,
@@ -1738,6 +1740,8 @@ class ChatScreen extends GetView<ChatScreenController> {
             borderRadius: BorderRadius.only(
                 topLeft: Radius.circular(20), topRight: Radius.circular(20))),
         builder: (_) {
+          print("me created ${APIs.me?.userCompany?.company?.createdBy}  and  user created :,${data.fromUser?.userCompany?.company?.createdBy}");
+
           return ListView(
             shrinkWrap: true,
             children: [
@@ -1838,7 +1842,7 @@ class ChatScreen extends GetView<ChatScreenController> {
 
               //edit option
 
-              if (data.message != "" && isMe && diffMinutes <= 15 && !(APIs.me.createdBy ==controller.user?.createdBy) )
+              if (data.message != "" && isMe && diffMinutes <= 15 )
                 _OptionItem(
                     icon:  Icon(Icons.edit, color: appColorGreen,  size: 18),
                     name: 'Edit Message',
@@ -1847,14 +1851,14 @@ class ChatScreen extends GetView<ChatScreenController> {
                       _showMessageUpdateDialog(data,Get.context!);
                     }),
 
-              if ((APIs.me.createdBy ==controller.user?.createdBy))
+              /*if ((APIs.me?.userCompany?.company?.createdBy ==data.fromUser?.userCompany?.company?.createdBy))
                 _OptionItem(
                     icon:  Icon(Icons.edit, color: appColorGreen,  size: 18),
                     name: 'Edit Message',
                     onTap: () {
                       Get.back();
                       _showMessageUpdateDialog(data,Get.context!);
-                    }),
+                    }),*/
 
               // delete option
               if (controller.me?.userId == controller.myCompany?.createdBy)
