@@ -545,7 +545,7 @@ class TaskScreen extends GetView<TaskController> {
             borderRadius: BorderRadius.circular(30),
             // color: getTaskStatusColor(status?.name?.capitalizeFirst)
     ),
-        child: Icon(Icons.history_outlined,size: 18,color: Colors.blue,),
+        child: Image.asset(historyIcon,height: 17,width:17,),
       ),
     );
   }
@@ -658,38 +658,41 @@ class TaskScreen extends GetView<TaskController> {
         ),
         vGap(5),
 
-        SizedBox(
-          width:200,
-          child: Row(
-            mainAxisSize: MainAxisSize.min,
-            children:[
-              Flexible(
-              child:DefaultSelectionStyle(
-                selectionColor:
-                appColorPerple.withOpacity(0.3), // text select background
-                cursorColor: appColorPerple,
-                child: SelectableLinkify(
-                  text: message.details ?? '',
-                  onOpen: (link) {
-                    launchUrl(Uri.parse(link.url),
-                        mode: LaunchMode.externalApplication);
-                  },
-                  style: BalooStyles.baloonormalTextStyle(
-                    color: Colors.black87,
-                    size: 14,
+    ConstrainedBox(
+    constraints: BoxConstraints(
+    maxWidth: Get.width * (kIsWeb ? 0.35 : 0.65)),
+
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              children:[
+                Flexible(
+                child:DefaultSelectionStyle(
+                  selectionColor:
+                  appColorPerple.withOpacity(0.3),
+                  cursorColor: appColorPerple,
+                  child: SelectableLinkify(
+                    text: message.details ?? '',
+                    onOpen: (link) {
+                      launchUrl(Uri.parse(link.url),
+                          mode: LaunchMode.externalApplication);
+                    },
+                    style: BalooStyles.baloonormalTextStyle(
+                      color: Colors.black87,
+                      size: 14,
+                    ),
+                    linkStyle: BalooStyles.baloonormalTextStyle(
+                      color: Colors.blue,
+                    ),
+                    linkifiers: const [
+                      UrlLinkifier(),
+                    ],
                   ),
-                  linkStyle: BalooStyles.baloonormalTextStyle(
-                    color: Colors.blue,
-                  ),
-                  linkifiers: const [
-                    UrlLinkifier(),
-                  ],
                 ),
-              ),
-              )
-            ]
+                )
+              ]
+            ),
           ),
-        ),
+
 
         if ((message.deadline ?? '').isNotEmpty) ...[
           vGap(10),

@@ -1,3 +1,4 @@
+import 'package:AccuChat/Constants/themes.dart';
 import 'package:AccuChat/Screens/Chat/screens/chat_tasks/Presentation/Controllers/task_home_controller.dart';
 import 'package:AccuChat/Screens/Home/Presentation/Controller/compnaies_controller.dart';
 import 'package:AccuChat/Screens/Home/Presentation/View/pending_invites_animated.dart';
@@ -365,6 +366,22 @@ class CompaniesScreen extends GetView<CompaniesController> {
                                                           SizedBox(width: 4),
                                                           Text(
                                                               'Update Company'),
+                                                        ]),
+                                                      ),
+                                                    );
+
+                                                    items.add(
+                                                       PopupMenuItem(
+                                                        value: 'Delete',
+                                                        child: Row(children: [
+                                                          Icon(
+                                                              Icons
+                                                                  .delete_outline,
+                                                              size: 15,
+                                                              color: AppTheme.redErrorColor),
+                                                          SizedBox(width: 4),
+                                                          Text(
+                                                              'Delete Company'),
                                                         ]),
                                                       ),
                                                     );

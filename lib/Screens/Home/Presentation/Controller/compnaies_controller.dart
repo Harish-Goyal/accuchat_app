@@ -5,11 +5,14 @@ import 'package:AccuChat/utils/custom_flashbar.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import '../../../../Constants/themes.dart';
 import '../../../../Services/APIs/local_keys.dart';
 import '../../../../Services/APIs/post/post_api_service_impl.dart';
 import '../../../../Services/subscription/billing_controller.dart';
 import '../../../../main.dart';
 import '../../../../routes/app_routes.dart';
+import '../../../../utils/helper_widget.dart';
+import '../../../../utils/text_style.dart';
 import '../../../Chat/api/apis.dart';
 import '../../../Chat/models/get_company_res_model.dart';
 import '../../../Chat/screens/auth/models/pending_invites_res_model.dart';
@@ -194,11 +197,80 @@ class CompaniesController extends GetxController {
             'companyName': companyData.companyName ?? ''
           });
         }
-      } else {
+      } else if(value== "delete"){
+        deleteCompany(Get.context!, companyData.companyId);
+      } else{
         toast("Please select your company");
       }
     }
   }
+
+
+
+  Future<void> deleteCompany(BuildContext context,comId) async {
+    final confirm = await showDialog<bool>(
+      context: context,
+      builder: (_) => AlertDialog(
+        title: const Text("Delete Company"),
+        backgroundColor: Colors.white,
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.center,
+          children: [
+            vGap(20),
+            Text(
+              "⚠️ Are you sure you want to delete this company?",
+              style: BalooStyles.balooboldTextStyle(
+                  color: AppTheme.redErrorColor, size: 16),
+            ),
+            vGap(20),
+            Text(
+              "All related members, invitations, and references will be permanently removed. You cannot retrieve it again in future, make sure before delete!",
+              style: BalooStyles.baloomediumTextStyle(
+                  color: AppTheme.redErrorColor),
+            ),
+            vGap(20),
+          ],
+        ),
+        actions: [
+          TextButton(
+              onPressed: () => Navigator.pop(context, false),
+              child: const Text("Cancel")),
+          ElevatedButton(
+              onPressed: () => Navigator.pop(context, true),
+              child: const Text("Delete")),
+        ],
+      ),
+    );
+
+    if (confirm != true) return;
+
+    deleteCompanyApi(comId);
+
+
+  }
+
+
+
+  deleteCompanyApi(comId) async {
+    customLoader.show();
+    Get.find<PostApiServiceImpl>()
+        .deleteCompanyApiCall(compId: comId)
+        .then((value) async {
+      toast(value.message);
+      toast("✅ Company and related data deleted successfully.");
+      customLoader.hide();
+      update();
+      Get.offAllNamed(AppRoutes.landing_r);
+
+    }).onError((error, stackTrace) {
+      update();
+      customLoader.hide();
+      errorDialog(error.toString());
+    }).whenComplete(() {});
+  }
+
+
 
   _onInvite(companyData) {
     if (kIsWeb) {

@@ -70,6 +70,7 @@ const logoutIcon="assets/icons/setting_icon/log_out.png";
 //
 const backIcon="assets/icons/setting_icon/back_icon.png";
 const addFollowIcon="assets/icons/setting_icon/add_follow.png";
+const historyIcon="assets/icons/history.png";
 const broadcastIcon="assets/icons/broadcast.png";
 const settingPng="assets/icons/setting_icon/setting.png";
 const followingIcon="assets/icons/setting_icon/following.png";

@@ -620,7 +620,7 @@ class ChatScreen extends GetView<ChatScreenController> {
                               child: Image.asset(
                                 forwardIcon,
                                 height: 25,
-                              ))).paddingOnly(left: 10)
+                              ))).paddingOnly(left: 8)
                       : const SizedBox(),
                   Align(
                     alignment: sentByMe ? Alignment.centerRight : Alignment.centerLeft,
@@ -652,9 +652,9 @@ class ChatScreen extends GetView<ChatScreenController> {
                               ),
                               margin: sentByMe
                                   ? const EdgeInsets.only(
-                                      left: 30, top: 10, right: 15)
+                                      left: 25, top: 10, right: 15)
                                   : const EdgeInsets.only(
-                                      right: 30, top: 10, left: 15),
+                                      right: 25, top: 10, left: 15),
 
                               decoration: BoxDecoration(
                                   color: sentByMe
@@ -703,7 +703,7 @@ class ChatScreen extends GetView<ChatScreenController> {
                               child: Image.asset(
                                 forwardIcon,
                                 height: 25,
-                              ))).paddingOnly(right: 10)
+                              ))).paddingOnly(right: 8)
                       : const SizedBox()
                 ],
               ),
@@ -823,51 +823,56 @@ class ChatScreen extends GetView<ChatScreenController> {
           )
               : const SizedBox(),
           ((data.media ?? []).isNotEmpty)
-              ? ChatMessageMedia(
-                chat: data,
-                isGroupMessage: data.isGroupChat == 1 ? true : false,
-                myId: (controller.me?.userId ?? 0).toString(),
-                fromId: (data.fromUser?.userId ?? 0).toString(),
-                senderName: data.fromUser?.userCompany?.displayName ?? '',
-                baseUrl: ApiEnd.baseUrlMedia,
-                defaultGallery: defaultGallery,
-                onOpenDocument: (url) =>
-                    openDocumentFromUrl(url), // your existing function
-                onOpenImageViewer: (mediaurls, startIndex) {
-                  // push your gallery view
-                  // Get.to(() => ImageViewer(urls: urls, initialIndex: startIndex));
-                  Get.to(
-                    () => GalleryViewerPage(
-                      onReply: () {
-                        Get.back();
-                        controller.refIdis = data.chatId;
-                        controller.userIDSender = data.fromUser?.userId;
-                        controller.userNameReceiver =
-                            data.toUser?.userCompany?.displayName ?? '';
-                        controller.userNameSender =
-                            data.fromUser?.userCompany?.displayName ?? '';
-                        controller.userIDReceiver = data.toUser?.userId;
-                        controller.replyToMessage = data;
-                        controller.replyToImage =
-                            data.media?[startIndex].orgFileName ?? '';
-                      },
-                    ),
-                    binding: BindingsBuilder(() {
-                      Get.put(GalleryViewerController(
-                          urls: mediaurls,
-                          index: startIndex,
-                          chathis: data));
-                    }),
-                    fullscreenDialog: true,
-                    transition: Transition.fadeIn,
-                  );
-                },
-                onOpenVideo: (url) {
-                  // open video player route/sheet if available
-                },
-                onOpenAudio: (url) {
-                  // open audio player route/sheet if available
-                },
+              ? ConstrainedBox(
+            constraints: BoxConstraints(
+              maxWidth: Get.width * (kIsWeb ? 0.3: 0.64),
+            ),
+                child: ChatMessageMedia(
+                  chat: data,
+                  isGroupMessage: data.isGroupChat == 1 ? true : false,
+                  myId: (controller.me?.userId ?? 0).toString(),
+                  fromId: (data.fromUser?.userId ?? 0).toString(),
+                  senderName: data.fromUser?.userCompany?.displayName ?? '',
+                  baseUrl: ApiEnd.baseUrlMedia,
+                  defaultGallery: defaultGallery,
+                  onOpenDocument: (url) =>
+                      openDocumentFromUrl(url), // your existing function
+                  onOpenImageViewer: (mediaurls, startIndex) {
+                    // push your gallery view
+                    // Get.to(() => ImageViewer(urls: urls, initialIndex: startIndex));
+                    Get.to(
+                      () => GalleryViewerPage(
+                        onReply: () {
+                          Get.back();
+                          controller.refIdis = data.chatId;
+                          controller.userIDSender = data.fromUser?.userId;
+                          controller.userNameReceiver =
+                              data.toUser?.userCompany?.displayName ?? '';
+                          controller.userNameSender =
+                              data.fromUser?.userCompany?.displayName ?? '';
+                          controller.userIDReceiver = data.toUser?.userId;
+                          controller.replyToMessage = data;
+                          controller.replyToImage =
+                              data.media?[startIndex].orgFileName ?? '';
+                        },
+                      ),
+                      binding: BindingsBuilder(() {
+                        Get.put(GalleryViewerController(
+                            urls: mediaurls,
+                            index: startIndex,
+                            chathis: data));
+                      }),
+                      fullscreenDialog: true,
+                      transition: Transition.fadeIn,
+                    );
+                  },
+                  onOpenVideo: (url) {
+                    // open video player route/sheet if available
+                  },
+                  onOpenAudio: (url) {
+                    // open audio player route/sheet if available
+                  },
+                ),
               )
               : const SizedBox(),
         ],

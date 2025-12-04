@@ -36,20 +36,22 @@ int _crossAxisForWidthAndCount(double width, int itemCount) {
     return 2;
   }
   if (itemCount <= 4) {
-    if (width >= 1200) return 3;
-    if (width >= 900) return 3;
+    if (width >= 1200) return 2;
+    // if (width >= 1400) return 3;
+    if (width >= 900) return 2;
     return 2;
   }
   // Fallback (not used by your current logic, but safe)
-  if (width >= 1200) return 4;
-  if (width >= 900) return 3;
+  if (width >= 1200) return 2;
+  // if (width >= 1400) return 4;
+  if (width >= 900) return 2;
   return 2;
 }
 
 double _childAspectForWidth(double width) {
   // Slightly wider tiles on big screens for visual balance
   if (width >= 1200) return .9;
-  if (width >= 900) return 1.1;
+  if (width >= 900) return 1;
   return 1.0;
 }
 
@@ -277,7 +279,7 @@ class _ImagesGrid extends StatelessWidget {
             )*/Transform.translate(
               offset: Offset(0, -14),
               child: AspectRatio(
-                aspectRatio: kIsWeb ? 4/3 : 4 / 3,
+                aspectRatio: kIsWeb ? 4/4 : 4 / 3,
                 child: CustomCacheNetworkImage(
                   item.url,
                   radiusAll: 15, // radius handled by ClipRRect above

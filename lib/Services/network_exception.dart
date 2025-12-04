@@ -1,4 +1,5 @@
 import 'dart:io';
+import 'package:AccuChat/Components/custom_loader.dart';
 import 'package:AccuChat/Services/APIs/local_keys.dart';
 import 'package:AccuChat/Services/error_res.dart';
 import 'package:AccuChat/routes/app_routes.dart';
@@ -6,6 +7,7 @@ import 'package:dio/dio.dart';
 import 'package:get/get.dart';
 
 import '../Constants/strings.dart';
+import '../main.dart';
 
 class NetworkExceptions {
   static String messageData = "";
@@ -41,12 +43,16 @@ class NetworkExceptions {
               case 401:
                 logoutLocal();
                 Get.offAllNamed(AppRoutes.login_r);
+                customLoader.hide();
                 return ErrorResponseModel.fromJson(error.response?.data).message;
 
               case 403:
                 return ErrorResponseModel.fromJson(error.response?.data)
                     .message;
               case 404:
+                logoutLocal();
+                Get.offAllNamed(AppRoutes.login_r);
+                customLoader.hide();
                 return messageData = STRING_notFound;
               case 408:
                 return messageData = STRING_requestTimeOut;

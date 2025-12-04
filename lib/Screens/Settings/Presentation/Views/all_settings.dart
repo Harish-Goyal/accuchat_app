@@ -9,7 +9,12 @@ import 'package:AccuChat/utils/text_style.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:flutter/foundation.dart' show kIsWeb; // added for web checks
+import '../../../../Constants/themes.dart';
+import '../../../../Services/APIs/local_keys.dart';
+import '../../../../utils/custom_dialogue.dart';
+import '../../../../utils/gradient_button.dart';
 import '../../../../utils/networl_shimmer_image.dart';
+import '../../../Chat/screens/auth/Presentation/Views/landing_screen.dart';
 import '../Controllers/all_settings_controller.dart';
 
 class AllSettingsScreen extends GetView<AllSettingsController> {
@@ -173,67 +178,13 @@ class AllSettingsScreen extends GetView<AllSettingsController> {
           onTap: () => controller.openAppSettingsPage(),
         ),
 
-        /*_buildTile(
+        _buildTile(
           icon: Icons.logout,
           title: 'Logout',
           onTap: () async {
-            showDialog(
-                context: Get.context!,
-                builder: (_) => CustomDialogue(
-                      title: "Logout",
-                      isShowAppIcon: false,
-                      content: Column(
-                        crossAxisAlignment: CrossAxisAlignment.center,
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          vGap(20),
-                          Text(
-                            "Do you really want to Logout?",
-                            style: BalooStyles.baloonormalTextStyle(),
-                            textAlign: TextAlign.center,
-                          ),
-
-                          vGap(30),
-                          Row(
-                            children: [
-                              Expanded(
-                                child: GradientButton(
-                                  name: "Yes",
-                                  btnColor: AppTheme.redErrorColor,
-                                  gradient: LinearGradient(colors: [
-                                    AppTheme.redErrorColor,
-                                    AppTheme.redErrorColor
-                                  ]),
-                                  vPadding: 6,
-                                  onTap: () async {
-                                    await profileController.signOutUser();
-                                  },
-                                ),
-                              ),
-                              hGap(15),
-                              Expanded(
-                                child: GradientButton(
-                                  name: "Cancel",
-                                  btnColor: Colors.black,
-                                  color: Colors.black,
-                                  gradient: LinearGradient(colors: [
-                                    AppTheme.whiteColor,
-                                    Colors.white
-                                  ]),
-                                  vPadding: 6,
-                                  onTap: () {
-                                    Get.back();
-                                  },
-                                ),
-                              ),
-                            ],
-                          )
-                        ],
-                      ),
-                      onOkTap: () {},
-                    ));
+            showResponsiveLogoutDialog();
           },
-        ),*/
+        ),
         // Add some bottom space on web so last tile isn't glued to the bottom
         const SizedBox(height: kIsWeb ? 16 : 0),
       ],

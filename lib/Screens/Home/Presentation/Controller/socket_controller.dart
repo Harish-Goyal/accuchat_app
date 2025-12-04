@@ -777,9 +777,6 @@ class SocketController extends GetxController with WidgetsBindingObserver  {
 
   void readMsgEmitter(
       {required int ucID,companyId,fromUcID,is_group_chat}) {
-
-    print("Reading-=============");
-
     socket?.emit('read_message', {
       "to_uc_id": ucID,
       "company_id": companyId,
@@ -792,26 +789,35 @@ class SocketController extends GetxController with WidgetsBindingObserver  {
   void setupSocketListeners() {
 
 
-    if(Get.isRegistered<ChatScreenController>()){
-      ChatScreenController chatDetailController =
-      Get.find<ChatScreenController>();
+    // if(Get.isRegistered<ChatScreenController>()){
+
       socket?.off('read_message_listener');
     socket?.on('read_message_listener', (data) {
+      print("read_message_listener ,${jsonEncode(data)}");
+      ChatHomeController chatDetailController =
+      Get.find<ChatHomeController>();
+      final int toID = data['to_uc_id'];
+      final int fromId = data['from_uc_id'];
+      // final String? readOnStr = data['read_on'];
+      // final String? readOn = readOnStr != null ?readOnStr: null;
+      // print('read_message_listener chatId : $chatId , readOnStr : $readOnStr,data : ${jsonEncode(data)} ');
+      // final idx = (chatDetailController.chatCatygory ?? []).indexWhere((m) => m.chatMessageItems.chatId == chatId);
+      // if (idx != -1) {
+      //   (chatDetailController.chatCatygory ?? [])[idx].chatMessageItems.readOn = readOn; // update with backend time
+      //   // (chatDetailController.chatCatygory ?? [])[idx].chatMessageItems.pendingCount = readOn; // update with backend time
+      //   update(); // if you're using GetX
+      //   _rebuildCategories();
+      // }
+      chatDetailController.filteredList.map((v){
+        if(v.userId==toID){
+          v.pendingCount = 0;
+        }
+      });
+      chatDetailController.filteredList.refresh();
 
-      final int chatId = data['chat_id'];
-      final String? readOnStr = data['read_on']; // assuming backend sends this
-      final String? readOn = readOnStr != null ?readOnStr: null;
-      print('chatId : $chatId , readOnStr : $readOnStr,data : ${jsonEncode(data)} ');
-      final idx = (chatDetailController.chatHisList ?? []).indexWhere((m) => m.chatId == chatId);
-      if (idx != -1) {
-
-        (chatDetailController.chatHisList ?? [])[idx].readOn = readOn; // update with backend time
-        update(); // if you're using GetX
-        // _rebuildCategories();
-      }
     });
 
-  }
+  // }
 
 }
   void deleteMsgEmitter(
