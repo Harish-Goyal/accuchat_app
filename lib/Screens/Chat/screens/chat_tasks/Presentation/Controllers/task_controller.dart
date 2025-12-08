@@ -132,6 +132,7 @@ class TaskController extends GetxController {
     // _getMe();
     _getCompany();
     Future.delayed(const Duration(milliseconds: 500), () {
+      resetPaginationForNewChat();
       hitAPIToGetTaskHistory();
     });
     hitAPIToGetTaskStatus();
@@ -233,7 +234,7 @@ class TaskController extends GetxController {
             child: ConstrainedBox(
               constraints: const BoxConstraints(
                 maxWidth: 600,
-                maxHeight:600,
+                maxHeight:650,
               ),
               child: Material(
                 color: Colors.white,
@@ -1059,19 +1060,30 @@ class TaskController extends GetxController {
   int page = 1;
   bool hasMore = true;
   bool showPostShimmer = true;
+  bool isPageLoading = false;
 
   ScrollController scrollController = ScrollController();
 
-
   scrollListener() {
-    scrollController.addListener(() {
-      if (scrollController.position.pixels <=
-          scrollController.position.minScrollExtent + 50 &&
-          !isLoading &&
-          hasMore) {
-        hitAPIToGetTaskHistory();
-      }
-    });
+    if (kIsWeb) {
+      scrollController.addListener(() {
+        if (scrollController.position.pixels >=
+            scrollController.position.maxScrollExtent - 100 &&
+            !isPageLoading && hasMore) {
+          // resetPaginationForNewChat();
+          hitAPIToGetTaskHistory();
+        }
+      });
+    } else {
+      scrollController.addListener(() {
+        if (scrollController.position.pixels <=
+            scrollController.position.minScrollExtent + 50 &&
+            !isPageLoading&& hasMore ) {
+          // resetPaginationForNewChat();
+          hitAPIToGetTaskHistory();
+        }
+      });
+    }
   }
  /* scrollListener() {
     scrollController.addListener(() {
@@ -1084,7 +1096,22 @@ class TaskController extends GetxController {
     });
   }*/
 
+  void resetPaginationForNewChat() {
+    page = 1;
+    hasMore = true;
+    taskHisList = []; // <--- MOST IMPORTANT
+    taskCategory = [];
+    showPostShimmer = true;
+    update();
+  }
+
   hitAPIToGetTaskHistory({int? statusId,isFilter= false,isForward= false,fromDate,toDate}) async {
+    if(page==1){
+      showPostShimmer = true;
+    }
+
+    isPageLoading = true;
+    update();
     Get.find<PostApiServiceImpl>()
         .getTaskHistoryApiCall(
             userComId: user?.userCompany?.userCompanyId,
@@ -1096,25 +1123,20 @@ class TaskController extends GetxController {
         .then((value) async {
       showPostShimmer = false;
       taskHisRes = value;
-      if ((value.data?.rows ?? []).isNotEmpty) {
+      if (value.data?.rows != null && (value.data?.rows ?? []).isNotEmpty) {
         if (page == 1) {
           taskHisList =value.data?.rows ?? [];
-          isLoading = false;
-          hasMore = false;
-          update();
         } else {
           taskHisList?.addAll(value.data?.rows ?? []);
-          isLoading = false;
-          hasMore = false;
-          update();
         }
+        page++;
       } else {
         if(!isFilter ){
-          isLoading = false;
           hasMore = false;
+          isPageLoading = false;
           update();
         }else{
-          isLoading = false;
+          isPageLoading = false;
           hasMore = false;
           taskHisList=[];
           taskCategory=[];
@@ -1129,9 +1151,12 @@ class TaskController extends GetxController {
         }
         return GroupTaskElement(datais ?? DateTime.now(), item);
       }).toList();
+      showPostShimmer = false;
+      isPageLoading = false;
       update();
     }).onError((error, stackTrace) {
       showPostShimmer = false;
+      isPageLoading = false;
       update();
     });
   }

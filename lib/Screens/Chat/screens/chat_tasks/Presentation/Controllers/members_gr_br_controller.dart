@@ -31,9 +31,7 @@ class GrBrMembersController extends GetxController{
     _getMe();
     _getCompany();
     getArguments();
-    // if(!kIsWeb) {
-      hitAPIToGetMembers();
-    // }
+
     super.onInit();
   }
 
@@ -47,6 +45,7 @@ class GrBrMembersController extends GetxController{
       if(Get.arguments!=null) {
         groupOrBr = Get.arguments['user'];
         groupNameController.text = groupOrBr?.userName??'';
+        hitAPIToGetMembers();
       }
     }
   }

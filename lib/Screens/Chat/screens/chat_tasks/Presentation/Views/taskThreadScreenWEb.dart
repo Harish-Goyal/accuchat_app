@@ -200,7 +200,7 @@ class TaskThreadScreenWeb extends GetView<TaskThreadController> {
                     child: CircularProgressIndicator(strokeWidth: 2))),
           _chatInput(),
         ],
-      ).paddingSymmetric(horizontal: 15, vertical: 20);
+      ).paddingSymmetric(horizontal: 15, vertical: 8);
     });
   }
 

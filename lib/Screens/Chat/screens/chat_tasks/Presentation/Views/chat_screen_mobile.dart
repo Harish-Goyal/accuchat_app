@@ -480,10 +480,10 @@ class ChatScreenMobile extends GetView<ChatScreenController> {
             elevation: 2,
             vPadding: 3,
             hPadding: 7,
-            color: AppTheme.whiteColor.withOpacity(.6),
+            color: AppTheme.whiteColor,
             childWidget: Text(
               dateText,
-              style: BalooStyles.balooregularTextStyle(),
+              style: BalooStyles.balooregularTextStyle(size: 12.5),
             ),
           ),
           Expanded(child: divider(color: appColorGreen.withOpacity(.3))),
@@ -580,7 +580,7 @@ class ChatScreenMobile extends GetView<ChatScreenController> {
                       child: Container(
                         padding: EdgeInsets.symmetric(
                           horizontal:
-                          (data.media ?? []).isNotEmpty ? 5 : 15,
+                          (data.media ?? []).isNotEmpty ? 8 : 15,
                           vertical:
                           (data.media ?? []).isNotEmpty ? 0 : 15,
                         ),
@@ -707,10 +707,10 @@ class ChatScreenMobile extends GetView<ChatScreenController> {
                     textAlign: TextAlign.end, maxLines: 1,
                     overflow: TextOverflow.ellipsis
                 ).marginOnly(
-                    right: sentByMe ? 0 : 0,
-                    left: sentByMe ? 10 : 0,
-                    bottom: 3,
-                    top: 0),
+                    right: sentByMe ? 1 : 5,
+                    left: sentByMe ? 1 : 5,
+                    bottom: 1,
+                    top: 4),
               ),
             ],
           )
@@ -873,15 +873,15 @@ class ChatScreenMobile extends GetView<ChatScreenController> {
                       (controller.user?.userName == '' ||
                           controller.user?.userName == null)
                           ? controller.user?.phone ?? ''
-                          : controller.user?.userName ?? '',
+                          : controller.user?.userName?.capitalizeFirst ?? '',
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
                       style: themeData.textTheme.titleMedium,
                     )
                         : Text(
                       (controller.user?.userCompany?.displayName !=null)
-                          ? controller.user?.userCompany?.displayName ?? ''
-                          :controller.user?.userName!=null? controller.user?.userName ?? '': controller.user?.phone??'',
+                          ? controller.user?.userCompany?.displayName?.capitalizeFirst ?? ''
+                          :controller.user?.userName!=null? controller.user?.userName?.capitalizeFirst ?? '': controller.user?.phone??'',
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
                       style: themeData.textTheme.titleMedium,
@@ -923,28 +923,11 @@ class ChatScreenMobile extends GetView<ChatScreenController> {
         ),
 
         (controller.user?.userCompany?.isBroadcast==1 ||controller.user?.userCompany?.isGroup==1) ?SizedBox():  CustomTextButton(onTap: (){
-          Get.back();
-          isTaskMode = true;
-          Get.find<DashboardController>().updateIndex(1);
 
-          // ensure TaskHomeController exists
-          if (!Get.isRegistered<TaskHomeController>()) {
-            Get.put(TaskHomeController());
-          }
-          // ensure TaskController exists
-          if (!Get.isRegistered<TaskController>()) {
-            Get.put(TaskController(user: controller.user));
-          }
-
-          final taskHome = Get.find<TaskHomeController>();
-          final taskC = Get.find<TaskController>();
-
-          taskHome.selectedChat.value = controller.user;
-          taskC.user = controller.user;
-          taskC.openConversation(controller.user);
-
-
-          taskHome.selectedChat.refresh();
+          // isTaskMode = true;
+          // Get.find<DashboardController>().updateIndex(1);
+          Get.toNamed(AppRoutes.tasks_li_r,arguments: {'user':controller.user});
+          // Get.back();
         }, title: "Go to Task"),
         hGap(10),
         (controller.user?.userCompany?.isGroup == 1 ||
@@ -1363,6 +1346,7 @@ class ChatScreenMobile extends GetView<ChatScreenController> {
     showDialog(
       context: context,
       builder: (ctx) => AlertDialog(
+        backgroundColor: Colors.white,
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
         title: const Text('Upload files'),
         content: const Column(

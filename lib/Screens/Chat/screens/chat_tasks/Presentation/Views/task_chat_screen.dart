@@ -39,6 +39,7 @@ import '../../../../../../Constants/assets.dart';
 import '../../../../../../Constants/colors.dart';
 import '../../../../../../Services/APIs/local_keys.dart';
 import '../../../../../../utils/common_textfield.dart';
+import '../../../../../../utils/custom_container.dart';
 import '../../../../../../utils/custom_dialogue.dart';
 import '../../../../../../utils/custom_flashbar.dart';
 import '../../../../../../utils/gradient_button.dart';
@@ -280,8 +281,7 @@ class TaskScreen extends GetView<TaskController> {
   }
 
   groupListView() {
-    return controller.taskCategory.isNotEmpty &&
-            (controller.taskHisList ?? []).isNotEmpty
+    return (controller.taskCategory??[]).isNotEmpty
         ? GroupedListView<GroupTaskElement, DateTime>(
             shrinkWrap: false,
             padding: const EdgeInsets.only(bottom: 30),
@@ -355,12 +355,26 @@ class TaskScreen extends GetView<TaskController> {
   }
 
   Widget _createGroupHeader(GroupTaskElement element) {
+
+    final isToday = DateUtils.isSameDay(element.date, DateTime.now());
+    final dateText =
+    isToday ? "Today" : DateFormat.yMMMd().format(element.date);
     return Container(
       color: Colors.transparent,
       child: Row(
         children: [
           Expanded(child: divider(color: appColorGreen.withOpacity(.3))),
-          Text(DateFormat.yMMMd().format(element.date)),
+
+          CustomContainer(
+            elevation: 2,
+            vPadding: 3,
+            hPadding: 7,
+            color: AppTheme.whiteColor,
+            childWidget: Text(
+              dateText,
+              style: BalooStyles.balooregularTextStyle(size: 12.5),
+            ),
+          ),
           Expanded(child: divider(color: appColorGreen.withOpacity(.3))),
         ],
       ),
@@ -920,7 +934,7 @@ class TaskScreen extends GetView<TaskController> {
                     //user name
 
                     Text(
-                      controller.user?.displayName != null ? controller.user?.displayName??'' :controller.user?.userName !=null? controller.user?.userName ?? ''
+                      controller.user?.displayName != null ? controller.user?.displayName?.capitalizeFirst??'' :controller.user?.userName !=null? controller.user?.userName?.capitalizeFirst ?? ''
                           :controller.user?.phone ?? '' ,
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,

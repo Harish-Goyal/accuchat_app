@@ -39,6 +39,7 @@ import '../../../../../../Constants/assets.dart';
 import '../../../../../../Constants/colors.dart';
 import '../../../../../../Services/APIs/local_keys.dart';
 import '../../../../../../utils/common_textfield.dart';
+import '../../../../../../utils/custom_container.dart';
 import '../../../../../../utils/custom_dialogue.dart';
 import '../../../../../../utils/custom_flashbar.dart';
 import '../../../../../../utils/gradient_button.dart';
@@ -348,12 +349,26 @@ class TaskScreenMobile extends GetView<TaskController> {
   }
 
   Widget _createGroupHeader(GroupTaskElement element) {
+
+    final isToday = DateUtils.isSameDay(element.date, DateTime.now());
+    final dateText =
+    isToday ? "Today" : DateFormat.yMMMd().format(element.date);
     return Container(
       color: Colors.transparent,
       child: Row(
         children: [
           Expanded(child: divider(color: appColorGreen.withOpacity(.3))),
-          Text(DateFormat.yMMMd().format(element.date)),
+
+          CustomContainer(
+            elevation: 2,
+            vPadding: 3,
+            hPadding: 7,
+            color: AppTheme.whiteColor.withOpacity(.6),
+            childWidget: Text(
+              dateText,
+              style: BalooStyles.balooregularTextStyle(size: 12.5),
+            ),
+          ),
           Expanded(child: divider(color: appColorGreen.withOpacity(.3))),
         ],
       ),
@@ -420,8 +435,8 @@ class TaskScreenMobile extends GetView<TaskController> {
                                 vertical: 15,
                               ),
                               margin: sentByMe
-                                  ? const EdgeInsets.only(left: 15, top: 0)
-                                  : const EdgeInsets.only(right: 15, top: 3),
+                                  ? const EdgeInsets.only(left: 10,right: 12, top: 8)
+                                  : const EdgeInsets.only(right: 10, left: 12,top: 8),
                               decoration: BoxDecoration(
                                   color:
                                   getTaskStatusColor(data.currentStatus?.name)
@@ -495,9 +510,8 @@ class TaskScreenMobile extends GetView<TaskController> {
           Positioned(
             right: sentByMe ? 22 : null,
             left: sentByMe ? null : 22,
-            top: -10,
-            child: GestureDetector(
-              // borderRadius: BorderRadius.circular(12),
+            top: -5,
+            child: GestureDetector(              // borderRadius: BorderRadius.circular(12),
               onTapUp: (details){
                 _showStatusPopup(
                   isME: sentByMe,
@@ -908,7 +922,7 @@ class TaskScreenMobile extends GetView<TaskController> {
                     //user name
 
                   Text(
-                      controller.user?.displayName != null ? controller.user?.displayName??'' :controller.user?.userName !=null? controller.user?.userName ?? ''
+                      controller.user?.displayName != null ? controller.user?.displayName?.capitalizeFirst??'' :controller.user?.userName !=null? controller.user?.userName?.capitalizeFirst ?? ''
                           :controller.user?.phone ?? '' ,
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
@@ -945,23 +959,11 @@ class TaskScreenMobile extends GetView<TaskController> {
         /*: SizedBox()*/
 
         (controller.user?.userCompany?.isBroadcast==1 ||controller.user?.userCompany?.isGroup==1) ?SizedBox():CustomTextButton(onTap: (){
-          Get.back();
-          isTaskMode = false;
-          Get.find<DashboardController>().updateIndex(0);
 
-          // ensure TaskHomeController exists
-          if (!Get.isRegistered<ChatHomeController>()) {
-            Get.put(ChatHomeController());
-          }
-          if (!Get.isRegistered<ChatScreenController>()) {
-            Get.put(ChatScreenController(user: controller.user));
-          }
-          final taskHome = Get.find<ChatHomeController>();
-          final taskC = Get.find<ChatScreenController>();
-          taskHome.selectedChat.value = controller.user;
-          taskC.user = controller.user;
-          taskC.openConversation(controller.user);
-          taskHome.selectedChat.refresh();
+          // isTaskMode = false;
+          // Get.find<DashboardController>().updateIndex(0);
+          Get.toNamed(AppRoutes.chats_li_r,arguments: {'user':controller.user});
+          // Get.back();
         }, title: "Go to Chat"),
 
         hGap(10),

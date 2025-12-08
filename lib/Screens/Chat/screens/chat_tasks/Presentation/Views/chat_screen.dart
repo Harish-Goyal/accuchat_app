@@ -35,6 +35,7 @@ import '../../../../../../utils/common_textfield.dart';
 import '../../../../../../utils/custom_dialogue.dart';
 import '../../../../../../utils/custom_flashbar.dart';
 import '../../../../../../utils/gradient_button.dart';
+import '../../../../../../utils/loading_indicator.dart';
 import '../../../../../../utils/product_shimmer_widget.dart';
 import '../../../../../../utils/share_helper.dart';
 import '../../../../../../utils/text_style.dart';
@@ -388,9 +389,8 @@ class ChatScreen extends GetView<ChatScreenController> {
     /*   final initialIndex = (controller.flatRows.isEmpty)
         ? 0
         : controller.flatRows.length - 1;*/
-    return controller.chatCatygory != [] ||
-            (controller.chatCatygory ?? []).isNotEmpty
-        ? GroupedListView<GroupChatElement, DateTime>(
+    return  (controller.chatCatygory??[]).isNotEmpty?
+     GroupedListView<GroupChatElement, DateTime>(
             shrinkWrap: true,
             padding: const EdgeInsets.only(bottom: 30),
             controller: controller.scrollController,
@@ -547,10 +547,10 @@ class ChatScreen extends GetView<ChatScreenController> {
             elevation: 2,
             vPadding: 3,
             hPadding: 7,
-            color: AppTheme.whiteColor.withOpacity(.6),
+            color: AppTheme.whiteColor,
             childWidget: Text(
               dateText,
-              style: BalooStyles.balooregularTextStyle(),
+              style: BalooStyles.balooregularTextStyle(size: 12.5),
             ),
           ),
           Expanded(child: divider(color: appColorGreen.withOpacity(.3))),
@@ -775,10 +775,10 @@ class ChatScreen extends GetView<ChatScreenController> {
                         textAlign: TextAlign.end, maxLines: 1,
                           overflow: TextOverflow.ellipsis
                       ).marginOnly(
-                          right: sentByMe ? 0 : 0,
-                          left: sentByMe ? 10 : 0,
-                          bottom: 3,
-                          top: 0),
+                          right: sentByMe ? 1 : 5,
+                          left: sentByMe ? 1 : 5,
+                          bottom: 1,
+                          top: 4),
                     ),
                   ],
                 )
@@ -967,15 +967,15 @@ class ChatScreen extends GetView<ChatScreenController> {
                             (controller.user?.userName == '' ||
                                     controller.user?.userName == null)
                                 ? controller.user?.phone ?? ''
-                                : controller.user?.userName ?? '',
+                                : controller.user?.userName?.capitalizeFirst ?? '',
                             maxLines: 1,
                             overflow: TextOverflow.ellipsis,
                             style: themeData.textTheme.titleMedium,
                           )
                         : Text(
                       (controller.user?.userCompany?.displayName !=null)
-                          ? controller.user?.userCompany?.displayName ?? ''
-                          :controller.user?.userName!=null? controller.user?.userName ?? '': controller.user?.phone??'',
+                          ? controller.user?.userCompany?.displayName?.capitalizeFirst ?? ''
+                          :controller.user?.userName!=null? controller.user?.userName?.capitalizeFirst ?? '': controller.user?.phone??'',
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
                       style: themeData.textTheme.titleMedium,
@@ -1586,6 +1586,7 @@ class ChatScreen extends GetView<ChatScreenController> {
     showDialog(
       context: context,
       builder: (ctx) => AlertDialog(
+        backgroundColor: Colors.white,
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
         title: const Text('Upload files'),
         content: const Column(

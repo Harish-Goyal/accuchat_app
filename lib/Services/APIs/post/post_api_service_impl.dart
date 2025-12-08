@@ -330,7 +330,7 @@ class PostApiServiceImpl extends GetxService implements PostApiService {
           .get('api/task-history/$userComId',
           queryParameters: {
             'page':page,
-            'limit':20,
+            'limit':15,
             'statusId':statusId,
             'startDate':fromDate,
             'endDate':toDate,

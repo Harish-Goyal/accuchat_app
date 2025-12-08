@@ -277,9 +277,9 @@ class _ImagesGrid extends StatelessWidget {
                 ),
               ),
             )*/Transform.translate(
-              offset: Offset(0, -14),
+              offset:kIsWeb? Offset(0, -14) :Offset(0, -10),
               child: AspectRatio(
-                aspectRatio: kIsWeb ? 4/4 : 4 / 3,
+                aspectRatio: kIsWeb ? 4/4 : 4 / 4,
                 child: CustomCacheNetworkImage(
                   item.url,
                   radiusAll: 15, // radius handled by ClipRRect above

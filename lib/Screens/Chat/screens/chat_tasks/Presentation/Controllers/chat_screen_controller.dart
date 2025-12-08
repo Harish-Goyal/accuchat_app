@@ -48,7 +48,7 @@ class ChatScreenController extends GetxController {
   List<ChatHisResModel> msgList = [];
   final textController = TextEditingController();
   final FocusNode focusNode = FocusNode();
-  FocusNode messageParentFocus = FocusNode();   // for keyboard events only
+  FocusNode messageParentFocus = FocusNode(); // for keyboard events only
   FocusNode messageInputFocus = FocusNode();
   ChatHisList? replyToMessage;
   String? replyToImage;
@@ -64,8 +64,8 @@ class ChatScreenController extends GetxController {
   var refIdis;
 
   final ItemScrollController itemScrollController = ItemScrollController();
-  final ItemPositionsListener itemPositionsListener = ItemPositionsListener.create();
-
+  final ItemPositionsListener itemPositionsListener =
+      ItemPositionsListener.create();
 
   bool isDoc(String orignalMsg) {
     final ext = (orignalMsg ?? '').toLowerCase();
@@ -286,7 +286,7 @@ class ChatScreenController extends GetxController {
     replyToMessage = null;
     getArguments();
 
-    if(kIsWeb){
+    if (kIsWeb) {
       user = Get.find<ChatHomeController>().selectedChat.value;
       // _initScroll();
     }
@@ -305,6 +305,7 @@ class ChatScreenController extends GetxController {
     //     // }
     //   }
     // });
+    scrollListener();
   }
 
   _initScroll() {
@@ -333,9 +334,13 @@ class ChatScreenController extends GetxController {
     });
   }
 
-  void markAllVisibleAsReadOnOpen(toUcID,fromUcId,isGroupChat) {
-    Get.find<SocketController>().connectUserEmitter(myCompany?.companyId );
-        Get.find<SocketController>().readMsgEmitter(ucID:toUcID,fromUcID:fromUcId,companyId:myCompany?.companyId,is_group_chat:  isGroupChat );
+  void markAllVisibleAsReadOnOpen(toUcID, fromUcId, isGroupChat) {
+    Get.find<SocketController>().connectUserEmitter(myCompany?.companyId);
+    Get.find<SocketController>().readMsgEmitter(
+        ucID: toUcID,
+        fromUcID: fromUcId,
+        companyId: myCompany?.companyId,
+        is_group_chat: isGroupChat);
   }
 
   @override
@@ -347,7 +352,6 @@ class ChatScreenController extends GetxController {
     // textController.dispose();
     imageCache.clearLiveImages();
     imageCache.clear();
-
   }
 
   getArguments() {
@@ -390,13 +394,13 @@ class ChatScreenController extends GetxController {
     update();
     _getMe();
     Future.delayed(const Duration(milliseconds: 500), () {
+      resetPaginationForNewChat();
       hitAPIToGetChatHistory();
       if (user?.userCompany?.isGroup == 1 ||
           user?.userCompany?.isBroadcast == 1) {
         hitAPIToGetMembers(user);
       }
     });
-    scrollListener();
   }
 
   List<Message> allTasks = [];
@@ -404,7 +408,7 @@ class ChatScreenController extends GetxController {
   String selectedFilter = 'all';
 
   UserDataAPI? me = UserDataAPI();
-  TextEditingController updateMsgController= TextEditingController();
+  TextEditingController updateMsgController = TextEditingController();
   _getMe() {
     me = getUser();
     update();
@@ -446,21 +450,48 @@ class ChatScreenController extends GetxController {
   int page = 1;
   bool hasMore = true;
   bool showPostShimmer = true;
+  bool isPageLoading = false;
 
   ScrollController scrollController = ScrollController();
 
   scrollListener() {
-    scrollController.addListener(() {
-      if (scrollController.position.pixels <=
-          scrollController.position.minScrollExtent + 50 &&
-          !isLoading &&
-          hasMore) {
-        hitAPIToGetChatHistory();
-      }
-    });
+    if (kIsWeb) {
+      scrollController.addListener(() {
+        if (scrollController.position.pixels >=
+                scrollController.position.maxScrollExtent - 100 &&
+            !isPageLoading && hasMore) {
+          // resetPaginationForNewChat();
+          hitAPIToGetChatHistory();
+        }
+      });
+    } else {
+      scrollController.addListener(() {
+        if (scrollController.position.pixels <=
+                scrollController.position.minScrollExtent + 50 &&
+            !isPageLoading&& hasMore ) {
+          // resetPaginationForNewChat();
+          hitAPIToGetChatHistory();
+        }
+      });
+    }
+  }
+
+  void resetPaginationForNewChat() {
+    page = 1;
+    hasMore = true;
+    chatHisList = []; // <--- MOST IMPORTANT
+    chatCatygory = [];
+    showPostShimmer = true;
+    update();
   }
 
   hitAPIToGetChatHistory() async {
+    if(page==1){
+      showPostShimmer = true;
+    }
+
+    isPageLoading = true;
+    update();
     Get.find<PostApiServiceImpl>()
         .getChatHistoryApiCall(
             userComId: user?.userCompany?.userCompanyId,
@@ -469,22 +500,16 @@ class ChatScreenController extends GetxController {
         .then((value) async {
       showPostShimmer = false;
       chatHisResModelAPI = value;
-      chatHisList = value.data?.rows ?? [];
-      if ((value.data?.rows ?? []).isNotEmpty) {
+      if (value.data?.rows != null && (value.data?.rows ?? []).isNotEmpty) {
         if (page == 1) {
           chatHisList = value.data?.rows ?? [];
-          isLoading = false;
-          hasMore = false;
-          update();
         } else {
           chatHisList?.addAll(value.data?.rows ?? []);
-          isLoading = false;
-          hasMore = false;
-          update();
         }
+        page++; // next page
       } else {
-        isLoading = false;
         hasMore = false;
+        isPageLoading = false;
         update();
       }
 
@@ -494,17 +519,22 @@ class ChatScreenController extends GetxController {
           datais = DateTime.parse(item.sentOn ?? '');
         }
 
-
         return GroupChatElement(datais ?? DateTime.now(), item);
       }).toList();
-      if (user?.pendingCount!=0) {
-        markAllVisibleAsReadOnOpen(user?.userCompany?.userCompanyId,APIs.me.userCompany?.userCompanyId,user?.userCompany?.isGroup==1? 1:0);
+      if (user?.pendingCount != 0) {
+        markAllVisibleAsReadOnOpen(
+            user?.userCompany?.userCompanyId,
+            APIs.me.userCompany?.userCompanyId,
+            user?.userCompany?.isGroup == 1 ? 1 : 0);
       }
-      rebuildFlatRows();
+      // rebuildFlatRows();
+      showPostShimmer = false;
+      isPageLoading = false;
       update();
       messageInputFocus.requestFocus();
     }).onError((error, stackTrace) {
       showPostShimmer = false;
+      isPageLoading = false;
       update();
     });
   }
@@ -1021,7 +1051,8 @@ class ChatScreenController extends GetxController {
     if (targetUcId != null &&
         me?.userCompany?.userCompanyId != null &&
         targetUcId == me?.userCompany?.userCompanyId) {
-      Get.snackbar('Oops', 'You cannot forward a message to yourself.',backgroundColor: Colors.white,colorText: Colors.black);
+      Get.snackbar('Oops', 'You cannot forward a message to yourself.',
+          backgroundColor: Colors.white, colorText: Colors.black);
       return;
     }
 
