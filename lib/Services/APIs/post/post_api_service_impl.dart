@@ -276,10 +276,10 @@ class PostApiServiceImpl extends GetxService implements PostApiService {
 
   @override
   Future<RecentChatsUserResModel> getRecentChatUserApiCall(
-      {comId, page}) async {
+      {comId, page,searchText}) async {
     try {
       final response = await dioClient!
-          .get('api/recent?company_id=$comId&page=$page&limit=40', skipAuth: false);
+          .get('api/recent?company_id=$comId&page=$page&limit=20&search=$searchText', skipAuth: false);
       return RecentChatsUserResModel.fromJson(response);
     } catch (e) {
       return Future.error(NetworkExceptions.getDioException(e));
@@ -291,7 +291,7 @@ class PostApiServiceImpl extends GetxService implements PostApiService {
       {comId, page,searchText}) async {
     try {
       final response = await dioClient!
-          .get('api/taskslist/recent?company_id=$comId&page=$page&limit=20', skipAuth: false);
+          .get('api/taskslist/recent?company_id=$comId&page=$page&limit=20&search=$searchText', skipAuth: false);
       return RecentTaskUserData.fromJson(response);
     } catch (e) {
       return Future.error(NetworkExceptions.getDioException(e));
@@ -303,7 +303,7 @@ class PostApiServiceImpl extends GetxService implements PostApiService {
       {userComId, page,searchText}) async {
     try {
       final response = await dioClient!
-          .get('api/chat-history/$userComId?page=$page&limit=20&text=', skipAuth: false);
+          .get('api/chat-history/$userComId?page=$page&limit=20&text=$searchText', skipAuth: false);
       return ChatHisResModelAPI.fromJson(response);
     } catch (e) {
       return Future.error(NetworkExceptions.getDioException(e));
@@ -324,7 +324,7 @@ class PostApiServiceImpl extends GetxService implements PostApiService {
 
   @override
   Future<TaskHisResModel> getTaskHistoryApiCall(
-      {userComId, page,statusId,String? fromDate, String? toDate}) async {
+      {userComId, page,statusId,String? fromDate, String? toDate, searchText}) async {
     try {
       final response = await dioClient!
           .get('api/task-history/$userComId',
@@ -334,7 +334,7 @@ class PostApiServiceImpl extends GetxService implements PostApiService {
             'statusId':statusId,
             'startDate':fromDate,
             'endDate':toDate,
-
+            'text':searchText,
           },
           skipAuth: false);
       return TaskHisResModel.fromJson(response);

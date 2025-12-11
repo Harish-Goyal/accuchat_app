@@ -243,10 +243,13 @@ class TaskController extends GetxController {
                 child: TaskThreadScreenWeb(),   // <- Your original Screen
               ),
             ),
-          ).marginAll(50);
+          ).marginAll(20);
         },
       ).then((_) {
         Get.delete<TaskThreadController>(force: true);
+      }).whenComplete((){
+        Get.find<TaskController>().resetPaginationForNewChat();
+        Get.find<TaskController>().hitAPIToGetTaskHistory();
       });
 
     } else {
@@ -780,8 +783,6 @@ class TaskController extends GetxController {
                 mediaFiles.add(mf);
               }
 
-              print("mediaFiles");
-              print(mediaFiles);
             }
 
             // Agar kisi reason se koi bhi media valid na ban paya
@@ -832,7 +833,7 @@ class TaskController extends GetxController {
               Get.back();
               update();
             } catch (e) {
-              print(e.toString());
+              debugPrint(e.toString());
             }
 
             // ===========================
@@ -1105,7 +1106,27 @@ class TaskController extends GetxController {
     update();
   }
 
-  hitAPIToGetTaskHistory({int? statusId,isFilter= false,isForward= false,fromDate,toDate}) async {
+  bool isSearching = false;
+  String searchQuery = '';
+  TextEditingController seacrhCon = TextEditingController();
+
+  Timer? searchDelay;
+  void onSearch(String query) {
+    searchDelay?.cancel();
+
+    searchDelay = Timer(const Duration(milliseconds: 400), () {
+      searchQuery = query.trim().toLowerCase();
+      page = 1;
+      hasMore = true;
+      taskHisList = [];
+      update();
+      hitAPIToGetTaskHistory(search: searchQuery.isEmpty ? null : searchQuery);
+    });
+
+  }
+
+
+  hitAPIToGetTaskHistory({int? statusId,isFilter= false,isForward= false,fromDate,toDate,String? search}) async {
     if(page==1){
       showPostShimmer = true;
     }
@@ -1117,6 +1138,7 @@ class TaskController extends GetxController {
             userComId: user?.userCompany?.userCompanyId,
             page: page,
             statusId:statusId!=null? statusId:'',
+      searchText: search,
       fromDate: fromDate,
       toDate: toDate
     )
@@ -1261,7 +1283,6 @@ class TaskController extends GetxController {
   List<NavigationItem> taskItems=[];
   List<NavigationItem>? userNav=[];
   getUserNavigation(){
-    print("uhrugheruhgu");
     userNav = getNavigation();
     update();
     userNav = (userNav??[])
@@ -1456,7 +1477,7 @@ class TaskController extends GetxController {
   Future<void> handleForward({required TaskData taskData}) async {
     final selectedUser = await showDialog<UserDataAPI>(
       context: Get.context!,
-      builder: (_) => const AllUserScreenDialog(),
+      builder: (_) =>  AllUserScreenDialog(users: taskData.members,),
     );
     if (selectedUser == null) return;
     final socket = Get.find<SocketController>();

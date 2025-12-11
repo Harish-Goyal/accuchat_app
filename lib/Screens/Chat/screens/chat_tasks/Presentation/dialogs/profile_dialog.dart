@@ -14,6 +14,7 @@ import '../../../../models/chat_user.dart';
 import '../../../auth/models/get_uesr_Res_model.dart';
 import '../../../../models/recent_chat_user_res_model.dart';
 import '../Views/view_profile_screen.dart';
+import '../Widgets/profile_zoom.dart';
 
 class ProfileDialog extends StatelessWidget {
   ProfileDialog({super.key, required this.user});
@@ -85,21 +86,29 @@ class ProfileDialog extends StatelessWidget {
 
                 // Profile Image
                 Expanded(
-                  child: Align(
-                    alignment: Alignment.center,
-                    child: AspectRatio(
-                      aspectRatio: 1,
-                      child: ClipRRect(
-                        borderRadius:
-                        BorderRadius.circular(dialogHeight * 0.45),
-                        child: CustomCacheNetworkImage(
-                          width: dialogWidth * .6,
-                          height: dialogWidth * .6,
-                          "${ApiEnd.baseUrlMedia}${user?.userImage ?? ''}",
-                          defaultImage: userIcon,
-                          radiusAll: dialogHeight * 0.5,
-                          boxFit: BoxFit.cover,
-                          borderColor: greyText,
+                  child: InkWell(
+                    onTap: (){
+                      Get.to(()=>ProfileZoom(imagePath: "${ApiEnd.baseUrlMedia}${user?.userImage ?? ''}",heroTag: "DetailedProfile"));
+                    },
+                    child: Hero(
+                      tag: "DetailedProfile",
+                      child: Align(
+                        alignment: Alignment.center,
+                        child: AspectRatio(
+                          aspectRatio: 1,
+                          child: ClipRRect(
+                            borderRadius:
+                            BorderRadius.circular(dialogHeight * 0.45),
+                            child: CustomCacheNetworkImage(
+                              width: dialogWidth * .6,
+                              height: dialogWidth * .6,
+                              "${ApiEnd.baseUrlMedia}${user?.userImage ?? ''}",
+                              defaultImage: userIcon,
+                              radiusAll: dialogHeight * 0.5,
+                              boxFit: BoxFit.cover,
+                              borderColor: greyText,
+                            ),
+                          ),
                         ),
                       ),
                     ),

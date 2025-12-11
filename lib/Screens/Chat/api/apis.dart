@@ -297,10 +297,10 @@ class APIs {
     final snap = await query.limit(1).get();
     if (snap.docs.isNotEmpty) {
       final data = snap.docs.first.data();
-      print("✅ Target user found with token: ${data['push_token']}");
+      debugPrint("✅ Target user found with token: ${data['push_token']}");
       return data['push_token'];
     } else {
-      print("❌ User not found for email/phone");
+      debugPrint("❌ User not found for email/phone");
       return null;
     }
   }
@@ -347,7 +347,7 @@ class APIs {
         return snap.data()?['push_token'];
       }
     } catch (e) {
-      print('❌ Error getting push token: $e');
+      debugPrint('❌ Error getting push token: $e');
     }
     return null;
   }
@@ -355,7 +355,6 @@ class APIs {
   static Future<void> getSelfInfo() async {
     final svc = CompanyService.to;
     final myCompany =svc.selected;
-    print("APIS self user");
     Get.find<AuthApiServiceImpl>()
         .getUserApiCall(companyId: myCompany?.companyId??0)
         .then((value) async {

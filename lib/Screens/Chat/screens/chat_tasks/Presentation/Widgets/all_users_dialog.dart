@@ -1,5 +1,6 @@
 import 'package:AccuChat/Constants/app_theme.dart';
 import 'package:AccuChat/Constants/assets.dart';
+import 'package:AccuChat/Screens/Chat/models/task_res_model.dart';
 import 'package:AccuChat/Screens/Chat/screens/chat_tasks/Presentation/Controllers/all_user_controller.dart';
 import 'package:AccuChat/Services/APIs/api_ends.dart';
 import 'package:AccuChat/utils/networl_shimmer_image.dart';
@@ -13,7 +14,9 @@ import '../../../../models/chat_user.dart';
 import '../Views/chat_screen.dart';
 
 class AllUserScreenDialog extends GetView<AllUserController> {
-  const AllUserScreenDialog({super.key});
+   AllUserScreenDialog({super.key,this.users});
+
+  List<TaskMember>? users;
 
   @override
   Widget build(BuildContext context) {
@@ -25,9 +28,16 @@ class AllUserScreenDialog extends GetView<AllUserController> {
         child: GetBuilder<AllUserController>(
             init: AllUserController(),
             builder: (controller) {
-              final listToShow = controller.searchQuery.isEmpty
-                  ? controller.userList
-                  : controller.filteredList;
+              final selectedIds = users?.map((m) => m.userCompanyId).toSet();
+
+              // final listToShow = controller.searchQuery.isEmpty
+              //     ? controller.userList
+              //     : controller.filteredList;
+
+              final listToShow =(users??[]).isEmpty?controller.userList: controller.filteredList.where(
+                    (u) => !selectedIds!.contains(u.userCompany?.userCompanyId??0),
+              ).toList();
+
               return Container(
                 margin: const EdgeInsets.symmetric(horizontal: 20, vertical: 30),
                 decoration: BoxDecoration(

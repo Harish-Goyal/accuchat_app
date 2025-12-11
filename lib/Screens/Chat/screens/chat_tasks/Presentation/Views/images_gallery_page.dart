@@ -132,8 +132,6 @@ class GalleryViewerPage extends StatelessWidget {
                 backgroundDecoration: const BoxDecoration(color: Colors.black),
                 builder: (context, index) {
                   final url = c.urls[index];
-                  print("url=====");
-                  print(url);
                   return PhotoViewGalleryPageOptions(
                     imageProvider: CachedNetworkImageProvider(url),
                     heroAttributes: PhotoViewHeroAttributes(tag: url),

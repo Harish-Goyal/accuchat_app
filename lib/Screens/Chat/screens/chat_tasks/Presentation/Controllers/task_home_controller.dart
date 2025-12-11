@@ -1,5 +1,6 @@
 import 'package:AccuChat/Screens/Chat/models/recent_chat_user_res_model.dart';
 import 'package:AccuChat/Screens/Chat/screens/chat_tasks/Presentation/Controllers/task_controller.dart';
+import 'package:flutter/foundation.dart';
 import 'package:get/get.dart';
 import 'package:AccuChat/Screens/Home/Presentation/Controller/home_controller.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
@@ -26,8 +27,6 @@ class TaskHomeController extends GetxController{
   bool isTask = false;
 
 
-  List<ChatUser> list = [];
-  List<ChatGroup> grouplist = [];
 
   // for storing search status
   RxBool isSearching = false.obs;
@@ -43,7 +42,8 @@ class TaskHomeController extends GetxController{
 
     _getCompany();
 
-    Future.delayed(const Duration(milliseconds: 1000),(){
+    Future.delayed(const Duration(milliseconds: 500),(){
+      resetPaginationForNewChat();
       hitAPIToGetRecentTasksUser();
     }
     );
@@ -76,36 +76,113 @@ class TaskHomeController extends GetxController{
 
   int page =1;
   bool isLoading =false;
+  bool showPostShimmer =false;
+  bool isPageLoading =false;
   bool hasMore = true;
   RecentTaskUserData recentTasksUserResModel = RecentTaskUserData();
 
   ScrollController scrollController = ScrollController();
 
   scrollListener() {
+    if (kIsWeb) {
+      scrollController.addListener(() {
+        if (scrollController.position.pixels >=
+            scrollController.position.maxScrollExtent - 100 &&
+            !isPageLoading && hasMore) {
+          // resetPaginationForNewChat();
+          hitAPIToGetRecentTasksUser();
+        }
+      });
+    } else {
+      scrollController.addListener(() {
+        if (scrollController.position.pixels <=
+            scrollController.position.minScrollExtent + 50 &&
+            !isPageLoading&& hasMore ) {
+          // resetPaginationForNewChat();
+          hitAPIToGetRecentTasksUser();
+        }
+      });
+    }
+  }
+  List<UserDataAPI>? recentTaskUserList=[];
 
-    // scrollController.addListener(() {
-    //   if ((scrollController.position.extentAfter) <= 0 &&
-    //       isLoading == false) {
-    //     isLoading = true;
-    //       page++;
-    //       update();
-    //     hitAPIToGetRecentTasksUser();
-    //   }
-    // });
+  void resetPaginationForNewChat() {
+    page = 1;
+    hasMore = true;
+    filteredList.clear();
+    showPostShimmer = true;
+    update();
+  }
 
-    scrollController.addListener(() {
-      if (scrollController.position.pixels ==
-          scrollController.position.maxScrollExtent &&
-          !isLoading &&
-          hasMore) {
-        hitAPIToGetRecentTasksUser();
+  List<UserDataAPI>? recentChatUserList=[];
+
+  hitAPIToGetRecentTasksUser({String? search}) async {
+    if(page==1){
+      showPostShimmer = true;
+    }
+    isPageLoading = true;
+    update();
+    Get.find<PostApiServiceImpl>()
+        .getRecentTaskUserApiCall(comId:myCompany?.companyId,page: page,searchText: search??'')
+        .then((value) async {
+      isLoading = false;
+      update();
+      recentTasksUserResModel=value;
+      recentTaskUserList=value.data?.rows??[];
+      if (value.data?.rows != null && (value.data?.rows ?? []).isNotEmpty) {
+        if (page == 1) {
+          filteredList.value = value.data?.rows ?? [];
+        } else {
+          filteredList.assignAll(recentChatUserList??[]);
+        }
+        if(selectedChat.value?.userId!=null){
+
+        }else{
+          selectedChat.value = filteredList[0];
+        }
+        page++; // next page
+      } else {
+        hasMore = false;
+        isPageLoading = false;
+        update();
       }
+      showPostShimmer = false;
+      isPageLoading = false;
+      update();
+      // filteredList.assignAll(recentChatUserList??[]);
+      // if(filteredList.isNotEmpty) {
+      //   if(selectedChat.value?.userId!=null){
+      //
+      //   }else{
+      //     selectedChat.value = filteredList[0];
+      //   }
+      //
+      // }
+      //
+      //
+      // final List<UserDataAPI> newItems = [];
+      //
+      // if (newItems.isNotEmpty) {
+      //   page++;
+      //   filteredList.addAll(newItems);
+      //   if (newItems.length < 20) {
+      //     hasMore = false;
+      //   }
+      //   update();
+      // } else {
+      //   hasMore = false;
+      //   update();
+      // }
+    }).onError((error, stackTrace) {
+      showPostShimmer = false;
+      isPageLoading = false;
+      update();
     });
   }
 
-  List<UserDataAPI>? recentTaskUserList=[];
 
-  hitAPIToGetRecentTasksUser({search}) async {
+
+/*  hitAPIToGetRecentTasksUser({search}) async {
     isLoading=true;
     update();
     Get.find<PostApiServiceImpl>()
@@ -138,30 +215,12 @@ class TaskHomeController extends GetxController{
         hasMore = false;
         update();
       }
-      // if ((value.data?.rows??[]).isNotEmpty) {
-      //   if (page == 1) {
-      //     recentTasksUserResModel=value;
-      //     recentTaskUserList=value.data?.rows??[];
-      //     filteredList = recentTaskUserList??[];
-      //     isLoading = false;
-      //       update();
-      //
-      //   } else {
-      //     filteredList.addAll(value.data?.rows??[]);
-      //
-      //       isLoading = false;
-      //     update();
-      //   }
-      // } else {
-      //     isLoading = false;
-      //     update();
-      // }
 
     }).onError((error, stackTrace) {
       isLoading = false;
       update();
     });
-  }
+  }*/
 
   GroupResModel groupResModel = GroupResModel();
   createGroupBroadcastApi({isGroup,isBroadcast}) async {
@@ -200,15 +259,17 @@ class TaskHomeController extends GetxController{
   void onSearch(String query) {
     searchQuery = query.toLowerCase();
     if (query.isEmpty) {
-      filteredList.assignAll(recentTaskUserList ?? []);
+      hitAPIToGetRecentTasksUser();
+      // filteredList.assignAll(recentTaskUserList ?? []);
     } else {
-      final result = recentTaskUserList!.where((item) {
-        return (item.displayName ?? '').toLowerCase().contains(searchQuery) ||
-            (item.email ?? '').toLowerCase().contains(searchQuery) ||
-            (item.userName ?? '').toLowerCase().contains(searchQuery) ||
-            (item.phone ?? '').contains(searchQuery);
-      }).toList();
-      filteredList.assignAll(result);
+      // final result = recentTaskUserList!.where((item) {
+      //   return (item.displayName ?? '').toLowerCase().contains(searchQuery) ||
+      //       (item.email ?? '').toLowerCase().contains(searchQuery) ||
+      //       (item.userName ?? '').toLowerCase().contains(searchQuery) ||
+      //       (item.phone ?? '').contains(searchQuery);
+      // }).toList();
+      // filteredList.assignAll(result);
+      hitAPIToGetRecentTasksUser(search:query);
     }
   }
 }

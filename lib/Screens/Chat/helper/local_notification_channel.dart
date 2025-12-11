@@ -2,6 +2,7 @@ import 'dart:convert';
 
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
+import 'package:flutter/material.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:get/get.dart';
 
@@ -32,7 +33,7 @@ class LocalNotificationService {
 
 
     FirebaseMessaging.onMessage.listen((RemoteMessage message) {
-      print('📬 Foreground message: ${message.notification?.title}');
+      debugPrint('📬 Foreground message: ${message.notification?.title}');
 
       final title = message.notification?.title ?? '';
       final body = message.notification?.body ?? '';

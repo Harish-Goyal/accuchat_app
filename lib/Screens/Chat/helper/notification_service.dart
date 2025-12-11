@@ -43,19 +43,16 @@ class NotificationService {
     final client = await clientViaServiceAccount(_credentials!, scopes);
     final token = await client.credentials.accessToken;
 
-    print('✅ Access Token: ${token.data}',);
+    debugPrint('✅ Access Token: ${token.data}',);
 
     FirebaseMessaging.onMessage.listen((RemoteMessage message) {
-      print('📬 Foreground message: ${message.notification?.title}');
+      debugPrint('📬 Foreground message: ${message.notification?.title}');
 
 
       final title = message.notification?.title ?? '';
       final body = message.notification?.body ?? '';
 
       final data = message.data;
-      print("APIs.me.userId ========= ");
-      print(APIs.me.userId);
-      print(data['sender_id']);
       if(APIs.me.userId == data['sender_id']){
 
       }else{
@@ -68,7 +65,7 @@ class NotificationService {
 
     FirebaseMessaging.onMessageOpenedApp.listen((RemoteMessage message) async {
       final type = message.data['type'];
-      print('🔔 Notification tapped. Type: $type');
+      debugPrint('🔔 Notification tapped. Type: $type');
 
       if (type == 'invite') {
 
@@ -130,9 +127,9 @@ class NotificationService {
     final response = await _client!.post(url, body: jsonEncode(message));
 
     if (response.statusCode == 200) {
-      print('✅ Notification sent!');
+      debugPrint('✅ Notification sent!');
     } else {
-      print('❌ Failed to send notification: ${response.body}');
+      debugPrint('❌ Failed to send notification: ${response.body}');
     }
   }
 

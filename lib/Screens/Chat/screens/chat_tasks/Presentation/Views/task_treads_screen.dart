@@ -527,7 +527,7 @@ class TaskThreadScreen extends GetView<TaskThreadController> {
       customLoader.hide();
       await OpenFilex.open(filePath);
     } catch (e) {
-      print("❌ Failed to open document: $e");
+      debugPrint("❌ Failed to open document: $e");
       customLoader.hide();
     }
   }
@@ -705,7 +705,6 @@ class TaskThreadScreen extends GetView<TaskThreadController> {
 
                   // uploading & sending image one by one
                   for (var i in images) {
-                    print('Image Path: ${i.path}');
                     controller.isUploading = true;
                     controller.update();
 

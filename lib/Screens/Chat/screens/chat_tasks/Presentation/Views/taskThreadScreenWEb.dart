@@ -1,4 +1,5 @@
 import 'package:AccuChat/Screens/Chat/models/task_commets_res_model.dart';
+import 'package:AccuChat/Screens/Chat/screens/chat_tasks/Presentation/Controllers/task_controller.dart';
 import 'package:AccuChat/Screens/Chat/screens/chat_tasks/Presentation/Controllers/task_thread_controller.dart';
 import 'package:AccuChat/utils/text_style.dart';
 import 'package:dio/dio.dart' show Dio;
@@ -42,23 +43,35 @@ class TaskThreadScreenWeb extends GetView<TaskThreadController> {
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              Text(
-                "Task Reply",
-                style: BalooStyles.baloomediumTextStyle(color: appColorGreen),
+              Expanded(
+                child: Text(
+                  "Task Reply",
+                  style: BalooStyles.baloomediumTextStyle(color: appColorGreen),
+                ),
               ),
               hGap(15),
-              Text(
-                controller.currentUser?.displayName != null ? controller.currentUser?.displayName??'' :controller.currentUser?.userName !=null? controller.currentUser?.userName ?? ''
-                    :controller.currentUser?.phone ?? '' ,
-                style: BalooStyles.balooboldTitleTextStyle(),
-                maxLines: 1,
-                overflow: TextOverflow.ellipsis,
-              ),
-
+              
+              Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Text(
+                    controller.currentUser?.displayName != null ? controller.currentUser?.displayName??'' :controller.currentUser?.userName !=null? controller.currentUser?.userName ?? ''
+                        :controller.currentUser?.phone ?? '' ,
+                    style: BalooStyles.balooboldTitleTextStyle(),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                  IconButton(onPressed: (){
+                    Get.back();
+                    Get.find<TaskController>().resetPaginationForNewChat();
+                    Get.find<TaskController>().hitAPIToGetTaskHistory();
+                  }, icon: Icon(Icons.clear,color: Colors.black87,)),
+                ],
+              )
 
             ],
           ),
-          vGap(12),
+          vGap(8),
           Container(
             width: Get.width,
             padding: EdgeInsets.all(12),
@@ -149,8 +162,8 @@ class TaskThreadScreenWeb extends GetView<TaskThreadController> {
                   child: Column(
                     mainAxisSize: MainAxisSize.min,
                     children: [
-                      SizedBox(
-                        height: 60,
+                      ConstrainedBox(
+                        constraints: BoxConstraints(maxHeight: 60),
                         child: DefaultSelectionStyle(
                           selectionColor: appColorPerple
                               .withOpacity(0.3), // text select background
@@ -200,7 +213,7 @@ class TaskThreadScreenWeb extends GetView<TaskThreadController> {
                     child: CircularProgressIndicator(strokeWidth: 2))),
           _chatInput(),
         ],
-      ).paddingSymmetric(horizontal: 15, vertical: 8);
+      ).paddingSymmetric(horizontal: 10, vertical: 8);
     });
   }
 

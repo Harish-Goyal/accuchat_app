@@ -107,10 +107,34 @@ class LoginScreenG extends GetView<LoginGController> {
                                 ),
                               );
                             },
-                            onChanged: (_) {},
+                            onChanged: (_) {
+
+                            },
                           )
                           ,
-                          onChangee: controller.onTextChanged,
+                          onChangee:(v){
+                            if (controller.showCountryCode) {
+                              // Remove all non-digits
+                              String cleaned = v.replaceAll(RegExp(r'[^0-9]'), '');
+
+                              // Limit to 10 digits
+                              if (cleaned.length > 10) {
+                                cleaned = cleaned.substring(0, 10);
+                              }
+
+                              // Only update if different to avoid cursor jump
+                              if (cleaned != controller.phoneController.text) {
+                                controller.phoneController.value =
+                                    controller.phoneController.value.copyWith(
+                                      text: cleaned,
+                                      selection: TextSelection.fromPosition(
+                                        TextPosition(offset: cleaned.length),
+                                      ),
+                                    );
+                              }
+                            }
+                            controller.onTextChanged(v);
+                          } ,
                         ),
                         vGap(40),
                         dynamicButton(

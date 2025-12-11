@@ -100,7 +100,7 @@ class SocketController extends GetxController with WidgetsBindingObserver  {
     });
 
     socket?.onReconnectAttempt((_) {
-      print("🔄 Trying to reconnect...");
+      debugPrint("🔄 Trying to reconnect...");
     });
 
     socket?.onReconnect((_) {
@@ -213,6 +213,32 @@ class SocketController extends GetxController with WidgetsBindingObserver  {
 
       } catch (e) {
         debugPrint("recent update error: $e");
+      }
+    });
+
+    socket?.off('update_recent_task_list');
+    socket?.on('update_recent_task_list', (messages) {
+      debugPrint("update_recent_task_list ${jsonEncode(messages.toString())}");
+      try {
+        final taskhomeC = Get.find<TaskHomeController>();
+        final updated = UserDataAPI.fromJson(messages);
+
+        // ALWAYS use the RxList directly
+        final list = taskhomeC.filteredList;
+
+        // 1️⃣ Remove old entry
+        list.removeWhere((e) =>
+        e.userCompany?.userCompanyId ==
+            updated.userCompany?.userCompanyId);
+
+        // 2️⃣ Insert new one at TOP
+        list.insert(0, updated);
+
+        // 3️⃣ Force RxList rebuild
+        taskhomeC.filteredList.refresh();
+
+      } catch (e) {
+        debugPrint("recent update task error: $e");
       }
     });
 
@@ -502,130 +528,11 @@ class SocketController extends GetxController with WidgetsBindingObserver  {
     socket?.off('joined_task');
     socket?.on('joined_task', (data) {
     try {
-      print("Joined task listen");
+      debugPrint("Joined task listen");
     }
         catch(e){
-          print("Something went wrong Joined task");
+          debugPrint("Something went wrong Joined task");
         }
-    });
-  }
-
-  _updateRecentsUserListener(){
-    socket?.off('update_recent_list');
-    socket?.on('update_recent_list', (messages) {
-      debugPrint("update_recent_list ${jsonEncode(messages.toString())}");
-      try {
-        final chatController = Get.find<ChatHomeController>();
-        final updated = UserDataAPI.fromJson(messages);
-
-        final meId = APIs.me.userId?.toString();
-        // final fromId = updated.fromUser?.userId?.toString();
-        // final toId   = updated.toUser?.userId?.toString();
-
-        // if (fromId == meId || toId == meId) {
-          final list = chatController.filteredList.value ?? [];
-          final idx  = list.indexWhere((t) => t.userId == updated.userId);
-
-          if (idx != -1) {
-            final old = list[idx];
-            old.userId= updated.userId??old.userId;
-            old.userName= updated.userName??old.userName;
-            old.displayName= updated.displayName??old.displayName;
-            old.phone= updated.phone??old.phone;
-            old.createdBy= updated.createdBy??old.createdBy;
-            old.isAdmin= updated.isAdmin??old.isAdmin;
-            old.email= updated.email??old.email;
-            old.about= updated.about??old.about;
-            old.createdOn= updated.createdOn??old.createdOn;
-            old.isActive= updated.isActive??old.isActive;
-            old.userImage= updated.userImage??old.userImage;
-            old.userKey= updated.userKey??old.userKey;
-            old.updatedOn= updated.updatedOn??old.updatedOn;
-            old.otp= updated.otp??old.otp;
-            old.allowedCompanies= updated.allowedCompanies??old.allowedCompanies;
-            old.isDeleted= updated.isDeleted ??old.isDeleted;
-            old.userCompany= updated.userCompany ??old.userCompany;
-            old.lastMessage= updated.lastMessage ??old.lastMessage;
-            old.memberCount= updated.memberCount ??old.memberCount;
-            old.pendingCount= updated.pendingCount ??old.pendingCount;
-            old.pending_task_count= updated.pending_task_count ??old.pending_task_count;
-            old.unread_msg_count= updated.unread_msg_count ??old.unread_msg_count;
-            old.invitedBy= updated.invitedBy ??old.invitedBy;
-            old.invitedOn= updated.invitedOn ??old.invitedOn;
-            old.joinedOn= updated.joinedOn ??old.joinedOn;
-            old.open_count= updated.open_count ??old.open_count;
-            old.pushToken= updated.pushToken ??old.pushToken;
-            // old.media=(updated.media?.isNotEmpty ?? false)? updated.media:old.media;
-            chatController.update();
-            final gIdx = chatController.filteredList
-                .indexWhere((g) => g.userId == updated.userId);
-            if (gIdx != -1) {
-              chatController.filteredList[gIdx].userId= old.userId;
-            }
-          } else {
-            list.insert(0, updated);
-            chatController.filteredList.refresh();
-          }
-        // }
-      } catch (e) {
-        debugPrint('update_recent error: $e');
-      }
-
-
-
-
-
-
-
-
-/*
-      try {
-        final chatHome = Get.find<ChatHomeController>();
-
-        final receivedMessageDataModal = UserDataAPI.fromJson(messages);
-
-        // --- 1. remove if already exists (avoid duplicates)
-        chatHome.filteredList.removeWhere(
-                (u) => u.userCompany?.userCompanyId == receivedMessageDataModal.userCompany?.userCompanyId
-        );
-        UserDataAPI chatMessageItems = UserDataAPI(
-          userId: receivedMessageDataModal.userId,
-          userName: receivedMessageDataModal.userName,
-          displayName: receivedMessageDataModal.displayName,
-          phone: receivedMessageDataModal.phone,
-          createdBy: receivedMessageDataModal.createdBy,
-          isAdmin: receivedMessageDataModal.isAdmin,
-          email: receivedMessageDataModal.email,
-          about: receivedMessageDataModal.about,
-          createdOn: receivedMessageDataModal.createdOn,
-          isActive: receivedMessageDataModal.isActive,
-          userImage: receivedMessageDataModal.userImage,
-          userKey: receivedMessageDataModal.userKey,
-          updatedOn: receivedMessageDataModal.updatedOn,
-          otp: receivedMessageDataModal.otp,
-          allowedCompanies: receivedMessageDataModal.allowedCompanies,
-          isDeleted: receivedMessageDataModal.isDeleted,
-          userCompany: receivedMessageDataModal.userCompany,
-          lastMessage: receivedMessageDataModal.lastMessage,
-          memberCount: receivedMessageDataModal.memberCount,
-          pendingCount: receivedMessageDataModal.pendingCount,
-          pending_task_count: receivedMessageDataModal.pending_task_count,
-          unread_msg_count: receivedMessageDataModal.unread_msg_count,
-          invitedBy: receivedMessageDataModal.invitedBy,
-          invitedOn: receivedMessageDataModal.invitedOn,
-          joinedOn: receivedMessageDataModal.joinedOn,
-          open_count: receivedMessageDataModal.open_count,
-          pushToken: receivedMessageDataModal.pushToken,
-        );
-        // --- 2. insert at top
-        chatHome.filteredList?.insert(0, chatMessageItems);
-        chatHome.filteredList.refresh();
-        chatHome.update();
-        // --- 3. update UI
-      } catch (e) {
-        debugPrint(e.toString());
-      }*/
-
     });
   }
 
@@ -783,41 +690,73 @@ class SocketController extends GetxController with WidgetsBindingObserver  {
       "from_uc_id": fromUcID,
       "is_group_chat": is_group_chat,
     });
-    print("to_uc_id: $ucID,company_id : $companyId,from_uc_id : $fromUcID ,is_group_chat : $is_group_chat");
+    debugPrint("to_uc_id: $ucID,company_id : $companyId,from_uc_id : $fromUcID ,is_group_chat : $is_group_chat");
   }
 
   void setupSocketListeners() {
 
 
-    // if(Get.isRegistered<ChatScreenController>()){
 
-      socket?.off('read_message_listener');
+    /*socket?.off('read_message_listener');
     socket?.on('read_message_listener', (data) {
-      print("read_message_listener ,${jsonEncode(data)}");
-      ChatHomeController chatDetailController =
-      Get.find<ChatHomeController>();
-      final int toID = data['to_uc_id'];
+      debugPrint("read_message_listener: ${jsonEncode(data)}");
+
+      final chatController = Get.find<ChatHomeController>();
+      final chatRoomController = Get.find<ChatScreenController>();
+      final int toId = data['to_uc_id'];
       final int fromId = data['from_uc_id'];
-      // final String? readOnStr = data['read_on'];
-      // final String? readOn = readOnStr != null ?readOnStr: null;
-      // print('read_message_listener chatId : $chatId , readOnStr : $readOnStr,data : ${jsonEncode(data)} ');
-      // final idx = (chatDetailController.chatCatygory ?? []).indexWhere((m) => m.chatMessageItems.chatId == chatId);
-      // if (idx != -1) {
-      //   (chatDetailController.chatCatygory ?? [])[idx].chatMessageItems.readOn = readOn; // update with backend time
-      //   // (chatDetailController.chatCatygory ?? [])[idx].chatMessageItems.pendingCount = readOn; // update with backend time
-      //   update(); // if you're using GetX
-      //   _rebuildCategories();
-      // }
-      chatDetailController.filteredList.map((v){
-        if(v.userId==toID){
-          v.pendingCount = 0;
+      for (var item in chatController.filteredList) {
+        if (item.userCompany?.userCompanyId == fromId) {
+          item.pendingCount = 0;
+          for(var i in chatRoomController.chatCatygory){
+            if (fromId == i.chatMessageItems.fromUser?.userCompany?.userCompanyId) {
+              i.chatMessageItems.readOn = DateTime.now().millisecondsSinceEpoch.toString();
+            }
+          }
+          break;
         }
-      });
-      chatDetailController.filteredList.refresh();
+      }
 
+      chatController.filteredList.refresh();
+      chatRoomController.update();
+    });*/
+
+    socket?.off('read_message_listener');
+    socket?.on('read_message_listener', (data) {
+      debugPrint("read_message_listener: ${jsonEncode(data)}");
+
+      final chatController = Get.find<ChatHomeController>();
+      final chatRoomController = Get.find<ChatScreenController>();
+
+      final int toId = data['to_uc_id'];     // user who RECEIVED the message
+      final int fromId = data['from_uc_id']; // user who SENT the message
+      final int myUcId = APIs.me.userCompany?.userCompanyId??0; // your own UC ID
+
+      // Only update when YOU are the receiver
+      if (toId == myUcId) {
+        // 1️⃣ Update unread count on Recents List
+        for (var chat in chatController.filteredList) {
+          if (chat.userCompany?.userCompanyId == fromId) {
+            chat.pendingCount = 0;
+            break;
+          }
+        }
+
+        // 2️⃣ Update messages in Active Chat Screen
+        for (var group in chatRoomController.chatCatygory) {
+          final msg = group.chatMessageItems;
+
+          // Only mark messages sent BY that user AND to you
+          if (msg.fromUser?.userCompany?.userCompanyId == fromId &&
+              msg.toUser?.userCompany?.userCompanyId == myUcId) {
+            msg.readOn = DateTime.now().millisecondsSinceEpoch.toString();
+          }
+        }
+
+        chatController.filteredList.refresh();
+        chatRoomController.update();
+      }
     });
-
-  // }
 
 }
   void deleteMsgEmitter(
@@ -838,7 +777,7 @@ class SocketController extends GetxController with WidgetsBindingObserver  {
       "company_id":comid
     });
 
-    print("Delete task for TaskId : $taskId || CompanyID: $comid");
+    debugPrint("Delete task for TaskId : $taskId || CompanyID: $comid");
   }
 
   void joinTaskEmitter(
@@ -1059,7 +998,7 @@ class SocketController extends GetxController with WidgetsBindingObserver  {
           "task_status_id": taskStatusId,
           "files": attachmentsList
         });
-        debugPrint("Update task sent: ======== task_id: $taskID,task_id: ${attachmentsList}, title:  $taskTitle ,receiverId: $receiverId ,companyId : $companyId, taskStatusId:$taskStatusId");
+        debugPrint("Update task sent: ======== task_id: $taskID,attachmentsList: ${attachmentsList}, title:  $taskTitle ,receiverId: $receiverId ,companyId : $companyId, taskStatusId:$taskStatusId");
 
         final svc = CompanyService.to;
         final myCompany = svc.selected;

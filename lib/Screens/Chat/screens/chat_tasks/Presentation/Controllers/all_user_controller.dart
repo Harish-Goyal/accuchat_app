@@ -40,7 +40,7 @@ class AllUserController extends GetxController{
   }
   getAllUsers(){
     if(isRecent == 'true' &&!isTaskMode){
-      hitAPIToGetRecentChats();
+      hitAPIToGetRecentChats(searchQuery);
     }else{
       hitAPIToGetMember();
     }
@@ -73,6 +73,7 @@ class AllUserController extends GetxController{
       isLoading = false;
       comMemResModel=value;
       userList = value.data??[];
+
       filteredList = userList;
       update();
     }).onError((error, stackTrace) {
@@ -81,11 +82,11 @@ class AllUserController extends GetxController{
     });
   }
 
-  hitAPIToGetRecentChats() async {
+  hitAPIToGetRecentChats(String? searchT) async {
     isLoading=true;
     update();
     Get.find<PostApiServiceImpl>()
-        .getRecentChatUserApiCall(comId:myCompany?.companyId,page: page)
+        .getRecentChatUserApiCall(comId:myCompany?.companyId,page: page,searchText: searchT??'')
         .then((value) async {
       isLoading = false;
       userList = value.data?.rows??[];

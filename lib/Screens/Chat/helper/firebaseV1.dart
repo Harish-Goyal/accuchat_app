@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:googleapis_auth/auth_io.dart';
 import 'package:http/http.dart' as http;
@@ -37,9 +38,9 @@ Future<void> sendFcmPushV1({
   final response = await client.post(url, body: jsonEncode(message));
 
   if (response.statusCode == 200) {
-    print('✅ FCM v1 Notification sent!');
+    debugPrint('✅ FCM v1 Notification sent!');
   } else {
-    print('❌ Failed to send FCM v1 notification: ${response.body}');
+    debugPrint('❌ Failed to send FCM v1 notification: ${response.body}');
   }
 
   client.close();

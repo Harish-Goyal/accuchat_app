@@ -61,7 +61,7 @@ abstract class PostApiService {
   Future<SuccessResponseModel> deleteCompanyApiCall({compId});
   Future<TaskAttachmentResModel> uplaodTaskAttachmentsAPICall(
       {required FormData dataBody});
-  Future<TaskHisResModel> getTaskHistoryApiCall({userComId, page, statusId});
+  Future<TaskHisResModel> getTaskHistoryApiCall({userComId, page, statusId,searchText});
 
   Future<RecentTaskUserData> getRecentTaskUserApiCall(
       {comId, page, searchText});

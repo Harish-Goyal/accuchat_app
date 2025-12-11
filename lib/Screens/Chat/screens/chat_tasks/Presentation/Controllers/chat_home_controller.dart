@@ -1,5 +1,8 @@
+import 'dart:async';
+
 import 'package:AccuChat/Screens/Chat/models/recent_chat_user_res_model.dart';
 import 'package:AccuChat/Screens/Home/Presentation/Controller/socket_controller.dart';
+import 'package:flutter/foundation.dart';
 import 'package:get/get.dart';
 import 'package:AccuChat/Screens/Home/Presentation/Controller/home_controller.dart';
 import 'package:flutter/cupertino.dart';
@@ -11,6 +14,7 @@ import '../../../../../../Services/storage_service.dart';
 import '../../../../../../main.dart';
 import '../../../../../../routes/app_routes.dart';
 import '../../../../../../utils/custom_flashbar.dart';
+import '../../../../../Home/Models/get_pending_sent_invites_res_model.dart';
 import '../../../../../Home/Presentation/Controller/company_service.dart';
 import '../../../../api/apis.dart';
 import '../../../../models/chat_user.dart';
@@ -30,18 +34,43 @@ class ChatHomeController extends GetxController{
   List<ChatGroup> grouplist = [];
   final List<ChatUser> searchList = [];
   RxBool isSearching = false.obs;
+  // RxBool loadingCompany = false.obs;
+  String? selectedCompanyId;
   TextEditingController seacrhCon = TextEditingController();
   String searchQuery = '';
-
   Future<void> onCompanyChanged(int? companyId) async => hitAPIToGetRecentChats();
 
   final dash = Get.put(DashboardController());
+  var selectedCompany = Rxn<CompanyData>();     // Rx nullable object
+  var joinedCompaniesList = <CompanyData>[].obs; // Rx list
+  var loadingCompany = false.obs;
+  CompanyResModel companyResModel = CompanyResModel();
+  hitAPIToGetCompanies() async {
+    loadingCompany.value = true;
+    Get.find<PostApiServiceImpl>()
+        .getJoinedCompanyListApiCall()
+        .then((value) async {
+      loadingCompany.value = false;
+      companyResModel = value;
+      joinedCompaniesList.value = value.data ?? [];
+      selectedCompany.value = joinedCompaniesList.firstWhere(
+            (c) => c.companyId == myCompany?.companyId,  // already logged-in company
+        orElse: () => joinedCompaniesList.first,
+      );
+      update();
+    }).onError((error, stackTrace) {
+      loadingCompany.value = false;
+    });
+  }
+
+
   @override
   void onInit() {
 
     getCompany();
 
     Future.delayed(const Duration(milliseconds: 200),(){
+      resetPaginationForNewChat();
       hitAPIToGetRecentChats();
     }
     );
@@ -59,7 +88,7 @@ class ChatHomeController extends GetxController{
     //
     //   return Future.value(message);
     // });
-
+    // hitAPIToGetCompanies();
     super.onInit();
   }
 
@@ -68,67 +97,136 @@ class ChatHomeController extends GetxController{
     if(Get.isRegistered<CompanyService>()) {
       final svc = CompanyService.to;
       myCompany = svc.selected;
+      // selectedCompany.value = svc.selected;
       update();
     }
 
   }
 
+  List<SentInvitesData> sentInviteList = [];
+
+  bool isLoadingPending = true;
+
+  hitAPIToGetSentInvites(
+      {CompanyData? companyData, bool isMember = false}) async {
+    isLoadingPending = true;
+    update();
+    await Get.find<PostApiServiceImpl>()
+        .getPendingSentInvitesApiCall(companyData?.companyId)
+        .then((value) async {
+      isLoadingPending = false;
+      sentInviteList = value.data ?? [];
+    }).onError((error, stackTrace) {
+      toast(error.toString());
+      customLoader.hide();
+    });
+  }
+
   int page =1;
   bool isLoading =false;
+  bool isPageLoading =false;
   bool hasMore = true;
   RecentChatsUserResModel recentChatsUserResModel = RecentChatsUserResModel();
+  bool showPostShimmer = true;
 
   ScrollController scrollController = ScrollController();
 
   scrollListener() {
-    scrollController.addListener(() {
-      if (scrollController.position.pixels ==
-          scrollController.position.maxScrollExtent &&
-          !isLoading &&
-          hasMore) {
-        hitAPIToGetRecentChats();
-      }
-    });
+    if (kIsWeb) {
+      scrollController.addListener(() {
+        if (scrollController.position.pixels >=
+            scrollController.position.maxScrollExtent - 100 &&
+            !isPageLoading && hasMore) {
+          // resetPaginationForNewChat();
+          hitAPIToGetRecentChats();
+        }
+      });
+    } else {
+      scrollController.addListener(() {
+        if (scrollController.position.pixels <=
+            scrollController.position.minScrollExtent + 50 &&
+            !isPageLoading&& hasMore ) {
+          // resetPaginationForNewChat();
+          hitAPIToGetRecentChats();
+        }
+      });
+    }
+  }
+  void resetPaginationForNewChat() {
+    page = 1;
+    hasMore = true;
+    filteredList.clear();
+    showPostShimmer = true;
+    update();
   }
 
   List<UserDataAPI>? recentChatUserList=[];
 
-  hitAPIToGetRecentChats() async {
-    isLoading=true;
+
+
+
+  hitAPIToGetRecentChats({String? search}) async {
+    if(page==1){
+      showPostShimmer = true;
+    }
+    isPageLoading = true;
     update();
     Get.find<PostApiServiceImpl>()
-        .getRecentChatUserApiCall(comId:myCompany?.companyId,page: page)
+        .getRecentChatUserApiCall(comId:myCompany?.companyId,page: page,searchText: search??'')
         .then((value) async {
       isLoading = false;
       update();
       recentChatsUserResModel=value;
       recentChatUserList=value.data?.rows??[];
-      filteredList.assignAll(recentChatUserList??[]);
-      if(filteredList.isNotEmpty) {
-        if(selectedChat.value?.userId!=null){
-
-        }else{
-          selectedChat.value = filteredList[0];
+      if (value.data?.rows != null && (value.data?.rows ?? []).isNotEmpty) {
+        if (page == 1) {
+          filteredList.value = value.data?.rows ?? [];
+        } else {
+          filteredList.assignAll(recentChatUserList??[]);
         }
+          if(selectedChat.value?.userId!=null){
+          }else{
+            selectedChat.value = filteredList[0];
+          }
 
-      }
-
-
-      final List<UserDataAPI> newItems = [];
-
-      if (newItems.isNotEmpty) {
-        page++;
-        filteredList.addAll(newItems);
-        if (newItems.length < 20) {
-          hasMore = false;
-        }
-        update();
+        page++; // next page
+        // Get.find<ChatScreenController>().openConversation(selectedChat.value);
       } else {
         hasMore = false;
+        isPageLoading = false;
         update();
       }
+      showPostShimmer = false;
+      isPageLoading = false;
+      update();
+      // filteredList.assignAll(recentChatUserList??[]);
+      // if(filteredList.isNotEmpty) {
+      //   if(selectedChat.value?.userId!=null){
+      //
+      //   }else{
+      //     selectedChat.value = filteredList[0];
+      //   }
+      //
+      // }
+      //
+      //
+      // final List<UserDataAPI> newItems = [];
+      //
+      // if (newItems.isNotEmpty) {
+      //   page++;
+      //   filteredList.addAll(newItems);
+      //   if (newItems.length < 20) {
+      //     hasMore = false;
+      //   }
+      //   update();
+      // } else {
+      //   hasMore = false;
+      //   update();
+      // }
     }).onError((error, stackTrace) {
-      isLoading = false;
+      showPostShimmer = false;
+      isPageLoading = false;
+      update();
       update();
     });
   }
@@ -173,21 +271,19 @@ class ChatHomeController extends GetxController{
 
 
 
+  Timer? searchDelay;
   void onSearch(String query) {
-    searchQuery = query.toLowerCase();
-
-    if (query.isEmpty) {
-      filteredList.assignAll(recentChatUserList ?? []);
-    } else {
-      final result = recentChatUserList!.where((item) {
-        return (item.displayName ?? '').toLowerCase().contains(searchQuery) ||
-            (item.email ?? '').toLowerCase().contains(searchQuery) ||
-            (item.userName ?? '').toLowerCase().contains(searchQuery) ||
-            (item.phone ?? '').contains(searchQuery);
-      }).toList();
-      filteredList.assignAll(result);
-    }
+    searchDelay?.cancel();
+    searchDelay = Timer(const Duration(milliseconds: 400), () {
+      searchQuery = query.trim().toLowerCase();
+      page = 1;
+      hasMore = true;
+      filteredList.clear();
+      update();
+      hitAPIToGetRecentChats(search: searchQuery.isEmpty ? null : searchQuery);
+    });
   }
+
 
 }
 
@@ -199,9 +295,9 @@ class AuthGuard extends GetMiddleware {
     final String? token = StorageService.getToken();
     final bool loggedIn = StorageService.isLoggedInCheck();
 
-    print("token=======================");
-    print(token);
-    print(loggedIn);
+    debugPrint("token=======================");
+    debugPrint(token);
+    debugPrint(loggedIn.toString());
 
     if (token == null) return const RouteSettings(name: AppRoutes.login_r);
     if (!loggedIn)   return const RouteSettings(name: AppRoutes.landing_r);

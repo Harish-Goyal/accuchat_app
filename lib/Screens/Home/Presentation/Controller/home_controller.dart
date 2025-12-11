@@ -312,7 +312,6 @@ class DashboardController extends GetxController with WidgetsBindingObserver {
 
   Future<void> hitAPIToGetUser(comid) async {
     FocusManager.instance.primaryFocus!.unfocus();
-    print("Home user");
     Get.find<AuthApiServiceImpl>()
         .getUserApiCall(companyId: comid)
         .then((value) async {

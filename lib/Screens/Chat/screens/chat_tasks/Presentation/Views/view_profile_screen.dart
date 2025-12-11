@@ -16,6 +16,7 @@ import '../../../../../../main.dart';
 import '../../../../../../routes/app_routes.dart';
 import '../../../../helper/my_date_util.dart';
 import '../../../../models/chat_user.dart';
+import '../Widgets/profile_zoom.dart';
 import '../dialogs/profile_dialog.dart';
 
 //view profile screen -- to view profile of user
@@ -79,27 +80,29 @@ class ViewProfileScreen extends GetView<ViewProfileController> {
               child: SingleChildScrollView(
                 child: Column(
                   children: [
-                     InkWell(
-                            borderRadius: BorderRadius.circular(100),
-                            onTap: () =>
-                                controller.user?.userId == APIs.me.userId
-                                    ? Get.toNamed(AppRoutes.h_profile)
-                                    :
-                                    showDialog(
-                                        context: context,
-                                        builder: (_) => ProfileDialog(user: controller.user))
-                                 ,
-                            child: CustomCacheNetworkImage(
-                              "${ApiEnd.baseUrlMedia}${controller.user?.userImage ?? ''}",
-                              height: 100,
-                              width: 100,
-                              radiusAll: 100,
-                              boxFit: BoxFit.cover,
-                              defaultImage: userIcon,
-                                borderColor: greyText,
-                            ),
-                          ),
-
+                    InkWell(
+                      borderRadius: BorderRadius.circular(100),
+                      onTap: () => controller.user?.userId == APIs.me.userId
+                          ? Get.toNamed(AppRoutes.h_profile)
+                          : controller.user?.userImage != null
+                              ? Get.to(() => ProfileZoom(
+                                  imagePath:
+                                      "${ApiEnd.baseUrlMedia}${controller.user?.userImage ?? ''}",
+                                  heroTag: "DetailedProfile"))
+                              : showDialog(
+                                  context: context,
+                                  builder: (_) =>
+                                      ProfileDialog(user: controller.user)),
+                      child: CustomCacheNetworkImage(
+                        "${ApiEnd.baseUrlMedia}${controller.user?.userImage ?? ''}",
+                        height: 100,
+                        width: 100,
+                        radiusAll: 100,
+                        boxFit: BoxFit.cover,
+                        defaultImage: userIcon,
+                        borderColor: greyText,
+                      ),
+                    ),
                     vGap(10),
                     Text(
                         controller.user?.email == null ||
@@ -112,22 +115,19 @@ class ViewProfileScreen extends GetView<ViewProfileController> {
                       'About:',
                       style: BalooStyles.baloosemiBoldTextStyle(),
                     ),
-
-
-                 Container(
-                            padding: const EdgeInsets.all(8),
-                            decoration: BoxDecoration(
-                              color: Colors.grey.shade100,
-                              borderRadius: BorderRadius.circular(12),
-                            ),
-                            child: Text(controller.user?.about ?? 'I am using Accuchat!',
-                                    style: BalooStyles.baloonormalTextStyle(
-                                        size: 13),
-                                    maxLines: 2,
-                                    overflow: TextOverflow.ellipsis)
-                                .paddingSymmetric(horizontal: 8),
-                          ) ,
-
+                    Container(
+                      padding: const EdgeInsets.all(8),
+                      decoration: BoxDecoration(
+                        color: Colors.grey.shade100,
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                      child: Text(
+                              controller.user?.about ?? 'I am using Accuchat!',
+                              style: BalooStyles.baloonormalTextStyle(size: 13),
+                              maxLines: 2,
+                              overflow: TextOverflow.ellipsis)
+                          .paddingSymmetric(horizontal: 8),
+                    ),
                     vGap(15),
                     const ProfileMediaSectionGetX(baseUrl: ApiEnd.baseUrlMedia),
                   ],

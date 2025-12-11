@@ -76,6 +76,7 @@ class TaskData {
   List<TaskMedia>? media;
   CurrentStatus? currentStatus;
   List<StatusHistory>? statusHistory;
+  List<TaskMember>? members;
 
   TaskData(
       {this.taskId,
@@ -84,6 +85,7 @@ class TaskData {
         this.title,
         this.details,
         this.createdOn,
+        this.members,
         this.startDate,
         this.commentCount,
         this.endDate,
@@ -121,6 +123,13 @@ class TaskData {
         statusHistory!.add(new StatusHistory.fromJson(v));
       });
     }
+
+    if (json['members'] != null) {
+      members = <TaskMember>[];
+      json['members'].forEach((v) {
+        members!.add(new TaskMember.fromJson(v));
+      });
+    }
   }
 
   Map<String, dynamic> toJson() {
@@ -149,10 +158,38 @@ class TaskData {
       data['status_history'] =
           this.statusHistory!.map((v) => v.toJson()).toList();
     }
+    if (this.members != null) {
+      data['members'] = this.members!.map((v) => v.toJson()).toList();
+    }
     return data;
   }
 }
 
+
+class TaskMember {
+  int? userCompanyId;
+  String? finalName;
+  String? userName;
+  String? phone;
+
+  TaskMember({this.userCompanyId, this.finalName, this.userName, this.phone});
+
+  TaskMember.fromJson(Map<String, dynamic> json) {
+    userCompanyId = json['user_company_id'];
+    finalName = json['final_name'];
+    userName = json['user_name'];
+    phone = json['phone'];
+  }
+
+  Map<String, dynamic> toJson() {
+    final Map<String, dynamic> data = new Map<String, dynamic>();
+    data['user_company_id'] = this.userCompanyId;
+    data['final_name'] = this.finalName;
+    data['user_name'] = this.userName;
+    data['phone'] = this.phone;
+    return data;
+  }
+}
 
 
 class TaskMedia {

@@ -63,6 +63,7 @@ class ChatScreenController extends GetxController {
   var userIDReceiver;
   var refIdis;
 
+
   final ItemScrollController itemScrollController = ItemScrollController();
   final ItemPositionsListener itemPositionsListener =
       ItemPositionsListener.create();
@@ -95,6 +96,26 @@ class ChatScreenController extends GetxController {
 
   List<ChatRow> flatRows = [];
   final Map<int, int> chatIdToIndex = {}; // chatId -> index in flatRows
+  bool isSearching = false;
+  String searchQuery = '';
+  TextEditingController seacrhCon = TextEditingController();
+
+  Timer? searchDelay;
+  void onSearch(String query) {
+    searchDelay?.cancel();
+
+    searchDelay = Timer(const Duration(milliseconds: 400), () {
+      searchQuery = query.trim().toLowerCase();
+
+      page = 1;
+      hasMore = true;
+      chatHisList = [];
+      update();
+
+      hitAPIToGetChatHistory(searchQuery: searchQuery.isEmpty ? null : searchQuery);
+    });
+
+  }
 
   // Call this whenever chatCatygory changes
   void rebuildFlatRows() {
@@ -396,6 +417,7 @@ class ChatScreenController extends GetxController {
     Future.delayed(const Duration(milliseconds: 500), () {
       resetPaginationForNewChat();
       hitAPIToGetChatHistory();
+      messageInputFocus.requestFocus();
       if (user?.userCompany?.isGroup == 1 ||
           user?.userCompany?.isBroadcast == 1) {
         hitAPIToGetMembers(user);
@@ -459,7 +481,8 @@ class ChatScreenController extends GetxController {
       scrollController.addListener(() {
         if (scrollController.position.pixels >=
                 scrollController.position.maxScrollExtent - 100 &&
-            !isPageLoading && hasMore) {
+            !isPageLoading &&
+            hasMore) {
           // resetPaginationForNewChat();
           hitAPIToGetChatHistory();
         }
@@ -468,7 +491,8 @@ class ChatScreenController extends GetxController {
       scrollController.addListener(() {
         if (scrollController.position.pixels <=
                 scrollController.position.minScrollExtent + 50 &&
-            !isPageLoading&& hasMore ) {
+            !isPageLoading &&
+            hasMore) {
           // resetPaginationForNewChat();
           hitAPIToGetChatHistory();
         }
@@ -485,8 +509,9 @@ class ChatScreenController extends GetxController {
     update();
   }
 
-  hitAPIToGetChatHistory() async {
-    if(page==1){
+  hitAPIToGetChatHistory({String? searchQuery}) async {
+
+    if (page == 1) {
       showPostShimmer = true;
     }
 
@@ -496,7 +521,7 @@ class ChatScreenController extends GetxController {
         .getChatHistoryApiCall(
             userComId: user?.userCompany?.userCompanyId,
             page: page,
-            searchText: '')
+            searchText: searchQuery??'')
         .then((value) async {
       showPostShimmer = false;
       chatHisResModelAPI = value;
@@ -531,7 +556,7 @@ class ChatScreenController extends GetxController {
       showPostShimmer = false;
       isPageLoading = false;
       update();
-      messageInputFocus.requestFocus();
+
     }).onError((error, stackTrace) {
       showPostShimmer = false;
       isPageLoading = false;
@@ -1019,7 +1044,7 @@ class ChatScreenController extends GetxController {
   Future<void> handleForward({required chatId}) async {
     final selectedUser = await showDialog<UserDataAPI>(
       context: Get.context!,
-      builder: (_) => const AllUserScreenDialog(),
+      builder: (_) =>  AllUserScreenDialog(),
     );
     if (selectedUser == null) return;
     final socket = Get.find<SocketController>();

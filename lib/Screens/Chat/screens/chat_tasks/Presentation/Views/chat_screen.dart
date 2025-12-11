@@ -3,6 +3,7 @@ import 'dart:math' as math;
 import 'package:AccuChat/Screens/Chat/api/apis.dart';
 import 'package:AccuChat/Screens/Chat/screens/chat_tasks/Presentation/Controllers/task_home_controller.dart';
 import 'package:AccuChat/utils/text_button.dart';
+import 'package:flutter/cupertino.dart';
 import 'package:flutter_linkify/flutter_linkify.dart';
 import 'package:share_plus/share_plus.dart';
 import 'package:url_launcher/url_launcher.dart';
@@ -89,9 +90,9 @@ double _maxContentWidth(double w) {
 EdgeInsets _shellHPadding(BuildContext context) {
   if (!kIsWeb) return EdgeInsets.zero;
   final w = MediaQuery.of(context).size.width;
-  if (w >= 1600) return const EdgeInsets.symmetric(horizontal: 24);
-  if (w >= 1366) return const EdgeInsets.symmetric(horizontal: 20);
-  if (w >= 1200) return const EdgeInsets.symmetric(horizontal: 16);
+  if (w >= 1600) return const EdgeInsets.symmetric(horizontal: 15);
+  if (w >= 1366) return const EdgeInsets.symmetric(horizontal: 15);
+  if (w >= 1200) return const EdgeInsets.symmetric(horizontal: 15);
   return const EdgeInsets.symmetric(horizontal: 12);
 }
 
@@ -635,7 +636,25 @@ class ChatScreen extends GetView<ChatScreenController> {
                             : CrossAxisAlignment.start,
                         children: [
                           InkWell(
-                            borderRadius: BorderRadius.circular(20),
+                            borderRadius:sentByMe
+                      ? BorderRadius.only(
+                      topLeft: Radius.circular(
+                      (data.media ?? []).isNotEmpty
+                          ? 15
+                          : 50),
+                      topRight: Radius.circular(
+                          (data.media ?? []).isNotEmpty
+                              ? 15
+                              : 50),
+                      bottomLeft: Radius.circular(
+                          (data.media ?? []).isNotEmpty
+                              ? 15
+                              : 50))
+                      : BorderRadius.only(
+                    topLeft: Radius.circular(
+                        (data.media ?? []).isNotEmpty ? 15 : 50),
+                    topRight: Radius.circular((data.media ?? []).isNotEmpty ? 15 : 50),
+                    bottomRight: Radius.circular((data.media ?? []).isNotEmpty ? 15 : 50)),
                             // mouseCursor: SystemMouseCursors.click,
                             onDoubleTap: () {
                               SystemChannels.textInput
@@ -652,9 +671,9 @@ class ChatScreen extends GetView<ChatScreenController> {
                               ),
                               margin: sentByMe
                                   ? const EdgeInsets.only(
-                                      left: 25, top: 10, right: 15)
+                                      left: 6, top: 10, right: 6)
                                   : const EdgeInsets.only(
-                                      right: 25, top: 10, left: 15),
+                                      right: 6, top: 10, left: 6),
 
                               decoration: BoxDecoration(
                                   color: sentByMe
@@ -669,20 +688,20 @@ class ChatScreen extends GetView<ChatScreenController> {
                                           topLeft: Radius.circular(
                                               (data.media ?? []).isNotEmpty
                                                   ? 15
-                                                  : 30),
+                                                  : 50),
                                           topRight: Radius.circular(
                                               (data.media ?? []).isNotEmpty
                                                   ? 15
-                                                  : 30),
+                                                  : 50),
                                           bottomLeft: Radius.circular(
                                               (data.media ?? []).isNotEmpty
                                                   ? 15
-                                                  : 30))
+                                                  : 50))
                                       : BorderRadius.only(
                                           topLeft: Radius.circular(
-                                              (data.media ?? []).isNotEmpty ? 15 : 30),
-                                          topRight: Radius.circular((data.media ?? []).isNotEmpty ? 15 : 30),
-                                          bottomRight: Radius.circular((data.media ?? []).isNotEmpty ? 15 : 30))),
+                                              (data.media ?? []).isNotEmpty ? 15 : 50),
+                                          topRight: Radius.circular((data.media ?? []).isNotEmpty ? 15 : 50),
+                                          bottomRight: Radius.circular((data.media ?? []).isNotEmpty ? 15 : 50))),
                               child: messageTypeView(data, sentByMe: sentByMe),
                             ),
                           ),
@@ -727,7 +746,7 @@ class ChatScreen extends GetView<ChatScreenController> {
                         )
                       : const SizedBox()
                 ],
-              ).marginOnly(left: 15, right: 15),
+              ).marginOnly(left: 0, right: 0),
             ],
           );
   }
@@ -884,7 +903,27 @@ class ChatScreen extends GetView<ChatScreenController> {
   Widget _appBar() {
     return Row(
       children: [
-        Expanded(
+        controller.isSearching
+            ? Expanded(
+              child: TextField(
+                        controller: controller.seacrhCon,
+                        cursorColor: appColorGreen,
+                        decoration: const InputDecoration(
+                border: InputBorder.none,
+                hintText: 'Search User, Group & Collection ...',
+                contentPadding: EdgeInsets.symmetric(
+                    vertical: 0, horizontal: 10),
+                constraints: BoxConstraints(maxHeight: 45)),
+                        autofocus: true,
+                        style: const TextStyle(
+                fontSize: 13, letterSpacing: 0.5),
+                        onChanged: (val) {
+              controller.searchQuery = val;
+              controller.onSearch(val);
+                        },
+                      ).marginSymmetric(vertical: 10),
+            )
+            :  Expanded(
           child: InkWell(
             onTap: () {
               if (!(controller.user?.userCompany?.isGroup == 1 ||
@@ -922,7 +961,7 @@ class ChatScreen extends GetView<ChatScreenController> {
                             Get.back();
                           } else {
                             Get.offAllNamed(
-                                AppRoutes.home); // or your main route
+                                AppRoutes.home);
                           }
                           if (!kIsWeb) {
                             Get.find<ChatHomeController>()
@@ -953,7 +992,7 @@ class ChatScreen extends GetView<ChatScreenController> {
                 ),
 
                 //for adding some space
-                const SizedBox(width: 10),
+                hGap(10),
 
                 //user name & last seen time
                 Column(
@@ -1013,10 +1052,9 @@ class ChatScreen extends GetView<ChatScreenController> {
             ),
           ),
         ),
-        (controller.user?.userCompany?.isBroadcast==1 ||controller.user?.userCompany?.isGroup==1) ?SizedBox():  CustomTextButton(onTap: (){
+        controller.isSearching?SizedBox():  (controller.user?.userCompany?.isBroadcast==1 ||controller.user?.userCompany?.isGroup==1) ?SizedBox():  CustomTextButton(onTap: (){
           isTaskMode = true;
           Get.find<DashboardController>().updateIndex(1);
-
           // ensure TaskHomeController exists
           if (!Get.isRegistered<TaskHomeController>()) {
             Get.put(TaskHomeController());
@@ -1036,8 +1074,24 @@ class ChatScreen extends GetView<ChatScreenController> {
 
           taskHome.selectedChat.refresh();
         }, title: "Go to Task"),
-        hGap(10),
-        (controller.user?.userCompany?.isGroup == 1 ||
+        controller.isSearching?SizedBox():  hGap(10),
+        IconButton(
+            onPressed: () {
+              controller.isSearching = !controller.isSearching;
+              controller.update();
+              if(!controller.isSearching){
+                controller.searchQuery = '';
+                controller.onSearch('');
+                controller.seacrhCon.clear();
+              }
+              controller.update();
+            },
+            icon:  controller.isSearching?  const Icon(
+                CupertinoIcons.clear_circled_solid)
+                : Image.asset(searchPng,height:25,width:25)
+        ).paddingOnly(top: 0, right: 0),
+        controller.isSearching?SizedBox():hGap(10),
+        controller.isSearching?SizedBox():(controller.user?.userCompany?.isGroup == 1 ||
                 controller.user?.userCompany?.isBroadcast == 1)
             ? PopupMenuButton<String>(
                 color: Colors.white,
@@ -1119,7 +1173,7 @@ class ChatScreen extends GetView<ChatScreenController> {
                 ],
               )
             : const SizedBox(),
-        hGap(8)
+        controller.isSearching?SizedBox():  hGap(8)
       ],
     );
   }
@@ -1733,7 +1787,6 @@ class ChatScreen extends GetView<ChatScreenController> {
     DateTime nowtime = DateTime.now();
 
     int diffMinutes = nowtime.difference(msg).inMinutes;
-    print(diffMinutes);
     await showModalBottomSheet(
         context: Get.context!,
         backgroundColor: Colors.white,
@@ -1741,8 +1794,6 @@ class ChatScreen extends GetView<ChatScreenController> {
             borderRadius: BorderRadius.only(
                 topLeft: Radius.circular(20), topRight: Radius.circular(20))),
         builder: (_) {
-          print("me created ${APIs.me?.userCompany?.company?.createdBy}  and  user created :,${data.fromUser?.userCompany?.company?.createdBy}");
-
           return ListView(
             shrinkWrap: true,
             children: [

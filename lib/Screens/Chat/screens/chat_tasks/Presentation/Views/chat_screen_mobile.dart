@@ -13,6 +13,7 @@ import 'package:AccuChat/Screens/Home/Presentation/Controller/home_controller.da
 import 'package:AccuChat/main.dart';
 import 'package:AccuChat/utils/helper_widget.dart';
 import 'package:file_picker/file_picker.dart';
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_staggered_animations/flutter_staggered_animations.dart';
@@ -792,7 +793,27 @@ class ChatScreenMobile extends GetView<ChatScreenController> {
   Widget _appBar() {
     return Row(
       children: [
-        Expanded(
+        controller.isSearching
+            ? Expanded(
+          child: TextField(
+            controller: controller.seacrhCon,
+            cursorColor: appColorGreen,
+            decoration: const InputDecoration(
+                border: InputBorder.none,
+                hintText: 'Search User, Group & Collection ...',
+                contentPadding: EdgeInsets.symmetric(
+                    vertical: 0, horizontal: 10),
+                constraints: BoxConstraints(maxHeight: 45)),
+            autofocus: true,
+            style: const TextStyle(
+                fontSize: 13, letterSpacing: 0.5),
+            onChanged: (val) {
+              controller.searchQuery = val;
+              controller.onSearch(val);
+            },
+          ).marginSymmetric(vertical: 10),
+        )
+            : Expanded(
           child: InkWell(
             onTap: () {
               if (!(controller.user?.userCompany?.isGroup == 1 ||
@@ -922,15 +943,30 @@ class ChatScreenMobile extends GetView<ChatScreenController> {
           ),
         ),
 
-        (controller.user?.userCompany?.isBroadcast==1 ||controller.user?.userCompany?.isGroup==1) ?SizedBox():  CustomTextButton(onTap: (){
-
+        controller.isSearching?SizedBox():  (controller.user?.userCompany?.isBroadcast==1 ||controller.user?.userCompany?.isGroup==1) ?SizedBox():  CustomTextButton(onTap: (){
           // isTaskMode = true;
           // Get.find<DashboardController>().updateIndex(1);
           Get.toNamed(AppRoutes.tasks_li_r,arguments: {'user':controller.user});
           // Get.back();
         }, title: "Go to Task"),
-        hGap(10),
-        (controller.user?.userCompany?.isGroup == 1 ||
+        controller.isSearching?SizedBox():  hGap(10),
+        IconButton(
+            onPressed: () {
+              controller.isSearching = !controller.isSearching;
+              controller.update();
+              if(!controller.isSearching){
+                controller.searchQuery = '';
+                controller.onSearch('');
+                controller.seacrhCon.clear();
+              }
+              controller.update();
+            },
+            icon:  controller.isSearching?  const Icon(
+                CupertinoIcons.clear_circled_solid)
+                : Image.asset(searchPng,height:25,width:25)
+        ).paddingOnly(top: 0, right: 0),
+        controller.isSearching?SizedBox():hGap(10),
+        controller.isSearching?SizedBox(): (controller.user?.userCompany?.isGroup == 1 ||
             controller.user?.userCompany?.isBroadcast == 1)
             ? PopupMenuButton<String>(
           color: Colors.white,

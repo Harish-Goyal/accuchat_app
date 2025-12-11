@@ -428,7 +428,7 @@ class TaskScreen extends GetView<TaskController> {
                       child:
                         ConstrainedBox(
                           constraints: BoxConstraints(
-                            maxWidth: Get.width * (kIsWeb ? 0.45 : 0.75)),
+                            maxWidth: Get.width * (kIsWeb ? 0.36: 0.6)),
                         child: Column(
                           mainAxisSize: MainAxisSize.min,
                           crossAxisAlignment: sentByMe
@@ -442,7 +442,7 @@ class TaskScreen extends GetView<TaskController> {
                               ),
                               margin: sentByMe
                                   ? const EdgeInsets.only(left: 15, top: 0)
-                                  : const EdgeInsets.only(right: 15, top: 3),
+                                  : const EdgeInsets.only(right: 15, top: 0),
                               decoration: BoxDecoration(
                                   color:
                                       getTaskStatusColor(data.currentStatus?.name)
@@ -461,7 +461,7 @@ class TaskScreen extends GetView<TaskController> {
                                           topRight: Radius.circular(30),
                                           bottomRight: Radius.circular(30))),
                               child: _taskCard(message: data, element: element),
-                            ).marginOnly(left: (0), top: 0),
+                            ).marginOnly(left: (0), top: 8),
                           ],
                         ),
                       ),
@@ -516,7 +516,7 @@ class TaskScreen extends GetView<TaskController> {
           Positioned(
               right: sentByMe ? 22 : null,
               left: sentByMe ? null : 22,
-              top: -10,
+              top: -4,
               child: GestureDetector(
                 // borderRadius: BorderRadius.circular(12),
                 onTapUp: (details){
@@ -674,7 +674,7 @@ class TaskScreen extends GetView<TaskController> {
 
     ConstrainedBox(
     constraints: BoxConstraints(
-    maxWidth: Get.width * (kIsWeb ? 0.35 : 0.65)),
+    maxWidth: Get.width * (kIsWeb ? 0.3: 0.5)),
 
             child: Row(
               mainAxisSize: MainAxisSize.min,
@@ -787,7 +787,7 @@ class TaskScreen extends GetView<TaskController> {
       customLoader.hide();
       await OpenFilex.open(filePath);
     } catch (e) {
-      print("❌ Failed to open document: $e");
+      debugPrint("❌ Failed to open document: $e");
       customLoader.hide();
     }
   }
@@ -855,7 +855,26 @@ class TaskScreen extends GetView<TaskController> {
   Widget _appBar() {
     return Row(
       children: [
-        Expanded(
+        controller.isSearching
+            ? Expanded(
+          child: TextField(
+            controller: controller.seacrhCon,
+            cursorColor: appColorGreen,
+            decoration: const InputDecoration(
+                border: InputBorder.none,
+                hintText: 'Search User, Group & Collection ...',
+                contentPadding: EdgeInsets.symmetric(
+                    vertical: 0, horizontal: 10),
+                constraints: BoxConstraints(maxHeight: 45)),
+            autofocus: true,
+            style: const TextStyle(
+                fontSize: 13, letterSpacing: 0.5),
+            onChanged: (val) {
+              controller.searchQuery = val;
+              controller.onSearch(val);
+            },
+          ).marginSymmetric(vertical: 10),
+        ): Expanded(
           child: InkWell(
             onTap: () {
               if (!(controller.user?.userCompany?.isGroup == 1 ||
@@ -970,7 +989,7 @@ class TaskScreen extends GetView<TaskController> {
             ? */
         /*: SizedBox()*/
 
-        (controller.user?.userCompany?.isBroadcast==1 ||controller.user?.userCompany?.isGroup==1) ?SizedBox():CustomTextButton(onTap: (){
+        controller.isSearching?SizedBox():  (controller.user?.userCompany?.isBroadcast==1 ||controller.user?.userCompany?.isGroup==1) ?SizedBox():CustomTextButton(onTap: (){
           isTaskMode = false;
 
           Get.find<DashboardController>().updateIndex(0);
@@ -994,8 +1013,24 @@ class TaskScreen extends GetView<TaskController> {
           chatHome.selectedChat.refresh();
         }, title: "Go to Chat"),
 
-        hGap(10),
-        (controller.user?.userCompany?.isGroup == 1 ||
+        controller.isSearching?SizedBox():  hGap(10),
+        IconButton(
+            onPressed: () {
+              controller.isSearching = !controller.isSearching;
+              controller.update();
+              if(!controller.isSearching){
+                controller.searchQuery = '';
+                controller.onSearch('');
+                controller.seacrhCon.clear();
+              }
+              controller.update();
+            },
+            icon:  controller.isSearching?  const Icon(
+                CupertinoIcons.clear_circled_solid)
+                : Image.asset(searchPng,height:20,width:20)
+        ).paddingOnly(top: 0, right: 0),
+        controller.isSearching?SizedBox():hGap(5),
+        controller.isSearching?SizedBox():    (controller.user?.userCompany?.isGroup == 1 ||
                 controller.user?.userCompany?.isBroadcast == 1)
             ? PopupMenuButton<String>(
                 color: Colors.white,
@@ -1344,7 +1379,6 @@ class TaskScreen extends GetView<TaskController> {
                   controller.replyToMessage = null;
                   controller.update();
                 } else {
-                  print(controller.textController.text);
                   Get.find<SocketController>().sendMessage(
                     receiverId: controller.user?.userId ?? 0,
                     message: controller.textController.text.trim(),

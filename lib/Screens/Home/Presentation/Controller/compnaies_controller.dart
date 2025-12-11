@@ -324,7 +324,6 @@ class CompaniesController extends GetxController {
     //   return;
     // }
 */
-    print(APIs.me.allowedCompanies);
     if (APIs.me.allowedCompanies == 0 || APIs.me.allowedCompanies == null) {
       await showDialog<BuyPackResult>(
         context: Get.context!,

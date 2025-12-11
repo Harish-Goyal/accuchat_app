@@ -30,6 +30,7 @@ class LoginGController extends GetxController {
   // Timer? timer;
   var _resendToken;
 
+
   bool isOtpInProgress = false;
 
 
