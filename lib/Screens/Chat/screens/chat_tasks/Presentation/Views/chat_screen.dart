@@ -370,7 +370,6 @@ class ChatScreen extends GetView<ChatScreenController> {
       mainAxisSize: MainAxisSize.min,
       children: [
         vGap(10),
-
         Expanded(
           child: shimmerEffectWidget(
             showShimmer: controller.showPostShimmer,
@@ -427,23 +426,55 @@ class ChatScreen extends GetView<ChatScreenController> {
                               (element.chatMessageItems.media ?? [])
                                   .isNotEmpty) {
                           } else {
-                            // Set the message being replied to
-                            controller.refIdis =
-                                element.chatMessageItems.chatId;
-                            controller.userIDSender =
-                                element.chatMessageItems.fromUser?.userId;
-                            controller.userNameReceiver =
-                                element.chatMessageItems.toUser?.userCompany?.displayName ??
-                                    '';
-                            controller.userNameSender = element
-                                    .chatMessageItems.fromUser?.userCompany?.displayName ??
-                                '';
-                            controller.userIDReceiver =
-                                element.chatMessageItems.toUser?.userId;
-                            controller.replyToMessage =
-                                element.chatMessageItems;
-                            controller.update();
-                            controller.messageInputFocus.requestFocus();
+                              try {
+                                Get.back();
+                                controller.refIdis = element.chatMessageItems.chatId;
+                                controller.userIDSender = element.chatMessageItems.fromUser?.userId;
+                                controller.userNameReceiver =
+                                    element.chatMessageItems.toUser?.userCompany?.displayName ?? '';
+                                controller.userNameSender =
+                                    element.chatMessageItems.fromUser?.userCompany?.displayName ?? '';
+                                controller.userIDReceiver = element.chatMessageItems.toUser?.userId;
+                                if((element.chatMessageItems.media??[]).isEmpty){
+                                  controller.replyToMessage = element.chatMessageItems;
+                                }
+
+                                if(element.chatMessageItems.media!=null){
+                                  controller.replyToImage = element.chatMessageItems.media?.first.orgFileName;
+                                  controller.replyToMessage= ChatHisList(
+                                    chatId:element.chatMessageItems.chatId,
+                                    fromUser:element.chatMessageItems.fromUser,
+                                    toUser:element.chatMessageItems.toUser,
+                                    message:element.chatMessageItems.media?.first.mediaType?.mediaCode=="DOC"?element.chatMessageItems.media?.first.orgFileName:"${ApiEnd.baseUrlMedia}${element.chatMessageItems.media?.first.fileName}",
+                                    // message:getFileNameFromUrl(c.urls[c.index]),
+                                    replyToId:element.chatMessageItems.chatId,
+                                    replyToText:element.chatMessageItems.media?.first.orgFileName,
+                                    // replyToText:getFileNameFromUrl(c.urls[c.index]),
+                                  );
+                                }
+                                controller.update();
+                                controller.messageInputFocus.requestFocus();
+                              } catch (e) {
+                                toast('Something went wrong!');
+                              }
+
+                            // // Set the message being replied to
+                            // controller.refIdis =
+                            //     element.chatMessageItems.chatId;
+                            // controller.userIDSender =
+                            //     element.chatMessageItems.fromUser?.userId;
+                            // controller.userNameReceiver =
+                            //     element.chatMessageItems.toUser?.userCompany?.displayName ??
+                            //         '';
+                            // controller.userNameSender = element
+                            //         .chatMessageItems.fromUser?.userCompany?.displayName ??
+                            //     '';
+                            // controller.userIDReceiver =
+                            //     element.chatMessageItems.toUser?.userId;
+                            // controller.replyToMessage =
+                            //     element.chatMessageItems;
+                            // controller.update();
+                            // controller.messageInputFocus.requestFocus();
                           }
                         },
                   child: _chatMessageTile(
@@ -660,7 +691,7 @@ class ChatScreen extends GetView<ChatScreenController> {
                               SystemChannels.textInput
                                   .invokeMethod('TextInput.hide');
                               if (!isTaskMode) {
-                                _showBottomSheet(sentByMe, data: data);
+                                  _showBottomSheet(sentByMe, data: data);
                               }
                             },
                             child: Container(
@@ -752,6 +783,7 @@ class ChatScreen extends GetView<ChatScreenController> {
   }
 
   messageTypeView(ChatHisList data, {required bool sentByMe}) {
+    
     return Container(
       key: ValueKey('msg-${data.chatId}'),
       child: Column(
@@ -1648,7 +1680,7 @@ class ChatScreen extends GetView<ChatScreenController> {
           children: [
             Text(
               'On web, use your computer’s picker to select images or documents.\n'
-              'You can choose multiple images at once.',
+              'You can choose max 10 images at once.',
               style: TextStyle(fontSize: 13),
             ),
           ],
@@ -1656,11 +1688,10 @@ class ChatScreen extends GetView<ChatScreenController> {
         actions: [
           TextButton(
             onPressed: () async {
-              // IMAGES (multiple)
+              //IMAGES (multiple)
               final images = await _pickWebImages(maxFiles: 10);
               if (images.isNotEmpty) {
                 controller.images.addAll(images);
-                controller.update();
                 controller.uploadMediaApiCall(type: ChatMediaType.IMAGE.name);
               }
               Navigator.of(ctx).pop();
@@ -1708,7 +1739,10 @@ class ChatScreen extends GetView<ChatScreenController> {
     final result = await FilePicker.platform.pickFiles(
       allowMultiple: true,
       type: FileType.custom,
-      allowedExtensions: const ['jpg', 'jpeg', 'png', 'webp'],
+      compressionQuality: 80,
+      allowCompression: true,
+
+      allowedExtensions: const ['jpg', 'jpeg', 'png', 'webp','JPG',"JPEG","PNG","WEBP"],
       withData: true, // we need bytes for XFile.fromData
       withReadStream: false,
     );
@@ -1844,11 +1878,12 @@ class ChatScreen extends GetView<ChatScreenController> {
                           : const SizedBox()
                       : const SizedBox(),
 
-              !((data.media ?? []).isNotEmpty)
+             ( !(data.media ?? []).isNotEmpty || data.media?.length==1)
                   ? _OptionItem(
                       icon: Icon(Icons.reply, color: appColorGreen, size: 18),
                       name: 'Reply',
                       onTap: () async {
+                        print(data.media?.first.orgFileName);
                         try {
                           Get.back();
                           controller.refIdis = data.chatId;
@@ -1858,7 +1893,23 @@ class ChatScreen extends GetView<ChatScreenController> {
                           controller.userNameSender =
                               data.fromUser?.userCompany?.displayName ?? '';
                           controller.userIDReceiver = data.toUser?.userId;
-                          controller.replyToMessage = data;
+                          if((data.media??[]).isEmpty){
+                            controller.replyToMessage = data;
+                          }
+
+                         if(data.media!=null){
+                           controller.replyToImage = data.media?.first.orgFileName;
+                           controller.replyToMessage= ChatHisList(
+                             chatId:data.chatId,
+                             fromUser:data.fromUser,
+                             toUser:data.toUser,
+                             message:data.media?.first.mediaType?.mediaCode=="DOC"?data.media?.first.orgFileName:"${ApiEnd.baseUrlMedia}${data.media?.first.fileName}",
+                             // message:getFileNameFromUrl(c.urls[c.index]),
+                             replyToId:data.chatId,
+                             replyToText:data.media?.first.orgFileName,
+                             // replyToText:getFileNameFromUrl(c.urls[c.index]),
+                           );
+                         }
                           controller.update();
                           controller.messageInputFocus.requestFocus();
                         } catch (e) {
@@ -1913,7 +1964,7 @@ class ChatScreen extends GetView<ChatScreenController> {
                     }),*/
 
               // delete option
-              if (controller.me?.userId == controller.myCompany?.createdBy)
+              if (controller.me?.userId == controller.myCompany?.createdBy && isMe)
                 _OptionItem(
                     icon: const Icon(Icons.delete_forever,
                         color: Colors.red, size: 18),

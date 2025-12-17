@@ -28,7 +28,7 @@ enum ChType {
   direct,
 }
 
-class SocketController extends GetxController with WidgetsBindingObserver  {
+class SocketController extends GetxController with WidgetsBindingObserver {
   late IO.Socket? socket;
   bool initialized = false;
   @override
@@ -44,34 +44,38 @@ class SocketController extends GetxController with WidgetsBindingObserver  {
 
   @override
   void didChangeAppLifecycleState(AppLifecycleState state) {
-
     if (state == AppLifecycleState.resumed) {
       final svc = CompanyService.to;
-      final myCompany =svc.selected;
+      final myCompany = svc.selected;
       // Ensure an active transport
       if (!(socket?.connected ?? false)) {
-        try { socket?.connect(); } catch (_) {}
+        try {
+          socket?.connect();
+        } catch (_) {}
       }
       // Idempotently re-wire listeners and re-select company on resume
       // allListerer();           // ensures .off() then .on() again
-      connectUserEmitter(myCompany?.companyId);    // re-emit company context
+      connectUserEmitter(myCompany?.companyId); // re-emit company context
     }
   }
 
   Future<void> initSocket() async {
     initial();
     final svc = CompanyService.to;
-    final myCompany =svc.selected;
-    connectUserEmitter(myCompany?.companyId);   // already in your code
+    final myCompany = svc.selected;
+    connectUserEmitter(myCompany?.companyId); // already in your code
     // allListerer();
   }
 
   initial() {
     try {
       // If an old socket instance exists, dispose it safely (keeps us single-instance)
-      try { socket?.dispose(); } catch (_) {}                  // ← ADD
+      try {
+        socket?.dispose();
+      } catch (_) {} // ← ADD
       if (socket?.connected ?? false) {
-        socket?.disconnect();                                  // ← ADD (your line socket?.disconnected was a no-op)
+        socket
+            ?.disconnect(); // ← ADD (your line socket?.disconnected was a no-op)
       }
     } catch (e) {}
     final token = StorageService.getToken();
@@ -79,13 +83,13 @@ class SocketController extends GetxController with WidgetsBindingObserver  {
     socket = IO.io(
       ApiEnd.baseUrlMedia,
       IO.OptionBuilder()
-      // Allow polling + websocket – more reliable behind proxies
+          // Allow polling + websocket – more reliable behind proxies
           .setTransports(['websocket', 'polling'])
           .enableForceNew()
           .setAuth({'token': token})
           .enableReconnection()
           .enableAutoConnect()
-          .setPath('/socket.io/')      // must match server/proxy location
+          .setPath('/socket.io/') // must match server/proxy location
           .setTimeout(20000)
           .setReconnectionDelay(2000)
           .setReconnectionAttempts(20)
@@ -121,11 +125,11 @@ class SocketController extends GetxController with WidgetsBindingObserver  {
     });
   }
 
-
   UserDataAPI? me = UserDataAPI();
   _getMe() {
     me = getUser();
   }
+
   bool listenersAttached = false;
   void attachListenersOnce() {
     if (listenersAttached) return;
@@ -134,26 +138,25 @@ class SocketController extends GetxController with WidgetsBindingObserver  {
   }
 
   allListerer() {
-
     socket?.off('send_message_listener');
-      socket?.on('send_message_listener', (messages) {
-        debugPrint("send_message_listener ${jsonEncode(messages.toString())}");
-        try {
-          ChatScreenController chatDetailController =
-          Get.find<ChatScreenController>();
-          ChatHisList receivedMessageDataModal = ChatHisList.fromJson(messages);
-          final selectedUserId = chatDetailController.user?.userId?.toString();
-          final meId           = me?.userId?.toString();
+    socket?.on('send_message_listener', (messages) {
+      debugPrint("send_message_listener ${jsonEncode(messages.toString())}");
+      try {
+        ChatScreenController chatDetailController =
+            Get.find<ChatScreenController>();
+        ChatHisList receivedMessageDataModal = ChatHisList.fromJson(messages);
+        final selectedUserId = chatDetailController.user?.userId?.toString();
+        final meId = me?.userId?.toString();
 
-          final msgFrom = receivedMessageDataModal.fromUser?.userId?.toString();
-          final msgTo   = receivedMessageDataModal.toUser?.userId?.toString();
+        final msgFrom = receivedMessageDataModal.fromUser?.userId?.toString();
+        final msgTo = receivedMessageDataModal.toUser?.userId?.toString();
 
 // allow only when the message belongs to CURRENT OPEN CHAT
-          final isMessageForThisChat =
-              (msgFrom == selectedUserId && msgTo == meId) ||    // selectedUser → me
-                  (msgFrom == meId && msgTo == selectedUserId);
-          if (isMessageForThisChat) {
-            // safe to insert the message
+        final isMessageForThisChat =
+            (msgFrom == selectedUserId && msgTo == meId) || // selectedUser → me
+                (msgFrom == meId && msgTo == selectedUserId);
+        if (isMessageForThisChat) {
+          // safe to insert the message
           ChatHisList chatMessageItems = ChatHisList(
             chatId: receivedMessageDataModal.chatId,
             fromUser: receivedMessageDataModal.fromUser,
@@ -173,44 +176,51 @@ class SocketController extends GetxController with WidgetsBindingObserver  {
               .insert(0, GroupChatElement(DateTime.now(), chatMessageItems));
           chatDetailController.rebuildFlatRows();
           chatDetailController.update();
-          }
-
-          if(meId != msgFrom ){
-            chatDetailController.markAllVisibleAsReadOnOpen(receivedMessageDataModal.fromUser?.userCompany?.userCompanyId,receivedMessageDataModal.toUser?.userCompany?.userCompanyId,receivedMessageDataModal.toUser?.userCompany?.isGroup==1?1:0);
-          }
-
-          // Get.find<ChatHomeController>().hitAPIToGetRecentChats();
-        } catch (e) {
-          debugPrint(e.toString());
         }
-      });
 
-      socket?.off('send_message_error');
-      socket?.on('send_message_error', (messages) {
-        debugPrint("send_message_error ${jsonEncode(messages.toString())}");
-      });
+        if (meId != msgFrom) {
+          chatDetailController.markAllVisibleAsReadOnOpen(
+              receivedMessageDataModal.fromUser?.userCompany?.userCompanyId,
+              receivedMessageDataModal.toUser?.userCompany?.userCompanyId,
+              receivedMessageDataModal.toUser?.userCompany?.isGroup == 1
+                  ? 1
+                  : 0);
+        }
+
+        // Get.find<ChatHomeController>().hitAPIToGetRecentChats();
+      } catch (e) {
+        debugPrint(e.toString());
+      }
+    });
+
+    socket?.off('send_message_error');
+    socket?.on('send_message_error', (messages) {
+      debugPrint("send_message_error ${jsonEncode(messages.toString())}");
+    });
     socket?.off('update_recent_list');
     socket?.on('update_recent_list', (messages) {
       debugPrint("update_recent_list ${jsonEncode(messages.toString())}");
 
       try {
-        final chatController = Get.find<ChatHomeController>();
         final updated = UserDataAPI.fromJson(messages);
+        if (APIs.me.userCompany?.userCompanyId ==
+            updated.userCompany?.userCompanyId) {
+          final chatController = Get.find<ChatHomeController>();
 
-        // ALWAYS use the RxList directly
-        final list = chatController.filteredList;
+          // ALWAYS use the RxList directly
+          final list = chatController.filteredList;
 
-        // 1️⃣ Remove old entry
-        list.removeWhere((e) =>
-        e.userCompany?.userCompanyId ==
-            updated.userCompany?.userCompanyId);
+          // 1️⃣ Remove old entry
+          list.removeWhere((e) =>
+              e.userCompany?.userCompanyId ==
+              updated.userCompany?.userCompanyId);
 
-        // 2️⃣ Insert new one at TOP
-        list.insert(0, updated);
+          // 2️⃣ Insert new one at TOP
+          list.insert(0, updated);
 
-        // 3️⃣ Force RxList rebuild
-        chatController.filteredList.refresh();
-
+          // 3️⃣ Force RxList rebuild
+          chatController.filteredList.refresh();
+        }
       } catch (e) {
         debugPrint("recent update error: $e");
       }
@@ -220,28 +230,29 @@ class SocketController extends GetxController with WidgetsBindingObserver  {
     socket?.on('update_recent_task_list', (messages) {
       debugPrint("update_recent_task_list ${jsonEncode(messages.toString())}");
       try {
-        final taskhomeC = Get.find<TaskHomeController>();
         final updated = UserDataAPI.fromJson(messages);
+        if (APIs.me.userCompany?.userCompanyId ==
+            updated.userCompany?.userCompanyId) {
+          final taskhomeC = Get.find<TaskHomeController>();
 
-        // ALWAYS use the RxList directly
-        final list = taskhomeC.filteredList;
+          // ALWAYS use the RxList directly
+          final list = taskhomeC.filteredList;
 
-        // 1️⃣ Remove old entry
-        list.removeWhere((e) =>
-        e.userCompany?.userCompanyId ==
-            updated.userCompany?.userCompanyId);
+          // 1️⃣ Remove old entry
+          list.removeWhere((e) =>
+              e.userCompany?.userCompanyId ==
+              updated.userCompany?.userCompanyId);
 
-        // 2️⃣ Insert new one at TOP
-        list.insert(0, updated);
+          // 2️⃣ Insert new one at TOP
+          list.insert(0, updated);
 
-        // 3️⃣ Force RxList rebuild
-        taskhomeC.filteredList.refresh();
-
+          // 3️⃣ Force RxList rebuild
+          taskhomeC.filteredList.refresh();
+        }
       } catch (e) {
         debugPrint("recent update task error: $e");
       }
     });
-
 
     /*socket?.off('update_recent_list');
     socket?.on('update_recent_list', (messages) {
@@ -318,18 +329,17 @@ class SocketController extends GetxController with WidgetsBindingObserver  {
       debugPrint("Listing task......4");
       debugPrint("send_task_listener ${jsonEncode(messages.toString())}");
       try {
-        TaskController taskController =
-            Get.find<TaskController>();
+        TaskController taskController = Get.find<TaskController>();
         TaskData receivedMessageDataModal = TaskData.fromJson(messages);
         final selectedUserId = taskController.user?.userId?.toString();
-        final meId       = me?.userId?.toString();
+        final meId = me?.userId?.toString();
 
         final msgFrom = receivedMessageDataModal.fromUser?.userId?.toString();
-        final msgTo   = receivedMessageDataModal.toUser?.userId?.toString();
+        final msgTo = receivedMessageDataModal.toUser?.userId?.toString();
 
 // allow only when the message belongs to CURRENT OPEN CHAT
         final isMessageForThisChat =
-            (msgFrom == selectedUserId && msgTo == meId) ||    // selectedUser → me
+            (msgFrom == selectedUserId && msgTo == meId) || // selectedUser → me
                 (msgFrom == meId && msgTo == selectedUserId);
         if (isMessageForThisChat) {
           TaskData chatMessageItems = TaskData(
@@ -364,11 +374,11 @@ class SocketController extends GetxController with WidgetsBindingObserver  {
       debugPrint("company_joined ${messages}");
     });
 
-
-  socket?.off('add_task_comment_listener');
+    socket?.off('add_task_comment_listener');
     socket?.on('add_task_comment_listener', (messages) {
       debugPrint("Comments Listing task......4");
-      debugPrint("add_task_comment_listener ${jsonEncode(messages.toString())}");
+      debugPrint(
+          "add_task_comment_listener ${jsonEncode(messages.toString())}");
       try {
         TaskThreadController threadController =
             Get.find<TaskThreadController>();
@@ -378,18 +388,18 @@ class SocketController extends GetxController with WidgetsBindingObserver  {
         //         (me?.userId).toString()) ||
         //     (receivedMessageDataModal.toUser?.userId.toString() ==
         //         (threadController.taskMessage?.fromUser?.userId.toString()))) {
-          TaskComments taskComments = TaskComments(
-              taskCommentId:receivedMessageDataModal.taskCommentId,
-              fromUser:receivedMessageDataModal.fromUser,
-              toUser:receivedMessageDataModal.toUser,
-              commentText:receivedMessageDataModal.commentText,
-              sentOn:receivedMessageDataModal.sentOn,
-              isDeleted:receivedMessageDataModal.isDeleted,
-              media:receivedMessageDataModal.media,
-          );
-          threadController.commentsList?.insert(0, taskComments);
-          threadController.commentsCategory
-              .insert(0, GroupCommentsElement(DateTime.now(), taskComments));
+        TaskComments taskComments = TaskComments(
+          taskCommentId: receivedMessageDataModal.taskCommentId,
+          fromUser: receivedMessageDataModal.fromUser,
+          toUser: receivedMessageDataModal.toUser,
+          commentText: receivedMessageDataModal.commentText,
+          sentOn: receivedMessageDataModal.sentOn,
+          isDeleted: receivedMessageDataModal.isDeleted,
+          media: receivedMessageDataModal.media,
+        );
+        threadController.commentsList?.insert(0, taskComments);
+        threadController.commentsCategory
+            .insert(0, GroupCommentsElement(DateTime.now(), taskComments));
         // }
         threadController.update();
       } catch (e) {
@@ -401,9 +411,7 @@ class SocketController extends GetxController with WidgetsBindingObserver  {
     socket?.on('update_message_error', (payload) {
       debugPrint("Listing update message......8");
       errorDialog('Time Exceeded');
-
     });
-
 
     socket?.off('update_message_listener');
     socket?.on('update_message_listener', (payload) {
@@ -415,35 +423,39 @@ class SocketController extends GetxController with WidgetsBindingObserver  {
 
         final meId = APIs.me.userId?.toString();
         final fromId = updated.fromUser?.userId?.toString();
-        final toId   = updated.toUser?.userId?.toString();
+        final toId = updated.toUser?.userId?.toString();
 
         if (fromId == meId || toId == meId) {
           final list = chatController.chatHisList ?? [];
-          final idx  = list.indexWhere((t) => t.chatId == updated.chatId);
+          final idx = list.indexWhere((t) => t.chatId == updated.chatId);
 
           if (idx != -1) {
             final old = list[idx];
-            old.chatId= updated.chatId??old.chatId;
-            old.fromUser= updated.fromUser??old.fromUser;
-            old.toUser= updated.toUser??old.toUser;
-            old.message= updated.message??old.message;
-            old.isActivity= updated.isActivity??old.isActivity;
-            old.isForwarded= updated.isForwarded??old.isForwarded;
-            old.sentOn= updated.sentOn??old.sentOn;
-            old.readOn= updated.readOn??old.readOn;
-            old.pendingCount= updated.pendingCount??old.pendingCount;
-            old.isGroupChat= updated.isGroupChat??old.isGroupChat;
-            old.broadcastUserId= updated.broadcastUserId??old.broadcastUserId;
-            old.replyToId= updated.replyToId??old.replyToId;
-            old.replyToText= updated.replyToText??old.replyToText;
-            old.replyToTime= updated.replyToTime??old.replyToTime;
-            old.replyToName= updated.replyToName??old.replyToName;
-            old.media=(updated.media?.isNotEmpty ?? false)? updated.media:old.media;
+            old.chatId = updated.chatId ?? old.chatId;
+            old.fromUser = updated.fromUser ?? old.fromUser;
+            old.toUser = updated.toUser ?? old.toUser;
+            old.message = updated.message ?? old.message;
+            old.isActivity = updated.isActivity ?? old.isActivity;
+            old.isForwarded = updated.isForwarded ?? old.isForwarded;
+            old.sentOn = updated.sentOn ?? old.sentOn;
+            old.readOn = updated.readOn ?? old.readOn;
+            old.pendingCount = updated.pendingCount ?? old.pendingCount;
+            old.isGroupChat = updated.isGroupChat ?? old.isGroupChat;
+            old.broadcastUserId =
+                updated.broadcastUserId ?? old.broadcastUserId;
+            old.replyToId = updated.replyToId ?? old.replyToId;
+            old.replyToText = updated.replyToText ?? old.replyToText;
+            old.replyToTime = updated.replyToTime ?? old.replyToTime;
+            old.replyToName = updated.replyToName ?? old.replyToName;
+            old.media = (updated.media?.isNotEmpty ?? false)
+                ? updated.media
+                : old.media;
             chatController.update();
             final gIdx = chatController.chatCatygory
                 .indexWhere((g) => g.chatMessageItems.chatId == updated.chatId);
             if (gIdx != -1) {
-              chatController.chatCatygory[gIdx].chatMessageItems.chatId= old.chatId;
+              chatController.chatCatygory[gIdx].chatMessageItems.chatId =
+                  old.chatId;
             }
           } else {
             list.insert(0, updated);
@@ -461,38 +473,37 @@ class SocketController extends GetxController with WidgetsBindingObserver  {
       debugPrint("update task  listener ${jsonEncode(payload.toString())}");
 
       try {
-
         final taskController = Get.find<TaskController>();
         final updated = TaskData.fromJson(payload);
 
         final meId = APIs.me.userId?.toString();
         final fromId = updated.fromUser?.userId?.toString();
-        final toId   = updated.toUser?.userId?.toString();
+        final toId = updated.toUser?.userId?.toString();
 
         if (fromId == meId || toId == meId) {
           final list = taskController.taskHisList ?? [];
-          final idx  = list.indexWhere((t) => t.taskId == updated.taskId);
+          final idx = list.indexWhere((t) => t.taskId == updated.taskId);
 
           if (idx != -1) {
             // ✅ UPDATE IN PLACE — NO INSERT
             final old = list[idx];
 
             // Agar aapke model me copyWith nahi hai, to fields assign kar do:
-            old.taskId         = updated.taskId         ?? old.taskId;
-            old.title         = updated.title         ?? old.title;
-            old.details       = updated.details       ?? old.details;
-            old.deadline      = updated.deadline      ?? old.deadline;
-            old.startDate     = updated.startDate     ?? old.startDate;
-            old.endDate       = updated.endDate       ?? old.endDate;
+            old.taskId = updated.taskId ?? old.taskId;
+            old.title = updated.title ?? old.title;
+            old.details = updated.details ?? old.details;
+            old.deadline = updated.deadline ?? old.deadline;
+            old.startDate = updated.startDate ?? old.startDate;
+            old.endDate = updated.endDate ?? old.endDate;
             old.currentStatus = updated.currentStatus ?? old.currentStatus;
             old.statusHistory = (updated.statusHistory?.isNotEmpty ?? false)
                 ? updated.statusHistory
                 : old.statusHistory;
-            old.media         = (updated.media?.isNotEmpty ?? false)
+            old.media = (updated.media?.isNotEmpty ?? false)
                 ? updated.media
                 : old.media;
-            old.fromUser      = updated.fromUser ?? old.fromUser;
-            old.toUser        = updated.toUser   ?? old.toUser;
+            old.fromUser = updated.fromUser ?? old.fromUser;
+            old.toUser = updated.toUser ?? old.toUser;
 
             // RxList ho to:
             // taskController.taskHisList![idx] = old;
@@ -519,23 +530,19 @@ class SocketController extends GetxController with WidgetsBindingObserver  {
       }
     });
 
-
     setupSocketListeners();
     _registerDeleteListener();
     _registerDeleteListenerTask();
 
-
     socket?.off('joined_task');
     socket?.on('joined_task', (data) {
-    try {
-      debugPrint("Joined task listen");
-    }
-        catch(e){
-          debugPrint("Something went wrong Joined task");
-        }
+      try {
+        debugPrint("Joined task listen");
+      } catch (e) {
+        debugPrint("Something went wrong Joined task");
+      }
     });
   }
-
 
   void connectUserEmitter(companyId) {
     try {
@@ -550,7 +557,6 @@ class SocketController extends GetxController with WidgetsBindingObserver  {
       debugPrint("connectUserEmitter error: $e");
     }
   }
-
 
   void _registerDeleteListener() {
     socket?.off('delete_message_listener');
@@ -615,6 +621,7 @@ class SocketController extends GetxController with WidgetsBindingObserver  {
     }).toList();
     chatDetailController.rebuildFlatRows();
   }
+
   void _registerDeleteListenerTask() {
     // avoid duplicate handlers
     socket?.off('delete_task_listener');
@@ -635,8 +642,7 @@ class SocketController extends GetxController with WidgetsBindingObserver  {
   }
 
   void _handleMessageDeletedTask(Map<String, dynamic> payload) {
-    TaskController chatDetailController =
-        Get.find<TaskController>();
+    TaskController chatDetailController = Get.find<TaskController>();
     final dynamic idRaw = payload['task_id'];
     final int? chatId = idRaw is int ? idRaw : int.tryParse('$idRaw');
     if (chatId == null) return;
@@ -670,8 +676,7 @@ class SocketController extends GetxController with WidgetsBindingObserver  {
   }
 
   void _rebuildCategoriesForTask() {
-    TaskController chatDetailController =
-        Get.find<TaskController>();
+    TaskController chatDetailController = Get.find<TaskController>();
     chatDetailController.taskCategory =
         (chatDetailController.taskHisList ?? []).map((item) {
       DateTime? dt;
@@ -682,21 +687,18 @@ class SocketController extends GetxController with WidgetsBindingObserver  {
     }).toList();
   }
 
-  void readMsgEmitter(
-      {required int ucID,companyId,fromUcID,is_group_chat}) {
+  void readMsgEmitter({required int ucID, companyId, fromUcID, is_group_chat}) {
     socket?.emit('read_message', {
       "to_uc_id": ucID,
       "company_id": companyId,
       "from_uc_id": fromUcID,
       "is_group_chat": is_group_chat,
     });
-    debugPrint("to_uc_id: $ucID,company_id : $companyId,from_uc_id : $fromUcID ,is_group_chat : $is_group_chat");
+    debugPrint(
+        "to_uc_id: $ucID,company_id : $companyId,from_uc_id : $fromUcID ,is_group_chat : $is_group_chat");
   }
 
   void setupSocketListeners() {
-
-
-
     /*socket?.off('read_message_listener');
     socket?.on('read_message_listener', (data) {
       debugPrint("read_message_listener: ${jsonEncode(data)}");
@@ -724,13 +726,11 @@ class SocketController extends GetxController with WidgetsBindingObserver  {
     socket?.off('read_message_listener');
     socket?.on('read_message_listener', (data) {
       debugPrint("read_message_listener: ${jsonEncode(data)}");
-
       final chatController = Get.find<ChatHomeController>();
       final chatRoomController = Get.find<ChatScreenController>();
-
-      final int toId = data['to_uc_id'];     // user who RECEIVED the message
-      final int fromId = data['from_uc_id']; // user who SENT the message
-      final int myUcId = APIs.me.userCompany?.userCompanyId??0; // your own UC ID
+      final int toId = data['to_uc_id'];
+      final int fromId = data['from_uc_id'];
+      final int myUcId = APIs.me.userCompany?.userCompanyId ?? 0;
 
       // Only update when YOU are the receiver
       if (toId == myUcId) {
@@ -745,20 +745,18 @@ class SocketController extends GetxController with WidgetsBindingObserver  {
         // 2️⃣ Update messages in Active Chat Screen
         for (var group in chatRoomController.chatCatygory) {
           final msg = group.chatMessageItems;
-
           // Only mark messages sent BY that user AND to you
           if (msg.fromUser?.userCompany?.userCompanyId == fromId &&
               msg.toUser?.userCompany?.userCompanyId == myUcId) {
             msg.readOn = DateTime.now().millisecondsSinceEpoch.toString();
           }
         }
-
         chatController.filteredList.refresh();
         chatRoomController.update();
       }
     });
+  }
 
-}
   void deleteMsgEmitter(
       {required String mode, required int chatId, int? groupId}) {
     socket?.emit('delete_message', {
@@ -768,25 +766,16 @@ class SocketController extends GetxController with WidgetsBindingObserver  {
     });
   }
 
-
-
-  void deleteTaskEmitter(
-      {required int taskId, int? comid}) {
-    socket?.emit('delete_task',{
-      "task_id": taskId,
-      "company_id":comid
-    });
-
+  void deleteTaskEmitter({required int taskId, int? comid}) {
+    socket?.emit('delete_task', {"task_id": taskId, "company_id": comid});
     debugPrint("Delete task for TaskId : $taskId || CompanyID: $comid");
   }
 
-  void joinTaskEmitter(
-      {required int taskId}) {
-    socket?.emit('join_task',{
+  void joinTaskEmitter({required int taskId}) {
+    socket?.emit('join_task', {
       "task_id": 8,
     });
   }
-
 
   Future<void> sendTaskComments({
     int? toId,
@@ -801,7 +790,7 @@ class SocketController extends GetxController with WidgetsBindingObserver  {
         socket?.emit('add_task_comment', {
           "task_id": taskId,
           "company_id": companyId,
-          "to_id":toId,
+          "to_id": toId,
           "comment_text": message
         });
         debugPrint(
@@ -843,7 +832,6 @@ class SocketController extends GetxController with WidgetsBindingObserver  {
     }
   }
 
-
   Future<void> sendMessage({
     int? receiverId,
     String? message,
@@ -880,7 +868,7 @@ class SocketController extends GetxController with WidgetsBindingObserver  {
         });
         debugPrint(
             "Message sent: $message ,receiverId: $receiverId,replyToId: $replyToId, Broadcast user id,: $brID , forwardChatId: $forwardChatId, fromid: ${APIs.me.userId}, comapnyid: ${APIs.me.userCompany?.userCompanyId}, group id: $groupId, alreadySaved: ${alreadySave}");
-        var token =  StorageService.getToken();
+        var token = StorageService.getToken();
         debugPrint("authorization token is ********* $token");
         final svc = CompanyService.to;
         final myCompany = svc.selected;
@@ -918,10 +906,6 @@ class SocketController extends GetxController with WidgetsBindingObserver  {
     }
   }
 
-
-
-
-
   Future<void> sendTaskMessage({
     int? receiverId,
     var companyId,
@@ -943,8 +927,9 @@ class SocketController extends GetxController with WidgetsBindingObserver  {
           "deadline": taskDeadline,
           "files": attachmentsList
         });
-        debugPrint("Message sent: $taskTitle ,receiverId: $receiverId ,companyId: $companyId  ");
-        var token =  StorageService.getToken();
+        debugPrint(
+            "Message sent: $taskTitle ,receiverId: $receiverId ,companyId: $companyId  ");
+        var token = StorageService.getToken();
         debugPrint("authorization token is ********* $token");
         final svc = CompanyService.to;
         final myCompany = svc.selected;
@@ -998,7 +983,8 @@ class SocketController extends GetxController with WidgetsBindingObserver  {
           "task_status_id": taskStatusId,
           "files": attachmentsList
         });
-        debugPrint("Update task sent: ======== task_id: $taskID,attachmentsList: ${attachmentsList}, title:  $taskTitle ,receiverId: $receiverId ,companyId : $companyId, taskStatusId:$taskStatusId");
+        debugPrint(
+            "Update task sent: ======== task_id: $taskID,attachmentsList: ${attachmentsList}, title:  $taskTitle ,receiverId: $receiverId ,companyId : $companyId, taskStatusId:$taskStatusId");
 
         final svc = CompanyService.to;
         final myCompany = svc.selected;
@@ -1038,7 +1024,8 @@ class SocketController extends GetxController with WidgetsBindingObserver  {
           "to_uc_id": toUcId,
           "text": message,
         });
-        debugPrint("Update task sent: ======== task_id: $chatId,message: $message,toUcId: $toUcId");
+        debugPrint(
+            "Update task sent: ======== task_id: $chatId,message: $message,toUcId: $toUcId");
 
         // final svc = CompanyService.to;
         // final myCompany = svc.selected;
@@ -1063,8 +1050,6 @@ class SocketController extends GetxController with WidgetsBindingObserver  {
     }
   }
 
-
-
   Future<void> forwardTaskMessage({
     int? taskID,
     int? receiverId,
@@ -1075,8 +1060,7 @@ class SocketController extends GetxController with WidgetsBindingObserver  {
     if (socket != null && socket!.connected) {
       debugPrint("Message sent:---------- $receiverId");
       try {
-        socket?.emit(
-          'forward_task', {
+        socket?.emit('forward_task', {
           "task_id": taskID,
           "company_id": companyId,
           "to_id": receiverId,
@@ -1109,11 +1093,9 @@ class SocketController extends GetxController with WidgetsBindingObserver  {
     socket?.on('new_message', callback);
   }
 
-
-
   @override
   void onClose() {
-    WidgetsBinding.instance.removeObserver(this);        // ← ADD
+    WidgetsBinding.instance.removeObserver(this); // ← ADD
     socket?.disconnect();
     super.onClose();
   }

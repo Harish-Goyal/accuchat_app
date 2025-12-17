@@ -62,9 +62,12 @@ class TaskThreadScreenWeb extends GetView<TaskThreadController> {
                     overflow: TextOverflow.ellipsis,
                   ),
                   IconButton(onPressed: (){
-                    Get.back();
-                    Get.find<TaskController>().resetPaginationForNewChat();
+                    // Get.find<TaskController>().page = 1;
+                    // Get.find<TaskController>().taskHisList = []; // <--- MOST IMPORTANT
+                    // Get.find<TaskController>().taskCategory = [];
+                    // Get.find<TaskController>().hasMore = false;
                     Get.find<TaskController>().hitAPIToGetTaskHistory();
+                    Get.back();
                   }, icon: Icon(Icons.clear,color: Colors.black87,)),
                 ],
               )

@@ -33,6 +33,7 @@ import '../../../../../../utils/custom_dialogue.dart';
 import '../../../../../../utils/custom_flashbar.dart';
 import '../../../../../../utils/gradient_button.dart';
 import '../../../../../../utils/product_shimmer_widget.dart';
+import '../../../../../../utils/share_helper.dart';
 import '../../../../../../utils/text_button.dart';
 import '../../../../../../utils/text_style.dart';
 import '../../../../../Home/Presentation/Controller/socket_controller.dart';
@@ -569,13 +570,32 @@ class ChatScreenMobile extends GetView<ChatScreenController> {
                       : CrossAxisAlignment.start,
                   children: [
                     InkWell(
-                      borderRadius: BorderRadius.circular(20),
+                      borderRadius: sentByMe
+                          ? BorderRadius.only(
+                          topLeft: Radius.circular(
+                              (data.media ?? []).isNotEmpty
+                                  ? 15
+                                  : 50),
+                          topRight: Radius.circular(
+                              (data.media ?? []).isNotEmpty
+                                  ? 15
+                                  : 50),
+                          bottomLeft: Radius.circular(
+                              (data.media ?? []).isNotEmpty
+                                  ? 15
+                                  : 50))
+                          : BorderRadius.only(
+                          topLeft: Radius.circular(
+                              (data.media ?? []).isNotEmpty ? 15 : 50),
+                          topRight: Radius.circular((data.media ?? []).isNotEmpty ? 15 : 50),
+                          bottomRight: Radius.circular((data.media ?? []).isNotEmpty ? 15 : 50)),
                       // mouseCursor: SystemMouseCursors.click,
                       onDoubleTap: () {
                         SystemChannels.textInput
                             .invokeMethod('TextInput.hide');
                         if (!isTaskMode) {
-                          _showBottomSheet(sentByMe, data: data);
+                            _showBottomSheet(sentByMe, data: data);
+
                         }
                       },
                       child: Container(
@@ -1390,7 +1410,7 @@ class ChatScreenMobile extends GetView<ChatScreenController> {
           children: [
             Text(
               'On web, use your computer’s picker to select images or documents.\n'
-                  'You can choose multiple images at once.',
+                  'You can choose max 10 images at once.',
               style: TextStyle(fontSize: 13),
             ),
           ],
@@ -1492,6 +1512,10 @@ class ChatScreenMobile extends GetView<ChatScreenController> {
 
   // bottom sheet for modifying message details
   void _showBottomSheet(bool isMe, {required ChatHisList data}) async {
+    DateTime msg  = DateTime.parse(data.sentOn??'');
+    DateTime nowtime = DateTime.now();
+
+    int diffMinutes = nowtime.difference(msg).inMinutes;
     await showModalBottomSheet(
         context: Get.context!,
         backgroundColor: Colors.white,
@@ -1531,8 +1555,9 @@ class ChatScreenMobile extends GetView<ChatScreenController> {
                   : (data.media ?? []).isNotEmpty
                   ?
               //save option
-              !((data.media ?? []).isNotEmpty)?  _OptionItem(
-                  icon:  Icon(Icons.download_rounded,
+              !((data.media ?? []).isNotEmpty)
+                  ? _OptionItem(
+                  icon: Icon(Icons.download_rounded,
                       color: appColorYellow, size: 18),
                   name: 'Save Image',
                   onTap: () async {
@@ -1548,31 +1573,28 @@ class ChatScreenMobile extends GetView<ChatScreenController> {
                   : const SizedBox()
                   : const SizedBox(),
 
-
-              !((data.media ?? []).isNotEmpty)?     _OptionItem(
-                  icon:  Icon(Icons.reply,
-                      color: appColorYellow, size: 18),
+              !((data.media ?? []).isNotEmpty)
+                  ? _OptionItem(
+                  icon: Icon(Icons.reply, color: appColorGreen, size: 18),
                   name: 'Reply',
                   onTap: () async {
                     try {
                       Get.back();
                       controller.refIdis = data.chatId;
-                      controller.userIDSender =
-                          data.fromUser?.userId;
+                      controller.userIDSender = data.fromUser?.userId;
                       controller.userNameReceiver =
-                          data.toUser?.displayName ?? '';
+                          data.toUser?.userCompany?.displayName ?? '';
                       controller.userNameSender =
-                          data.fromUser?.displayName ?? '';
-                      controller.userIDReceiver =
-                          data.toUser?.userId;
+                          data.fromUser?.userCompany?.displayName ?? '';
+                      controller.userIDReceiver = data.toUser?.userId;
                       controller.replyToMessage = data;
-
-
                       controller.update();
+                      controller.messageInputFocus.requestFocus();
                     } catch (e) {
                       toast('Something went wrong!');
                     }
-                  }):SizedBox(),
+                  })
+                  : const SizedBox(),
 
               /*_OptionItem(
                     icon:  Icon(Icons.document_scanner,
@@ -1600,38 +1622,32 @@ class ChatScreenMobile extends GetView<ChatScreenController> {
                 ),
 
               //edit option
-              /*  if (data.message != "" && isMe)
+
+              if (data.message != "" && isMe && diffMinutes <= 15 )
                 _OptionItem(
-                    icon: const Icon(Icons.edit, color: Colors.blue,  size: 18),
+                    icon:  Icon(Icons.edit, color: appColorGreen,  size: 18),
                     name: 'Edit Message',
                     onTap: () {
-                      //for hiding bottom sheet
                       Get.back();
+                      _showMessageUpdateDialog(data,Get.context!);
+                    }),
 
-                      */ /* final currentStatus =
-                          widget.message.taskDetails?.taskStatus ?? 'Pending';
-
-                      isTaskMode && !widget.isForward
-                          ? (['Done', 'Completed', 'Cancelled']
-                                  .contains(currentStatus))
-                              ? toast(
-                                  "⛔ Task status is '$currentStatus' — update not allowed.")
-                              : showDialog(
-                                  context: Get.context!,
-                                  builder: (_) => _updateTasksDialogWidget(
-                                      userName, widget.message.taskDetails!))
-                          : */ /*
-                      _showMessageUpdateDialog();
+              /*if ((APIs.me?.userCompany?.company?.createdBy ==data.fromUser?.userCompany?.company?.createdBy))
+                _OptionItem(
+                    icon:  Icon(Icons.edit, color: appColorGreen,  size: 18),
+                    name: 'Edit Message',
+                    onTap: () {
+                      Get.back();
+                      _showMessageUpdateDialog(data,Get.context!);
                     }),*/
 
               // delete option
-              if (controller.me?.userId == controller.myCompany?.createdBy)
+              if (controller.me?.userId == controller.myCompany?.createdBy && isMe)
                 _OptionItem(
                     icon: const Icon(Icons.delete_forever,
                         color: Colors.red, size: 18),
                     name: 'Delete Message',
                     onTap: () async {
-                      print("sdfsdfsf${data.chatId ?? 0}");
                       Get.find<SocketController>().deleteMsgEmitter(
                           mode: controller.user?.userCompany?.isGroup == 1
                               ? "group"
@@ -1643,8 +1659,21 @@ class ChatScreenMobile extends GetView<ChatScreenController> {
                               ? controller.user?.userCompany?.userCompanyId
                               : null);
                     }),
+
+              (data.message!=null&&(data.media?.isEmpty??true))?
+
+              _OptionItem(
+                  icon:  Icon(Icons.share,
+                      color: appColorGreen, size: 18),
+                  name: 'Share on WhatsApp',
+                  onTap: () async {
+                    if(kIsWeb){
+                      final msg = data.message ?? '';
+                      ShareHelper.shareOnWhatsApp(msg);
+                    }
+                  }):SizedBox()
               //separator or divider
-              /*  if (!widget.isForward)
+              /* if (!widget.isForward)
                 Divider(
                   color: Colors.black54,
                   endIndent: mq.width * .04,
@@ -1675,6 +1704,7 @@ class ChatScreenMobile extends GetView<ChatScreenController> {
           );
         });
   }
+
 
   final _formKeyDoc = GlobalKey<FormState>();
   _saveDocumentsDialog() {
@@ -1822,68 +1852,72 @@ class ChatScreenMobile extends GetView<ChatScreenController> {
   }
 
   //dialog for updating message content
-  void _showMessageUpdateDialog() {
-/*    String updatedMsg = widget.message.msg;
-
+  void _showMessageUpdateDialog(ChatHisList message,context) {
+    controller.updateMsgController.text = message.message??'';
     showDialog(
         context: context,
+
         builder: (_) => AlertDialog(
-              contentPadding: const EdgeInsets.only(
-                  left: 24, right: 24, top: 20, bottom: 10),
+          backgroundColor: Colors.white,
+          contentPadding: const EdgeInsets.only(
+              left: 24, right: 24, top: 20, bottom: 10),
 
-              shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(20)),
+          shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(20)),
 
-              //title
-              title: const Row(
-                children: [
-                  Icon(
-                    Icons.message,
-                    color: Colors.blue,
-                    size: 28,
-                  ),
-                  Text(' Update Message')
-                ],
+          //title
+          title:  Row(
+            children: [
+              Icon(
+                Icons.message,
+                color: appColorGreen,
+                size: 20,
               ),
+              hGap(5),
+              Text('Update Message',style: BalooStyles.baloosemiBoldTextStyle(),)
+            ],
+          ),
 
-              //content
-              content: TextFormField(
-                initialValue: updatedMsg,
-                maxLines: null,
-                onChanged: (value) => updatedMsg = value,
-                decoration: InputDecoration(
-                    border: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(15))),
-              ),
+          //content
+          content: TextFormField(
+            controller: controller.updateMsgController ,
+            maxLines: null,
+            onChanged: (value) => message.message = value,
+            decoration: InputDecoration(
+                border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(15))),
+          ),
 
-              //actions
-              actions: [
-                //cancel button
-                MaterialButton(
-                    onPressed: () {
-                      //hide alert dialog
-                      Get.back();
-                    },
-                    child: const Text(
-                      'Cancel',
-                      style: TextStyle(color: Colors.blue, fontSize: 16),
-                    )),
+          //actions
+          actions: [
+            //cancel button
+            MaterialButton(
+                onPressed: () {
+                  //hide alert dialog
+                  Get.back();
+                },
+                child: const Text(
+                  'Cancel',
+                  style: TextStyle(color: Colors.blue, fontSize: 16),
+                )),
 
-                //update button
-                MaterialButton(
-                    onPressed: () {
-                      //hide alert dialog
-                      APIs.updateMessage(widget.message, updatedMsg)
-                          .whenComplete(() {
-                        Get.back();
-                      });
-                    },
-                    child: const Text(
-                      'Update',
-                      style: TextStyle(color: Colors.blue, fontSize: 16),
-                    ))
-              ],
-            ));*/
+            //update button
+
+            CustomTextButton(onTap: (){
+              try {
+                Get.find<SocketController>().updateChatMessage(
+                    chatId: message.chatId,
+                    toUcId: message.toUser?.userCompany?.userCompanyId,
+                    message: controller.updateMsgController.text.trim()
+                );
+                Get.back();
+              }catch(e){
+                toast(e.toString());
+              }
+            }, title: 'Update')
+
+          ],
+        ));
   }
 }
 
