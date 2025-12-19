@@ -415,10 +415,10 @@ class TaskScreen extends GetView<TaskController> {
                             },
                             icon: Transform(
                                 alignment: Alignment.center,
-                                transform: Matrix4.rotationX(math.pi),
+                                transform: Matrix4.rotationY(math.pi),
                                 child: Image.asset(
                                   forwardIcon,
-                                  height: 25,
+                                  height: 20,
                                 ))).paddingOnly(left: 10)
                         : const SizedBox(),
                     Align(
@@ -473,10 +473,10 @@ class TaskScreen extends GetView<TaskController> {
                             },
                             icon: Transform(
                                 alignment: Alignment.center,
-                                transform: Matrix4.rotationY(math.pi),
+                                transform: Matrix4.rotationX(math.pi),
                                 child: Image.asset(
                                   forwardIcon,
-                                  height: 25,
+                                  height: 20,
                                 ))).paddingOnly(right: 10)
                         : const SizedBox()
                   ],
@@ -528,7 +528,7 @@ class TaskScreen extends GetView<TaskController> {
                   );
                 },
                 child: Container(
-                  padding: EdgeInsets.symmetric(vertical: 5,horizontal: 12 ),
+                  padding: const EdgeInsets.symmetric(vertical: 5,horizontal: 12 ),
                   decoration: BoxDecoration(
                     borderRadius: BorderRadius.circular(12),
                     color: getTaskStatusColor(data.currentStatus?.name?.capitalizeFirst)
@@ -862,7 +862,7 @@ class TaskScreen extends GetView<TaskController> {
             cursorColor: appColorGreen,
             decoration: const InputDecoration(
                 border: InputBorder.none,
-                hintText: 'Search User, Group & Collection ...',
+                hintText: 'Search task by title or description ...',
                 contentPadding: EdgeInsets.symmetric(
                     vertical: 0, horizontal: 10),
                 constraints: BoxConstraints(maxHeight: 45)),
@@ -985,22 +985,23 @@ class TaskScreen extends GetView<TaskController> {
             ),
           ),
         ),
-        /*(controller.me?.userId == controller.user?.createdby || controller.me?.userCompany?.isAdmin==1)
-            ? */
-        /*: SizedBox()*/
 
-        controller.isSearching?SizedBox():  (controller.user?.userCompany?.isBroadcast==1 ||controller.user?.userCompany?.isGroup==1) ?SizedBox():CustomTextButton(onTap: (){
+        controller.isSearching?const SizedBox():  (controller.user?.userCompany?.isBroadcast==1 ||controller.user?.userCompany?.isGroup==1) ?const SizedBox():CustomTextButton(onTap: (){
+          if (controller.user == null) return;
           isTaskMode = false;
-
           Get.find<DashboardController>().updateIndex(0);
 
           // ensure ChatHomeController exists
           if (!Get.isRegistered<ChatHomeController>()) {
-            Get.put(ChatHomeController());
+            Get.put(ChatHomeController(),permanent: true);
+            // toast("Something went wrong! Please refresh the App");
+            // return;
           }
           // ensure ChatScreenController exists
           if (!Get.isRegistered<ChatScreenController>()) {
-            Get.put(ChatScreenController(user: controller.user));
+            // toast("Something went wrong! Please refresh the App");
+            // return;
+            Get.put(ChatScreenController(user: controller.user),permanent: true);
           }
 
           final chatHome = Get.find<ChatHomeController>();
@@ -1008,12 +1009,14 @@ class TaskScreen extends GetView<TaskController> {
 
           chatHome.selectedChat.value = controller.user;
           chatC.user = controller.user;
-          chatC.openConversation(controller.user);
+          // Future.microtask(() {
+            chatC.openConversation(chatHome.selectedChat.value);
+          // });
 
           chatHome.selectedChat.refresh();
         }, title: "Go to Chat"),
 
-        controller.isSearching?SizedBox():  hGap(10),
+        controller.isSearching?const SizedBox():  hGap(10),
         IconButton(
             onPressed: () {
               controller.isSearching = !controller.isSearching;
@@ -1029,8 +1032,8 @@ class TaskScreen extends GetView<TaskController> {
                 CupertinoIcons.clear_circled_solid)
                 : Image.asset(searchPng,height:20,width:20)
         ).paddingOnly(top: 0, right: 0),
-        controller.isSearching?SizedBox():hGap(5),
-        controller.isSearching?SizedBox():    (controller.user?.userCompany?.isGroup == 1 ||
+        controller.isSearching?const SizedBox():hGap(5),
+        controller.isSearching?const SizedBox():    (controller.user?.userCompany?.isGroup == 1 ||
                 controller.user?.userCompany?.isBroadcast == 1)
             ? PopupMenuButton<String>(
                 color: Colors.white,
@@ -1102,7 +1105,7 @@ class TaskScreen extends GetView<TaskController> {
                 ],
               )
             : const SizedBox(),
-        GetBuilder<TaskController>(
+        controller.isSearching?const SizedBox(): GetBuilder<TaskController>(
           id: 'statusMenu',
           builder: (controller) {
             // Loading state
@@ -1991,7 +1994,7 @@ class TaskScreen extends GetView<TaskController> {
         children: [
           _buildTaskField("Title", controller.titleController, 1, 50),
           vGap(15),
-          _buildTaskField("Description", controller.descController, 5, 300),
+          _buildTaskField("Description", controller.descController, 8, 300),
           vGap(8),
 
           // DEADLINE (unchanged UI)

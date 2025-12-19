@@ -1,6 +1,5 @@
 import 'dart:async';
 import 'dart:math' as math;
-import 'package:AccuChat/Screens/Chat/api/apis.dart';
 import 'package:AccuChat/Screens/Chat/screens/chat_tasks/Presentation/Controllers/task_home_controller.dart';
 import 'package:AccuChat/utils/text_button.dart';
 import 'package:flutter/cupertino.dart';
@@ -111,7 +110,7 @@ double _textScaleClamp(BuildContext context) {
 final FocusNode _focusNode = FocusNode();
 
 class ChatScreen extends GetView<ChatScreenController> {
-  final UserDataAPI? user; // <- GET USER HERE
+  final UserDataAPI? user;
   bool showBack = true;
 
   ChatScreen({super.key, this.user, this.showBack = true});
@@ -171,8 +170,7 @@ class ChatScreen extends GetView<ChatScreenController> {
                                 Expanded(
                                     child: RepaintBoundary(
                                         child: chatMessageBuilder())),
-                                //chat input filed
-                                //TODO
+
                                 if (controller.replyToMessage != null)
                                   Container(
                                     padding: const EdgeInsets.all(2),
@@ -646,13 +644,14 @@ class ChatScreen extends GetView<ChatScreenController> {
                           onPressed: () {
                             controller.handleForward(chatId: data.chatId);
                           },
-                          icon: Transform(
-                              alignment: Alignment.center,
-                              transform: Matrix4.rotationX(math.pi),
-                              child: Image.asset(
-                                forwardIcon,
-                                height: 25,
-                              ))).paddingOnly(left: 8)
+                          icon:Transform(
+                            alignment: Alignment.center,
+                            transform: Matrix4.rotationY(math.pi),
+                            child: Image.asset(
+                              forwardIcon,
+                              height: 20,
+                            ),
+                          )).paddingOnly(left: 8)
                       : const SizedBox(),
                   Align(
                     alignment: sentByMe ? Alignment.centerRight : Alignment.centerLeft,
@@ -749,10 +748,10 @@ class ChatScreen extends GetView<ChatScreenController> {
                           },
                           icon: Transform(
                               alignment: Alignment.center,
-                              transform: Matrix4.rotationY(math.pi),
+                              transform: Matrix4.rotationX(math.pi),
                               child: Image.asset(
                                 forwardIcon,
-                                height: 25,
+                                height: 20,
                               ))).paddingOnly(right: 8)
                       : const SizedBox()
                 ],
@@ -783,7 +782,7 @@ class ChatScreen extends GetView<ChatScreenController> {
   }
 
   messageTypeView(ChatHisList data, {required bool sentByMe}) {
-    
+
     return Container(
       key: ValueKey('msg-${data.chatId}'),
       child: Column(
@@ -811,7 +810,6 @@ class ChatScreen extends GetView<ChatScreenController> {
               ? Row(
                   mainAxisSize: MainAxisSize.min,
                   children: [
-
                     Flexible(
                       child: Text(
                         data.fromUser?.userId == controller.me?.userId
@@ -942,7 +940,7 @@ class ChatScreen extends GetView<ChatScreenController> {
                         cursorColor: appColorGreen,
                         decoration: const InputDecoration(
                 border: InputBorder.none,
-                hintText: 'Search User, Group & Collection ...',
+                hintText: 'Search Chats ...',
                 contentPadding: EdgeInsets.symmetric(
                     vertical: 0, horizontal: 10),
                 constraints: BoxConstraints(maxHeight: 45)),
@@ -1085,6 +1083,7 @@ class ChatScreen extends GetView<ChatScreenController> {
           ),
         ),
         controller.isSearching?SizedBox():  (controller.user?.userCompany?.isBroadcast==1 ||controller.user?.userCompany?.isGroup==1) ?SizedBox():  CustomTextButton(onTap: (){
+          if (controller.user == null) return;
           isTaskMode = true;
           Get.find<DashboardController>().updateIndex(1);
           // ensure TaskHomeController exists
@@ -1096,12 +1095,15 @@ class ChatScreen extends GetView<ChatScreenController> {
             Get.put(TaskController(user: controller.user));
           }
 
+
           final taskHome = Get.find<TaskHomeController>();
           final taskC = Get.find<TaskController>();
 
           taskHome.selectedChat.value = controller.user;
           taskC.user = controller.user;
+          Future.microtask(() {
           taskC.openConversation(controller.user);
+          });
 
 
           taskHome.selectedChat.refresh();

@@ -32,9 +32,6 @@ import '../Widgets/chat_group_card.dart';
 import '../Widgets/chat_user_card.dart';
 import '../Controllers/chat_home_controller.dart';
 import '../Widgets/chat_user_card_mobile.dart';
-import 'chat_groups.dart';
-import 'chat_task_shimmmer.dart';
-import 'chats_broadcasts.dart';
 import 'create_broadcast_dialog_screen.dart';
 
 class ChatsHomeScreen extends GetView<ChatHomeController> {
@@ -47,11 +44,8 @@ class ChatsHomeScreen extends GetView<ChatHomeController> {
   Widget build(BuildContext context) {
 
     return GestureDetector(
-      //for hiding keyboard when a tap is detected on screen
       onTap: () => FocusScope.of(context).unfocus(),
       child: WillPopScope(
-        //if search is on & back button is pressed then close search
-        //or else simple close current screen on back button click
         onWillPop: () {
           // if (_isSearching) {
           //   setState(() {
@@ -77,7 +71,6 @@ class ChatsHomeScreen extends GetView<ChatHomeController> {
                       if (controller.loadingCompany.value) {
                         return const Center(child: CircularProgressIndicator());
                       }
-
                       return controller.isSearching.value
                           ? TextField(
                                   controller: controller.seacrhCon,
@@ -212,7 +205,6 @@ class ChatsHomeScreen extends GetView<ChatHomeController> {
                                       height: 40,
                                       width: 40,
                                       borderColor: appColorYellow,
-
                                       defaultImage: appIcon,
                                       boxFit: BoxFit.cover,
                                     ),
@@ -261,7 +253,7 @@ class ChatsHomeScreen extends GetView<ChatHomeController> {
                                 arguments: {"isRecent": 'false'});
                           }
                         },
-                        icon: Image.asset(addNewChatPng,height:27,width:27)):const SizedBox(),
+                        icon: Image.asset(addNewChatPng,height:27,width:27,fit: BoxFit.contain,filterQuality: FilterQuality.high,)):const SizedBox(),
                     hGap(10),
                     Obx(
                        () {
@@ -446,8 +438,11 @@ class ChatsHomeScreen extends GetView<ChatHomeController> {
         ? RefreshIndicator(
       backgroundColor: Colors.white,
       color: appColorGreen,
-      onRefresh: () async =>
-          controller.hitAPIToGetRecentChats(),
+      onRefresh: () async {
+        controller.page = 1;
+        controller.hitAPIToGetRecentChats();
+      }
+         ,
       child: Obx(
         () {
           return ListView.builder(

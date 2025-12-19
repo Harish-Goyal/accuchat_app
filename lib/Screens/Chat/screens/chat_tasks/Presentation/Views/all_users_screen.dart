@@ -161,6 +161,7 @@ class AllUserScreen extends GetView<AllUserController> {
                           }
                         } else {
                           if (kIsWeb) {
+
                             Get.to(()=>ChatScreen(user: controller.filteredList[i] ,showBack: true,));
 
                           } else {

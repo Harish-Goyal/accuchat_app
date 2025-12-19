@@ -223,17 +223,15 @@ class CompanyMembers extends GetView<CompanyMemberController> {
                     },
                     onTap: (){
                       dcController.updateIndex(0);
-
                       isTaskMode = false;
                       controller.update();
                       // APIs.updateActiveStatus(true);
-
-
                       if(isTaskMode) {
                         if(kIsWeb){
-                          Get.toNamed(
-                            "${AppRoutes.tasks_li_r}?userId=${memData?.userId.toString()}",
-                          );
+                          Get.to(()=>TaskScreen(taskUser: memData ,showBack: true,));
+                          // Get.toNamed(
+                          //   "${AppRoutes.tasks_li_r}?userId=${memData?.userId.toString()}",
+                          // );
                         }else{
                           Get.toNamed(
                             AppRoutes.tasks_li_r,
@@ -242,9 +240,7 @@ class CompanyMembers extends GetView<CompanyMemberController> {
                         }
                       }else{
                         if(kIsWeb){
-                          Get.toNamed(
-                            "${AppRoutes.chats_li_r}?userId=${memData?.userId.toString()}",
-                          );
+                          Get.to(()=>ChatScreen(user: memData ,showBack: true,));
                         }else{
                           Get.toNamed(
                             AppRoutes.chats_li_r,

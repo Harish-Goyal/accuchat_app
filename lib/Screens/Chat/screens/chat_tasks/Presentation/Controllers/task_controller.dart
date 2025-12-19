@@ -37,6 +37,8 @@ import '../../Bindings/bindings.dart';
 import '../Views/task_chat_screen.dart';
 import '../Views/task_treads_screen.dart';
 import '../Widgets/all_users_dialog.dart';
+import 'chat_home_controller.dart';
+import 'chat_screen_controller.dart';
 
 class TaskController extends GetxController {
   TaskController({this.user});
@@ -81,6 +83,7 @@ class TaskController extends GetxController {
   void onInit() {
     getArguments();
     getUserNavigation();
+
     super.onInit();
   }
 

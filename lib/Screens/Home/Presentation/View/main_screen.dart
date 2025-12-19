@@ -3,6 +3,7 @@ import 'package:AccuChat/Constants/colors.dart';
 import 'package:AccuChat/Screens/Chat/screens/chat_tasks/Presentation/Controllers/chat_home_controller.dart';
 import 'package:AccuChat/Screens/Chat/screens/chat_tasks/Presentation/Controllers/chat_screen_controller.dart';
 import 'package:AccuChat/Screens/Chat/screens/chat_tasks/Presentation/Controllers/task_controller.dart';
+import 'package:AccuChat/Screens/Chat/screens/chat_tasks/Presentation/Controllers/task_home_controller.dart';
 import 'package:AccuChat/Screens/Home/Presentation/Controller/home_controller.dart';
 import 'package:AccuChat/utils/text_style.dart';
 import 'package:flutter/material.dart';
@@ -10,7 +11,6 @@ import 'package:flutter_snake_navigationbar/flutter_snake_navigationbar.dart';
 import 'package:get/get.dart';
 import '../../../../main.dart';
 import '../../../../routes/app_routes.dart';
-import '../Controller/company_service.dart';
 
 class AccuChatDashboard extends StatelessWidget {
   final DashboardController controller = Get.put(DashboardController());
@@ -261,10 +261,29 @@ Widget buildSideNav(DashboardController controller) {
             if(isSetting){
               Get.toNamed(AppRoutes.all_settings);
             }
-            if(index == 1){
-              Get.find<TaskController>().openConversation(dashboardController.user);
-            }else if(index == 0){
-              Get.find<ChatScreenController>().openConversation(dashboardController.user);
+            if(index == 1 && !isTaskMode){
+              final taskC = Get.find<TaskController>();
+              final taskHomeC = Get.find<TaskHomeController>();
+              taskHomeC.selectedChat.value = dashboardController.user;
+
+              Future.microtask(() {
+                taskC.openConversation(taskHomeC.selectedChat.value);
+              });
+              // Get.find<TaskController>()!=null? Get.find<TaskController>().openConversation(dashboardController.user) : Get.put(TaskController()).openConversation(dashboardController.user);
+
+
+            }else if(index == 0 && isTaskMode){
+               // Get.find<ChatScreenController>()!=null? Get.find<ChatScreenController>().openConversation(dashboardController.user) : Get.put(ChatScreenController()).openConversation(dashboardController.user);
+               // Get.find<ChatHomeController>().selectedChat.value = dashboardController.user;
+
+              final taskC = Get.find<ChatScreenController>();
+              final taskHomeC = Get.find<ChatHomeController>();
+              taskHomeC.selectedChat.value = dashboardController.user;
+
+              Future.microtask(() {
+                taskC.openConversation(taskHomeC.selectedChat.value);
+              });
+
             }
             controller.update();
           },

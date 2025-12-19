@@ -3,6 +3,8 @@ import 'dart:io';
 import 'dart:math';
 import 'package:AccuChat/Screens/Chat/models/chat_his_res_model.dart';
 import 'package:AccuChat/Screens/Chat/models/chat_history_response_model.dart';
+import 'package:AccuChat/Screens/Chat/screens/chat_tasks/Presentation/Controllers/task_controller.dart';
+import 'package:AccuChat/Screens/Chat/screens/chat_tasks/Presentation/Controllers/task_home_controller.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
@@ -31,6 +33,7 @@ import 'package:dio/dio.dart' as multi;
 import 'package:path/path.dart' as p;
 import 'dart:typed_data';
 
+import '../Views/chat_screen.dart';
 import '../Widgets/all_users_dialog.dart';
 import '../Widgets/create_custom_folder.dart';
 import 'chat_home_controller.dart';
@@ -327,6 +330,8 @@ class ChatScreenController extends GetxController {
     //   }
     // });
     scrollListener();
+
+
   }
 
   _initScroll() {
@@ -1054,20 +1059,23 @@ class ChatScreenController extends GetxController {
       update();
 
       // Replace current chat screen with the target chat
-      if (Get.currentRoute == AppRoutes.chats_li_r &&
-          Get.isRegistered<ChatScreenController>()) {
+      if (/*Get.currentRoute == AppRoutes.chats_li_r &&*/
+        Get.isRegistered<ChatScreenController>()) {
+        Get.find<ChatHomeController>().selectedChat.value = selectedUser;
         Get.find<ChatScreenController>().openConversation(selectedUser);
       } else {
-        if (kIsWeb) {
-          Get.offNamed(
-            "${AppRoutes.chats_li_r}?userId=${selectedUser.userId.toString()}",
-          );
-        } else {
-          Get.offNamed(
-            AppRoutes.chats_li_r,
-            arguments: {'user': selectedUser},
-          );
-        }
+        toast("Something went wrong please refresh and try again");
+        // if (kIsWeb) {
+        //   Get.to(()=>ChatScreen(user: selectedUser ,showBack: true,));
+        //   // Get.offNamed(
+        //   //   "${AppRoutes.chats_li_r}?userId=${selectedUser.userId.toString()}",
+        //   // );
+        // } else {
+        //   Get.offNamed(
+        //     AppRoutes.chats_li_r,
+        //     arguments: {'user': selectedUser},
+        //   );
+        // }
       }
     }
 

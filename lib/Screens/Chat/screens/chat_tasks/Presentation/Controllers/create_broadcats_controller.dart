@@ -85,8 +85,8 @@ class CreateBroadcastsController extends GetxController{
       Get.back();
       groupResModel = value;
       nameController.clear();
-
-      Get.find<ChatHomeController>().hitAPIToGetRecentChats();
+      Get.find<ChatHomeController>().page = 1;
+      Get.find<ChatHomeController>().hitAPIToGetRecentChats(userData:groupResModel.data );
       toast(value.message??'');
       update();
     }).onError((error, stackTrace) {

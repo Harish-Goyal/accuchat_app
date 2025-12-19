@@ -88,7 +88,7 @@ class DashboardController extends GetxController with WidgetsBindingObserver {
 
     // (kept) registrations – wrapped in try to avoid crash if already registered
     try {
-      await Get.putAsync<SocketController>(() async => SocketController(), permanent: true);
+       Get.put<SocketController>( SocketController(), permanent: true);
     } catch (_) {}
     try { Get.lazyPut(() => DashboardController(), fenix: true); } catch (_) {}
     try { Get.lazyPut(() =>ChatHomeController(), fenix: true); } catch (_) {}

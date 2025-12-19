@@ -58,7 +58,6 @@ class ChatHomeBinding extends Bindings {
 }class TaskHomeBinding extends Bindings {
   @override
   void dependencies() {
-
     Get.put<TaskHomeController>(TaskHomeController());
   }
 }

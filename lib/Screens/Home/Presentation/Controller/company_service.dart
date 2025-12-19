@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:hive_flutter/hive_flutter.dart';
+import '../../../../Services/APIs/auth_service/auth_api_services_impl.dart';
 import '../../../../Services/APIs/local_keys.dart';
 import '../../../../utils/memmory_Doctor.dart';
+import '../../../../utils/shares_pref_web.dart';
 import '../../../Chat/api/session_alive.dart';
 import '../../../Chat/models/get_company_res_model.dart';
 import 'package:get/get.dart';
@@ -132,6 +134,19 @@ class CompanyService extends GetxService {
 
   Future<void> _initSessionSafe(int companyId) async {
     try {
+      // if(!Get.isRegistered<Session>()){
+      //   Get.putAsync<Session>(() async {
+      //     final s = Session(Get.find<AuthApiServiceImpl>(), Get.find<AppStorage>());
+      //
+      //     CompanyData? selCompany;
+      //     try {
+      //       final svc = CompanyService.to;
+      //       selCompany = svc.selected; // may be null on clean install
+      //     } catch (_) {}
+      //     await s.initSafe(companyId: selCompany?.companyId??0); // <-- works with null/0
+      //     return s;
+      //   });
+      // }
       final session = Get.find<Session>();
       await session.init(companyId: companyId);
     } catch (e, s) {
@@ -141,6 +156,19 @@ class CompanyService extends GetxService {
 
   Future<void> _refreshSessionSafe(int companyId) async {
     try {
+      // if(!Get.isRegistered<Session>()){
+      //   Get.putAsync<Session>(() async {
+      //     final s = Session(Get.find<AuthApiServiceImpl>(), Get.find<AppStorage>());
+      //
+      //     CompanyData? selCompany;
+      //     try {
+      //       final svc = CompanyService.to;
+      //       selCompany = svc.selected; // may be null on clean install
+      //     } catch (_) {}
+      //     await s.initSafe(companyId: selCompany?.companyId??0); // <-- works with null/0
+      //     return s;
+      //   });
+      // }
       final session = Get.find<Session>();
       await session.refreshUser(companyId: companyId);
     } catch (e, s) {

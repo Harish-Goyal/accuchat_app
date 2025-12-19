@@ -25,9 +25,6 @@ import '../../../auth/models/get_uesr_Res_model.dart';
 class TaskHomeController extends GetxController{
 
   bool isTask = false;
-
-
-
   // for storing search status
   RxBool isSearching = false.obs;
   TextEditingController seacrhCon = TextEditingController();
@@ -39,7 +36,7 @@ class TaskHomeController extends GetxController{
   final dash = Get.put(DashboardController());
   @override
   void onInit() {
-
+    super.onInit();
     _getCompany();
 
     Future.delayed(const Duration(milliseconds: 500),(){
@@ -62,7 +59,7 @@ class TaskHomeController extends GetxController{
     //   return Future.value(message);
     // });
 
-    super.onInit();
+
   }
 
   CompanyData? myCompany = CompanyData();

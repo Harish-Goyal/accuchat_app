@@ -162,10 +162,7 @@ class ChatHomeController extends GetxController{
 
   List<UserDataAPI>? recentChatUserList=[];
 
-
-
-
-  hitAPIToGetRecentChats({String? search}) async {
+  hitAPIToGetRecentChats({String? search, UserDataAPI? userData}) async {
     if(page==1){
       showPostShimmer = true;
     }
@@ -186,9 +183,12 @@ class ChatHomeController extends GetxController{
         }
           if(selectedChat.value?.userId!=null){
           }else{
-            selectedChat.value = filteredList[0];
+            if(userData!=null){
+              selectedChat.value = userData;
+            }else{
+              selectedChat.value = filteredList[0];
+            }
           }
-
         page++; // next page
         // Get.find<ChatScreenController>().openConversation(selectedChat.value);
       } else {
@@ -202,16 +202,13 @@ class ChatHomeController extends GetxController{
       // filteredList.assignAll(recentChatUserList??[]);
       // if(filteredList.isNotEmpty) {
       //   if(selectedChat.value?.userId!=null){
-      //
       //   }else{
       //     selectedChat.value = filteredList[0];
       //   }
       //
       // }
-      //
-      //
+
       // final List<UserDataAPI> newItems = [];
-      //
       // if (newItems.isNotEmpty) {
       //   page++;
       //   filteredList.addAll(newItems);
@@ -250,7 +247,8 @@ class ChatHomeController extends GetxController{
       groupResModel = value;
       groupController.clear();
       toast(value.message??'');
-      hitAPIToGetRecentChats();
+      page=1;
+      hitAPIToGetRecentChats(userData: groupResModel.data);
       update();
     }).onError((error, stackTrace) {
       update();
@@ -265,11 +263,6 @@ class ChatHomeController extends GetxController{
 
   // List<dynamic> mergedList = [];
   var filteredList = <UserDataAPI>[].obs;
-
-
-
-
-
 
   Timer? searchDelay;
   void onSearch(String query) {
@@ -291,14 +284,8 @@ class ChatHomeController extends GetxController{
 class AuthGuard extends GetMiddleware {
   @override
   RouteSettings? redirect(String? route) {
-
     final String? token = StorageService.getToken();
     final bool loggedIn = StorageService.isLoggedInCheck();
-
-    debugPrint("token=======================");
-    debugPrint(token);
-    debugPrint(loggedIn.toString());
-
     if (token == null) return const RouteSettings(name: AppRoutes.login_r);
     if (!loggedIn)   return const RouteSettings(name: AppRoutes.landing_r);
     return null; // allow

@@ -116,6 +116,7 @@ class ChatScreenMobile extends GetView<ChatScreenController> {
             //if emojis are shown & back button is pressed then hide emojis
             //or else simple close current screen on back button click
             onWillPop: () {
+              Get.find<ChatHomeController>().page = 1;
               Get.find<ChatHomeController>().hitAPIToGetRecentChats();
               return Future.value(true);
             },
@@ -551,10 +552,10 @@ class ChatScreenMobile extends GetView<ChatScreenController> {
                 },
                 icon: Transform(
                     alignment: Alignment.center,
-                    transform: Matrix4.rotationX(math.pi),
+                    transform: Matrix4.rotationY(math.pi),
                     child: Image.asset(
                       forwardIcon,
-                      height: 25,
+                      height: 20,
                     ))).paddingOnly(left: 8)
                 : const SizedBox(),
             Align(
@@ -653,10 +654,10 @@ class ChatScreenMobile extends GetView<ChatScreenController> {
                 },
                 icon: Transform(
                     alignment: Alignment.center,
-                    transform: Matrix4.rotationY(math.pi),
+                    transform: Matrix4.rotationX(math.pi),
                     child: Image.asset(
                       forwardIcon,
-                      height: 25,
+                      height: 20,
                     ))).paddingOnly(right: 8)
                 : const SizedBox()
           ],
@@ -820,7 +821,7 @@ class ChatScreenMobile extends GetView<ChatScreenController> {
             cursorColor: appColorGreen,
             decoration: const InputDecoration(
                 border: InputBorder.none,
-                hintText: 'Search User, Group & Collection ...',
+                hintText: 'Search Chats ...',
                 contentPadding: EdgeInsets.symmetric(
                     vertical: 0, horizontal: 10),
                 constraints: BoxConstraints(maxHeight: 45)),
@@ -874,6 +875,7 @@ class ChatScreenMobile extends GetView<ChatScreenController> {
                         Get.offAllNamed(AppRoutes.home); // or your main route
                       }
                       if(!kIsWeb) {
+                        Get.find<ChatHomeController>().page = 1;
                         Get.find<ChatHomeController>().hitAPIToGetRecentChats();
                         if (isTaskMode) {
                           Get.find<DashboardController>().updateIndex(1);

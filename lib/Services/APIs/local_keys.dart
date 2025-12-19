@@ -2,13 +2,18 @@ import 'dart:convert';
 
 import 'package:AccuChat/Screens/Chat/screens/auth/models/get_uesr_Res_model.dart';
 import 'package:AccuChat/Screens/Home/Presentation/Controller/company_service.dart';
+import 'package:AccuChat/Screens/Home/Presentation/Controller/socket_controller.dart';
 import 'package:AccuChat/Screens/Settings/Model/get_nav_permission_res_model.dart';
 import 'package:AccuChat/routes/app_routes.dart';
 import 'package:get/get.dart';
 import 'package:hive/hive.dart';
 
 import '../../Screens/Authentication/AuthResponseModel/loginResModel.dart';
+import '../../Screens/Chat/api/apis.dart';
+import '../../Screens/Chat/api/session_alive.dart';
 import '../../Screens/Chat/models/get_company_res_model.dart';
+import '../../Screens/Chat/screens/chat_tasks/Presentation/Controllers/chat_home_controller.dart';
+import '../../Screens/Chat/screens/chat_tasks/Presentation/Controllers/chat_screen_controller.dart';
 import '../../Screens/Settings/Model/get_company_roles_res_moel.dart';
 import '../hive_boot.dart';
 import '../../main.dart';
@@ -95,40 +100,73 @@ RolesData? getRolesData() {
   return null;
 }
 
+
 Future<void> logoutLocal() async {
   customLoader.show();
 
-  // 1) Close & delete CompanyService instance cleanly
+  // 1️⃣ DISCONNECT SOCKET (MOST IMPORTANT)
+  try {
+    Get.find<SocketController>().disconnect();
+    Get.delete<SocketController>(force: true);
+  } catch (_) {}
+
+  if (Get.isRegistered<Session>()) {
+    await Get.delete<Session>(force: true);
+  }
+  if (Get.isRegistered<ChatScreenController>()) {
+    await Get.delete<ChatScreenController>(force: true);
+  }
+  if (Get.isRegistered<ChatHomeController>()) {
+    await Get.delete<ChatHomeController>(force: true);
+  }
+
+  // 4. STORAGE CLEAR
+  await StorageService.clear();
+  await AppStorage().clear();
+
+  // 5. COMPANY SERVICE
   if (Get.isRegistered<CompanyService>()) {
     try { await CompanyService.to.closeBox(); } catch (_) {}
     await Get.delete<CompanyService>(force: true);
   }
 
-  // 2) Now it’s safe to wipe Hive
+  // 6. HIVE
   await HiveBoot.closeAndDeleteAll(deleteFromDisk: true);
-  // If your app requires, re-init later before next login:
-  // await HiveBoot.init();  <-- do this at login boot instead
 
-  // 3) Clear your storages
-  StorageService.remove(isFirstTime);
-  StorageService.remove(isFirstTimeChatKey);
-  StorageService.remove(user_mob);
-  StorageService.remove(LOCALKEY_token);
-  StorageService.remove(navigation_item_key);
-  StorageService.remove(roles_data_key);
-  StorageService.remove(bottom_nav_key);
-  StorageService.remove(isLoggedIn);
-  StorageService.remove(user_key);
-  StorageService.clear();
-  AppStorage().remove(LOCALKEY_token);
-  AppStorage().remove(user_key);
-  AppStorage().clear();
+  // 7. NAVIGATION
+  Get.offAllNamed(AppRoutes.login_r);
 
-  // 4) Navigate to login
-  Future.delayed(const Duration(milliseconds: 600),
-          () => Get.offAllNamed(AppRoutes.login_r));
   customLoader.hide();
 }
+
+
+// Future<void> logoutLocal() async {
+//   customLoader.show();
+//   StorageService.remove(isFirstTime);
+//   StorageService.remove(isFirstTimeChatKey);
+//   StorageService.remove(user_mob);
+//   StorageService.remove(LOCALKEY_token);
+//   StorageService.remove(navigation_item_key);
+//   StorageService.remove(roles_data_key);
+//   StorageService.remove(bottom_nav_key);
+//   StorageService.remove(isLoggedIn);
+//   StorageService.remove(user_key);
+//   StorageService.clear();
+//   AppStorage().remove(LOCALKEY_token);
+//   AppStorage().remove(user_key);
+//   AppStorage().clear();
+//   if (Get.isRegistered<CompanyService>()) {
+//     try { await CompanyService.to.closeBox(); } catch (_) {}
+//     await Get.delete<CompanyService>(force: true);
+//   }
+//
+//   // 2) Now it’s safe to wipe Hive
+//   await HiveBoot.closeAndDeleteAll(deleteFromDisk: true);
+//   // 4) Navigate to login
+//   Future.delayed(const Duration(milliseconds: 1000),
+//           () => Get.offAllNamed(AppRoutes.login_r));
+//   customLoader.hide();
+// }
 
 
 void saveNavigation(List<NavigationItem> data) {

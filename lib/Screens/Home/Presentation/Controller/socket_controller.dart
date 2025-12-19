@@ -31,11 +31,12 @@ enum ChType {
 class SocketController extends GetxController with WidgetsBindingObserver {
   late IO.Socket? socket;
   bool initialized = false;
+  final isConnected = false.obs;
   @override
   void onInit() {
     super.onInit();
     WidgetsBinding.instance.addObserver(this);
-    _getMe();
+    // _getMe();
     if (!initialized) {
       initialized = true;
       initSocket();
@@ -100,6 +101,7 @@ class SocketController extends GetxController with WidgetsBindingObserver {
     socket?.connect();
 
     socket?.onConnect((_) {
+      isConnected.value = true;
       attachListenersOnce();
     });
 
@@ -117,6 +119,7 @@ class SocketController extends GetxController with WidgetsBindingObserver {
     });
 
     socket?.onDisconnect((v) {
+      isConnected.value = false;
       debugPrint("Socket disconnected $v");
     });
     socket?.onConnectError((e) => debugPrint('Connect error: $e'));
@@ -125,9 +128,19 @@ class SocketController extends GetxController with WidgetsBindingObserver {
     });
   }
 
-  UserDataAPI? me = UserDataAPI();
-  _getMe() {
-    me = getUser();
+  // UserDataAPI? me = UserDataAPI();
+  // _getMe() {
+  //   me = getUser();
+  // }
+
+  void disconnect() {
+    try {
+      socket?.offAny();
+      socket?.disconnect();
+      socket?.destroy();
+    } catch (_) {}
+    socket = null;
+    isConnected.value = false;
   }
 
   bool listenersAttached = false;
@@ -144,9 +157,11 @@ class SocketController extends GetxController with WidgetsBindingObserver {
       try {
         ChatScreenController chatDetailController =
             Get.find<ChatScreenController>();
+        ChatHomeController homeController =
+            Get.find<ChatHomeController>();
         ChatHisList receivedMessageDataModal = ChatHisList.fromJson(messages);
         final selectedUserId = chatDetailController.user?.userId?.toString();
-        final meId = me?.userId?.toString();
+        final meId = APIs.me?.userId?.toString();
 
         final msgFrom = receivedMessageDataModal.fromUser?.userId?.toString();
         final msgTo = receivedMessageDataModal.toUser?.userId?.toString();
@@ -162,14 +177,18 @@ class SocketController extends GetxController with WidgetsBindingObserver {
             fromUser: receivedMessageDataModal.fromUser,
             toUser: receivedMessageDataModal.toUser,
             message: receivedMessageDataModal.message,
+            isActivity: receivedMessageDataModal.isActivity,
+            isForwarded: receivedMessageDataModal.isForwarded,
             sentOn: receivedMessageDataModal.sentOn,
-            media: receivedMessageDataModal.media,
-            replyToText: receivedMessageDataModal.replyToText,
+            readOn: receivedMessageDataModal.readOn,
+            pendingCount: receivedMessageDataModal.pendingCount,
+            isGroupChat: receivedMessageDataModal.isGroupChat,
+            broadcastUserId: receivedMessageDataModal.broadcastUserId,
             replyToId: receivedMessageDataModal.replyToId,
+            replyToText: receivedMessageDataModal.replyToText,
             replyToTime: receivedMessageDataModal.replyToTime,
             replyToName: receivedMessageDataModal.replyToName,
-            isGroupChat: receivedMessageDataModal.isGroupChat,
-            isActivity: receivedMessageDataModal.isActivity,
+            media: receivedMessageDataModal.media,
           );
           chatDetailController.chatHisList?.insert(0, chatMessageItems);
           chatDetailController.chatCatygory
@@ -178,16 +197,60 @@ class SocketController extends GetxController with WidgetsBindingObserver {
           chatDetailController.update();
         }
 
-        if (meId != msgFrom) {
-          chatDetailController.markAllVisibleAsReadOnOpen(
-              receivedMessageDataModal.fromUser?.userCompany?.userCompanyId,
-              receivedMessageDataModal.toUser?.userCompany?.userCompanyId,
-              receivedMessageDataModal.toUser?.userCompany?.isGroup == 1
-                  ? 1
-                  : 0);
+        // if (meId != msgFrom) {
+        //   chatDetailController.markAllVisibleAsReadOnOpen(
+        //       receivedMessageDataModal.fromUser?.userCompany?.userCompanyId,
+        //       receivedMessageDataModal.toUser?.userCompany?.userCompanyId,
+        //       receivedMessageDataModal.toUser?.userCompany?.isGroup == 1
+        //           ? 1
+        //           : 0);
+        // }
+        //
+
+
+
+
+        final fromUcId =
+            receivedMessageDataModal.fromUser?.userCompany?.userCompanyId;
+
+        final selectedUcId =
+            chatDetailController.user?.userCompany?.userCompanyId;
+
+        final index = homeController.filteredList.indexWhere(
+              (e) => e.userCompany?.userCompanyId == fromUcId,
+        );
+
+        if (index != -1) {
+          // 🔥 CHAT IS OPEN → FORCE unread = 0
+          if (isMessageForThisChat) {
+            // homeController.filteredList[index].pendingCount = 0;
+            if (isMessageForThisChat) {
+              connectUserEmitter(receivedMessageDataModal.fromUser?.userCompany?.userCompanyId);
+              readMsgEmitter(
+                  ucID: receivedMessageDataModal.toUser?.userCompany?.userCompanyId??0,
+                  fromUcID: receivedMessageDataModal.fromUser?.userCompany?.userCompanyId??0,
+                  companyId: receivedMessageDataModal.fromUser?.userCompany?.companyId,
+                  is_group_chat: receivedMessageDataModal.toUser?.userCompany?.isGroup == 1
+                      ? 1
+                      : 0);
+            }
+          } else {
+            // 🔥 CHAT CLOSED → increase unread
+            // homeController.filteredList[index].pendingCount =
+            //     (homeController.filteredList[index].pendingCount ?? 0) + 1;
+          }
+
+          // Update last message preview
+          homeController.filteredList[index].lastMessage = LastMessage(
+            message: receivedMessageDataModal.message,
+            messageTime: receivedMessageDataModal.sentOn,
+          );
+
+          homeController.filteredList.refresh();
         }
 
-        // Get.find<ChatHomeController>().hitAPIToGetRecentChats();
+
+
       } catch (e) {
         debugPrint(e.toString());
       }
@@ -203,21 +266,45 @@ class SocketController extends GetxController with WidgetsBindingObserver {
 
       try {
         final updated = UserDataAPI.fromJson(messages);
-        if (APIs.me.userCompany?.userCompanyId ==
-            updated.userCompany?.userCompanyId) {
-          final chatController = Get.find<ChatHomeController>();
+        final chatController = Get.find<ChatHomeController>();
+        final selectedUserId =
+            chatController.selectedChat.value?.userId;
+        if (APIs.me.userCompany?.companyId ==
+            updated.userCompany?.companyId &&   updated.userId==selectedUserId ) {
+          final chatUserId = updated.userId;
+          final index = chatController.filteredList.indexWhere(
+                (u) => u.userId == chatUserId,
+          );
 
+          if (index != -1) {
+            // ✅ reset unread count
+            chatController.filteredList[index].pendingCount = 0;
+
+            // ✅ update last message preview
+            chatController.filteredList[index].lastMessage =
+                updated.lastMessage;
+            chatController.filteredList.refresh();
+
+            connectUserEmitter(APIs.me?.userCompany?.userCompanyId);
+            readMsgEmitter(
+                ucID: updated.userCompany?.userCompanyId??0,
+                fromUcID: APIs.me?.userCompany?.userCompanyId??0,
+                companyId: APIs.me?.userCompany?.companyId,
+                is_group_chat: updated.userCompany?.isGroup == 1
+                    ? 1
+                    : 0);
+          }
+
+        }
+         else  {
           // ALWAYS use the RxList directly
           final list = chatController.filteredList;
-
           // 1️⃣ Remove old entry
           list.removeWhere((e) =>
               e.userCompany?.userCompanyId ==
               updated.userCompany?.userCompanyId);
-
           // 2️⃣ Insert new one at TOP
           list.insert(0, updated);
-
           // 3️⃣ Force RxList rebuild
           chatController.filteredList.refresh();
         }
@@ -231,8 +318,8 @@ class SocketController extends GetxController with WidgetsBindingObserver {
       debugPrint("update_recent_task_list ${jsonEncode(messages.toString())}");
       try {
         final updated = UserDataAPI.fromJson(messages);
-        if (APIs.me.userCompany?.userCompanyId ==
-            updated.userCompany?.userCompanyId) {
+        if (APIs.me.userCompany?.companyId ==
+            updated.userCompany?.companyId) {
           final taskhomeC = Get.find<TaskHomeController>();
 
           // ALWAYS use the RxList directly
@@ -254,76 +341,7 @@ class SocketController extends GetxController with WidgetsBindingObserver {
       }
     });
 
-    /*socket?.off('update_recent_list');
-    socket?.on('update_recent_list', (messages) {
-      debugPrint("update_recent_list ${jsonEncode(messages.toString())}");
-
-      try {
-        final chatController = Get.find<ChatHomeController>();
-        final updated = UserDataAPI.fromJson(messages);
-
-        final list = chatController.filteredList;
-
-        // FIND USER
-        final idx = list.indexWhere(
-                (t) => t.userId == updated.userId
-        );
-
-        // IF EXISTS → REPLACE OBJECT
-        if (idx != -1) {
-          chatController.filteredList[idx] = updated;   // ⭐ IMPORTANT ⭐
-        }
-        // IF NOT EXISTS → ADD AT TOP
-        else {
-          chatController.filteredList.insert(0, updated);
-        }
-
-      } catch (e) {
-        debugPrint('update_recent error: $e');
-      }
-    });
-*/
-
-    /* socket?.on('send_message_listener', (messages) {
-      debugPrint("Listing......3");
-      debugPrint("send_message_listener ${jsonEncode(messages.toString())}");
-      try {
-        ChatScreenController chatDetailController =
-            Get.find<ChatScreenController>();
-        ChatHisList receivedMessageDataModal = ChatHisList.fromJson(messages);
-
-        // if ((receivedMessageDataModal.fromUser?.userId.toString() ==
-        //         (APIs.me?.userId).toString()) ||
-        //     (receivedMessageDataModal.toUser?.userId.toString() ==
-        //         (chatDetailController.user?.userId.toString()))) {
-          ChatHisList chatMessageItems = ChatHisList(
-            chatId: receivedMessageDataModal.chatId,
-            fromUser: receivedMessageDataModal.fromUser,
-            toUser: receivedMessageDataModal.toUser,
-            message: receivedMessageDataModal.message,
-            sentOn: receivedMessageDataModal.sentOn,
-            media: receivedMessageDataModal.media,
-            replyToText: receivedMessageDataModal.replyToText,
-            replyToId: receivedMessageDataModal.replyToId,
-            replyToTime: receivedMessageDataModal.replyToTime,
-            replyToName: receivedMessageDataModal.replyToName,
-            isGroupChat: receivedMessageDataModal.isGroupChat,
-            isActivity: receivedMessageDataModal.isActivity,
-          );
-          chatDetailController.chatHisList?.insert(0, chatMessageItems);
-          chatDetailController.chatCatygory
-              .insert(0, GroupChatElement(DateTime.now(), chatMessageItems));
-        chatDetailController.rebuildFlatRows();
-        // }
-
-        chatDetailController.update();
-      } catch (e) {
-        debugPrint(e.toString());
-      }
-    });*/
-
     // task listener
-
     socket?.off('send_task_listener');
     socket?.on('send_task_listener', (messages) {
       debugPrint("Listing task......4");
@@ -332,8 +350,7 @@ class SocketController extends GetxController with WidgetsBindingObserver {
         TaskController taskController = Get.find<TaskController>();
         TaskData receivedMessageDataModal = TaskData.fromJson(messages);
         final selectedUserId = taskController.user?.userId?.toString();
-        final meId = me?.userId?.toString();
-
+        final meId = APIs.me.userId?.toString();
         final msgFrom = receivedMessageDataModal.fromUser?.userId?.toString();
         final msgTo = receivedMessageDataModal.toUser?.userId?.toString();
 
@@ -546,10 +563,10 @@ class SocketController extends GetxController with WidgetsBindingObserver {
 
   void connectUserEmitter(companyId) {
     try {
-      if (companyId != null && me?.userId != null) {
+      if (companyId != null && APIs.me?.userId != null) {
         socket?.emit('select_company', {
           'company_id': companyId,
-          'user_id': me!.userId,
+          'user_id': APIs.me!.userId,
         });
         debugPrint("user connected");
       }
@@ -698,31 +715,7 @@ class SocketController extends GetxController with WidgetsBindingObserver {
         "to_uc_id: $ucID,company_id : $companyId,from_uc_id : $fromUcID ,is_group_chat : $is_group_chat");
   }
 
-  void setupSocketListeners() {
-    /*socket?.off('read_message_listener');
-    socket?.on('read_message_listener', (data) {
-      debugPrint("read_message_listener: ${jsonEncode(data)}");
-
-      final chatController = Get.find<ChatHomeController>();
-      final chatRoomController = Get.find<ChatScreenController>();
-      final int toId = data['to_uc_id'];
-      final int fromId = data['from_uc_id'];
-      for (var item in chatController.filteredList) {
-        if (item.userCompany?.userCompanyId == fromId) {
-          item.pendingCount = 0;
-          for(var i in chatRoomController.chatCatygory){
-            if (fromId == i.chatMessageItems.fromUser?.userCompany?.userCompanyId) {
-              i.chatMessageItems.readOn = DateTime.now().millisecondsSinceEpoch.toString();
-            }
-          }
-          break;
-        }
-      }
-
-      chatController.filteredList.refresh();
-      chatRoomController.update();
-    });*/
-
+  /*void setupSocketListeners() {
     socket?.off('read_message_listener');
     socket?.on('read_message_listener', (data) {
       debugPrint("read_message_listener: ${jsonEncode(data)}");
@@ -754,6 +747,46 @@ class SocketController extends GetxController with WidgetsBindingObserver {
         chatController.filteredList.refresh();
         chatRoomController.update();
       }
+    });
+  }*/
+
+  void setupSocketListeners() {
+    socket?.off('read_message_listener');
+    socket?.on('read_message_listener', (data) {
+      debugPrint("read_message_listener: ${jsonEncode(data)}");
+
+      final homeController = Get.find<ChatHomeController>();
+      final chatScreenController = Get.find<ChatScreenController>();
+
+      final int fromUcId = data['from_uc_id']; // reader
+      final int toUcId = data['to_uc_id'];     // message owner (you)
+      final int myUcId = APIs.me.userCompany?.userCompanyId ?? 0;
+
+      // ✅ YOU must be the message owner
+      if (toUcId != myUcId) return;
+
+      // 1️⃣ Reset unread count in recents
+      final index = homeController.filteredList.indexWhere(
+            (e) => e.userCompany?.userCompanyId == fromUcId,
+      );
+
+      if (index != -1) {
+        homeController.filteredList[index].pendingCount = 0;
+      }
+
+      // 2️⃣ Update read_on in currently open chat
+      for (var group in chatScreenController.chatCatygory) {
+        final msg = group.chatMessageItems;
+
+        if (msg.fromUser?.userCompany?.userCompanyId == fromUcId &&
+            msg.toUser?.userCompany?.userCompanyId == myUcId &&
+            msg.readOn == null) {
+          msg.readOn = DateTime.now().millisecondsSinceEpoch.toString();
+        }
+      }
+
+      homeController.filteredList.refresh();
+      chatScreenController.update();
     });
   }
 

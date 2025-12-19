@@ -1,8 +1,10 @@
+import 'package:AccuChat/Screens/Chat/screens/auth/models/get_uesr_Res_model.dart';
+
 class GroupResModel {
   bool? success;
   int? code;
   String? message;
-  GroupUser? data;
+  UserDataAPI? data;
 
   GroupResModel({this.success, this.code, this.message, this.data});
 
@@ -10,7 +12,7 @@ class GroupResModel {
     success = json['success'];
     code = json['code'];
     message = json['message'];
-    data = json['data'] != null ? new GroupUser.fromJson(json['data']) : null;
+    data = json['data'] != null ? new UserDataAPI.fromJson(json['data']) : null;
   }
 
   Map<String, dynamic> toJson() {

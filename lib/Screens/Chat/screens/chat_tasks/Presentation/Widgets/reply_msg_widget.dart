@@ -10,6 +10,7 @@ import 'package:AccuChat/utils/text_style.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
+import '../../../../../../utils/helper.dart';
 import '../../../../api/apis.dart';
 import '../Controllers/chat_screen_controller.dart';
 
@@ -131,26 +132,43 @@ class ReplyMessageWidget extends StatelessWidget {
               ],
             ).paddingSymmetric(horizontal: 5,vertical: 3),
 
-           !isImageOrVideo()?  Container(
-              // width: Get.width * .78,
-                child: Text(
-                  orignalMsg?? '',
-                  style: BalooStyles.baloonormalTextStyle(color: greyText ,size: 15),
-                  overflow: TextOverflow.ellipsis,
-                  maxLines: 1,
-                ).marginOnly(left: 13, bottom: 4, right: 15)):
-           Container(
+           isImageOrVideo()?Container(
              // color: Colors.red,
              width: 70,
              margin: const EdgeInsets.only(left: 8,bottom: 8,right: 8),
              child: CustomCacheNetworkImage("${ApiEnd.baseUrlMedia}${orignalMsg??''}",
                width: 60,
                height: 60,
-             radiusAll: 8,
+               radiusAll: 8,
                boxFit: BoxFit.cover,
                borderColor: greyColor,
              ),
-           ),
+           ):isDoc()?
+           Row(
+             mainAxisAlignment: MainAxisAlignment.start,
+             // mainAxisSize: MainAxisSize.min,
+             children: [
+               Icon(iconForFile(message??''), size: 20, color: Colors.indigo),
+               const SizedBox(width: 5),
+               Expanded(
+                 child: Text(
+                   message??'',
+                   maxLines: 1,
+                   overflow: TextOverflow.ellipsis,
+                   style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w500),
+                 ),
+               ),
+             ],
+           ).paddingSymmetric(horizontal: 8)
+               :  Container(
+              // width: Get.width * .78,
+                child: Text(
+                  orignalMsg?? '',
+                  style: BalooStyles.baloonormalTextStyle(color: greyText ,size: 15),
+                  overflow: TextOverflow.ellipsis,
+                  maxLines: 1,
+                ).marginOnly(left: 13, bottom: 4, right: 15))
+           ,
           ],
         ),
       ),

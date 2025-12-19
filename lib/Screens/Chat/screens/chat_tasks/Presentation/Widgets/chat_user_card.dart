@@ -123,6 +123,7 @@ class _ChatUserCardState extends State<ChatUserCard>
                   if (kIsWeb) {
                     final homec = Get.find<ChatHomeController>();
                     final chatc = Get.find<ChatScreenController>();
+                    homec.page = 1;
                     homec.hitAPIToGetRecentChats();
                     chatc.replyToMessage=null;
                     homec.selectedChat.value = widget.user;
@@ -215,20 +216,20 @@ class _ChatUserCardState extends State<ChatUserCard>
                         backgroundColor: Colors.greenAccent.shade400,
                         child: Text(
                           "${widget.user?.pendingCount}",
-                          style: BalooStyles.baloonormalTextStyle(color: Colors.white),
+                          style: BalooStyles.baloonormalTextStyle(color: Colors.white,size: 12),
                           maxLines: 1,
                           overflow: TextOverflow.ellipsis,
                         ),
                       ):SizedBox()) : widget.user?.open_count!=null&&widget.user?.open_count!=0  ? CircleAvatar(
-                     radius: 10,
-                     backgroundColor: Colors.greenAccent.shade400,
-                     child: Text(
+                                           radius: 10,
+                                           backgroundColor: Colors.greenAccent.shade400,
+                                           child: Text(
                        "${widget.user?.open_count}",
-                       style: BalooStyles.baloonormalTextStyle(color: Colors.white),
+                       style: BalooStyles.baloonormalTextStyle(color: Colors.white,size: 12),
                        maxLines: 1,
                        overflow: TextOverflow.ellipsis,
-                     ),
-                   ):SizedBox() ,
+                                           ),
+                                         ):SizedBox() ,
                       widget.user?.pendingCount!=null&&widget.user?.pendingCount!=0 ? Spacer():SizedBox(),
                       widget.user?.open_count!=null&&widget.user?.open_count!=0 ? Spacer():SizedBox(),
                       Text(
