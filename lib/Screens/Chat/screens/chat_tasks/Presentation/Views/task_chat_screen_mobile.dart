@@ -629,6 +629,16 @@ class TaskScreenMobile extends GetView<TaskController> {
   }
 
   _taskCard({required TaskData message, required GroupTaskElement element}) {
+
+    final names = element.taskMsg.members
+        ?.map((v) => (v.finalName ?? '').trim())
+        .where((s) => s.isNotEmpty)
+        .toList();
+
+    final unique = <String>{};
+    final cleaned = names?.where((n) => unique.add(n)).toList();
+
+    final taskMember =  cleaned?.join(', ');
     return Column(
       mainAxisSize: MainAxisSize.min,
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -751,8 +761,43 @@ class TaskScreenMobile extends GetView<TaskController> {
                   statusHis: message.statusHistory),
             )
           ],
-        )
+        ),
+        vGap(8),
+        taskMemberRichText(taskMember: taskMember,status:(message.currentStatus?.name??'').capitalizeFirst??'')
+
       ],
+    );
+  }
+
+  Widget taskMemberRichText({
+    required String? taskMember,
+    required String? status,
+    Color iconColor = Colors.black45,
+  }) {
+    return RichText(
+      // overflow: TextOverflow.ellipsis,
+      text: TextSpan(
+        children: [
+          WidgetSpan(
+            alignment: PlaceholderAlignment.middle,
+            child: Icon(
+              Icons.people,
+              size: 18,
+              color: getTaskStatusColor(status),
+            ),
+          ),
+          const WidgetSpan(
+            child: SizedBox(width: 4),
+          ),
+          TextSpan(
+            text: taskMember ?? '',
+            style: BalooStyles.baloonormalTextStyle(
+              color: greyText,
+              size: 13,
+            ),
+          ),
+        ],
+      ),
     );
   }
 
@@ -927,40 +972,42 @@ class TaskScreenMobile extends GetView<TaskController> {
                 ),
 
                 //user name & last seen time
-                Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    //user name
-
-                    Text(
-                      controller.user?.displayName != null
-                          ? controller.user?.displayName?.capitalizeFirst ?? ''
-                          : controller.user?.userName != null
-                              ? controller.user?.userName?.capitalizeFirst ?? ''
-                              : controller.user?.phone ?? '',
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                      style: themeData.textTheme.titleMedium,
-                    )
-                    //last seen time of user
-                    /* Text(
-                              list.isNotEmpty
-                                  ? list[0].isOnline && !list[0].isTyping
-                                  ? 'Online'
-                                  : list[0].isTyping && list[0].isOnline
-                                  ? "Typing..."
-                                  : MyDateUtil.getLastActiveTime(
-                                  context: context,
-                                  lastActive:
-                                  list[0].lastActive.toString())
-                                  : MyDateUtil.getLastActiveTime(
-                                  context: context,
-                                  lastActive:
-                                  (controller.user?.lastActive??'').toString()),
-                              style: const TextStyle(
-                                  fontSize: 13, color: Colors.black54)),*/
-                  ],
+                Flexible(
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      //user name
+                  
+                      Text(
+                        controller.user?.displayName != null
+                            ? controller.user?.displayName?? ''
+                            : controller.user?.userName != null
+                                ? controller.user?.userName?? ''
+                                : controller.user?.phone ?? '',
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: themeData.textTheme.titleMedium,
+                      )
+                      //last seen time of user
+                      /* Text(
+                                list.isNotEmpty
+                                    ? list[0].isOnline && !list[0].isTyping
+                                    ? 'Online'
+                                    : list[0].isTyping && list[0].isOnline
+                                    ? "Typing..."
+                                    : MyDateUtil.getLastActiveTime(
+                                    context: context,
+                                    lastActive:
+                                    list[0].lastActive.toString())
+                                    : MyDateUtil.getLastActiveTime(
+                                    context: context,
+                                    lastActive:
+                                    (controller.user?.lastActive??'').toString()),
+                                style: const TextStyle(
+                                    fontSize: 13, color: Colors.black54)),*/
+                    ],
+                  ),
                 ),
               ],
             ),

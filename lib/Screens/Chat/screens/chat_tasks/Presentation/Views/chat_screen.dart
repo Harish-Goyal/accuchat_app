@@ -620,7 +620,7 @@ class ChatScreen extends GetView<ChatScreenController> {
                       color: appColorPerple.withOpacity(.1),
                       borderRadius: BorderRadius.circular(12),
                     ),
-                    child: Text((data.message ?? '').capitalizeFirst ?? '',
+                    child: Text(data.message ?? '',
                         textAlign: TextAlign.start,
                         style: BalooStyles.baloothinTextStyle(
                           color: appColorPerple,
@@ -671,20 +671,20 @@ class ChatScreen extends GetView<ChatScreenController> {
                       topLeft: Radius.circular(
                       (data.media ?? []).isNotEmpty
                           ? 15
-                          : 50),
+                          : 30),
                       topRight: Radius.circular(
                           (data.media ?? []).isNotEmpty
                               ? 15
-                              : 50),
+                              : 30),
                       bottomLeft: Radius.circular(
                           (data.media ?? []).isNotEmpty
                               ? 15
-                              : 50))
+                              : 30))
                       : BorderRadius.only(
                     topLeft: Radius.circular(
-                        (data.media ?? []).isNotEmpty ? 15 : 50),
-                    topRight: Radius.circular((data.media ?? []).isNotEmpty ? 15 : 50),
-                    bottomRight: Radius.circular((data.media ?? []).isNotEmpty ? 15 : 50)),
+                        (data.media ?? []).isNotEmpty ? 15 : 30),
+                    topRight: Radius.circular((data.media ?? []).isNotEmpty ? 15 : 30),
+                    bottomRight: Radius.circular((data.media ?? []).isNotEmpty ? 15 : 30)),
                             // mouseCursor: SystemMouseCursors.click,
                             onDoubleTap: () {
                               SystemChannels.textInput
@@ -718,20 +718,20 @@ class ChatScreen extends GetView<ChatScreenController> {
                                           topLeft: Radius.circular(
                                               (data.media ?? []).isNotEmpty
                                                   ? 15
-                                                  : 50),
+                                                  : 30),
                                           topRight: Radius.circular(
                                               (data.media ?? []).isNotEmpty
                                                   ? 15
-                                                  : 50),
+                                                  : 30),
                                           bottomLeft: Radius.circular(
                                               (data.media ?? []).isNotEmpty
                                                   ? 15
-                                                  : 50))
+                                                  : 30))
                                       : BorderRadius.only(
                                           topLeft: Radius.circular(
-                                              (data.media ?? []).isNotEmpty ? 15 : 50),
-                                          topRight: Radius.circular((data.media ?? []).isNotEmpty ? 15 : 50),
-                                          bottomRight: Radius.circular((data.media ?? []).isNotEmpty ? 15 : 50))),
+                                              (data.media ?? []).isNotEmpty ? 15 : 30),
+                                          topRight: Radius.circular((data.media ?? []).isNotEmpty ? 15 : 30),
+                                          bottomRight: Radius.circular((data.media ?? []).isNotEmpty ? 15 : 30))),
                               child: messageTypeView(data, sentByMe: sentByMe),
                             ),
                           ),
@@ -1036,15 +1036,15 @@ class ChatScreen extends GetView<ChatScreenController> {
                             (controller.user?.userName == '' ||
                                     controller.user?.userName == null)
                                 ? controller.user?.phone ?? ''
-                                : controller.user?.userName?.capitalizeFirst ?? '',
+                                : controller.user?.userName?? '',
                             maxLines: 1,
                             overflow: TextOverflow.ellipsis,
                             style: themeData.textTheme.titleMedium,
                           )
                         : Text(
                       (controller.user?.userCompany?.displayName !=null)
-                          ? controller.user?.userCompany?.displayName?.capitalizeFirst ?? ''
-                          :controller.user?.userName!=null? controller.user?.userName?.capitalizeFirst ?? '': controller.user?.phone??'',
+                          ? controller.user?.userCompany?.displayName ?? ''
+                          :controller.user?.userName!=null? controller.user?.userName ?? '': controller.user?.phone??'',
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
                       style: themeData.textTheme.titleMedium,

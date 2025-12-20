@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:AccuChat/Screens/Chat/models/recent_chat_user_res_model.dart';
 import 'package:AccuChat/Screens/Chat/screens/chat_tasks/Presentation/Controllers/task_controller.dart';
 import 'package:flutter/foundation.dart';
@@ -92,23 +94,29 @@ class TaskHomeController extends GetxController{
       });
     } else {
       scrollController.addListener(() {
-        if (scrollController.position.pixels <=
-            scrollController.position.minScrollExtent + 50 &&
-            !isPageLoading&& hasMore ) {
-          // resetPaginationForNewChat();
-          hitAPIToGetRecentTasksUser();
+        if (!scrollController.hasClients) return;
+
+        final position = scrollController.position;
+
+        if (position.maxScrollExtent >0) {
+          if (!isPageLoading && hasMore) {
+            hitAPIToGetRecentTasksUser();
+          }
         }
       });
     }
   }
   List<UserDataAPI>? recentTaskUserList=[];
 
+
+
   void resetPaginationForNewChat() {
     page = 1;
     hasMore = true;
     filteredList.clear();
     showPostShimmer = true;
-    update();
+    isPageLoading = false;
+    // update();
   }
 
   List<UserDataAPI>? recentChatUserList=[];
@@ -116,6 +124,7 @@ class TaskHomeController extends GetxController{
   hitAPIToGetRecentTasksUser({String? search}) async {
     if(page==1){
       showPostShimmer = true;
+      filteredList.clear();
     }
     isPageLoading = true;
     update();
@@ -128,9 +137,9 @@ class TaskHomeController extends GetxController{
       recentTaskUserList=value.data?.rows??[];
       if (value.data?.rows != null && (value.data?.rows ?? []).isNotEmpty) {
         if (page == 1) {
-          filteredList.value = value.data?.rows ?? [];
+          filteredList.assignAll(recentTaskUserList??[]);
         } else {
-          filteredList.assignAll(recentChatUserList??[]);
+          filteredList.addAll(recentTaskUserList??[]);
         }
         if(selectedChat.value?.userId!=null){
 
@@ -146,30 +155,7 @@ class TaskHomeController extends GetxController{
       showPostShimmer = false;
       isPageLoading = false;
       update();
-      // filteredList.assignAll(recentChatUserList??[]);
-      // if(filteredList.isNotEmpty) {
-      //   if(selectedChat.value?.userId!=null){
-      //
-      //   }else{
-      //     selectedChat.value = filteredList[0];
-      //   }
-      //
-      // }
-      //
-      //
-      // final List<UserDataAPI> newItems = [];
-      //
-      // if (newItems.isNotEmpty) {
-      //   page++;
-      //   filteredList.addAll(newItems);
-      //   if (newItems.length < 20) {
-      //     hasMore = false;
-      //   }
-      //   update();
-      // } else {
-      //   hasMore = false;
-      //   update();
-      // }
+
     }).onError((error, stackTrace) {
       showPostShimmer = false;
       isPageLoading = false;
@@ -253,20 +239,18 @@ class TaskHomeController extends GetxController{
 
   DashboardController dashboardController = Get.put(DashboardController());
 
+  Timer? searchDelay;
   void onSearch(String query) {
-    searchQuery = query.toLowerCase();
-    if (query.isEmpty) {
-      hitAPIToGetRecentTasksUser();
-      // filteredList.assignAll(recentTaskUserList ?? []);
-    } else {
-      // final result = recentTaskUserList!.where((item) {
-      //   return (item.displayName ?? '').toLowerCase().contains(searchQuery) ||
-      //       (item.email ?? '').toLowerCase().contains(searchQuery) ||
-      //       (item.userName ?? '').toLowerCase().contains(searchQuery) ||
-      //       (item.phone ?? '').contains(searchQuery);
-      // }).toList();
-      // filteredList.assignAll(result);
-      hitAPIToGetRecentTasksUser(search:query);
-    }
+    searchDelay?.cancel();
+    searchDelay = Timer(const Duration(milliseconds: 400), () {
+      searchQuery = query.trim().toLowerCase();
+      page = 1;
+      hasMore = false;
+      filteredList.clear();
+      update();
+      hitAPIToGetRecentTasksUser(search: searchQuery.isEmpty ? null : searchQuery);
+    });
   }
+
+
 }

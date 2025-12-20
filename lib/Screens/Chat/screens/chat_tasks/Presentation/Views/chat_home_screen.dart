@@ -439,7 +439,7 @@ class ChatsHomeScreen extends GetView<ChatHomeController> {
       backgroundColor: Colors.white,
       color: appColorGreen,
       onRefresh: () async {
-        controller.page = 1;
+        controller.resetPagination();
         controller.hitAPIToGetRecentChats();
       }
          ,

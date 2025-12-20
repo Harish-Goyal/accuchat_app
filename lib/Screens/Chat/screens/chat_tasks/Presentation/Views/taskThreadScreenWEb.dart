@@ -359,7 +359,25 @@ class TaskThreadScreenWeb extends GetView<TaskThreadController> {
                     : CrossAxisAlignment.start,
                 children: [
                   InkWell(
-                    borderRadius: BorderRadius.circular(50),
+                    borderRadius:sentByMe
+                        ? BorderRadius.only(
+                        topLeft: Radius.circular(
+                            (data.media ?? []).isNotEmpty
+                                ? 15
+                                : 30),
+                        topRight: Radius.circular(
+                            (data.media ?? []).isNotEmpty
+                                ? 15
+                                : 30),
+                        bottomLeft: Radius.circular(
+                            (data.media ?? []).isNotEmpty
+                                ? 15
+                                : 30))
+                        : BorderRadius.only(
+                        topLeft: Radius.circular(
+                            (data.media ?? []).isNotEmpty ? 15 : 30),
+                        topRight: Radius.circular((data.media ?? []).isNotEmpty ? 15 : 30),
+                        bottomRight: Radius.circular((data.media ?? []).isNotEmpty ? 15 : 30)),
                     onDoubleTap: () {
                       SystemChannels.textInput.invokeMethod('TextInput.hide');
                       _showBottomSheet(sentByMe, data: data);

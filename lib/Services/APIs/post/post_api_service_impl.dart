@@ -279,7 +279,7 @@ class PostApiServiceImpl extends GetxService implements PostApiService {
       {comId, page,searchText}) async {
     try {
       final response = await dioClient!
-          .get('api/recent?company_id=$comId&page=$page&limit=20&search=$searchText', skipAuth: false);
+          .get('api/recent?company_id=$comId&page=$page&limit=10&search=$searchText', skipAuth: false);
       return RecentChatsUserResModel.fromJson(response);
     } catch (e) {
       return Future.error(NetworkExceptions.getDioException(e));
@@ -291,7 +291,7 @@ class PostApiServiceImpl extends GetxService implements PostApiService {
       {comId, page,searchText}) async {
     try {
       final response = await dioClient!
-          .get('api/taskslist/recent?company_id=$comId&page=$page&limit=20&search=$searchText', skipAuth: false);
+          .get('api/taskslist/recent?company_id=$comId&page=$page&limit=10&search=$searchText', skipAuth: false);
       return RecentTaskUserData.fromJson(response);
     } catch (e) {
       return Future.error(NetworkExceptions.getDioException(e));

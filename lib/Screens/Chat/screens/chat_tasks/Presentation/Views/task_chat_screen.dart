@@ -628,6 +628,16 @@ class TaskScreen extends GetView<TaskController> {
   }
 
   _taskCard({required TaskData message, required GroupTaskElement element}) {
+
+    final names = element.taskMsg.members
+        ?.map((v) => (v.finalName ?? '').trim())
+        .where((s) => s.isNotEmpty)
+        .toList();
+
+    final unique = <String>{};
+    final cleaned = names?.where((n) => unique.add(n)).toList();
+
+    final taskMember =  cleaned?.join(', ');
     return Column(
       mainAxisSize: MainAxisSize.min,
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -760,10 +770,45 @@ class TaskScreen extends GetView<TaskController> {
                   status: message.currentStatus, statusHis: message.statusHistory),
             )
           ],
-        )
+        ),
+        vGap(8),
+        taskMemberRichText(taskMember: taskMember,status:(message.currentStatus?.name??'').capitalizeFirst??'')
       ],
     );
   }
+
+  Widget taskMemberRichText({
+    required String? taskMember,
+    required String? status,
+    Color iconColor = Colors.black45,
+  }) {
+    return RichText(
+      // overflow: TextOverflow.ellipsis,
+      text: TextSpan(
+        children: [
+          WidgetSpan(
+            alignment: PlaceholderAlignment.middle,
+            child: Icon(
+              Icons.people,
+              size: 18,
+              color: getTaskStatusColor(status),
+            ),
+          ),
+          const WidgetSpan(
+            child: SizedBox(width: 4), // spacing between icon & text
+          ),
+          TextSpan(
+            text: taskMember ?? '',
+            style: BalooStyles.baloonormalTextStyle(
+              color: greyText,
+              size: 13,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
 
   Future<void> openDocumentFromUrl(String url) async {
     customLoader.show();
@@ -953,7 +998,7 @@ class TaskScreen extends GetView<TaskController> {
                     //user name
 
                     Text(
-                      controller.user?.displayName != null ? controller.user?.displayName?.capitalizeFirst??'' :controller.user?.userName !=null? controller.user?.userName?.capitalizeFirst ?? ''
+                      controller.user?.displayName != null ? controller.user?.displayName??'' :controller.user?.userName !=null? controller.user?.userName ?? ''
                           :controller.user?.phone ?? '' ,
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,

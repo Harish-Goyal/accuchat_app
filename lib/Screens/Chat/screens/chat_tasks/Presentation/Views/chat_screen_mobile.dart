@@ -525,7 +525,7 @@ class ChatScreenMobile extends GetView<ChatScreenController> {
           hPadding: 8,
           color: appColorGreen.withOpacity(.1),
           childWidget:
-          Text((data.message ?? '').capitalizeFirst ?? '',
+          Text(data.message ?? '',
               textAlign: TextAlign.start,
               style: BalooStyles.baloothinTextStyle(
                 color: Colors.black54,
@@ -571,32 +571,31 @@ class ChatScreenMobile extends GetView<ChatScreenController> {
                       : CrossAxisAlignment.start,
                   children: [
                     InkWell(
-                      borderRadius: sentByMe
+                      borderRadius:sentByMe
                           ? BorderRadius.only(
                           topLeft: Radius.circular(
                               (data.media ?? []).isNotEmpty
                                   ? 15
-                                  : 50),
+                                  : 30),
                           topRight: Radius.circular(
                               (data.media ?? []).isNotEmpty
                                   ? 15
-                                  : 50),
+                                  : 30),
                           bottomLeft: Radius.circular(
                               (data.media ?? []).isNotEmpty
                                   ? 15
-                                  : 50))
+                                  : 30))
                           : BorderRadius.only(
                           topLeft: Radius.circular(
-                              (data.media ?? []).isNotEmpty ? 15 : 50),
-                          topRight: Radius.circular((data.media ?? []).isNotEmpty ? 15 : 50),
-                          bottomRight: Radius.circular((data.media ?? []).isNotEmpty ? 15 : 50)),
+                              (data.media ?? []).isNotEmpty ? 15 : 30),
+                          topRight: Radius.circular((data.media ?? []).isNotEmpty ? 15 : 30),
+                          bottomRight: Radius.circular((data.media ?? []).isNotEmpty ? 15 : 30)),
                       // mouseCursor: SystemMouseCursors.click,
                       onDoubleTap: () {
                         SystemChannels.textInput
                             .invokeMethod('TextInput.hide');
                         if (!isTaskMode) {
                             _showBottomSheet(sentByMe, data: data);
-
                         }
                       },
                       child: Container(
@@ -902,61 +901,63 @@ class ChatScreenMobile extends GetView<ChatScreenController> {
                 ),
 
                 //for adding some space
-                const SizedBox(width: 10),
+               hGap(8),
 
                 //user name & last seen time
-                Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    //user name
-                    (controller.user?.userCompany?.isGroup == 1 ||
-                        controller.user?.userCompany?.isBroadcast == 1)
-                        ? Text(
-                      (controller.user?.userName == '' ||
-                          controller.user?.userName == null)
-                          ? controller.user?.phone ?? ''
-                          : controller.user?.userName?.capitalizeFirst ?? '',
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                      style: themeData.textTheme.titleMedium,
-                    )
-                        : Text(
-                      (controller.user?.userCompany?.displayName !=null)
-                          ? controller.user?.userCompany?.displayName?.capitalizeFirst ?? ''
-                          :controller.user?.userName!=null? controller.user?.userName?.capitalizeFirst ?? '': controller.user?.phone??'',
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                      style: themeData.textTheme.titleMedium,
-                    ),
-                    controller.user?.userCompany?.isGroup == 1 ||
-                        controller.user?.userCompany?.isBroadcast == 1
-                        ? Text('${controller.members.length} members',
-                        style: BalooStyles.baloonormalTextStyle())
-                        : const SizedBox(),
-
-                    vGap(2),
-                    //for adding some space
-
-                    //last seen time of user
-                    //TODO
-                    /* Text(
-                              list.isNotEmpty
-                                  ? list[0].isOnline && !list[0].isTyping
-                                  ? 'Online'
-                                  : list[0].isTyping && list[0].isOnline
-                                  ? "Typing..."
-                                  : MyDateUtil.getLastActiveTime(
-                                  context: context,
-                                  lastActive:
-                                  list[0].lastActive.toString())
-                                  : MyDateUtil.getLastActiveTime(
-                                  context: context,
-                                  lastActive:
-                                  (controller.user?.lastActive??'').toString()),
-                              style: const TextStyle(
-                                  fontSize: 13, color: Colors.black54)),*/
-                  ],
+                Flexible(
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      //user name
+                      (controller.user?.userCompany?.isGroup == 1 ||
+                          controller.user?.userCompany?.isBroadcast == 1)
+                          ? Text(
+                        (controller.user?.userName == '' ||
+                            controller.user?.userName == null)
+                            ? controller.user?.phone ?? ''
+                            : controller.user?.userName ?? '',
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: themeData.textTheme.titleMedium,
+                      )
+                          : Text(
+                        (controller.user?.userCompany?.displayName !=null)
+                            ? controller.user?.userCompany?.displayName ?? ''
+                            :controller.user?.userName!=null? controller.user?.userName?? '': controller.user?.phone??'',
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: themeData.textTheme.titleMedium,
+                      ),
+                      controller.user?.userCompany?.isGroup == 1 ||
+                          controller.user?.userCompany?.isBroadcast == 1
+                          ? Text('${controller.members.length} members',
+                          style: BalooStyles.baloonormalTextStyle())
+                          : const SizedBox(),
+                  
+                      vGap(2),
+                      //for adding some space
+                  
+                      //last seen time of user
+                      //TODO
+                      /* Text(
+                                list.isNotEmpty
+                                    ? list[0].isOnline && !list[0].isTyping
+                                    ? 'Online'
+                                    : list[0].isTyping && list[0].isOnline
+                                    ? "Typing..."
+                                    : MyDateUtil.getLastActiveTime(
+                                    context: context,
+                                    lastActive:
+                                    list[0].lastActive.toString())
+                                    : MyDateUtil.getLastActiveTime(
+                                    context: context,
+                                    lastActive:
+                                    (controller.user?.lastActive??'').toString()),
+                                style: const TextStyle(
+                                    fontSize: 13, color: Colors.black54)),*/
+                    ],
+                  ),
                 ),
 
 

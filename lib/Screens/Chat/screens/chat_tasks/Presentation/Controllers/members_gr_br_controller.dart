@@ -28,7 +28,6 @@ class GrBrMembersController extends GetxController{
 
   @override
   void onInit() {
-    _getMe();
     _getCompany();
     getArguments();
 
@@ -116,6 +115,7 @@ class GrBrMembersController extends GetxController{
       groupResModel = value;
       groupNameController.clear();
       toast(value.message??'');
+      groupOrBr = groupResModel.data;
       Get.find<ChatHomeController>().page = 1;
       Get.find<ChatHomeController>().hitAPIToGetRecentChats(userData: groupResModel.data);
       update();
@@ -174,10 +174,6 @@ class GrBrMembersController extends GetxController{
 
 
 
-  UserDataAPI? me = UserDataAPI();
-  _getMe(){
-    me = getUser();
-    update();
-  }
+
 
 }

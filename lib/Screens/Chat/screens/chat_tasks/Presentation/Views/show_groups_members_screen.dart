@@ -2,8 +2,11 @@ import 'package:AccuChat/Constants/assets.dart';
 import 'package:AccuChat/Constants/colors.dart';
 import 'package:AccuChat/Constants/themes.dart';
 import 'package:AccuChat/Extension/text_field_extenstion.dart';
+import 'package:AccuChat/Screens/Chat/screens/chat_tasks/Presentation/Controllers/chat_home_controller.dart';
+import 'package:AccuChat/Screens/Chat/screens/chat_tasks/Presentation/Controllers/chat_screen_controller.dart';
 import 'package:AccuChat/Screens/Chat/screens/chat_tasks/Presentation/Controllers/members_gr_br_controller.dart';
 import 'package:AccuChat/Services/APIs/api_ends.dart';
+import 'package:AccuChat/utils/backappbar.dart';
 import 'package:AccuChat/utils/helper_widget.dart';
 import 'package:AccuChat/utils/networl_shimmer_image.dart';
 import 'package:AccuChat/utils/text_style.dart';
@@ -14,6 +17,7 @@ import '../../../../../../routes/app_routes.dart';
 import '../../../../../../utils/common_textfield.dart';
 import '../../../../../../utils/custom_dialogue.dart';
 import '../../../../../../utils/custom_flashbar.dart';
+import '../../../../../../utils/gradient_button.dart';
 import '../../../../api/apis.dart';
 import '../../../../models/chat_user.dart';
 
@@ -32,6 +36,17 @@ class GroupMembersScreen extends StatelessWidget {
       builder: (controller) {
         return Scaffold(
           appBar: AppBar(
+            automaticallyImplyLeading: false,
+            leading: IconButton(onPressed: (){
+              Get.back();
+              // final homec = Get.find<ChatHomeController>();
+              // final chatc = Get.find<ChatScreenController>();
+              // homec.selectedChat.value = controller.groupOrBr;
+              // chatc.user =homec.selectedChat.value;
+              // chatc.showPostShimmer =true;
+              // chatc.openConversation(controller.groupOrBr);
+
+            }, icon:Icon(Icons.arrow_back)),
             title: Text(
               controller.groupOrBr?.userCompany?.isGroup == 1
                   ? 'Group Members'
@@ -40,18 +55,15 @@ class GroupMembersScreen extends StatelessWidget {
             ),
             actions: [
               if (controller.groupOrBr?.createdBy ==
-                  controller.me?.userId)
+                  APIs.me?.userCompany?.userCompanyId)
                 PopupMenuButton<String>(
                   color: Colors.white,
                   icon: const Icon(Icons.more_vert,
                       color: Colors.black87, size: 18),
                   onSelected: (value) {
                     if (value == 'delete') {
-                      controller.hitAPIToDeleteGrBr(
-                        isGroup: controller.groupOrBr?.userCompany?.isGroup == 1
-                            ? true
-                            : false,
-                      );
+                      showResponsiveDeleteGroupD(controller);
+
                     } else if (value == 'add') {
                       if (kIsWeb) {
                         Get.toNamed(
@@ -116,9 +128,9 @@ class GroupMembersScreen extends StatelessWidget {
                         : "Broadcast Name",
                     labletext: "",
                     readOnly:
-                    (controller.groupOrBr?.createdBy == controller.me?.userId)
-                        ? true
-                        : false,
+                    (controller.groupOrBr?.createdBy == APIs.me?.userCompany?.userCompanyId)
+                        ? false
+                        : true,
                     controller: controller.groupNameController,
                     onChangee: (v) {
                       controller.isUpdate = true;
@@ -169,7 +181,7 @@ class GroupMembersScreen extends StatelessWidget {
                       itemBuilder: (context, index) {
                         final member = controller.members[index];
                         final isAdmin = member.isAdmin == 1 ? true : false;
-                        final me = controller.me;
+                        final me = APIs.me;
 
                         final bool isSelf =
                             member.userId == me?.userId;
@@ -338,6 +350,111 @@ class GroupMembersScreen extends StatelessWidget {
           // ---------------- END RESPONSIVE WRAPPER ----------------
         );
       },
+    );
+  }
+
+  void showResponsiveDeleteGroupD(GrBrMembersController controller) {
+    final ctx = Get.context!;
+    final size = MediaQuery.of(ctx).size;
+
+    // Responsive width breakpoints (desktop / tablet / large phone / phone)
+    double targetWidth;
+    if (size.width >= 1280) {
+      targetWidth = size.width * 0.25; // desktop
+    } else if (size.width >= 992) {
+      targetWidth = size.width * 0.35; // laptop / large tablet
+    } else if (size.width >= 768) {
+      targetWidth = size.width * 0.5; // tablet
+    } else {
+      targetWidth = size.width * 0.85; // phones / small windows
+    }
+    // Keep width within reasonable min/max
+    targetWidth = targetWidth.clamp(360.0, 560.0);
+
+    final maxHeight = size.height * 0.90;
+
+    Get.dialog(
+      // Keeps dialog within safe areas and nicely centered
+      SafeArea(
+        child: Center(
+          child: ConstrainedBox(
+            constraints: BoxConstraints(
+              maxWidth: targetWidth,
+              maxHeight: maxHeight,
+            ),
+            child: Material(
+              color: Colors.transparent,
+              child: ClipRRect(
+                borderRadius: BorderRadius.circular(16),
+                child: SingleChildScrollView(
+                  // 👇 Your dialog code is untouched and placed as-is
+                  child: CustomDialogue(
+                    title: controller.groupOrBr?.userCompany?.isGroup == 1
+                        ? 'Delete Group'
+                        : "Delete Broadcast",
+                    isShowAppIcon: false,
+                    content: Column(
+                      crossAxisAlignment: CrossAxisAlignment.center,
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        vGap(20),
+                        Text(
+                          "Do you really want to ${controller.groupOrBr?.userCompany?.isGroup == 1
+                              ? 'Delete Group'
+                              : "Delete Broadcast"}",
+                          style: BalooStyles.baloonormalTextStyle(),
+                          textAlign: TextAlign.center,
+                        ),
+                        vGap(30),
+                        Row(
+                          children: [
+                            Expanded(
+                              child: GradientButton(
+                                name: "Yes",
+                                btnColor: AppTheme.redErrorColor,
+                                gradient: LinearGradient(
+                                  colors: [AppTheme.redErrorColor, AppTheme.redErrorColor],
+                                ),
+                                vPadding: 6,
+                                onTap: () async {
+                                  controller.hitAPIToDeleteGrBr(
+                                    isGroup: controller.groupOrBr?.userCompany?.isGroup == 1
+                                        ? true
+                                        : false,
+                                  );
+                                },
+                              ),
+                            ),
+                            hGap(15),
+                            Expanded(
+                              child: GradientButton(
+                                name: "Cancel",
+                                btnColor: Colors.black,
+                                color: Colors.black,
+                                gradient: LinearGradient(
+                                  colors: [AppTheme.whiteColor, AppTheme.whiteColor],
+                                ),
+                                vPadding: 6,
+                                onTap: () {
+                                  Get.back();
+                                },
+                              ),
+                            ),
+                          ],
+                        ),
+                        // Text(STRING_logoutHeading,style: BalooStyles.baloomediumTextStyle(),),
+                      ],
+                    ),
+                    onOkTap: () {},
+                  ),
+                ),
+              ),
+            ),
+          ),
+        ),
+      ),
+      barrierColor: Colors.black54, // nice dim on web
+      name: 'delete_group',
     );
   }
 }

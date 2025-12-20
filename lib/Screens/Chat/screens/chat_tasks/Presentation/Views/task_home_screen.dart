@@ -151,6 +151,7 @@ class TaskHomeScreen extends GetView<TaskHomeController> {
                                 onPressed: () {
                                   controller.isSearching.value = !controller.isSearching.value;
                                   controller.isSearching.refresh();
+
                                   if(!controller.isSearching.value){
                                     controller.searchQuery = '';
                                     controller.onSearch('');
@@ -273,7 +274,11 @@ class TaskHomeScreen extends GetView<TaskHomeController> {
     ) : RefreshIndicator(
         backgroundColor: Colors.white,
         color: appColorGreen,
-        onRefresh: () async => controller.hitAPIToGetRecentTasksUser(),
+        onRefresh: () async{
+          controller.resetPaginationForNewChat();
+          controller.hitAPIToGetRecentTasksUser();
+        }
+        ,
         child: Obx(
            () {
             return ListView.builder(

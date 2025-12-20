@@ -123,8 +123,8 @@ class _ChatUserCardState extends State<ChatUserCard>
                   if (kIsWeb) {
                     final homec = Get.find<ChatHomeController>();
                     final chatc = Get.find<ChatScreenController>();
-                    homec.page = 1;
-                    homec.hitAPIToGetRecentChats();
+                    // homec.page = 1;
+                    // homec.hitAPIToGetRecentChats();
                     chatc.replyToMessage=null;
                     homec.selectedChat.value = widget.user;
                     chatc.user =homec.selectedChat.value;
@@ -188,12 +188,12 @@ class _ChatUserCardState extends State<ChatUserCard>
 
                   //user name
                   title:(widget.user?.userCompany?.isGroup==1|| widget.user?.userCompany?.isBroadcast==1)? Text(
-                    (widget.user?.userId==APIs.me.userId)?"Me":  (widget.user?.userName==''||widget.user?.userName==null)?widget.user?.phone??'':widget.user?.userName?.capitalizeFirst??'',
+                    (widget.user?.userId==APIs.me.userId)?"Me":  (widget.user?.userName==''||widget.user?.userName==null)?widget.user?.phone??'':widget.user?.userName??'',
                     style: BalooStyles.baloonormalTextStyle(),
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
                   ):Text(
-                    (widget.user?.userId==APIs.me.userId)?"Me":  (widget.user?.displayName==''||widget.user?.displayName==null)?widget.user?.phone??'':widget.user?.displayName?.capitalizeFirst??'',
+                    (widget.user?.userId==APIs.me.userId)?"Me":  (widget.user?.displayName==''||widget.user?.displayName==null)?widget.user?.phone??'':widget.user?.displayName??'',
                     style: BalooStyles.baloonormalTextStyle(),
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,

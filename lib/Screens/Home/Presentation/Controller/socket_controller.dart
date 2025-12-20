@@ -222,8 +222,6 @@ class SocketController extends GetxController with WidgetsBindingObserver {
 
         if (index != -1) {
           // 🔥 CHAT IS OPEN → FORCE unread = 0
-          if (isMessageForThisChat) {
-            // homeController.filteredList[index].pendingCount = 0;
             if (isMessageForThisChat) {
               connectUserEmitter(receivedMessageDataModal.fromUser?.userCompany?.userCompanyId);
               readMsgEmitter(
@@ -234,11 +232,6 @@ class SocketController extends GetxController with WidgetsBindingObserver {
                       ? 1
                       : 0);
             }
-          } else {
-            // 🔥 CHAT CLOSED → increase unread
-            // homeController.filteredList[index].pendingCount =
-            //     (homeController.filteredList[index].pendingCount ?? 0) + 1;
-          }
 
           // Update last message preview
           homeController.filteredList[index].lastMessage = LastMessage(
@@ -285,11 +278,11 @@ class SocketController extends GetxController with WidgetsBindingObserver {
                 updated.lastMessage;
             chatController.filteredList.refresh();
 
-            connectUserEmitter(APIs.me?.userCompany?.userCompanyId);
+            connectUserEmitter(APIs.me.userCompany?.userCompanyId);
             readMsgEmitter(
                 ucID: updated.userCompany?.userCompanyId??0,
-                fromUcID: APIs.me?.userCompany?.userCompanyId??0,
-                companyId: APIs.me?.userCompany?.companyId,
+                fromUcID: APIs.me.userCompany?.userCompanyId??0,
+                companyId: APIs.me.userCompany?.companyId,
                 is_group_chat: updated.userCompany?.isGroup == 1
                     ? 1
                     : 0);
@@ -365,13 +358,15 @@ class SocketController extends GetxController with WidgetsBindingObserver {
             toUser: receivedMessageDataModal.toUser,
             title: receivedMessageDataModal.title,
             details: receivedMessageDataModal.details,
-            deadline: receivedMessageDataModal.deadline,
             createdOn: receivedMessageDataModal.createdOn,
-            media: receivedMessageDataModal.media,
             startDate: receivedMessageDataModal.startDate,
             endDate: receivedMessageDataModal.endDate,
+            deadline: receivedMessageDataModal.deadline,
+            commentCount: receivedMessageDataModal.commentCount,
+            media: receivedMessageDataModal.media,
             currentStatus: receivedMessageDataModal.currentStatus,
             statusHistory: receivedMessageDataModal.statusHistory,
+            members: receivedMessageDataModal.members,
           );
           taskController.taskHisList?.insert(0, chatMessageItems);
           taskController.taskCategory
@@ -763,7 +758,7 @@ class SocketController extends GetxController with WidgetsBindingObserver {
       final int myUcId = APIs.me.userCompany?.userCompanyId ?? 0;
 
       // ✅ YOU must be the message owner
-      if (toUcId != myUcId) return;
+      // if (myUcId == fromUcId) re/turn;
 
       // 1️⃣ Reset unread count in recents
       final index = homeController.filteredList.indexWhere(
@@ -778,8 +773,8 @@ class SocketController extends GetxController with WidgetsBindingObserver {
       for (var group in chatScreenController.chatCatygory) {
         final msg = group.chatMessageItems;
 
-        if (msg.fromUser?.userCompany?.userCompanyId == fromUcId &&
-            msg.toUser?.userCompany?.userCompanyId == myUcId &&
+        if (/*msg.fromUser?.userCompany?.userCompanyId == fromUcId &&
+            msg.toUser?.userCompany?.userCompanyId == myUcId &&*/
             msg.readOn == null) {
           msg.readOn = DateTime.now().millisecondsSinceEpoch.toString();
         }

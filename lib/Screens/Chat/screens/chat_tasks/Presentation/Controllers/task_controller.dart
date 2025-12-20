@@ -173,7 +173,6 @@ class TaskController extends GetxController {
 
   goToTaskThread(GroupTaskElement element){
     Get.find<SocketController>().joinTaskEmitter(taskId: element.taskMsg.taskId??0);
-
     // Set the message being replied to
     refIdis = element.taskMsg.taskId;
     userIDSender = element.taskMsg.fromUser?.userId;
