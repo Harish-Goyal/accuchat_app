@@ -17,6 +17,7 @@ import '../../../../../../utils/custom_flashbar.dart';
 import '../../../../../Home/Models/get_pending_sent_invites_res_model.dart';
 import '../../../../../Home/Presentation/Controller/company_service.dart';
 import '../../../../api/apis.dart';
+import '../../../../helper/dialogs.dart';
 import '../../../../models/chat_user.dart';
 import '../../../../models/group_res_model.dart';
 import '../../../../models/get_company_res_model.dart';
@@ -38,7 +39,7 @@ class ChatHomeController extends GetxController{
   String? selectedCompanyId;
   TextEditingController seacrhCon = TextEditingController();
   String searchQuery = '';
-  Future<void> onCompanyChanged(int? companyId) async => hitAPIToGetRecentChats();
+  Future<void> onCompanyChanged(int? companyId) async => hitAPIToGetRecentChats(page: 1);
 
   final dash = Get.put(DashboardController());
   var selectedCompany = Rxn<CompanyData>();     // Rx nullable object
@@ -64,20 +65,21 @@ class ChatHomeController extends GetxController{
   }
 
   void resetPagination() {
-    page = 1;
+    localPage = 1;
     hasMore = true;
     isPageLoading = false;
     filteredList.clear();
   }
   @override
   void onInit() {
-    super.onInit();
+    super.onInit();isOnRecentList.value = true;
+
     resetPagination();
     scrollController = ScrollController();
     getCompany();
     Future.delayed(const Duration(milliseconds: 200),(){
       resetPaginationForNewChat();
-      hitAPIToGetRecentChats();
+      hitAPIToGetRecentChats(page: 1);
     }
     );
     scrollListener();
@@ -134,7 +136,8 @@ class ChatHomeController extends GetxController{
     });
   }
 
-  int page =1;
+  int localPage =1;
+  RxBool isOnRecentList = true.obs;
   bool isLoading =false;
   bool isPageLoading =false;
   bool hasMore = true;
@@ -150,7 +153,7 @@ class ChatHomeController extends GetxController{
             scrollController.position.maxScrollExtent - 100 &&
             !isPageLoading && hasMore) {
           // resetPaginationForNewChat();
-          hitAPIToGetRecentChats();
+          hitAPIToGetRecentChats(page: localPage);
         }
       });
     } else {
@@ -161,14 +164,14 @@ class ChatHomeController extends GetxController{
 
         if (position.maxScrollExtent >0) {
           if (!isPageLoading && hasMore) {
-            hitAPIToGetRecentChats();
+            hitAPIToGetRecentChats(page: localPage);
           }
         }
       });
     }
   }
   void resetPaginationForNewChat() {
-    page = 1;
+    localPage = 1;
     hasMore = true;
     filteredList.clear();
     showPostShimmer = true;
@@ -177,7 +180,7 @@ class ChatHomeController extends GetxController{
 
   List<UserDataAPI>? recentChatUserList=[];
 
-  hitAPIToGetRecentChats({String? search, UserDataAPI? userData}) async {
+  hitAPIToGetRecentChats({String? search, UserDataAPI? userData,required int page}) async {
     if(page==1){
       showPostShimmer = true;
       filteredList.clear();
@@ -205,7 +208,7 @@ class ChatHomeController extends GetxController{
               selectedChat.value = filteredList[0];
             }
           }
-        page++; // next page
+        localPage++; // next page
       } else {
         hasMore = false;
         isPageLoading = false;
@@ -239,19 +242,21 @@ class ChatHomeController extends GetxController{
       customLoader.hide();
       Get.find<SocketController>().connectUserEmitter(myCompany?.companyId);
       Get.back();
+      localPage=1;
       groupResModel = value;
       groupController.clear();
       toast(value.message??'');
-      page=1;
-      hitAPIToGetRecentChats(userData: groupResModel.data);
-      Future.delayed(Duration(milliseconds: 1200),(){
-        final homec = Get.find<ChatHomeController>();
-        final chatc = Get.find<ChatScreenController>();
-        homec.selectedChat.value = groupResModel.data;
-        chatc.user =homec.selectedChat.value;
-        chatc.showPostShimmer =true;
-        chatc.openConversation(groupResModel.data);
-      });
+      Dialogs.showSnackbar(Get.context!, "Scroll down to see your latest create 'Group'");
+
+      hitAPIToGetRecentChats(userData: groupResModel.data,page: 1);
+      // Future.delayed(Duration(milliseconds: 1200),(){
+      //   final homec = Get.find<ChatHomeController>();
+      //   final chatc = Get.find<ChatScreenController>();
+      //   homec.selectedChat.value = groupResModel.data;
+      //   chatc.user =homec.selectedChat.value;
+      //   chatc.showPostShimmer =true;
+      //   chatc.openConversation(groupResModel.data);
+      // });
 
       update();
     }).onError((error, stackTrace) {
@@ -274,11 +279,11 @@ class ChatHomeController extends GetxController{
     searchDelay?.cancel();
     searchDelay = Timer(const Duration(milliseconds: 400), () {
       searchQuery = query.trim().toLowerCase();
-      page = 1;
+      localPage = 1;
       hasMore = false;
       filteredList.clear();
       update();
-      hitAPIToGetRecentChats(search: searchQuery.isEmpty ? null : searchQuery);
+      hitAPIToGetRecentChats(search: searchQuery.isEmpty ? null : searchQuery,page: 1);
     });
   }
 

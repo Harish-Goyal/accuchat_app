@@ -116,8 +116,8 @@ class ChatScreenMobile extends GetView<ChatScreenController> {
             //if emojis are shown & back button is pressed then hide emojis
             //or else simple close current screen on back button click
             onWillPop: () {
-              Get.find<ChatHomeController>().page = 1;
-              Get.find<ChatHomeController>().hitAPIToGetRecentChats();
+              Get.find<ChatHomeController>().localPage = 1;
+              Get.find<ChatHomeController>().hitAPIToGetRecentChats(page: 1);
               return Future.value(true);
             },
             child: SafeArea(
@@ -326,7 +326,7 @@ class ChatScreenMobile extends GetView<ChatScreenController> {
         ? GroupedListView<GroupChatElement, DateTime>(
         shrinkWrap: true,
         padding: const EdgeInsets.only(bottom: 30),
-        controller: controller.scrollController,
+        controller: controller.scrollController2,
         elements: controller.chatCatygory,
         order: GroupedListOrder.DESC,
         reverse: true,
@@ -874,8 +874,8 @@ class ChatScreenMobile extends GetView<ChatScreenController> {
                         Get.offAllNamed(AppRoutes.home); // or your main route
                       }
                       if(!kIsWeb) {
-                        Get.find<ChatHomeController>().page = 1;
-                        Get.find<ChatHomeController>().hitAPIToGetRecentChats();
+                        Get.find<ChatHomeController>().localPage = 1;
+                        Get.find<ChatHomeController>().hitAPIToGetRecentChats(page: 1);
                         if (isTaskMode) {
                           Get.find<DashboardController>().updateIndex(1);
                         } else {
@@ -1576,13 +1576,14 @@ class ChatScreenMobile extends GetView<ChatScreenController> {
                   : const SizedBox()
                   : const SizedBox(),
 
-              !((data.media ?? []).isNotEmpty)
+              (!(data.media ?? []).isNotEmpty || data.media?.length == 1)
                   ? _OptionItem(
                   icon: Icon(Icons.reply, color: appColorGreen, size: 18),
                   name: 'Reply',
                   onTap: () async {
-                    try {
-                      Get.back();
+                    final media = data.media;
+
+                    if (media == null || media.isEmpty) {
                       controller.refIdis = data.chatId;
                       controller.userIDSender = data.fromUser?.userId;
                       controller.userNameReceiver =
@@ -1593,8 +1594,34 @@ class ChatScreenMobile extends GetView<ChatScreenController> {
                       controller.replyToMessage = data;
                       controller.update();
                       controller.messageInputFocus.requestFocus();
-                    } catch (e) {
-                      toast('Something went wrong!');
+                      Get.back();
+                    } else {
+                      final firstMedia = media.first;
+                      controller.refIdis = data.chatId;
+                      controller.userIDSender = data.fromUser?.userId;
+                      controller.userNameReceiver = data.toUser?.userCompany?.displayName ?? '';
+                      controller.userNameSender = data.fromUser?.userCompany?.displayName ?? '';
+                      controller.userIDReceiver = data.toUser?.userId;
+
+                      controller.replyToImage = firstMedia.orgFileName;
+
+                      final isDoc = firstMedia.mediaType?.mediaCode == "DOC";
+                      final msg = isDoc
+                          ? (firstMedia.orgFileName ?? '')
+                          : "${ApiEnd.baseUrlMedia}${firstMedia.fileName ?? ''}";
+
+                      controller.replyToMessage = ChatHisList(
+                        chatId: data.chatId,
+                        fromUser: data.fromUser,
+                        toUser: data.toUser,
+                        message: msg,
+                        replyToId: data.chatId,
+                        replyToText: firstMedia.orgFileName,
+                      );
+
+                      controller.update();
+                      controller.messageInputFocus.requestFocus();
+                      Get.back();
                     }
                   })
                   : const SizedBox(),

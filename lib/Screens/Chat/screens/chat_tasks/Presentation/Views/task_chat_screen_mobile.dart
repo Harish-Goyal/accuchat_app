@@ -550,11 +550,9 @@ class TaskScreenMobile extends GetView<TaskController> {
       itemBuilder: (_) =>
           _buildMenuItems(statusHis ?? [], APIs.me.displayName ?? ''),
       child: Container(
-        // alignment: Alignment.center,
         padding: const EdgeInsets.only(left: 8, right: 8, top: 4, bottom: 4),
         decoration: BoxDecoration(
           borderRadius: BorderRadius.circular(30),
-          // color: getTaskStatusColor(status?.name?.capitalizeFirst)
         ),
         child: Image.asset(
           historyIcon,

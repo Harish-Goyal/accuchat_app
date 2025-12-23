@@ -440,7 +440,7 @@ class ChatsHomeScreen extends GetView<ChatHomeController> {
       color: appColorGreen,
       onRefresh: () async {
         controller.resetPagination();
-        controller.hitAPIToGetRecentChats();
+        controller.hitAPIToGetRecentChats(page: 1);
       }
          ,
       child: Obx(
@@ -485,7 +485,7 @@ class ChatsHomeScreen extends GetView<ChatHomeController> {
                 .paddingAll(12),
 
             vGap(12),
-            IconButton(onPressed: () async => controller.hitAPIToGetRecentChats(), icon: Icon(Icons.refresh,size: 35,color: appColorGreen,)).paddingOnly(right: 8)
+            IconButton(onPressed: () async => controller.hitAPIToGetRecentChats(page: 1), icon: Icon(Icons.refresh,size: 35,color: appColorGreen,)).paddingOnly(right: 8)
 
           ],
         ),

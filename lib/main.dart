@@ -3,6 +3,7 @@ import 'package:AccuChat/routes/app_pages.dart';
 import 'package:AccuChat/routes/app_routes.dart';
 import 'package:AccuChat/utils/network_controller.dart';
 import 'package:firebase_core/firebase_core.dart';
+import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -12,7 +13,6 @@ import 'package:hive_flutter/hive_flutter.dart';
 import 'package:logger/logger.dart';
 import 'Components/custom_loader.dart';
 import 'Constants/app_theme.dart';
-import 'Screens/Chat/api/session_alive.dart';
 import 'Screens/Chat/helper/local_notification_channel.dart';
 import 'Screens/Chat/models/get_company_res_model.dart';
 import 'Screens/Home/Presentation/Controller/company_service.dart';
@@ -64,6 +64,34 @@ Future<void> main() async {
 
   WidgetsFlutterBinding.ensureInitialized();
 
+  await Firebase.initializeApp(
+    options: DefaultFirebaseOptions.currentPlatform,
+  );
+
+  // 🔥 Register background handler BEFORE runApp
+  FirebaseMessaging.onBackgroundMessage(
+    firebaseMessagingBackgroundHandler,
+  );
+
+  // (kept) Your deferred inits
+  final Future<void> firebaseInit = _initializeFirebase();
+  final Future<void> notifInit = NotificationServicess.init(
+    webVapidPublicKey:
+    "BJt_tuDwKCr6OR8Gibo9KMKsJfSjB3rje9fn7Q31qGPyxAi9SKF11kf8HYOd__Zo7Wubg_xgbhkZzykxRojmN9g",
+  );
+
+  final Future<void> localNotifInit = (() async {
+    await LocalNotificationService.initialize(
+      onSelect: handleNotificationTap,
+    );
+    await LocalNotificationService.createAllChannels();
+  })();
+  await Future.wait<void>([
+    firebaseInit.timeout(const Duration(seconds: 5), onTimeout: () => null),
+    notifInit.timeout(const Duration(seconds: 4), onTimeout: () => null),
+    localNotifInit.timeout(const Duration(seconds: 4), onTimeout: () => null),
+    // storageBoot.timeout(const Duration(seconds: 6), onTimeout: () => null),
+  ]);
   await StorageService.init();
   await HiveBoot.init();
   await HiveBoot.openBoxOnce<CompanyData>(selectedCompanyBox);
@@ -107,7 +135,7 @@ Future<void> _deferredBoot() async {
   // Your original code lines are preserved below; I only grouped & parallelized them.
   // await StorageService.init();
   // ---- originally: firebase + notifications + storages + boxes ----
-  final Future<void> firebaseInit = _initializeFirebase(); // (kept)
+/*  final Future<void> firebaseInit = _initializeFirebase(); // (kept)
 
   // (kept) Notification init – deferred, same call
   final Future<void> notifInit = NotificationServicess.init(
@@ -120,6 +148,9 @@ Future<void> _deferredBoot() async {
     await LocalNotificationService.initialize(onSelect: handleNotificationTap);
     await LocalNotificationService.createAllChannels();
   })();
+
+  FirebaseMessaging.onBackgroundMessage(
+      firebaseMessagingBackgroundHandler);*/
 
   // (kept) Billing service/controller – same creation, just deferred
   final service = BillingService(
@@ -141,12 +172,12 @@ Future<void> _deferredBoot() async {
   //     permanent: true,
   //   );
 
-  await Future.wait<void>([
-    firebaseInit.timeout(const Duration(seconds: 5), onTimeout: () => null),
-    notifInit.timeout(const Duration(seconds: 4), onTimeout: () => null),
-    localNotifInit.timeout(const Duration(seconds: 4), onTimeout: () => null),
-    // storageBoot.timeout(const Duration(seconds: 6), onTimeout: () => null),
-  ]);
+  // await Future.wait<void>([
+  //   firebaseInit.timeout(const Duration(seconds: 5), onTimeout: () => null),
+  //   notifInit.timeout(const Duration(seconds: 4), onTimeout: () => null),
+  //   localNotifInit.timeout(const Duration(seconds: 4), onTimeout: () => null),
+  //   // storageBoot.timeout(const Duration(seconds: 6), onTimeout: () => null),
+  // ]);
 
   Get.lazyPut(() => NetworkController(), fenix: true);
 
@@ -198,6 +229,20 @@ _initializeFirebase() async {
   } on FirebaseException catch (e) {
     print('Firebase error: ${e.message}');
   }
+}
+
+@pragma('vm:entry-point')
+Future<void> firebaseMessagingBackgroundHandler(
+    RemoteMessage message) async {
+  WidgetsFlutterBinding.ensureInitialized();
+  await Firebase.initializeApp(
+    options: DefaultFirebaseOptions.currentPlatform,
+  );
+
+  print('📩 Background message received: ${message}');
+  print('📩 Background message received: ${message.data}');
+  print('📩 Background message received: ${message.messageType}');
+  print('📩 Background message received: ${message.notification}');
 }
 
 class MyApp extends StatelessWidget {

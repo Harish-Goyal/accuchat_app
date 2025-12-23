@@ -89,7 +89,7 @@ class NotificationServicess {
 
     // When user taps a notification
     FirebaseMessaging.onMessageOpenedApp.listen((RemoteMessage message) async {
-      _handleTapByType(message.data['type'], message.data['company_id']);
+      _handleTapByType(message.data['messageType'], message.data['company_id']);
     });
   }
 
@@ -106,24 +106,31 @@ class NotificationServicess {
     });
     // User clicked a notification (navigates via data.type)
     FirebaseMessaging.onMessageOpenedApp.listen((RemoteMessage message) async {
-      _handleTapByType(message.data['type'], message.data['companyId']);
+      _handleTapByType(message.data['messageType'], message.data['company']['companyId']);
     });
   }
 
   // Centralized navigation handler for both web/mobile
   static Future<void> _handleTapByType(String? type, dynamic companyId) async {
-    if (type == 'invite') {
-      Get.toNamed(AppRoutes.home);
+    if (type == 'MEMBER_INVITE_ONLINE') {
+      Get.toNamed(AppRoutes.invitations_r);
       return;
     }
-    else if (type == 'task') {
+    else if (type == 'TASK_SEND') {
       Get.find<DashboardController>().updateIndex(1);
       if (companyId != APIs.me.userCompany?.userCompanyId) {
         await APIs.getSelfInfo();
       }
       return;
     }
-   else if (type == 'chat') {
+   else if (type == 'CHAT_SEND') {
+      Get.find<DashboardController>().updateIndex(0);
+      if (companyId != APIs.me.userCompany?.userCompanyId) {
+        await APIs.getSelfInfo();
+      }
+      return;
+    }
+   else if (type == 'SEND_TASK_COMMENT') {
       Get.find<DashboardController>().updateIndex(0);
       if (companyId != APIs.me.userCompany?.userCompanyId) {
         await APIs.getSelfInfo();

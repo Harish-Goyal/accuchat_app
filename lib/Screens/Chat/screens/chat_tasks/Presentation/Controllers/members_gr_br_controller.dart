@@ -116,8 +116,8 @@ class GrBrMembersController extends GetxController{
       groupNameController.clear();
       toast(value.message??'');
       groupOrBr = groupResModel.data;
-      Get.find<ChatHomeController>().page = 1;
-      Get.find<ChatHomeController>().hitAPIToGetRecentChats(userData: groupResModel.data);
+      Get.find<ChatHomeController>().localPage = 1;
+      Get.find<ChatHomeController>().hitAPIToGetRecentChats(userData: groupResModel.data,page: 1);
       update();
     }).onError((error, stackTrace) {
       update();

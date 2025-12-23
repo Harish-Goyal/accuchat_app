@@ -14,23 +14,23 @@ import '../screens/auth/Presentation/Views/accept_invite_screen.dart';
 
 class LocalNotificationService {
   static final FlutterLocalNotificationsPlugin _plugin =
-  FlutterLocalNotificationsPlugin();
+      FlutterLocalNotificationsPlugin();
 
-  static Future<void> initialize({required Function(String? payload) onSelect}) async {
+  static Future<void> initialize(
+      {required Function(String? payload) onSelect}) async {
     const AndroidInitializationSettings androidInit =
-    AndroidInitializationSettings('@mipmap/ic_launcher');
+        AndroidInitializationSettings('@mipmap/ic_launcher');
 
     const InitializationSettings initSettings =
-    InitializationSettings(android: androidInit);
+        InitializationSettings(android: androidInit);
 
-    await _plugin.initialize(initSettings,
+    await _plugin.initialize(
+      initSettings,
       onDidReceiveNotificationResponse: (NotificationResponse response) {
         final payload = response.payload;
         onSelect(payload); // payload passed here
       },
-
     );
-
 
     FirebaseMessaging.onMessage.listen((RemoteMessage message) {
       debugPrint('📬 Foreground message: ${message.notification?.title}');
@@ -43,7 +43,10 @@ class LocalNotificationService {
       final senderId = (data['sender_id'] ?? '').toString().trim();
       final receiverId = (data['receiver_id'] ?? '').toString().trim();
 
-      print('🔔 FCM received: sender=$senderId, receiver=$receiverId, me=$meId');
+      print(
+          '🔔 FCM received: sender=$senderId, receiver=$receiverId, me=$meId');
+      print(
+          '🔔 Notification Data =${data}');
 
       // 1️⃣ Skip if self not logged in properly
       if (meId == null || meId.isEmpty) return;
@@ -59,9 +62,10 @@ class LocalNotificationService {
 
       // ✅ Safe to show notification
       final senderName = (data['sender_name'] ?? '').toString().trim();
-      final messageText = (data['title'] ?? '').toString(); // your payload uses "title" as text
+      final messageText =
+          (data['title'] ?? '').toString(); // your payload uses "title" as text
       final companyId = data['company_id'];
-      final channelId = data['channel_id']??'';
+      final channelId = data['channel_id'] ?? '';
 
       LocalNotificationService.showNotification(
         title: senderName.isNotEmpty ? senderName : title,
@@ -78,10 +82,12 @@ class LocalNotificationService {
     });
 
     FirebaseMessaging.onMessageOpenedApp.listen((RemoteMessage message) async {
-      final type = message.data['type'];
+      final data = message.data;
+      final type = data['messageType'];
+      print('🔔 Notification Data onMessageOpenedApp =${message.data}');
       print('🔔 Notification tapped. Type: $type');
+      if (type == 'CHAT_SEND') {
 
-      if (type == 'invite') {
         Get.toNamed(AppRoutes.accept_invite);
       } else if (type == 'task') {
         Get.find<DashboardController>().updateIndex(1);
@@ -89,42 +95,26 @@ class LocalNotificationService {
         Get.find<DashboardController>().updateIndex(0);
       }
     });
-
-
-
   }
 
   static Future<void> createAllChannels() async {
     const channels = [
       AndroidNotificationChannel(
-        'chat_channel',
-        'Chat Messages',
-        description: 'Notifications for new chat messages.',
+        'chat_high', // MUST match manifest
+        'Chat Notifications',
+        description: 'High priority chat messages',
         importance: Importance.high,
       ),
-      AndroidNotificationChannel(
-        'task_channel',
-        'Task Alerts',
-        description: 'Notifications for assigned tasks.',
-        importance: Importance.high,
-      ),
-      AndroidNotificationChannel(
-        'invite_channel',
-        'Invitations',
-        description: 'Notifications for company or group invites.',
-        importance: Importance.high,
 
-      ),AndroidNotificationChannel(
+      AndroidNotificationChannel(
         'any_channel',
         'Notification',
         description: 'You  got a Notifications from AccuChat',
         importance: Importance.high,
-
       ),
     ];
 
-    final androidPlugin = _plugin
-        .resolvePlatformSpecificImplementation<
+    final androidPlugin = _plugin.resolvePlatformSpecificImplementation<
         AndroidFlutterLocalNotificationsPlugin>();
 
     for (final channel in channels) {
@@ -132,52 +122,12 @@ class LocalNotificationService {
     }
   }
 
-  static Future<void> showChatNotification({
-    required String title,
-    required String body,
-  }) async {
-    const androidDetails = AndroidNotificationDetails(
-      'chat_channel',
-      'Chat Messages',
-      importance: Importance.high,
-      priority: Priority.high,
-    );
-
-    await _plugin.show(
-      DateTime.now().millisecondsSinceEpoch ~/ 1000,
-      title,
-      body,
-      const NotificationDetails(android: androidDetails),
-      payload: 'chat',
-
-    );
-  }
-
-  static Future<void> showTaskNotification({
-    required String title,
-    required String body,
-  }) async {
-    const androidDetails = AndroidNotificationDetails(
-      'task_channel',
-      'Task Alerts',
-      importance: Importance.high,
-      priority: Priority.high,
-    );
-
-    await _plugin.show(
-      DateTime.now().millisecondsSinceEpoch ~/ 1000,
-      title,
-      body,
-      const NotificationDetails(android: androidDetails),
-      payload: 'task',
-    );
-  }
 
   static Future<void> showNotification({
     required String title,
     required String body,
-    String? payload,           // <— allow custom payload
-    String channelId = 'chat_channel',
+    String? payload, // <— allow custom payload
+    String channelId = 'chat_high',
     String channelName = 'AccuChat Messages',
   }) async {
     final androidDetails = AndroidNotificationDetails(
@@ -198,23 +148,4 @@ class LocalNotificationService {
     );
   }
 
-  static Future<void> showInviteNotification({
-    required String title,
-    required String body,
-  }) async {
-    const androidDetails = AndroidNotificationDetails(
-      'invite_channel',
-      'Invitations',
-      importance: Importance.high,
-      priority: Priority.high,
-    );
-
-    await _plugin.show(
-      DateTime.now().millisecondsSinceEpoch ~/ 1000,
-      title,
-      body,
-      const NotificationDetails(android: androidDetails),
-      payload: 'invite',
-    );
-  }
 }

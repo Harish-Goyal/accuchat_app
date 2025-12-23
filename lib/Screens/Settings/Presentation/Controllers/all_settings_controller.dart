@@ -295,11 +295,9 @@ class AllSettingsController extends GetxController {
 
   @override
   void onInit() {
-    _getCompany();
-
-    _getMe();
     super.onInit();
+    _getCompany();
+    _getMe();
   }
-
 
 }

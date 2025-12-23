@@ -1131,6 +1131,8 @@ class TaskController extends GetxController {
   hitAPIToGetTaskHistory({int? statusId,isFilter= false,isForward= false,fromDate,toDate,String? search}) async {
     if(page==1){
       showPostShimmer = true;
+      taskCategory.clear();
+      taskHisList?.clear();
     }
 
     isPageLoading = true;

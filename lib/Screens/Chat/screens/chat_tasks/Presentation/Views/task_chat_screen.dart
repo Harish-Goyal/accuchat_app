@@ -694,8 +694,11 @@ class TaskScreen extends GetView<TaskController> {
                   selectionColor:
                   appColorPerple.withOpacity(0.3),
                   cursorColor: appColorPerple,
+                  mouseCursor: SystemMouseCursors.text,
                   child: SelectableLinkify(
                     text: message.details ?? '',
+                    enableInteractiveSelection: true,
+                    showCursor:true,
                     onOpen: (link) {
                       launchUrl(Uri.parse(link.url),
                           mode: LaunchMode.externalApplication);

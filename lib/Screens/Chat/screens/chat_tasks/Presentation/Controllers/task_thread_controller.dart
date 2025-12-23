@@ -136,6 +136,7 @@ class TaskThreadController extends GetxController {
   int page = 1;
   bool hasMore = true;
   bool showPostShimmer = true;
+  bool isPageLoading = true;
 
   var userIDSender;
   var userNameReceiver;
@@ -147,27 +148,56 @@ class TaskThreadController extends GetxController {
 
 
   scrollListener() {
-    scrollController.addListener(() {
-      if (scrollController.position.pixels <=
-          scrollController.position.minScrollExtent + 50 &&
-          !isLoading &&
-          hasMore) {
-        hitAPIToGetCommentsHistory();
-      }
-    });
+    if (kIsWeb) {
+      scrollController.addListener(() {
+        if (scrollController.position.pixels >=
+            scrollController.position.maxScrollExtent - 100 &&
+            !isPageLoading && hasMore) {
+          // resetPaginationForNewChat();
+          hitAPIToGetCommentsHistory();
+        }
+      });
+    } else {
+      scrollController.addListener(() {
+        if (scrollController.position.pixels <=
+            scrollController.position.minScrollExtent + 50 &&
+            !isPageLoading&& hasMore ) {
+          // resetPaginationForNewChat();
+          hitAPIToGetCommentsHistory();
+        }
+      });
+    }
   }
-/*  scrollListener() {
+  /* scrollListener() {
     scrollController.addListener(() {
       if ((scrollController.position.extentAfter) <= 0 && !isLoading) {
         hasMore = true;
         page++;
         update();
-        hitAPIToGetCommentsHistory();
+        hitAPIToGetTaskHistory();
       }
     });
   }*/
 
+  void resetPaginationForNewChat() {
+    page = 1;
+    hasMore = true;
+    commentsList = []; // <--- MOST IMPORTANT
+    commentsCategory = [];
+    showPostShimmer = true;
+    update();
+  }
+
+  TaskCommentsResModel commentRes= TaskCommentsResModel();
   hitAPIToGetCommentsHistory() async {
+    if(page==1){
+      showPostShimmer = true;
+      commentsList?.clear();
+      commentsCategory?.clear();
+    }
+
+    isPageLoading = true;
+    update();
     Get.find<PostApiServiceImpl>()
         .getCommentsOnTaskApiCall(
         taskId: taskMessage?.taskId,
@@ -175,6 +205,35 @@ class TaskThreadController extends GetxController {
         companyId: myCompany?.companyId)
         .then((value) async {
       showPostShimmer = false;
+      commentRes = value;
+      if (value.rows != null && (value.rows ?? []).isNotEmpty) {
+        if (page == 1) {
+          commentsList =value.rows ?? [];
+        } else {
+          commentsList?.addAll(value.rows??[]);
+        }
+        page++;
+      } else {
+
+          isPageLoading = false;
+          hasMore = false;
+          commentsList=[];
+          commentsCategory=[];
+          update();
+      }
+
+      commentsCategory = (commentsList ?? []).map((item) {
+        DateTime? datais;
+        if (item.sentOn != null) {
+          datais = DateTime.parse(item.sentOn ?? '');
+        }
+        return GroupCommentsElement(datais ?? DateTime.now(), item);
+      }).toList();
+      showPostShimmer = false;
+      isPageLoading = false;
+      update();
+
+    /*  showPostShimmer = false;
       // chatHisList = value.data?.rows ?? [];
       if ((value.rows ?? []).isNotEmpty) {
         if (page == 1) {
@@ -202,7 +261,7 @@ class TaskThreadController extends GetxController {
         }
         return GroupCommentsElement(datais ?? DateTime.now(), item);
       }).toList();
-      update();
+      update();*/
     }).onError((error, stackTrace) {
       showPostShimmer = false;
       update();

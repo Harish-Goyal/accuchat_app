@@ -299,21 +299,6 @@ class TaskThreadScreen extends GetView<TaskThreadController> {
       crossAxisAlignment:
       sentByMe ? CrossAxisAlignment.end : CrossAxisAlignment.start,
       children: [
-        vGap(3),
-        /*data.replyToId != null
-            ? ReplyMessageWidget(
-            isCancel: false,
-            sentByMe: sentByMe,
-            empIdsender: data.fromUser?.userId.toString(),
-            chatdata: data,
-            empIdreceiver: data.toUser?.userId.toString(),
-            empName: data.fromUser?.userId.toString() ==
-                controller.me?.userId?.toString()
-                ? data.fromUser?.userName ?? ''
-                : data.toUser?.userName ?? '',
-            message: data.replyToText ?? '')
-            .marginOnly(top: 4, bottom: 1)
-            : SizedBox(),*/
         Row(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
@@ -467,12 +452,12 @@ class TaskThreadScreen extends GetView<TaskThreadController> {
                   sentByMe
                       ? (data.fromUser?.userCompany?.displayName != null
                       ? data.fromUser?.userCompany?.displayName ?? ''
-                      : data.fromUser?.userName != null
+                      : data.fromUser?.userName != null||data.fromUser?.userName != ''
                       ? data.fromUser?.userName ?? ''
                       : data.fromUser?.phone ?? '')
                       : (data.toUser?.userCompany?.displayName != null
                       ? data.toUser?.userCompany?.displayName ?? ''
-                      : data.toUser?.userName != null
+                      : data.toUser?.userName != null||data.fromUser?.userName != ''
                       ? data.toUser?.userName ?? ''
                       : data.toUser?.phone ?? ''),
                   textAlign: TextAlign.start,
@@ -539,7 +524,6 @@ class TaskThreadScreen extends GetView<TaskThreadController> {
       final dir = await getTemporaryDirectory();
       final fileName = url.split('/').last.split('?').first;
       final filePath = '${dir.path}/$fileName';
-
       // Download using Dio
       await Dio().download(url, filePath);
       customLoader.hide();
@@ -557,12 +541,10 @@ class TaskThreadScreen extends GetView<TaskThreadController> {
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.end,
         children: [
-          //input field & buttons
           Expanded(
             child: SingleChildScrollView(
               child: Column(
                 children: [
-
                   Focus(
                     focusNode: controller.messageParentFocus,
                     autofocus: true,
@@ -656,12 +638,10 @@ class TaskThreadScreen extends GetView<TaskThreadController> {
                       ),
                     ),
                   )
-
                 ],
               ),
             ),
           ),
-
           hGap(6),
           InkWell(
             onTap: () {

@@ -302,7 +302,8 @@ class ChatScreenController extends GetxController {
   @override
   void onInit() {
     super.onInit();
-
+    Get.find<ChatHomeController>()
+        .isOnRecentList.value = false;
     // if (kIsWeb) {
     //   // web pe type karte hi yehi node focused rahe
     //   focusNode.requestFocus();
@@ -480,6 +481,7 @@ class ChatScreenController extends GetxController {
   bool isPageLoading = false;
 
   ScrollController scrollController = ScrollController();
+  ScrollController scrollController2 = ScrollController();
 
   scrollListener() {
     if (kIsWeb) {
@@ -493,9 +495,9 @@ class ChatScreenController extends GetxController {
         }
       });
     } else {
-      scrollController.addListener(() {
-        if (scrollController.position.pixels <=
-                scrollController.position.minScrollExtent + 50 &&
+      scrollController2.addListener(() {
+        if (scrollController2.position.pixels <=
+            scrollController2.position.minScrollExtent + 50 &&
             !isPageLoading &&
             hasMore) {
           // resetPaginationForNewChat();
@@ -508,7 +510,7 @@ class ChatScreenController extends GetxController {
   void resetPaginationForNewChat() {
     page = 1;
     hasMore = true;
-    chatHisList = []; // <--- MOST IMPORTANT
+    chatHisList = [];
     chatCatygory = [];
     showPostShimmer = true;
     update();
@@ -518,6 +520,8 @@ class ChatScreenController extends GetxController {
 
     if (page == 1) {
       showPostShimmer = true;
+      chatHisList?.clear();
+      chatCatygory.clear();
     }
 
     isPageLoading = true;
@@ -536,8 +540,9 @@ class ChatScreenController extends GetxController {
         } else {
           chatHisList?.addAll(value.data?.rows ?? []);
         }
-        page++; // next page
-      } else {
+        page++;
+      }
+      else {
         hasMore = false;
         isPageLoading = false;
         update();

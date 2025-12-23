@@ -96,7 +96,7 @@ class _ChatUserCardMobileState extends State<ChatUserCardMobile>
                 Get.toNamed(AppRoutes.chats_li_r,arguments: {'user':widget.user});
             }
           },
-          child:ListTile(
+          child:/*ListTile(
             //user profile picture
 
             contentPadding:
@@ -169,7 +169,88 @@ class _ChatUserCardMobileState extends State<ChatUserCardMobile>
             ),
             //message sent time
 
-          )
+          )*/ListTile(
+            contentPadding:
+            const EdgeInsets.symmetric(horizontal: 10),
+              leading: InkWell(
+                onTap: () {
+                  showDialog(
+                      context: context,
+                      builder: (_) => ProfileDialog(user: widget.user));
+                },
+                child: CustomCacheNetworkImage(
+                  radiusAll: 100,
+                  "${ApiEnd.baseUrlMedia}${widget.user?.userImage??''}",
+                  height: mq.height * .06,
+                  width: mq.height * .06,
+                  boxFit: BoxFit.cover,
+                  borderColor: greyText,
+                  defaultImage: widget.user?.userCompany?.isGroup==1?
+                  groupIcn:
+                  widget.user?.userCompany?.isBroadcast==1?
+                  broadcastIcon:ICON_profile,
+                ),
+              ),
+
+              //user name
+              title:(widget.user?.userCompany?.isGroup==1|| widget.user?.userCompany?.isBroadcast==1)? Text(
+                (widget.user?.userId==APIs.me.userId)?"Me":  (widget.user?.userName==''||widget.user?.userName==null)?widget.user?.phone??'':widget.user?.userName??'',
+                style: BalooStyles.baloonormalTextStyle(),
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+              ):Text(
+                (widget.user?.userId==APIs.me.userId)?"Me":  (widget.user?.displayName==''||widget.user?.displayName==null)?widget.user?.phone??'':widget.user?.displayName??'',
+                style: BalooStyles.baloonormalTextStyle(),
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+              ),
+
+              //last message
+              subtitle: Text(
+                widget.user?.lastMessage?.message??'',
+                maxLines: 1,
+                style: BalooStyles.balooregularTextStyle(color: greyText,size: 13),
+                overflow: TextOverflow.ellipsis,
+              ),
+
+              trailing: Column(
+                crossAxisAlignment: CrossAxisAlignment.end,
+                mainAxisAlignment:MainAxisAlignment.center,
+                children: [
+                  !isTaskMode?  ( widget.user?.pendingCount!=null&&widget.user?.pendingCount!=0  ? CircleAvatar(
+                    radius: 10,
+                    backgroundColor: Colors.greenAccent.shade400,
+                    child: Text(
+                      "${widget.user?.pendingCount}",
+                      style: BalooStyles.baloonormalTextStyle(color: Colors.white,size: 12),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                  ):SizedBox()) /*: widget.user?.open_count!=null&&widget.user?.open_count!=0  ? CircleAvatar(
+                    radius: 10,
+                    backgroundColor: Colors.greenAccent.shade400,
+                    child: Text(
+                      "${widget.user?.open_count}",
+                      style: BalooStyles.baloonormalTextStyle(color: Colors.white,size: 12),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                  )*/:SizedBox(),
+                  widget.user?.pendingCount!=null&&widget.user?.pendingCount!=0 ? Spacer():SizedBox(),
+                  widget.user?.open_count!=null&&widget.user?.open_count!=0 ? Spacer():SizedBox(),
+                  Text(
+                    MyDateUtil.getLastMessageTime(
+                        context: context, time: widget.user?.lastMessage?.messageTime??''),
+                    style: const TextStyle(color: Colors.black54),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                  ).paddingOnly(bottom: 2),
+                ],
+              ),
+              //message sent time
+
+            ),
+
       ),
     );
   }

@@ -7,6 +7,7 @@ import '../../../../../../main.dart';
 import '../../../../../../utils/custom_flashbar.dart';
 import '../../../../../Home/Models/company_mem_res_model.dart';
 import '../../../../../Home/Presentation/Controller/company_service.dart';
+import '../../../../helper/dialogs.dart';
 import '../../../../models/group_res_model.dart';
 import '../../../../models/get_company_res_model.dart';
 import '../../../auth/models/get_uesr_Res_model.dart';
@@ -85,9 +86,10 @@ class CreateBroadcastsController extends GetxController{
       Get.back();
       groupResModel = value;
       nameController.clear();
-      Get.find<ChatHomeController>().page = 1;
-      Get.find<ChatHomeController>().hitAPIToGetRecentChats(userData:groupResModel.data );
+      Get.find<ChatHomeController>().localPage = 1;
+      Get.find<ChatHomeController>().hitAPIToGetRecentChats(userData:groupResModel.data,page: 1 );
       toast(value.message??'');
+      Dialogs.showSnackbar(Get.context!, "Scroll down to see your latest create 'Broadcast'");
       update();
     }).onError((error, stackTrace) {
       update();

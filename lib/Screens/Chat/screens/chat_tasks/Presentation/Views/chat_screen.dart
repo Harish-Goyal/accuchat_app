@@ -40,6 +40,7 @@ import '../../../../../../utils/product_shimmer_widget.dart';
 import '../../../../../../utils/share_helper.dart';
 import '../../../../../../utils/text_style.dart';
 import '../../../../../Home/Presentation/Controller/socket_controller.dart';
+import '../../../../helper/dialogs.dart';
 import '../../../auth/models/get_uesr_Res_model.dart';
 import '../Controllers/task_controller.dart';
 import '../Widgets/reply_msg_widget.dart';
@@ -131,7 +132,8 @@ class ChatScreen extends GetView<ChatScreenController> {
                 //if emojis are shown & back button is pressed then hide emojis
                 //or else simple close current screen on back button click
                 onWillPop: () {
-                  Get.find<ChatHomeController>().hitAPIToGetRecentChats();
+                  Get.find<ChatHomeController>()
+                      .hitAPIToGetRecentChats(page: 1);
                   return Future.value(true);
                 },
                 child: SafeArea(
@@ -387,8 +389,8 @@ class ChatScreen extends GetView<ChatScreenController> {
     /*   final initialIndex = (controller.flatRows.isEmpty)
         ? 0
         : controller.flatRows.length - 1;*/
-    return  (controller.chatCatygory??[]).isNotEmpty?
-     GroupedListView<GroupChatElement, DateTime>(
+    return (controller.chatCatygory ?? []).isNotEmpty
+        ? GroupedListView<GroupChatElement, DateTime>(
             shrinkWrap: true,
             padding: const EdgeInsets.only(bottom: 30),
             controller: controller.scrollController,
@@ -424,37 +426,57 @@ class ChatScreen extends GetView<ChatScreenController> {
                               (element.chatMessageItems.media ?? [])
                                   .isNotEmpty) {
                           } else {
-                              try {
-                                Get.back();
-                                controller.refIdis = element.chatMessageItems.chatId;
-                                controller.userIDSender = element.chatMessageItems.fromUser?.userId;
-                                controller.userNameReceiver =
-                                    element.chatMessageItems.toUser?.userCompany?.displayName ?? '';
-                                controller.userNameSender =
-                                    element.chatMessageItems.fromUser?.userCompany?.displayName ?? '';
-                                controller.userIDReceiver = element.chatMessageItems.toUser?.userId;
-                                if((element.chatMessageItems.media??[]).isEmpty){
-                                  controller.replyToMessage = element.chatMessageItems;
-                                }
-
-                                if(element.chatMessageItems.media!=null){
-                                  controller.replyToImage = element.chatMessageItems.media?.first.orgFileName;
-                                  controller.replyToMessage= ChatHisList(
-                                    chatId:element.chatMessageItems.chatId,
-                                    fromUser:element.chatMessageItems.fromUser,
-                                    toUser:element.chatMessageItems.toUser,
-                                    message:element.chatMessageItems.media?.first.mediaType?.mediaCode=="DOC"?element.chatMessageItems.media?.first.orgFileName:"${ApiEnd.baseUrlMedia}${element.chatMessageItems.media?.first.fileName}",
-                                    // message:getFileNameFromUrl(c.urls[c.index]),
-                                    replyToId:element.chatMessageItems.chatId,
-                                    replyToText:element.chatMessageItems.media?.first.orgFileName,
-                                    // replyToText:getFileNameFromUrl(c.urls[c.index]),
-                                  );
-                                }
-                                controller.update();
-                                controller.messageInputFocus.requestFocus();
-                              } catch (e) {
-                                toast('Something went wrong!');
+                            try {
+                              Get.back();
+                              controller.refIdis =
+                                  element.chatMessageItems.chatId;
+                              controller.userIDSender =
+                                  element.chatMessageItems.fromUser?.userId;
+                              controller.userNameReceiver = element
+                                      .chatMessageItems
+                                      .toUser
+                                      ?.userCompany
+                                      ?.displayName ??
+                                  '';
+                              controller.userNameSender = element
+                                      .chatMessageItems
+                                      .fromUser
+                                      ?.userCompany
+                                      ?.displayName ??
+                                  '';
+                              controller.userIDReceiver =
+                                  element.chatMessageItems.toUser?.userId;
+                              if ((element.chatMessageItems.media ?? [])
+                                  .isEmpty) {
+                                controller.replyToMessage =
+                                    element.chatMessageItems;
                               }
+
+                              if (element.chatMessageItems.media != null) {
+                                controller.replyToImage = element
+                                    .chatMessageItems.media?.first.orgFileName;
+                                controller.replyToMessage = ChatHisList(
+                                  chatId: element.chatMessageItems.chatId,
+                                  fromUser: element.chatMessageItems.fromUser,
+                                  toUser: element.chatMessageItems.toUser,
+                                  message: element.chatMessageItems.media?.first
+                                              .mediaType?.mediaCode ==
+                                          "DOC"
+                                      ? element.chatMessageItems.media?.first
+                                          .orgFileName
+                                      : "${ApiEnd.baseUrlMedia}${element.chatMessageItems.media?.first.fileName}",
+                                  // message:getFileNameFromUrl(c.urls[c.index]),
+                                  replyToId: element.chatMessageItems.chatId,
+                                  replyToText: element.chatMessageItems.media
+                                      ?.first.orgFileName,
+                                  // replyToText:getFileNameFromUrl(c.urls[c.index]),
+                                );
+                              }
+                              controller.update();
+                              controller.messageInputFocus.requestFocus();
+                            } catch (e) {
+                              toast('Something went wrong!');
+                            }
 
                             // // Set the message being replied to
                             // controller.refIdis =
@@ -614,8 +636,10 @@ class ChatScreen extends GetView<ChatScreenController> {
     return data.isActivity == 1
         ? Center(
             child: Container(
-                    padding: const EdgeInsets.symmetric(vertical: 4, horizontal: 8),
-                    margin: const EdgeInsets.symmetric(vertical: 4, horizontal: 8),
+                    padding:
+                        const EdgeInsets.symmetric(vertical: 4, horizontal: 8),
+                    margin:
+                        const EdgeInsets.symmetric(vertical: 4, horizontal: 8),
                     decoration: BoxDecoration(
                       color: appColorPerple.withOpacity(.1),
                       borderRadius: BorderRadius.circular(12),
@@ -644,7 +668,7 @@ class ChatScreen extends GetView<ChatScreenController> {
                           onPressed: () {
                             controller.handleForward(chatId: data.chatId);
                           },
-                          icon:Transform(
+                          icon: Transform(
                             alignment: Alignment.center,
                             transform: Matrix4.rotationY(math.pi),
                             child: Image.asset(
@@ -654,7 +678,8 @@ class ChatScreen extends GetView<ChatScreenController> {
                           )).paddingOnly(left: 8)
                       : const SizedBox(),
                   Align(
-                    alignment: sentByMe ? Alignment.centerRight : Alignment.centerLeft,
+                    alignment:
+                        sentByMe ? Alignment.centerRight : Alignment.centerLeft,
                     child: ConstrainedBox(
                       constraints: BoxConstraints(
                         maxWidth: Get.width * (kIsWeb ? 0.45 : 0.75),
@@ -666,53 +691,55 @@ class ChatScreen extends GetView<ChatScreenController> {
                             : CrossAxisAlignment.start,
                         children: [
                           InkWell(
-                            borderRadius:sentByMe
-                      ? BorderRadius.only(
-                      topLeft: Radius.circular(
-                      (data.media ?? []).isNotEmpty
-                          ? 15
-                          : 30),
-                      topRight: Radius.circular(
-                          (data.media ?? []).isNotEmpty
-                              ? 15
-                              : 30),
-                      bottomLeft: Radius.circular(
-                          (data.media ?? []).isNotEmpty
-                              ? 15
-                              : 30))
-                      : BorderRadius.only(
-                    topLeft: Radius.circular(
-                        (data.media ?? []).isNotEmpty ? 15 : 30),
-                    topRight: Radius.circular((data.media ?? []).isNotEmpty ? 15 : 30),
-                    bottomRight: Radius.circular((data.media ?? []).isNotEmpty ? 15 : 30)),
+                            borderRadius: sentByMe
+                                ? BorderRadius.only(
+                                    topLeft: Radius.circular(
+                                        (data.media ?? []).isNotEmpty
+                                            ? 15
+                                            : 30),
+                                    topRight: Radius.circular(
+                                        (data.media ?? []).isNotEmpty
+                                            ? 15
+                                            : 30),
+                                    bottomLeft: Radius.circular(
+                                        (data.media ?? []).isNotEmpty
+                                            ? 15
+                                            : 30))
+                                : BorderRadius.only(
+                                    topLeft: Radius.circular(
+                                        (data.media ?? []).isNotEmpty
+                                            ? 15
+                                            : 30),
+                                    topRight: Radius.circular((data.media ?? []).isNotEmpty ? 15 : 30),
+                                    bottomRight: Radius.circular((data.media ?? []).isNotEmpty ? 15 : 30)),
                             // mouseCursor: SystemMouseCursors.click,
                             onDoubleTap: () {
                               SystemChannels.textInput
                                   .invokeMethod('TextInput.hide');
                               if (!isTaskMode) {
-                                  _showBottomSheet(sentByMe, data: data);
+                                _showBottomSheet(sentByMe, data: data);
                               }
                             },
                             child: Container(
                               padding: EdgeInsets.symmetric(
                                 horizontal:
                                     (data.media ?? []).isNotEmpty ? 12 : 15,
-                                vertical: (data.media ?? []).isNotEmpty ? 0 : 10,
+                                vertical:
+                                    (data.media ?? []).isNotEmpty ? 0 : 10,
                               ),
                               margin: sentByMe
                                   ? const EdgeInsets.only(
                                       left: 6, top: 10, right: 6)
                                   : const EdgeInsets.only(
                                       right: 6, top: 10, left: 6),
-
                               decoration: BoxDecoration(
                                   color: sentByMe
-                                          ? appColorGreen.withOpacity(.1)
-                                          : appColorPerple.withOpacity(.1),
+                                      ? appColorGreen.withOpacity(.1)
+                                      : appColorPerple.withOpacity(.1),
                                   border: Border.all(
                                       color: sentByMe
-                                              ? appColorGreen
-                                              : appColorPerple),
+                                          ? appColorGreen
+                                          : appColorPerple),
                                   borderRadius: sentByMe
                                       ? BorderRadius.only(
                                           topLeft: Radius.circular(
@@ -728,8 +755,7 @@ class ChatScreen extends GetView<ChatScreenController> {
                                                   ? 15
                                                   : 30))
                                       : BorderRadius.only(
-                                          topLeft: Radius.circular(
-                                              (data.media ?? []).isNotEmpty ? 15 : 30),
+                                          topLeft: Radius.circular((data.media ?? []).isNotEmpty ? 15 : 30),
                                           topRight: Radius.circular((data.media ?? []).isNotEmpty ? 15 : 30),
                                           bottomRight: Radius.circular((data.media ?? []).isNotEmpty ? 15 : 30))),
                               child: messageTypeView(data, sentByMe: sentByMe),
@@ -782,7 +808,6 @@ class ChatScreen extends GetView<ChatScreenController> {
   }
 
   messageTypeView(ChatHisList data, {required bool sentByMe}) {
-
     return Container(
       key: ValueKey('msg-${data.chatId}'),
       child: Column(
@@ -812,22 +837,29 @@ class ChatScreen extends GetView<ChatScreenController> {
                   children: [
                     Flexible(
                       child: Text(
-                        data.fromUser?.userId == controller.me?.userId
-                            ? "You"
-                            :
-                        data.fromUser?.userCompany?.displayName!=null?  (data.fromUser?.userCompany?.displayName ?? ''):data.fromUser?.userName!=null? (data.fromUser?.userName ?? ''):(data.fromUser?.phone??''),
-                        style: BalooStyles.baloonormalTextStyle(
-                            color:
-                                data.fromUser?.userId == controller.me?.userId
-                                    ? Colors.green
-                                    : Colors.purple),
-                        textAlign: TextAlign.end, maxLines: 1,
-                          overflow: TextOverflow.ellipsis
-                      ).marginOnly(
-                          right: sentByMe ? 1 : 5,
-                          left: sentByMe ? 1 : 5,
-                          bottom: 1,
-                          top: 4),
+                              data.fromUser?.userId == controller.me?.userId
+                                  ? "You"
+                                  : data.fromUser?.userCompany?.displayName !=
+                                          null
+                                      ? (data.fromUser?.userCompany
+                                              ?.displayName ??
+                                          '')
+                                      : data.fromUser?.userName != null
+                                          ? (data.fromUser?.userName ?? '')
+                                          : (data.fromUser?.phone ?? ''),
+                              style: BalooStyles.baloonormalTextStyle(
+                                  color: data.fromUser?.userId ==
+                                          controller.me?.userId
+                                      ? Colors.green
+                                      : Colors.purple),
+                              textAlign: TextAlign.end,
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis)
+                          .marginOnly(
+                              right: sentByMe ? 1 : 5,
+                              left: sentByMe ? 1 : 5,
+                              bottom: 1,
+                              top: 4),
                     ),
                   ],
                 )
@@ -839,90 +871,91 @@ class ChatScreen extends GetView<ChatScreenController> {
                           color: Colors.grey,
                           size: 13,
                           fontstyle: FontStyle.italic),
-                       maxLines: 1,
-              overflow: TextOverflow.ellipsis)
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis)
                   .marginOnly(
                   left: sentByMe ? 0 : 10,
                   right: sentByMe ? 10 : 0,
                 )
               : const SizedBox(),
           data.message != '' || data.message != null
-              ?
-
-          DefaultSelectionStyle(
-            selectionColor: appColorPerple.withOpacity(0.3),
-            cursorColor: appColorPerple,
-            child: SelectableLinkify(
-              text: data.message ?? '',
-              onOpen: (link) {
-                launchUrl(Uri.parse(link.url), mode: LaunchMode.externalApplication);
-              },
-              style: BalooStyles.baloonormalTextStyle(
-                color: Colors.black87,
-                size: 15,
-              ),
-              linkStyle: BalooStyles.baloonormalTextStyle(
-                color: Colors.blue,
-                size: 15,
-              ),
-              linkifiers: const [
-                UrlLinkifier(),
-              ],
-            ),
-          )
+              ? DefaultSelectionStyle(
+                  selectionColor: appColorPerple.withOpacity(0.3),
+                  cursorColor: appColorPerple,
+                  child: SelectableLinkify(
+                    text: data.message ?? '',
+                    onOpen: (link) {
+                      launchUrl(Uri.parse(link.url),
+                          mode: LaunchMode.externalApplication);
+                    },
+                    style: BalooStyles.baloonormalTextStyle(
+                      color: Colors.black87,
+                      size: 15,
+                    ),
+                    linkStyle: BalooStyles.baloonormalTextStyle(
+                      color: Colors.blue,
+                      size: 15,
+                    ),
+                    linkifiers: const [
+                      UrlLinkifier(),
+                    ],
+                  ),
+                )
               : const SizedBox(),
           ((data.media ?? []).isNotEmpty)
               ? ConstrainedBox(
-            constraints: BoxConstraints(
-              maxWidth: Get.width * (kIsWeb ? 0.3: 0.64),
-            ),
-                child: ChatMessageMedia(
-                  chat: data,
-                  isGroupMessage: data.isGroupChat == 1 ? true : false,
-                  myId: (controller.me?.userId ?? 0).toString(),
-                  fromId: (data.fromUser?.userId ?? 0).toString(),
-                  senderName:data.fromUser?.displayName!=null? data.fromUser?.displayName ?? '':data.fromUser?.userName??'',
-                  baseUrl: ApiEnd.baseUrlMedia,
-                  defaultGallery: defaultGallery,
-                  onOpenDocument: (url) =>
-                      openDocumentFromUrl(url), // your existing function
-                  onOpenImageViewer: (mediaurls, startIndex) {
-                    // push your gallery view
-                    // Get.to(() => ImageViewer(urls: urls, initialIndex: startIndex));
-                    Get.to(
-                      () => GalleryViewerPage(
-                        onReply: () {
-                          Get.back();
-                          controller.refIdis = data.chatId;
-                          controller.userIDSender = data.fromUser?.userId;
-                          controller.userNameReceiver =
-                              data.toUser?.userCompany?.displayName ?? '';
-                          controller.userNameSender =
-                              data.fromUser?.userCompany?.displayName ?? '';
-                          controller.userIDReceiver = data.toUser?.userId;
-                          controller.replyToMessage = data;
-                          controller.replyToImage =
-                              data.media?[startIndex].orgFileName ?? '';
-                        },
-                      ),
-                      binding: BindingsBuilder(() {
-                        Get.put(GalleryViewerController(
-                            urls: mediaurls,
-                            index: startIndex,
-                            chathis: data));
-                      }),
-                      fullscreenDialog: true,
-                      transition: Transition.fadeIn,
-                    );
-                  },
-                  onOpenVideo: (url) {
-                    // open video player route/sheet if available
-                  },
-                  onOpenAudio: (url) {
-                    // open audio player route/sheet if available
-                  },
-                ),
-              )
+                  constraints: BoxConstraints(
+                    maxWidth: Get.width * (kIsWeb ? 0.3 : 0.64),
+                  ),
+                  child: ChatMessageMedia(
+                    chat: data,
+                    isGroupMessage: data.isGroupChat == 1 ? true : false,
+                    myId: (controller.me?.userId ?? 0).toString(),
+                    fromId: (data.fromUser?.userId ?? 0).toString(),
+                    senderName: data.fromUser?.displayName != null
+                        ? data.fromUser?.displayName ?? ''
+                        : data.fromUser?.userName ?? '',
+                    baseUrl: ApiEnd.baseUrlMedia,
+                    defaultGallery: defaultGallery,
+                    onOpenDocument: (url) =>
+                        openDocumentFromUrl(url), // your existing function
+                    onOpenImageViewer: (mediaurls, startIndex) {
+                      // push your gallery view
+                      // Get.to(() => ImageViewer(urls: urls, initialIndex: startIndex));
+                      Get.to(
+                        () => GalleryViewerPage(
+                          onReply: () {
+                            Get.back();
+                            controller.refIdis = data.chatId;
+                            controller.userIDSender = data.fromUser?.userId;
+                            controller.userNameReceiver =
+                                data.toUser?.userCompany?.displayName ?? '';
+                            controller.userNameSender =
+                                data.fromUser?.userCompany?.displayName ?? '';
+                            controller.userIDReceiver = data.toUser?.userId;
+                            controller.replyToMessage = data;
+                            controller.replyToImage =
+                                data.media?[startIndex].orgFileName ?? '';
+                          },
+                        ),
+                        binding: BindingsBuilder(() {
+                          Get.put(GalleryViewerController(
+                              urls: mediaurls,
+                              index: startIndex,
+                              chathis: data));
+                        }),
+                        fullscreenDialog: true,
+                        transition: Transition.fadeIn,
+                      );
+                    },
+                    onOpenVideo: (url) {
+                      // open video player route/sheet if available
+                    },
+                    onOpenAudio: (url) {
+                      // open audio player route/sheet if available
+                    },
+                  ),
+                )
               : const SizedBox(),
         ],
       ),
@@ -935,132 +968,139 @@ class ChatScreen extends GetView<ChatScreenController> {
       children: [
         controller.isSearching
             ? Expanded(
-              child: TextField(
-                        controller: controller.seacrhCon,
-                        cursorColor: appColorGreen,
-                        decoration: const InputDecoration(
-                border: InputBorder.none,
-                hintText: 'Search Chats ...',
-                contentPadding: EdgeInsets.symmetric(
-                    vertical: 0, horizontal: 10),
-                constraints: BoxConstraints(maxHeight: 45)),
-                        autofocus: true,
-                        style: const TextStyle(
-                fontSize: 13, letterSpacing: 0.5),
-                        onChanged: (val) {
-              controller.searchQuery = val;
-              controller.onSearch(val);
-                        },
-                      ).marginSymmetric(vertical: 10),
-            )
-            :  Expanded(
-          child: InkWell(
-            onTap: () {
-              if (!(controller.user?.userCompany?.isGroup == 1 ||
-                  controller.user?.userCompany?.isBroadcast == 1)) {
-                if (kIsWeb) {
-                  Get.toNamed(
-                    "${AppRoutes.view_profile}?userId=${controller.user?.userId}",
-                  );
-                } else {
-                  Get.toNamed(AppRoutes.view_profile,
-                      arguments: {'user': controller.user});
-                }
-              } else {
-                if (kIsWeb) {
-                  Get.toNamed(
-                    "${AppRoutes.member_sr}?userId=${controller.user?.userId}",
-                  );
-                } else {
-                  Get.toNamed(AppRoutes.member_sr,
-                      arguments: {'user': controller.user});
-                }
-              }
-              // APIs.updateActiveStatus(false);
-            },
-            child: Row(
-              children: [
-                //back button
-                !showBack
-                    ? const SizedBox(
-                        width: 14,
-                      )
-                    : IconButton(
-                        onPressed: () {
-                          if (Get.previousRoute.isNotEmpty) {
-                            Get.back();
-                          } else {
-                            Get.offAllNamed(
-                                AppRoutes.home);
-                          }
-                          if (!kIsWeb) {
-                            Get.find<ChatHomeController>()
-                                .hitAPIToGetRecentChats();
-                            if (isTaskMode) {
-                              Get.find<DashboardController>().updateIndex(1);
-                            } else {
-                              Get.find<DashboardController>().updateIndex(0);
-                            }
-                          }
-                          // APIs.updateActiveStatus(false);
-                        },
-                        icon: const Icon(Icons.arrow_back,
-                            color: Colors.black54)),
+                child: TextField(
+                  controller: controller.seacrhCon,
+                  cursorColor: appColorGreen,
+                  decoration: const InputDecoration(
+                      border: InputBorder.none,
+                      hintText: 'Search Chats ...',
+                      contentPadding:
+                          EdgeInsets.symmetric(vertical: 0, horizontal: 10),
+                      constraints: BoxConstraints(maxHeight: 45)),
+                  autofocus: true,
+                  style: const TextStyle(fontSize: 13, letterSpacing: 0.5),
+                  onChanged: (val) {
+                    controller.searchQuery = val;
+                    controller.onSearch(val);
+                  },
+                ).marginSymmetric(vertical: 10),
+              )
+            : Expanded(
+                child: InkWell(
+                  onTap: () {
+                    if (!(controller.user?.userCompany?.isGroup == 1 ||
+                        controller.user?.userCompany?.isBroadcast == 1)) {
+                      if (kIsWeb) {
+                        Get.toNamed(
+                          "${AppRoutes.view_profile}?userId=${controller.user?.userId}",
+                        );
+                      } else {
+                        Get.toNamed(AppRoutes.view_profile,
+                            arguments: {'user': controller.user});
+                      }
+                    } else {
+                      if (kIsWeb) {
+                        Get.toNamed(
+                          "${AppRoutes.member_sr}?userId=${controller.user?.userId}",
+                        );
+                      } else {
+                        Get.toNamed(AppRoutes.member_sr,
+                            arguments: {'user': controller.user});
+                      }
+                    }
+                    // APIs.updateActiveStatus(false);
+                  },
+                  child: Row(
+                    children: [
+                      //back button
+                      !showBack
+                          ? const SizedBox(
+                              width: 14,
+                            )
+                          : IconButton(
+                              onPressed: () {
+                                if (Get.previousRoute.isNotEmpty) {
+                                  Get.back();
+                                } else {
+                                  Get.offAllNamed(AppRoutes.home);
+                                }
+                                if (!kIsWeb) {
+                                  Get.find<ChatHomeController>()
+                                      .hitAPIToGetRecentChats(page: 1);
+                                  if (isTaskMode) {
+                                    Get.find<DashboardController>()
+                                        .updateIndex(1);
+                                  } else {
+                                    Get.find<DashboardController>()
+                                        .updateIndex(0);
+                                  }
+                                }
+                                // APIs.updateActiveStatus(false);
+                              },
+                              icon: const Icon(Icons.arrow_back,
+                                  color: Colors.black54)),
 
-                CustomCacheNetworkImage(
-                  radiusAll: 100,
-                  "${ApiEnd.baseUrlMedia}${controller.user?.userImage ?? ''}",
-                  height: _avatarSize(Get.context!), // ✅ responsive avatar
-                  width: _avatarSize(Get.context!),
-                  boxFit: BoxFit.cover,
-                  defaultImage: controller.user?.userCompany?.isGroup == 1
-                      ? groupIcn
-                      : controller.user?.userCompany?.isBroadcast == 1
-                          ? broadcastIcon
-                          : ICON_profile,
-                  borderColor: greyText,
-                ),
+                      CustomCacheNetworkImage(
+                        radiusAll: 100,
+                        "${ApiEnd.baseUrlMedia}${controller.user?.userImage ?? ''}",
+                        height:
+                            _avatarSize(Get.context!), // ✅ responsive avatar
+                        width: _avatarSize(Get.context!),
+                        boxFit: BoxFit.cover,
+                        defaultImage: controller.user?.userCompany?.isGroup == 1
+                            ? groupIcn
+                            : controller.user?.userCompany?.isBroadcast == 1
+                                ? broadcastIcon
+                                : ICON_profile,
+                        borderColor: greyText,
+                      ),
 
-                //for adding some space
-                hGap(10),
+                      //for adding some space
+                      hGap(10),
 
-                //user name & last seen time
-                Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    //user name
-                    (controller.user?.userCompany?.isGroup == 1 ||
-                            controller.user?.userCompany?.isBroadcast == 1)
-                        ? Text(
-                            (controller.user?.userName == '' ||
-                                    controller.user?.userName == null)
-                                ? controller.user?.phone ?? ''
-                                : controller.user?.userName?? '',
-                            maxLines: 1,
-                            overflow: TextOverflow.ellipsis,
-                            style: themeData.textTheme.titleMedium,
-                          )
-                        : Text(
-                      (controller.user?.userCompany?.displayName !=null)
-                          ? controller.user?.userCompany?.displayName ?? ''
-                          :controller.user?.userName!=null? controller.user?.userName ?? '': controller.user?.phone??'',
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                      style: themeData.textTheme.titleMedium,
-                    ),
-                    controller.user?.userCompany?.isGroup == 1 ||
-                            controller.user?.userCompany?.isBroadcast == 1
-                        ? Text('${controller.members.length} members',
-                            style: BalooStyles.baloonormalTextStyle())
-                        : const SizedBox(),
+                      //user name & last seen time
+                      Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          //user name
+                          (controller.user?.userCompany?.isGroup == 1 ||
+                                  controller.user?.userCompany?.isBroadcast ==
+                                      1)
+                              ? Text(
+                                  (controller.user?.userName == '' ||
+                                          controller.user?.userName == null)
+                                      ? controller.user?.phone ?? ''
+                                      : controller.user?.userName ?? '',
+                                  maxLines: 1,
+                                  overflow: TextOverflow.ellipsis,
+                                  style: themeData.textTheme.titleMedium,
+                                )
+                              : Text(
+                                  (controller.user?.userCompany?.displayName !=
+                                          null)
+                                      ? controller
+                                              .user?.userCompany?.displayName ??
+                                          ''
+                                      : controller.user?.userName != null
+                                          ? controller.user?.userName ?? ''
+                                          : controller.user?.phone ?? '',
+                                  maxLines: 1,
+                                  overflow: TextOverflow.ellipsis,
+                                  style: themeData.textTheme.titleMedium,
+                                ),
+                          controller.user?.userCompany?.isGroup == 1 ||
+                                  controller.user?.userCompany?.isBroadcast == 1
+                              ? Text('${controller.members.length} members',
+                                  style: BalooStyles.baloonormalTextStyle())
+                              : const SizedBox(),
 
-                    vGap(2),
-                    //for adding some space
+                          vGap(2),
+                          //for adding some space
 
-                    //last seen time of user
-                    //TODO
-                    /* Text(
+                          //last seen time of user
+                          //TODO
+                          /* Text(
                               list.isNotEmpty
                                   ? list[0].isOnline && !list[0].isTyping
                                   ? 'Online'
@@ -1076,104 +1116,111 @@ class ChatScreen extends GetView<ChatScreenController> {
                                   (controller.user?.lastActive??'').toString()),
                               style: const TextStyle(
                                   fontSize: 13, color: Colors.black54)),*/
-                  ],
-                ),
-              ],
-            ),
-          ),
-        ),
-        controller.isSearching?SizedBox():  (controller.user?.userCompany?.isBroadcast==1 ||controller.user?.userCompany?.isGroup==1) ?SizedBox():  CustomTextButton(onTap: (){
-          if (controller.user == null) return;
-          isTaskMode = true;
-          Get.find<DashboardController>().updateIndex(1);
-          // ensure TaskHomeController exists
-          if (!Get.isRegistered<TaskHomeController>()) {
-            Get.put(TaskHomeController());
-          }
-          // ensure TaskController exists
-          if (!Get.isRegistered<TaskController>()) {
-            Get.put(TaskController(user: controller.user));
-          }
-
-
-          final taskHome = Get.find<TaskHomeController>();
-          final taskC = Get.find<TaskController>();
-
-          taskHome.selectedChat.value = controller.user;
-          taskC.user = controller.user;
-          Future.microtask(() {
-          taskC.openConversation(controller.user);
-          });
-
-
-          taskHome.selectedChat.refresh();
-        }, title: "Go to Task"),
-        controller.isSearching?SizedBox():  hGap(10),
-        IconButton(
-            onPressed: () {
-              controller.isSearching = !controller.isSearching;
-              controller.update();
-              if(!controller.isSearching){
-                controller.searchQuery = '';
-                controller.onSearch('');
-                controller.seacrhCon.clear();
-              }
-              controller.update();
-            },
-            icon:  controller.isSearching?  const Icon(
-                CupertinoIcons.clear_circled_solid)
-                : Image.asset(searchPng,height:25,width:25)
-        ).paddingOnly(top: 0, right: 0),
-        controller.isSearching?SizedBox():hGap(10),
-        controller.isSearching?SizedBox():(controller.user?.userCompany?.isGroup == 1 ||
-                controller.user?.userCompany?.isBroadcast == 1)
-            ? PopupMenuButton<String>(
-                color: Colors.white,
-                iconColor: Colors.black87,
-                onSelected: (value) {
-                  if (value == 'AddMember') {
-                    if (kIsWeb) {
-                      Get.toNamed(
-                        "${AppRoutes.add_group_member}?groupChatId=${controller.user?.userId.toString()}",
-                      );
-                    } else {
-                      Get.toNamed(
-                        AppRoutes.add_group_member,
-                        arguments: {'groupChat': controller.user},
-                      );
-                    }
-                  }
-                  if (value == 'Exit') {
-                    toast("Under development");
-                  }
-                  if (value == 'Edit') {
-                    if (kIsWeb) {
-                      Get.toNamed(
-                        "${AppRoutes.member_sr}?userId=${controller.user?.userId.toString()}",
-                      );
-                    } else {
-                      Get.toNamed(AppRoutes.member_sr,
-                          arguments: {'user': controller.user});
-                    }
-                  }
-                },
-                itemBuilder: (context) => [
-                  PopupMenuItem(
-                    value: 'AddMember',
-                    child: Row(
-                      children: [
-                        Icon(
-                          Icons.person_add_alt,
-                          color: appColorGreen,
-                          size: 18,
-                        ),
-                        hGap(5),
-                        Text('Add Member',
-                            style: BalooStyles.baloonormalTextStyle()),
-                      ],
-                    ),
+                        ],
+                      ),
+                    ],
                   ),
-                  /*PopupMenuItem(
+                ),
+              ),
+        controller.isSearching
+            ? SizedBox()
+            : (controller.user?.userCompany?.isBroadcast == 1 ||
+                    controller.user?.userCompany?.isGroup == 1)
+                ? SizedBox()
+                : CustomTextButton(
+                    onTap: () {
+                      if (controller.user == null) return;
+                      isTaskMode = true;
+                      Get.find<DashboardController>().updateIndex(1);
+                      // ensure TaskHomeController exists
+                      if (!Get.isRegistered<TaskHomeController>()) {
+                        Get.put(TaskHomeController());
+                      }
+                      // ensure TaskController exists
+                      if (!Get.isRegistered<TaskController>()) {
+                        Get.put(TaskController(user: controller.user));
+                      }
+
+                      final taskHome = Get.find<TaskHomeController>();
+                      final taskC = Get.find<TaskController>();
+
+                      taskHome.selectedChat.value = controller.user;
+                      taskC.user = controller.user;
+                      Future.microtask(() {
+                        taskC.openConversation(controller.user);
+                      });
+
+                      taskHome.selectedChat.refresh();
+                    },
+                    title: "Go to Task"),
+        controller.isSearching ? SizedBox() : hGap(10),
+        IconButton(
+                onPressed: () {
+                  controller.isSearching = !controller.isSearching;
+                  controller.update();
+                  if (!controller.isSearching) {
+                    controller.searchQuery = '';
+                    controller.onSearch('');
+                    controller.seacrhCon.clear();
+                  }
+                  controller.update();
+                },
+                icon: controller.isSearching
+                    ? const Icon(CupertinoIcons.clear_circled_solid)
+                    : Image.asset(searchPng, height: 25, width: 25))
+            .paddingOnly(top: 0, right: 0),
+        controller.isSearching ? SizedBox() : hGap(10),
+        controller.isSearching
+            ? SizedBox()
+            : (controller.user?.userCompany?.isGroup == 1 ||
+                    controller.user?.userCompany?.isBroadcast == 1)
+                ? PopupMenuButton<String>(
+                    color: Colors.white,
+                    iconColor: Colors.black87,
+                    onSelected: (value) {
+                      if (value == 'AddMember') {
+                        if (kIsWeb) {
+                          Get.toNamed(
+                            "${AppRoutes.add_group_member}?groupChatId=${controller.user?.userId.toString()}",
+                          );
+                        } else {
+                          Get.toNamed(
+                            AppRoutes.add_group_member,
+                            arguments: {'groupChat': controller.user},
+                          );
+                        }
+                      }
+                      if (value == 'Exit') {
+                        toast("Under development");
+                      }
+                      if (value == 'Edit') {
+                        if (kIsWeb) {
+                          Get.toNamed(
+                            "${AppRoutes.member_sr}?userId=${controller.user?.userId.toString()}",
+                          );
+                        } else {
+                          Get.toNamed(AppRoutes.member_sr,
+                              arguments: {'user': controller.user});
+                        }
+                      }
+                    },
+                    itemBuilder: (context) => [
+                      PopupMenuItem(
+                        value: 'AddMember',
+                        child: Row(
+                          children: [
+                            Icon(
+                              Icons.person_add_alt,
+                              color: appColorGreen,
+                              size: 18,
+                            ),
+                            hGap(5),
+                            Text('Add Member',
+                                style: BalooStyles.baloonormalTextStyle()),
+                          ],
+                        ),
+                      ),
+                      /*PopupMenuItem(
               value: 'Exit',
               child: Row(
                 children: [
@@ -1187,27 +1234,27 @@ class ChatScreen extends GetView<ChatScreenController> {
                 ],
               ),
             ),*/
-                  PopupMenuItem(
-                    value: 'Edit',
-                    child: Row(
-                      children: [
-                        Icon(
-                          Icons.edit_outlined,
-                          color: appColorGreen,
-                          size: 18,
+                      PopupMenuItem(
+                        value: 'Edit',
+                        child: Row(
+                          children: [
+                            Icon(
+                              Icons.edit_outlined,
+                              color: appColorGreen,
+                              size: 18,
+                            ),
+                            hGap(5),
+                            Text(
+                              'Edit',
+                              style: BalooStyles.baloonormalTextStyle(),
+                            ),
+                          ],
                         ),
-                        hGap(5),
-                        Text(
-                          'Edit',
-                          style: BalooStyles.baloonormalTextStyle(),
-                        ),
-                      ],
-                    ),
-                  ),
-                ],
-              )
-            : const SizedBox(),
-        controller.isSearching?SizedBox():  hGap(8)
+                      ),
+                    ],
+                  )
+                : const SizedBox(),
+        controller.isSearching ? SizedBox() : hGap(8)
       ],
     );
   }
@@ -1248,10 +1295,11 @@ class ChatScreen extends GetView<ChatScreenController> {
 
                             if (event is KeyDownEvent &&
                                 event.logicalKey == LogicalKeyboardKey.enter) {
-
-                              final bool shiftPressed =
-                                  HardwareKeyboard.instance.logicalKeysPressed.contains(LogicalKeyboardKey.shiftLeft) ||
-                                      HardwareKeyboard.instance.logicalKeysPressed.contains(LogicalKeyboardKey.shiftRight);
+                              final bool shiftPressed = HardwareKeyboard
+                                      .instance.logicalKeysPressed
+                                      .contains(LogicalKeyboardKey.shiftLeft) ||
+                                  HardwareKeyboard.instance.logicalKeysPressed
+                                      .contains(LogicalKeyboardKey.shiftRight);
 
                               if (shiftPressed) {
                                 // SHIFT + ENTER → new line
@@ -1288,8 +1336,9 @@ class ChatScreen extends GetView<ChatScreenController> {
                                       maxLines: null,
                                       minLines: 1,
                                       autofocus: true,
-                                      onTap: (){
-                                        controller.messageInputFocus.requestFocus();
+                                      onTap: () {
+                                        controller.messageInputFocus
+                                            .requestFocus();
                                       },
                                       decoration: InputDecoration(
                                         isDense: true,
@@ -1744,7 +1793,16 @@ class ChatScreen extends GetView<ChatScreenController> {
       compressionQuality: 80,
       allowCompression: true,
 
-      allowedExtensions: const ['jpg', 'jpeg', 'png', 'webp','JPG',"JPEG","PNG","WEBP"],
+      allowedExtensions: const [
+        'jpg',
+        'jpeg',
+        'png',
+        'webp',
+        'JPG',
+        "JPEG",
+        "PNG",
+        "WEBP"
+      ],
       withData: true, // we need bytes for XFile.fromData
       withReadStream: false,
     );
@@ -1819,7 +1877,7 @@ class ChatScreen extends GetView<ChatScreenController> {
 
   // bottom sheet for modifying message details
   void _showBottomSheet(bool isMe, {required ChatHisList data}) async {
-    DateTime msg  = DateTime.parse(data.sentOn??'');
+    DateTime msg = DateTime.parse(data.sentOn ?? '');
     DateTime nowtime = DateTime.now();
 
     int diffMinutes = nowtime.difference(msg).inMinutes;
@@ -1855,8 +1913,7 @@ class ChatScreen extends GetView<ChatScreenController> {
                             .then((value) {
                           //for hiding bottom sheet
                           Get.back();
-
-                          // Dialogs.showSnackbar(context, 'Text Copied!');
+                          Dialogs.showSnackbar(Get.context!, 'Text Copied!');
                         });
                       })
                   : (data.media ?? []).isNotEmpty
@@ -1880,14 +1937,14 @@ class ChatScreen extends GetView<ChatScreenController> {
                           : const SizedBox()
                       : const SizedBox(),
 
-             ( !(data.media ?? []).isNotEmpty || data.media?.length==1)
+              (!(data.media ?? []).isNotEmpty || data.media?.length == 1)
                   ? _OptionItem(
                       icon: Icon(Icons.reply, color: appColorGreen, size: 18),
                       name: 'Reply',
                       onTap: () async {
-                        print(data.media?.first.orgFileName);
-                        try {
-                          Get.back();
+                        final media = data.media;
+
+                        if (media == null || media.isEmpty) {
                           controller.refIdis = data.chatId;
                           controller.userIDSender = data.fromUser?.userId;
                           controller.userNameReceiver =
@@ -1895,27 +1952,37 @@ class ChatScreen extends GetView<ChatScreenController> {
                           controller.userNameSender =
                               data.fromUser?.userCompany?.displayName ?? '';
                           controller.userIDReceiver = data.toUser?.userId;
-                          if((data.media??[]).isEmpty){
-                            controller.replyToMessage = data;
-                          }
-
-                         if(data.media!=null){
-                           controller.replyToImage = data.media?.first.orgFileName;
-                           controller.replyToMessage= ChatHisList(
-                             chatId:data.chatId,
-                             fromUser:data.fromUser,
-                             toUser:data.toUser,
-                             message:data.media?.first.mediaType?.mediaCode=="DOC"?data.media?.first.orgFileName:"${ApiEnd.baseUrlMedia}${data.media?.first.fileName}",
-                             // message:getFileNameFromUrl(c.urls[c.index]),
-                             replyToId:data.chatId,
-                             replyToText:data.media?.first.orgFileName,
-                             // replyToText:getFileNameFromUrl(c.urls[c.index]),
-                           );
-                         }
+                          controller.replyToMessage = data;
                           controller.update();
                           controller.messageInputFocus.requestFocus();
-                        } catch (e) {
-                          toast('Something went wrong!');
+                          Get.back();
+                        } else {
+                          final firstMedia = media.first;
+                          controller.refIdis = data.chatId;
+                          controller.userIDSender = data.fromUser?.userId;
+                          controller.userNameReceiver = data.toUser?.userCompany?.displayName ?? '';
+                          controller.userNameSender = data.fromUser?.userCompany?.displayName ?? '';
+                          controller.userIDReceiver = data.toUser?.userId;
+
+                          controller.replyToImage = firstMedia.orgFileName;
+
+                          final isDoc = firstMedia.mediaType?.mediaCode == "DOC";
+                          final msg = isDoc
+                              ? (firstMedia.orgFileName ?? '')
+                              : "${ApiEnd.baseUrlMedia}${firstMedia.fileName ?? ''}";
+
+                          controller.replyToMessage = ChatHisList(
+                            chatId: data.chatId,
+                            fromUser: data.fromUser,
+                            toUser: data.toUser,
+                            message: msg,
+                            replyToId: data.chatId,
+                            replyToText: firstMedia.orgFileName,
+                          );
+
+                          controller.update();
+                          controller.messageInputFocus.requestFocus();
+                          Get.back();
                         }
                       })
                   : const SizedBox(),
@@ -1947,13 +2014,13 @@ class ChatScreen extends GetView<ChatScreenController> {
 
               //edit option
 
-              if (data.message != "" && isMe && diffMinutes <= 15 )
+              if (data.message != "" && isMe && diffMinutes <= 15)
                 _OptionItem(
-                    icon:  Icon(Icons.edit, color: appColorGreen,  size: 18),
+                    icon: Icon(Icons.edit, color: appColorGreen, size: 18),
                     name: 'Edit Message',
                     onTap: () {
                       Get.back();
-                      _showMessageUpdateDialog(data,Get.context!);
+                      _showMessageUpdateDialog(data, Get.context!);
                     }),
 
               /*if ((APIs.me?.userCompany?.company?.createdBy ==data.fromUser?.userCompany?.company?.createdBy))
@@ -1966,7 +2033,8 @@ class ChatScreen extends GetView<ChatScreenController> {
                     }),*/
 
               // delete option
-              if (controller.me?.userId == controller.myCompany?.createdBy && isMe)
+              if (controller.me?.userId == controller.myCompany?.createdBy &&
+                  isMe)
                 _OptionItem(
                     icon: const Icon(Icons.delete_forever,
                         color: Colors.red, size: 18),
@@ -1984,18 +2052,17 @@ class ChatScreen extends GetView<ChatScreenController> {
                               : null);
                     }),
 
-             (data.message!=null&&(data.media?.isEmpty??true))?
-
-             _OptionItem(
-                 icon:  Icon(Icons.share,
-                     color: appColorGreen, size: 18),
-                 name: 'Share on WhatsApp',
-                 onTap: () async {
-                   if(kIsWeb){
-                     final msg = data.message ?? '';
-                     ShareHelper.shareOnWhatsApp(msg);
-                   }
-                 }):SizedBox()
+              (data.message != null && (data.media?.isEmpty ?? true))
+                  ? _OptionItem(
+                      icon: Icon(Icons.share, color: appColorGreen, size: 18),
+                      name: 'Share on WhatsApp',
+                      onTap: () async {
+                        if (kIsWeb) {
+                          final msg = data.message ?? '';
+                          ShareHelper.shareOnWhatsApp(msg);
+                        }
+                      })
+                  : SizedBox()
               //separator or divider
               /* if (!widget.isForward)
                 Divider(
@@ -2179,13 +2246,12 @@ class ChatScreen extends GetView<ChatScreenController> {
   }
 
   //dialog for updating message content
-  void _showMessageUpdateDialog(ChatHisList message,context) {
-    controller.updateMsgController.text = message.message??'';
+  void _showMessageUpdateDialog(ChatHisList message, context) {
+    controller.updateMsgController.text = message.message ?? '';
     showDialog(
         context: context,
-
         builder: (_) => AlertDialog(
-          backgroundColor: Colors.white,
+              backgroundColor: Colors.white,
               contentPadding: const EdgeInsets.only(
                   left: 24, right: 24, top: 20, bottom: 10),
 
@@ -2193,7 +2259,7 @@ class ChatScreen extends GetView<ChatScreenController> {
                   borderRadius: BorderRadius.circular(20)),
 
               //title
-              title:  Row(
+              title: Row(
                 children: [
                   Icon(
                     Icons.message,
@@ -2201,13 +2267,16 @@ class ChatScreen extends GetView<ChatScreenController> {
                     size: 20,
                   ),
                   hGap(5),
-                  Text('Update Message',style: BalooStyles.baloosemiBoldTextStyle(),)
+                  Text(
+                    'Update Message',
+                    style: BalooStyles.baloosemiBoldTextStyle(),
+                  )
                 ],
               ),
 
               //content
               content: TextFormField(
-                controller: controller.updateMsgController ,
+                controller: controller.updateMsgController,
                 maxLines: null,
                 onChanged: (value) => message.message = value,
                 decoration: InputDecoration(
@@ -2230,19 +2299,20 @@ class ChatScreen extends GetView<ChatScreenController> {
 
                 //update button
 
-                CustomTextButton(onTap: (){
-                  try {
-                    Get.find<SocketController>().updateChatMessage(
-                        chatId: message.chatId,
-                        toUcId: message.toUser?.userCompany?.userCompanyId,
-                        message: controller.updateMsgController.text.trim()
-                    );
-                    Get.back();
-                  }catch(e){
-                    toast(e.toString());
-                  }
-                }, title: 'Update')
-
+                CustomTextButton(
+                    onTap: () {
+                      try {
+                        Get.find<SocketController>().updateChatMessage(
+                            chatId: message.chatId,
+                            toUcId: message.toUser?.userCompany?.userCompanyId,
+                            message:
+                                controller.updateMsgController.text.trim());
+                        Get.back();
+                      } catch (e) {
+                        toast(e.toString());
+                      }
+                    },
+                    title: 'Update')
               ],
             ));
   }
