@@ -208,16 +208,6 @@ class TaskController extends GetxController {
   }) {
     Get.find<SocketController>().joinTaskEmitter(taskId: groupElement?.taskMsg.taskId??0);
 
-    // // Set the message being replied to
-    refIdis = groupElement?.taskMsg.taskId;
-    userIDSender = groupElement?.taskMsg.fromUser?.userId;
-    userNameReceiver =
-        groupElement?.taskMsg.toUser?.displayName ?? '';
-    userNameSender =
-        groupElement?.taskMsg.fromUser?.displayName ?? '';
-    userIDReceiver = groupElement?.taskMsg.toUser?.userId;
-    // controller.replyToMessage = element.taskMsg;
-
     update();
     if (kIsWeb) {
 

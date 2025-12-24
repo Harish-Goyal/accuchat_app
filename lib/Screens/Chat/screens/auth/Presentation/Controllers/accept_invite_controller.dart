@@ -94,7 +94,6 @@ class AcceptInviteController extends GetxController {
       errorDialog(error.toString());
     }).whenComplete(() {});
   }
-// 6654457890
   List<PendingInvitesList> pendingInvitesList = [];
   hitAPIToGetPendingInvites() async {
     isLoading = true;

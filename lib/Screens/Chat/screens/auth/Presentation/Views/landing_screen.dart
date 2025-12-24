@@ -107,17 +107,9 @@ class LandingPage extends GetView<LandingScreenController> {
                                                 () async => await CompanyService().init(),
                                             // permanent: true,
                                           );
-
                                           final svc = CompanyService.to;
                                           await svc.select(company);
                                         }
-
-
-                                        // final svc = CompanyService.to;
-                                        // await svc.select(company);
-                                        // final svc = Get.put<CompanyService>(CompanyService());
-                                        //
-                                        // await svc.init().then((v) async =>await svc.select(company));
 
                                         StorageService.setLoggedIn(true);
                                         customLoader.hide();

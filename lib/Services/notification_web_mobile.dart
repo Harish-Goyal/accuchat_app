@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'package:AccuChat/Screens/Chat/screens/auth/models/get_uesr_Res_model.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/material.dart';
@@ -9,6 +10,10 @@ import '../../../routes/app_routes.dart';
 import '../Screens/Chat/api/apis.dart';
 import '../Screens/Chat/helper/local_notification_channel.dart';
 import '../Screens/Chat/models/get_company_res_model.dart';
+import '../Screens/Chat/screens/chat_tasks/Presentation/Controllers/chat_home_controller.dart';
+import '../Screens/Chat/screens/chat_tasks/Presentation/Controllers/chat_screen_controller.dart';
+import '../Screens/Chat/screens/chat_tasks/Presentation/Controllers/task_controller.dart';
+import '../Screens/Chat/screens/chat_tasks/Presentation/Controllers/task_home_controller.dart';
 import '../Screens/Home/Presentation/Controller/home_controller.dart';
 // ====== ONLY for non-web (server-auth on device) ======
 import 'package:googleapis_auth/auth_io.dart';
@@ -63,7 +68,7 @@ class NotificationServicess {
       final data = message.data;
 
       final meId = APIs.me.userId?.toString().trim();
-      final senderId = (data['sender_id'] ?? '').toString().trim();
+      final senderId = (data['user_id'] ?? '').toString().trim();
       final receiverId = (data['receiver_id'] ?? '').toString().trim();
 
       print('🔔 FCM received: sender=$senderId, receiver=$receiverId, me=$meId');
@@ -75,7 +80,7 @@ class NotificationServicess {
       if (senderId.isEmpty) return;
 
       // 3️⃣ Skip if message is from self OR to self
-      if (senderId == meId || receiverId == meId && senderId == meId) {
+      if (senderId == meId && senderId == meId) {
         print('🔕 Skipping self-message notification');
         return;
       }
@@ -89,7 +94,13 @@ class NotificationServicess {
 
     // When user taps a notification
     FirebaseMessaging.onMessageOpenedApp.listen((RemoteMessage message) async {
-      _handleTapByType(message.data['messageType'], message.data['company_id']);
+      final type = message.data['messageType'];
+      UserDataAPI remoteUser = UserDataAPI();
+      if(type=='CHAT_SEND'||type=='TASK_SEND'||type=='SEND_TASK_COMMENT'){
+        remoteUser = UserDataAPI.fromJson(message.data);
+      }
+
+      _handleTapByType(type, remoteUser.userCompany?.companyId, user: remoteUser);
     });
   }
 
@@ -106,12 +117,19 @@ class NotificationServicess {
     });
     // User clicked a notification (navigates via data.type)
     FirebaseMessaging.onMessageOpenedApp.listen((RemoteMessage message) async {
-      _handleTapByType(message.data['messageType'], message.data['company']['companyId']);
+      final type = message.data['messageType'];
+      UserDataAPI remoteUser = UserDataAPI();
+      if(type=='CHAT_SEND'||type=='TASK_SEND'||type=='SEND_TASK_COMMENT'){
+        remoteUser = UserDataAPI.fromJson(message.data);
+      }
+
+      _handleTapByType(type,  remoteUser.userCompany?.companyId, user: remoteUser);
     });
   }
 
   // Centralized navigation handler for both web/mobile
-  static Future<void> _handleTapByType(String? type, dynamic companyId) async {
+  static Future<void> _handleTapByType(String? type, dynamic companyId,
+      {required UserDataAPI user}) async {
     if (type == 'MEMBER_INVITE_ONLINE') {
       Get.toNamed(AppRoutes.invitations_r);
       return;
@@ -119,27 +137,91 @@ class NotificationServicess {
     else if (type == 'TASK_SEND') {
       Get.find<DashboardController>().updateIndex(1);
       if (companyId != APIs.me.userCompany?.userCompanyId) {
-        await APIs.getSelfInfo();
+        if(kIsWeb){
+          if (!Get.isRegistered<TaskHomeController>()) {
+            Get.put(TaskHomeController());
+          }
+
+          if (!Get.isRegistered<TaskController>()) {
+            Get.put(TaskController(user: user));
+          }
+          final homec = Get.find<TaskHomeController>();
+          final taskC = Get.find<TaskController>();
+          homec.selectedChat.value = user;
+          taskC.user =homec.selectedChat.value ;
+          taskC.replyToMessage=null;
+          taskC.showPostShimmer =true;
+          taskC.openConversation(homec.selectedChat.value);
+          homec.selectedChat.refresh();
+          taskC.update();
+        }else{
+          Get.toNamed(AppRoutes.tasks_li_r,arguments: {'user':user});
+        }
+
       }
       return;
     }
    else if (type == 'CHAT_SEND') {
-      Get.find<DashboardController>().updateIndex(0);
-      if (companyId != APIs.me.userCompany?.userCompanyId) {
-        await APIs.getSelfInfo();
+      if (kIsWeb) {
+        if (!Get.isRegistered<ChatHomeController>()) {
+          Get.put(ChatHomeController());
+        }
+
+        if (!Get.isRegistered<ChatScreenController>()) {
+          Get.put(ChatScreenController(user: user));
+        }
+        final homec = Get.find<ChatHomeController>();
+        final chatc = Get.find<ChatScreenController>();
+        // homec.page = 1;
+        // homec.hitAPIToGetRecentChats();
+        chatc.replyToMessage=null;
+        homec.selectedChat.value = user;
+        chatc.user =homec.selectedChat.value;
+        chatc.showPostShimmer =true;
+        chatc.openConversation(user);
+        chatc.markAllVisibleAsReadOnOpen(APIs.me?.userCompany?.userCompanyId,chatc.user?.userCompany?.userCompanyId,chatc.user?.userCompany?.isGroup==1?1:0);
+        // homec.selectedChat.refresh();
+        chatc.update();
+      } else {
+
+        Get.toNamed(
+          AppRoutes.chats_li_r,
+          arguments: {'user': user},
+        );
       }
       return;
     }
    else if (type == 'SEND_TASK_COMMENT') {
-      Get.find<DashboardController>().updateIndex(0);
+      Get.find<DashboardController>().updateIndex(1);
       if (companyId != APIs.me.userCompany?.userCompanyId) {
-        await APIs.getSelfInfo();
+        if(kIsWeb){
+          if (!Get.isRegistered<TaskHomeController>()) {
+            Get.put(TaskHomeController());
+          }
+
+          if (!Get.isRegistered<TaskController>()) {
+            Get.put(TaskController(user: user));
+          }
+          final homec = Get.find<TaskHomeController>();
+          final taskC = Get.find<TaskController>();
+          homec.selectedChat.value = user;
+          taskC.user =homec.selectedChat.value ;
+          taskC.replyToMessage=null;
+          taskC.showPostShimmer =true;
+          taskC.openConversation(homec.selectedChat.value);
+          homec.selectedChat.refresh();
+          taskC.update();
+        }else{
+          Get.toNamed(AppRoutes.tasks_li_r,arguments: {'user':user});
+        }
+
       }
       return;
     }  else{
       Get.toNamed(AppRoutes.home);
     }
   }
+
 }
 /*
 

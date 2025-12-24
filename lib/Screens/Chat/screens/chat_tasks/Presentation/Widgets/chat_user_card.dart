@@ -229,7 +229,7 @@ class _ChatUserCardState extends State<ChatUserCard>
                        maxLines: 1,
                        overflow: TextOverflow.ellipsis,
                                            ),
-                                         )*/:SizedBox() ,
+                                         )*/:SizedBox(),
                       widget.user?.pendingCount!=null&&widget.user?.pendingCount!=0 ? Spacer():SizedBox(),
                       widget.user?.open_count!=null&&widget.user?.open_count!=0 ? Spacer():SizedBox(),
                       Text(
