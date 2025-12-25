@@ -25,6 +25,7 @@ import '../../../../../../utils/product_shimmer_widget.dart';
 import '../../../../../Home/Presentation/Controller/socket_controller.dart';
 import '../../../../models/chat_history_response_model.dart';
 import '../../../../api/apis.dart';
+import '../Controllers/task_controller.dart';
 import '../Widgets/staggered_view.dart';
 
 class TaskThreadScreen extends GetView<TaskThreadController> {
@@ -34,31 +35,38 @@ class TaskThreadScreen extends GetView<TaskThreadController> {
 
   @override
   Widget build(BuildContext context) {
-
-
     return GetBuilder<TaskThreadController>(
       builder: (controller) {
         return Scaffold(
           appBar: AppBar(
             automaticallyImplyLeading: false,
             title: Row(
-
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-
-                Text(
-                  "Task Reply",
-                  style: BalooStyles.baloomediumTextStyle(color: appColorGreen),
-                ),
-                hGap(15),
                 Expanded(
                   child: Text(
-                    controller.currentUser?.displayName != null ? controller.currentUser?.displayName??'' :controller.currentUser?.userName !=null? controller.currentUser?.userName ?? ''
-                        :controller.currentUser?.phone ?? '' ,
-                    style: BalooStyles.balooboldTitleTextStyle(),
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
+                    "Task Reply",
+                    style: BalooStyles.baloomediumTextStyle(color: appColorGreen),
                   ),
                 ),
+                hGap(15),
+
+                Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Text(
+                      controller.currentUser?.displayName != null ? controller.currentUser?.displayName??'' :controller.currentUser?.userName !=null? controller.currentUser?.userName ?? ''
+                          :controller.currentUser?.phone ?? '' ,
+                      style: BalooStyles.balooboldTitleTextStyle(),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                    IconButton(onPressed: (){
+                      Get.find<TaskController>().hitAPIToGetTaskHistory();
+                      Get.back();
+                    }, icon: Icon(Icons.clear,color: Colors.black87,)),
+                  ],
+                )
 
               ],
             ),
@@ -223,7 +231,7 @@ class TaskThreadScreen extends GetView<TaskThreadController> {
         ? GroupedListView<GroupCommentsElement, DateTime>(
         shrinkWrap: false,
         padding: const EdgeInsets.only(bottom: 30),
-        controller: controller.scrollController,
+        controller: controller.scrollController2,
         elements: controller.commentsCategory,
         order: GroupedListOrder.DESC,
         reverse: true,
@@ -449,23 +457,24 @@ class TaskThreadScreen extends GetView<TaskThreadController> {
           children: [
             Flexible(
               child: Text(
-                  sentByMe
-                      ? (data.fromUser?.userCompany?.displayName != null
-                      ? data.fromUser?.userCompany?.displayName ?? ''
-                      : data.fromUser?.userName != null||data.fromUser?.userName != ''
-                      ? data.fromUser?.userName ?? ''
-                      : data.fromUser?.phone ?? '')
-                      : (data.toUser?.userCompany?.displayName != null
-                      ? data.toUser?.userCompany?.displayName ?? ''
-                      : data.toUser?.userName != null||data.fromUser?.userName != ''
-                      ? data.toUser?.userName ?? ''
-                      : data.toUser?.phone ?? ''),
-                  textAlign: TextAlign.start,
-                  style: BalooStyles.baloothinTextStyle(
-                    color: Colors.black54,
-                    size: 13,
-                  ),
-                  overflow: TextOverflow.visible)
+                  data.fromUser?.userId == APIs.me.userId
+                      ? "You"
+                      : data.fromUser?.userCompany?.displayName !=
+                      null
+                      ? (data.fromUser?.userCompany
+                      ?.displayName ??
+                      '')
+                      : data.fromUser?.userName != null
+                      ? (data.fromUser?.userName ?? '')
+                      : (data.fromUser?.phone ?? ''),
+                  style: BalooStyles.baloonormalTextStyle(
+                      color: data.fromUser?.userId ==
+                          APIs.me?.userId
+                          ? Colors.green
+                          : Colors.purple),
+                  textAlign: TextAlign.end,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis)
                   .marginOnly(
                   left: sentByMe ? 0 : 0,
                   right: sentByMe ? 10 : 0,

@@ -315,7 +315,13 @@ class PostApiServiceImpl extends GetxService implements PostApiService {
       {taskId, page,companyId}) async {
     try {
       final response = await dioClient!
-          .get('api/tasks/$taskId/comments?company_id=$companyId', skipAuth: false);
+          .get('api/tasks/$taskId/comments',
+          queryParameters: {
+            'company_id':companyId,
+            'page':page,
+            'limit':15,
+          },
+          skipAuth: false);
       return TaskCommentsResModel.fromJson(response);
     } catch (e) {
       return Future.error(NetworkExceptions.getDioException(e));

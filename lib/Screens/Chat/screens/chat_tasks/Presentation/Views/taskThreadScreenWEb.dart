@@ -243,58 +243,69 @@ class TaskThreadScreenWeb extends GetView<TaskThreadController> {
 
   groupListView() {
     return controller.commentsCategory.isNotEmpty
-        ? GroupedListView<GroupCommentsElement, DateTime>(
-            shrinkWrap: false,
-            padding: const EdgeInsets.only(bottom: 30),
-            controller: controller.scrollController,
-            elements: controller.commentsCategory,
-            order: GroupedListOrder.DESC,
-            reverse: true,
-            floatingHeader: true,
-            useStickyGroupSeparators: true,
-            groupBy: (GroupCommentsElement element) => DateTime(
-                  element.date.year,
-                  element.date.month,
-                  element.date.day,
-                ),
-            groupHeaderBuilder: _createGroupHeader,
-            indexedItemBuilder: (BuildContext context,
-                GroupCommentsElement element, int index) {
-              String formatatedTime = '';
-              if (element.comments.sentOn != null) {
-                var timeString = element.comments.sentOn ?? '';
+        ?  NotificationListener<ScrollNotification>(
+        onNotification: (ScrollNotification n) {
+          // Only care about scroll updates
+          if (n.metrics.pixels >= n.metrics.maxScrollExtent - 80) {
+            if (!controller.isPageLoading && controller.hasMore) {
+              controller.hitAPIToGetCommentsHistory();
+            }
+          }
+          return false;
+        },
+          child: GroupedListView<GroupCommentsElement, DateTime>(
+              shrinkWrap: false,
+              padding: const EdgeInsets.only(bottom: 30),
+              controller: controller.scrollController,
+              elements: controller.commentsCategory,
+              order: GroupedListOrder.DESC,
+              reverse: true,
+              floatingHeader: true,
+              useStickyGroupSeparators: true,
+              groupBy: (GroupCommentsElement element) => DateTime(
+                    element.date.year,
+                    element.date.month,
+                    element.date.day,
+                  ),
+              groupHeaderBuilder: _createGroupHeader,
+              indexedItemBuilder: (BuildContext context,
+                  GroupCommentsElement element, int index) {
+                String formatatedTime = '';
+                if (element.comments.sentOn != null) {
+                  var timeString = element.comments.sentOn ?? '';
 
-                formatatedTime = convertUtcToIndianTime(timeString);
-              }
+                  formatatedTime = convertUtcToIndianTime(timeString);
+                }
 
-              var userid = APIs.me.userId;
-              return StaggeredAnimationListItem(
-                index: index,
-                child: SwipeTo(
-                  iconColor: appColorGreen,
-                  onRightSwipe: (detail) {
-                    // Set the message being replied to
-                    controller.refIdis = element.comments.taskCommentId;
-                    controller.userIDSender = element.comments.fromUser?.userId;
-                    controller.userNameReceiver =
-                        element.comments.toUser?.displayName ?? '';
-                    controller.userNameSender =
-                        element.comments.fromUser?.displayName ?? '';
-                    controller.userIDReceiver = element.comments.toUser?.userId;
-                    controller.replyToMessage = element.comments;
+                var userid = APIs.me.userId;
+                return StaggeredAnimationListItem(
+                  index: index,
+                  child: SwipeTo(
+                    iconColor: appColorGreen,
+                    onRightSwipe: (detail) {
+                      // Set the message being replied to
+                      controller.refIdis = element.comments.taskCommentId;
+                      controller.userIDSender = element.comments.fromUser?.userId;
+                      controller.userNameReceiver =
+                          element.comments.toUser?.displayName ?? '';
+                      controller.userNameSender =
+                          element.comments.fromUser?.displayName ?? '';
+                      controller.userIDReceiver = element.comments.toUser?.userId;
+                      controller.replyToMessage = element.comments;
 
-                    controller.update();
-                  },
-                  child: _chatMessageTile(
-                      data: element.comments,
-                      sentByMe: (userid.toString() ==
-                              element.comments.fromUser?.userId?.toString()
-                          ? true
-                          : false),
-                      formatedTime: formatatedTime),
-                ),
-              );
-            })
+                      controller.update();
+                    },
+                    child: _chatMessageTile(
+                        data: element.comments,
+                        sentByMe: (userid.toString() ==
+                                element.comments.fromUser?.userId?.toString()
+                            ? true
+                            : false),
+                        formatedTime: formatatedTime),
+                  ),
+                );
+              }),
+        )
         : const Center(
             child: Text('Say Hii! 👋', style: TextStyle(fontSize: 20)));
   }
@@ -476,23 +487,24 @@ class TaskThreadScreenWeb extends GetView<TaskThreadController> {
           children: [
             Flexible(
               child: Text(
-                      sentByMe
-                          ? (data.fromUser?.userCompany?.displayName != null
-                              ? data.fromUser?.userCompany?.displayName ?? ''
-                              : data.fromUser?.userName != null
-                                  ? data.fromUser?.userName ?? ''
-                                  : data.fromUser?.phone ?? '')
-                          : (data.toUser?.userCompany?.displayName != null
-                              ? data.toUser?.userCompany?.displayName ?? ''
-                              : data.toUser?.userName != null
-                                  ? data.toUser?.userName ?? ''
-                                  : data.toUser?.phone ?? ''),
-                      textAlign: TextAlign.start,
-                      style: BalooStyles.baloothinTextStyle(
-                        color: Colors.black54,
-                        size: 13,
-                      ),
-                      overflow: TextOverflow.visible)
+                  data.fromUser?.userId == APIs.me.userId
+                      ? "You"
+                      : data.fromUser?.userCompany?.displayName !=
+                      null
+                      ? (data.fromUser?.userCompany
+                      ?.displayName ??
+                      '')
+                      : data.fromUser?.userName != null
+                      ? (data.fromUser?.userName ?? '')
+                      : (data.fromUser?.phone ?? ''),
+                  style: BalooStyles.baloonormalTextStyle(
+                      color: data.fromUser?.userId ==
+                          APIs.me?.userId
+                          ? Colors.green
+                          : Colors.purple),
+                  textAlign: TextAlign.end,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis)
                   .marginOnly(
                       left: sentByMe ? 0 : 0,
                       right: sentByMe ? 10 : 0,

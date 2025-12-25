@@ -14,10 +14,15 @@ import '../Screens/Chat/screens/chat_tasks/Presentation/Controllers/chat_home_co
 import '../Screens/Chat/screens/chat_tasks/Presentation/Controllers/chat_screen_controller.dart';
 import '../Screens/Chat/screens/chat_tasks/Presentation/Controllers/task_controller.dart';
 import '../Screens/Chat/screens/chat_tasks/Presentation/Controllers/task_home_controller.dart';
+import '../Screens/Home/Presentation/Controller/company_service.dart';
 import '../Screens/Home/Presentation/Controller/home_controller.dart';
 // ====== ONLY for non-web (server-auth on device) ======
 import 'package:googleapis_auth/auth_io.dart';
 import 'package:googleapis_auth/googleapis_auth.dart';
+
+import '../main.dart';
+import '../utils/custom_flashbar.dart';
+import 'APIs/post/post_api_service_impl.dart';
 
 
 class NotificationServicess {
@@ -94,10 +99,15 @@ class NotificationServicess {
 
     // When user taps a notification
     FirebaseMessaging.onMessageOpenedApp.listen((RemoteMessage message) async {
-      final type = message.data['messageType'];
+      String? type;
+      type = message.data['messageType'];
+      print(message.data);
+      print(type);
       UserDataAPI remoteUser = UserDataAPI();
+      final normalized = Map<String, dynamic>.from(message.data);
+
       if(type=='CHAT_SEND'||type=='TASK_SEND'||type=='SEND_TASK_COMMENT'){
-        remoteUser = UserDataAPI.fromJson(message.data);
+        remoteUser = UserDataAPI.fromJson(normalized);
       }
 
       _handleTapByType(type, remoteUser.userCompany?.companyId, user: remoteUser);
@@ -117,10 +127,15 @@ class NotificationServicess {
     });
     // User clicked a notification (navigates via data.type)
     FirebaseMessaging.onMessageOpenedApp.listen((RemoteMessage message) async {
-      final type = message.data['messageType'];
+      String? type;
+      type = message.data['messageType'];
+      print(message.data);
+      print(type);
       UserDataAPI remoteUser = UserDataAPI();
+      final normalized = Map<String, dynamic>.from(message.data);
+
       if(type=='CHAT_SEND'||type=='TASK_SEND'||type=='SEND_TASK_COMMENT'){
-        remoteUser = UserDataAPI.fromJson(message.data);
+        remoteUser = UserDataAPI.fromJson(normalized);
       }
 
       _handleTapByType(type,  remoteUser.userCompany?.companyId, user: remoteUser);
@@ -133,92 +148,139 @@ class NotificationServicess {
     if (type == 'MEMBER_INVITE_ONLINE') {
       Get.toNamed(AppRoutes.invitations_r);
       return;
-    }
-    else if (type == 'TASK_SEND') {
-      Get.find<DashboardController>().updateIndex(1);
-      if (companyId != APIs.me.userCompany?.userCompanyId) {
-        if(kIsWeb){
-          if (!Get.isRegistered<TaskHomeController>()) {
-            Get.put(TaskHomeController());
-          }
-
-          if (!Get.isRegistered<TaskController>()) {
-            Get.put(TaskController(user: user));
-          }
-          final homec = Get.find<TaskHomeController>();
-          final taskC = Get.find<TaskController>();
-          homec.selectedChat.value = user;
-          taskC.user =homec.selectedChat.value ;
-          taskC.replyToMessage=null;
-          taskC.showPostShimmer =true;
-          taskC.openConversation(homec.selectedChat.value);
-          homec.selectedChat.refresh();
-          taskC.update();
-        }else{
-          Get.toNamed(AppRoutes.tasks_li_r,arguments: {'user':user});
-        }
-
+    } else if (type == 'TASK_SEND') {
+      if (companyId == APIs.me.userCompany?.companyId) {
+        _goToTask(user);
+        return;
+      } else {
+        getCompanyByIdApi(companyId:companyId,user: user,type: "TASK_SEND");
+        customLoader.hide();
+        return;
       }
-      return;
-    }
-   else if (type == 'CHAT_SEND') {
-      if (kIsWeb) {
-        if (!Get.isRegistered<ChatHomeController>()) {
-          Get.put(ChatHomeController());
-        }
-
-        if (!Get.isRegistered<ChatScreenController>()) {
-          Get.put(ChatScreenController(user: user));
-        }
-        final homec = Get.find<ChatHomeController>();
-        final chatc = Get.find<ChatScreenController>();
-        // homec.page = 1;
-        // homec.hitAPIToGetRecentChats();
-        chatc.replyToMessage=null;
-        homec.selectedChat.value = user;
-        chatc.user =homec.selectedChat.value;
-        chatc.showPostShimmer =true;
-        chatc.openConversation(user);
-        chatc.markAllVisibleAsReadOnOpen(APIs.me?.userCompany?.userCompanyId,chatc.user?.userCompany?.userCompanyId,chatc.user?.userCompany?.isGroup==1?1:0);
-        // homec.selectedChat.refresh();
-        chatc.update();
+    } else if (type == 'CHAT_SEND') {
+      if (companyId == APIs.me.userCompany?.companyId) {
+        _goToChat(user);
+        return;
       } else {
 
-        Get.toNamed(
-          AppRoutes.chats_li_r,
-          arguments: {'user': user},
-        );
+        getCompanyByIdApi(companyId:companyId,user: user,type: "CHAT_SEND");
+        customLoader.hide();
+        return;
       }
-      return;
-    }
-   else if (type == 'SEND_TASK_COMMENT') {
-      Get.find<DashboardController>().updateIndex(1);
+    } else if (type == 'SEND_TASK_COMMENT') {
       if (companyId != APIs.me.userCompany?.userCompanyId) {
-        if(kIsWeb){
-          if (!Get.isRegistered<TaskHomeController>()) {
-            Get.put(TaskHomeController());
-          }
-
-          if (!Get.isRegistered<TaskController>()) {
-            Get.put(TaskController(user: user));
-          }
-          final homec = Get.find<TaskHomeController>();
-          final taskC = Get.find<TaskController>();
-          homec.selectedChat.value = user;
-          taskC.user =homec.selectedChat.value ;
-          taskC.replyToMessage=null;
-          taskC.showPostShimmer =true;
-          taskC.openConversation(homec.selectedChat.value);
-          homec.selectedChat.refresh();
-          taskC.update();
-        }else{
-          Get.toNamed(AppRoutes.tasks_li_r,arguments: {'user':user});
-        }
-
+        _goToTask(user);
+        return;
+      } else {
+        getCompanyByIdApi(companyId:companyId,user: user,type: "SEND_TASK_COMMENT");
+        customLoader.hide();
+        return;
       }
-      return;
-    }  else{
+    } else {
       Get.toNamed(AppRoutes.home);
+    }
+  }
+
+  static CompanyData? companyResponse = CompanyData();
+
+  static getCompanyByIdApi({int? companyId, required UserDataAPI user,type}) async {
+    customLoader.show();
+    Get.find<PostApiServiceImpl>()
+        .getCompanyByIdApiCall(companyId)
+        .then((value) async {
+      customLoader.hide();
+      companyResponse = value.data;
+
+      await Future.wait<void>([_selectCompany()]);
+
+      if (type == "TASK_SEND") {
+        _goToTask(user);
+      } else {
+        _goToChat(user);
+      }
+      customLoader.hide();
+    }).onError((error, stackTrace) {
+      customLoader.hide();
+      errorDialog(error.toString());
+    }).whenComplete(() {});
+  }
+
+  static _selectCompany() async {
+    if (Get.isRegistered<CompanyService>()) {
+      final svc = CompanyService.to;
+      await svc.select(companyResponse!);
+    } else {
+      await Get.putAsync<CompanyService>(
+            () async => await CompanyService().init(),
+        permanent: true,
+      );
+      final svc = CompanyService.to;
+      await svc.select(companyResponse!);
+    }
+    await APIs.refreshMe(companyId: companyResponse?.companyId ?? 0);
+  }
+
+  static _goToChat(UserDataAPI user) {
+    if (!Get.isRegistered<DashboardController>()) {
+      Get.put(DashboardController());
+    }
+    Get.find<DashboardController>().updateIndex(0);
+    if (kIsWeb) {
+      if (!Get.isRegistered<ChatHomeController>()) {
+        Get.put(ChatHomeController());
+      }
+
+      if (!Get.isRegistered<ChatScreenController>()) {
+        Get.put(ChatScreenController(user: user));
+      }
+      final homec = Get.find<ChatHomeController>();
+      final chatc = Get.find<ChatScreenController>();
+      // homec.page = 1;
+      // homec.hitAPIToGetRecentChats();
+      chatc.replyToMessage = null;
+      homec.selectedChat.value = user;
+      chatc.user = homec.selectedChat.value;
+      chatc.showPostShimmer = true;
+      chatc.openConversation(user);
+      chatc.markAllVisibleAsReadOnOpen(
+          APIs.me?.userCompany?.userCompanyId,
+          chatc.user?.userCompany?.userCompanyId,
+          chatc.user?.userCompany?.isGroup == 1 ? 1 : 0);
+      // homec.selectedChat.refresh();
+      chatc.update();
+    } else {
+      Get.toNamed(
+        AppRoutes.chats_li_r,
+        arguments: {'user': user},
+      );
+    }
+  }
+
+  static _goToTask(UserDataAPI user) {
+    if (!Get.isRegistered<DashboardController>()) {
+      Get.put(DashboardController());
+    }
+
+    Get.find<DashboardController>().updateIndex(1);
+    if (kIsWeb) {
+      if (!Get.isRegistered<TaskHomeController>()) {
+        Get.put(TaskHomeController());
+      }
+
+      if (!Get.isRegistered<TaskController>()) {
+        Get.put(TaskController(user: user));
+      }
+      final homec = Get.find<TaskHomeController>();
+      final taskC = Get.find<TaskController>();
+      homec.selectedChat.value = user;
+      taskC.user = homec.selectedChat.value;
+      taskC.replyToMessage = null;
+      taskC.showPostShimmer = true;
+      taskC.openConversation(homec.selectedChat.value);
+      homec.selectedChat.refresh();
+      taskC.update();
+    } else {
+      Get.toNamed(AppRoutes.tasks_li_r, arguments: {'user': user});
     }
   }
 

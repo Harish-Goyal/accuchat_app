@@ -53,7 +53,7 @@ Future<void> saveImageToDownloads(String imageUrl) async {
     final granted = await requestStoragePermission();
 
     if (!granted) {
-      toast('❌ Storage permission denied');
+      errorDialog('❌ Storage permission denied');
       return;
     }
 
@@ -121,7 +121,7 @@ Future<void> saveImageToGallery(String imageUrl) async {
   // Step 1: Request storage permission
   final permission = await requestStoragePermission();
   if (!permission) {
-    toast("❌ Storage permission denied");
+    errorDialog("❌ Storage permission denied");
     return;
   }
 

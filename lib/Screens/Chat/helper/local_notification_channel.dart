@@ -94,15 +94,16 @@ class LocalNotificationService {
 
     FirebaseMessaging.onMessageOpenedApp.listen((RemoteMessage message) async {
       final data = message.data;
-      final type = data['messageType'];
+      String? type;
+      type = data['messageType'];
       print('🔔 Notification Data onMessageOpenedApp =${message.data}');
       print('🔔 Notification tapped. Type: $type');
 
       UserDataAPI remoteUser = UserDataAPI();
-      if (type == 'CHAT_SEND' ||
-          type == 'TASK_SEND' ||
-          type == 'SEND_TASK_COMMENT') {
-        remoteUser = UserDataAPI.fromJson(message.data);
+      final normalized = Map<String, dynamic>.from(message.data);
+
+      if(type=='CHAT_SEND'||type=='TASK_SEND'||type=='SEND_TASK_COMMENT'){
+        remoteUser = UserDataAPI.fromJson(normalized);
       }
 
       _handleTapByType(type, remoteUser.userCompany?.companyId, user: remoteUser);
@@ -119,8 +120,8 @@ class LocalNotificationService {
         _goToTask(user);
         return;
       } else {
-        Get.find<DashboardController>().updateIndex(1);
-        getCompanyByIdApi(user: user);
+        getCompanyByIdApi(companyId:companyId,user: user,type: "TASK_SEND");
+        customLoader.hide();
         return;
       }
     } else if (type == 'CHAT_SEND') {
@@ -128,17 +129,17 @@ class LocalNotificationService {
         _goToChat(user);
         return;
       } else {
-        Get.find<DashboardController>().updateIndex(0);
-        getCompanyByIdApi(user: user);
+        getCompanyByIdApi(companyId:companyId,user: user,type: "CHAT_SEND");
+        customLoader.hide();
         return;
       }
     } else if (type == 'SEND_TASK_COMMENT') {
-      Get.find<DashboardController>().updateIndex(1);
       if (companyId != APIs.me.userCompany?.userCompanyId) {
         _goToTask(user);
         return;
       } else {
-        getCompanyByIdApi(user: user);
+        getCompanyByIdApi(companyId:companyId,user: user,type: "SEND_TASK_COMMENT");
+        customLoader.hide();
         return;
       }
     } else {
@@ -197,7 +198,7 @@ class LocalNotificationService {
 
   static CompanyData? companyResponse = CompanyData();
 
-  static getCompanyByIdApi({int? companyId, required UserDataAPI user}) async {
+  static getCompanyByIdApi({int? companyId, required UserDataAPI user,type}) async {
     customLoader.show();
     Get.find<PostApiServiceImpl>()
         .getCompanyByIdApiCall(companyId)
@@ -207,13 +208,13 @@ class LocalNotificationService {
 
       await Future.wait<void>([_selectCompany()]);
 
-      if (isTaskMode) {
+      if (type=="TASK_SEND") {
         _goToTask(user);
       } else {
         _goToChat(user);
       }
+      customLoader.hide();
     }).onError((error, stackTrace) {
-      Get.back();
       customLoader.hide();
       errorDialog(error.toString());
     }).whenComplete(() {});
@@ -235,6 +236,9 @@ class LocalNotificationService {
   }
 
   static _goToChat(UserDataAPI user) {
+    if (!Get.isRegistered<DashboardController>()) {
+      Get.put(DashboardController());
+    }
     Get.find<DashboardController>().updateIndex(0);
     if (kIsWeb) {
       if (!Get.isRegistered<ChatHomeController>()) {
@@ -268,6 +272,9 @@ class LocalNotificationService {
   }
 
   static _goToTask(UserDataAPI user) {
+    if (!Get.isRegistered<DashboardController>()) {
+      Get.put(DashboardController());
+    }
     Get.find<DashboardController>().updateIndex(1);
     if (kIsWeb) {
       if (!Get.isRegistered<TaskHomeController>()) {

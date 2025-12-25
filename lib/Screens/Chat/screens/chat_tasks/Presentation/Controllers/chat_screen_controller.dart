@@ -438,7 +438,7 @@ class ChatScreenController extends GetxController {
   UserDataAPI? me = UserDataAPI();
   TextEditingController updateMsgController = TextEditingController();
   _getMe() {
-    me = getUser();
+    me = APIs.me;
     update();
   }
 
@@ -991,7 +991,7 @@ class ChatScreenController extends GetxController {
   Future<void> pickDocument() async {
     final permission = await requestStoragePermission();
     if (!permission) {
-      print("❌ Storage permission denied");
+      errorDialog("❌ Storage permission denied");
       return;
     }
 

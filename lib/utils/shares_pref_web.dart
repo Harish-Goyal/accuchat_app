@@ -66,21 +66,35 @@ class AppStorage {
   AppStorage._();
   factory AppStorage() => _i;
 
-  late final IStorage _impl;
+ IStorage? _impl;
+  bool _initialized = false;
+
 
   Future<void> init({String boxName = 'accu_chat'}) async {
+    if (_initialized) return;
     if (kIsWeb) {
       _impl = PrefsStorage(); // ✅ stable on web
     } else {
       _impl = GetBoxStorage(boxName: boxName);
     }
-    await _impl.init();
+    await _impl!.init();
+    _initialized = true;
   }
 
-  Future<void> write(String key, dynamic value) => _impl.write(key, value);
-  T? read<T>(String key) => _impl.read<T>(key);
-  Future<bool> remove(String key) => _impl.remove(key);
-  Future<bool> clear() => _impl.clear();
+
+
+  IStorage get _storage {
+    final s = _impl;
+    if (s == null) {
+      throw StateError('AppStorage used before init(), Please refresh!');
+    }
+    return s;
+  }
+
+  Future<void> write(String key, dynamic value) => _storage.write(key, value);
+  T? read<T>(String key) => _storage.read<T>(key);
+  Future<bool> remove(String key) => _storage.remove(key);
+  Future<bool> clear() => _storage.clear();
 }
 
 

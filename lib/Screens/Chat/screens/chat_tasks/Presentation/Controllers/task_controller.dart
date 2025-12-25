@@ -217,7 +217,6 @@ class TaskController extends GetxController {
       };
       // Load binding manually
       TaskThreadBinding().dependencies();
-
       showDialog(
         context: context,
         barrierDismissible: true,
@@ -226,7 +225,7 @@ class TaskController extends GetxController {
             child: ConstrainedBox(
               constraints: const BoxConstraints(
                 maxWidth: 600,
-                maxHeight:650,
+                maxHeight:500,
               ),
               child: Material(
                 color: Colors.white,
@@ -1056,6 +1055,7 @@ class TaskController extends GetxController {
   bool isPageLoading = false;
 
   ScrollController scrollController = ScrollController();
+  ScrollController scrollController2 = ScrollController();
 
   scrollListener() {
     if (kIsWeb) {
@@ -1068,9 +1068,9 @@ class TaskController extends GetxController {
         }
       });
     } else {
-      scrollController.addListener(() {
-        if (scrollController.position.pixels <=
-            scrollController.position.minScrollExtent + 50 &&
+      scrollController2.addListener(() {
+        if (scrollController2.position.pixels <=
+            scrollController2.position.minScrollExtent + 50 &&
             !isPageLoading&& hasMore ) {
           // resetPaginationForNewChat();
           hitAPIToGetTaskHistory();

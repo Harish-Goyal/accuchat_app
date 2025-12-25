@@ -1,3 +1,5 @@
+import 'dart:convert';
+
 class GetUserResModel {
   bool? success;
   int? code;
@@ -26,11 +28,11 @@ class GetUserResModel {
 }
 
 class UserDataAPI {
-  int? userId;
+  var userId;
   String? userName;
   String? displayName;
   String? phone;
-  int? createdBy;
+  var createdBy;
   int? isAdmin;
   String? email;
   String? about;
@@ -84,36 +86,45 @@ class UserDataAPI {
         this.userCompany});
 
   UserDataAPI.fromJson(Map<String, dynamic> json) {
-    userId = json['user_id'];
-    createdBy = json['created_by'];
-    memberCount = json['member_count'];
-    displayName = json['display_name'];
-    userName = json['user_name'];
-    pending_task_count = json['pending_task_count'];
-    unread_msg_count = json['unread_msg_count'];
-    open_count = json['open_count'];
-    phone = json['phone'];
-    email = json['email'];
-    isAdmin = json['is_admin'];
-    isActive = json['is_active'];
-    userImage = json['user_image'];
-    about = json['about'];
-    userKey = json['user_key'];
-    createdOn = json['created_on'];
-    updatedOn = json['updated_on'];
-    invitedBy = json['invited_by'];
-    invitedOn = json['invited_on'];
-    joinedOn = json['joined_on'];
-    lastMessage = json['last_message'] != null
-        ? new LastMessage.fromJson(json['last_message'])
-        : null;
-    pendingCount = json['pending_count'];
-    otp = json['otp'];
-    allowedCompanies = json['allowed_companies'];
-    isDeleted = json['is_deleted'];
-    userCompany = json['user_company'] != null
-        ? new UserCompany.fromJson(json['user_company'])
-        : null;
+    userId = _asInt(json['user_id']);
+    createdBy = _asInt(json['created_by']);
+    memberCount = _asInt(json['member_count']);
+
+    displayName = _asString(json['display_name']);
+    userName = _asString(json['user_name']);
+
+    pending_task_count = _asInt(json['pending_task_count']);
+    unread_msg_count = _asInt(json['unread_msg_count']);
+    open_count = _asInt(json['open_count']);
+
+    phone = _asString(json['phone']);
+    email = _asString(json['email']);
+
+    isAdmin = _asInt(json['is_admin']);
+    isActive = _asInt(json['is_active']);
+
+    userImage = _asString(json['user_image']);
+    about = _asString(json['about']);
+    userKey = _asString(json['user_key']);
+
+    createdOn = _asString(json['created_on']);
+    updatedOn = _asString(json['updated_on']);
+
+    invitedBy = _asInt(json['invited_by']);
+    invitedOn = _asString(json['invited_on']);
+    joinedOn = _asString(json['joined_on']);
+
+    final lastMsgMap = _asMap(json['last_message']);
+    lastMessage = lastMsgMap != null ? LastMessage.fromJson(lastMsgMap) : null;
+
+    pendingCount = _asInt(json['pending_count']);
+
+    otp = _asString(json['otp']);
+    allowedCompanies = _asInt(json['allowed_companies']);
+    isDeleted = _asInt(json['is_deleted']);
+
+    final ucMap = _asMap(json['user_company']);
+    userCompany = ucMap != null ? UserCompany.fromJson(ucMap) : null;
   }
 
   Map<String, dynamic> toJson() {
@@ -149,6 +160,38 @@ class UserDataAPI {
       data['user_company'] = this.userCompany!.toJson();
     }
     return data;
+  }
+  Map<String, dynamic>? _asMap(dynamic v) {
+    if (v == null) return null;
+    if (v is Map<String, dynamic>) return v;
+    if (v is Map) return Map<String, dynamic>.from(v);
+    if (v is String) {
+      final s = v.trim();
+      if (s.isEmpty) return null;
+      if (s.startsWith('{') && s.endsWith('}')) {
+        final decoded = jsonDecode(s);
+        if (decoded is Map) return Map<String, dynamic>.from(decoded);
+      }
+    }
+    return null;
+  }
+
+  int? _asInt(dynamic v) {
+    if (v == null) return null;
+    if (v is int) return v;
+    if (v is num) return v.toInt();
+    if (v is String) {
+      final s = v.trim();
+      if (s.isEmpty) return null;
+      return int.tryParse(s);
+    }
+    return null;
+  }
+
+  String? _asString(dynamic v) {
+    if (v == null) return null;
+    if (v is String) return v;
+    return v.toString();
   }
 }
 

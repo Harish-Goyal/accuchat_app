@@ -6,6 +6,7 @@ import 'package:AccuChat/utils/custom_flashbar.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/foundation.dart';
+import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import '../../../../../../Services/APIs/post/post_api_service_impl.dart';
 import '../../../../../../utils/helper_widget.dart';
@@ -31,6 +32,7 @@ class TaskThreadController extends GetxController {
   @override
   void onInit() {
     super.onInit();
+    scrollController = ScrollController();
     _getCompany();
     getArguments();
 
@@ -144,7 +146,8 @@ class TaskThreadController extends GetxController {
   var userIDReceiver;
   var refIdis;
   TaskComments? replyToMessage;
-  ScrollController scrollController = ScrollController();
+  late final ScrollController scrollController;
+  ScrollController scrollController2 = ScrollController();
 
 
   scrollListener() {
@@ -158,9 +161,9 @@ class TaskThreadController extends GetxController {
         }
       });
     } else {
-      scrollController.addListener(() {
-        if (scrollController.position.pixels <=
-            scrollController.position.minScrollExtent + 50 &&
+      scrollController2.addListener(() {
+        if (scrollController2.position.pixels <=
+            scrollController2.position.minScrollExtent + 50 &&
             !isPageLoading&& hasMore ) {
           // resetPaginationForNewChat();
           hitAPIToGetCommentsHistory();
@@ -214,11 +217,8 @@ class TaskThreadController extends GetxController {
         }
         page++;
       } else {
-
           isPageLoading = false;
           hasMore = false;
-          commentsList=[];
-          commentsCategory=[];
           update();
       }
 
@@ -233,39 +233,12 @@ class TaskThreadController extends GetxController {
       isPageLoading = false;
       update();
 
-    /*  showPostShimmer = false;
-      // chatHisList = value.data?.rows ?? [];
-      if ((value.rows ?? []).isNotEmpty) {
-        if (page == 1) {
-          commentsList =value.rows ?? [];
-          isLoading = false;
-          hasMore = false;
-          update();
-        } else {
-          commentsList?.addAll(value.rows ?? []);
-          isLoading = false;
-          hasMore = false;
-          update();
-        }
-      } else {
-          isLoading = false;
-          hasMore = false;
-          update();
-
-      }
-
-      commentsCategory = (commentsList ?? []).map((item) {
-        DateTime? datais;
-        if (item.sentOn != null) {
-          datais = DateTime.parse(item.sentOn ?? '');
-        }
-        return GroupCommentsElement(datais ?? DateTime.now(), item);
-      }).toList();
-      update();*/
     }).onError((error, stackTrace) {
       showPostShimmer = false;
+      isPageLoading = false;
       update();
     });
+
   }
 
 
@@ -274,18 +247,16 @@ class TaskThreadController extends GetxController {
     final svc = CompanyService.to;
     myCompany = svc.selected;
     update();
-
-
   }
 
   Future<void> pickDocument() async {
     final permission = await requestStoragePermission();
     if (!permission) {
-      toast("❌ Storage permission denied");
+      errorDialog("❌ Storage permission denied");
       return;
     }
 
-      isUploading = true;
+    isUploading = true;
     update();
 
     final result = await FilePicker.platform.pickFiles(

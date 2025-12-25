@@ -277,7 +277,7 @@ class TaskScreenMobile extends GetView<TaskController> {
         ? GroupedListView<GroupTaskElement, DateTime>(
             shrinkWrap: false,
             padding: const EdgeInsets.only(bottom: 30),
-            controller: controller.scrollController,
+            controller: controller.scrollController2,
             elements: controller.taskCategory,
             order: GroupedListOrder.DESC,
             reverse: true,
