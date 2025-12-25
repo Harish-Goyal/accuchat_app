@@ -6,6 +6,7 @@ import 'package:AccuChat/Screens/Chat/screens/chat_tasks/Presentation/Controller
 import 'package:AccuChat/Screens/Chat/screens/chat_tasks/Presentation/Controllers/task_home_controller.dart';
 import 'package:AccuChat/Screens/Home/Presentation/Controller/home_controller.dart';
 import 'package:AccuChat/utils/text_style.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_snake_navigationbar/flutter_snake_navigationbar.dart';
 import 'package:get/get.dart';
@@ -30,16 +31,16 @@ class AccuChatDashboard extends StatelessWidget {
         // drawer: isWideScreen ? null : _buildDrawer(), // for mobile
         body: Row(
           children: [
-            if (isWideScreen) SizedBox(
-              width: Get.width*.13,
-                child: buildSideNav(controller)), // For web/tablet
+            if (isWideScreen)
+              SizedBox(
+                  width: Get.width * .13,
+                  child: buildSideNav(controller)), // For web/tablet
             Expanded(
               child: controller.screens.isEmpty
                   ? const SizedBox()
                   : ConstrainedBox(
                       constraints: const BoxConstraints(maxWidth: 1000),
                       child: controller.screens[controller.currentIndex],
-
                     ),
             ),
           ],
@@ -52,8 +53,6 @@ class AccuChatDashboard extends StatelessWidget {
       );
     }));
   }
-
-
 
   Widget _buildDrawer() {
     return Drawer(
@@ -236,8 +235,48 @@ class AccuChatDashboard extends StatelessWidget {
           controller.updateIndex(v);
           if (v == 1) {
             isTaskMode = true;
+            if (Get.isRegistered<TaskHomeController>()) {
+              Get.find<TaskHomeController>().page = 1;
+              Get.find<TaskHomeController>().hitAPIToGetRecentTasksUser();
+            } else {
+              Get.put(TaskHomeController());
+              Get.find<TaskHomeController>().page = 1;
+              Get.find<TaskHomeController>().hitAPIToGetRecentTasksUser();
+            }
+            if (Get.isRegistered<TaskController>()) {
+              if (kIsWeb) {
+                Get.find<TaskController>().page = 1;
+                Get.find<TaskController>().hitAPIToGetTaskHistory();
+              }
+            } else {
+              if (kIsWeb) {
+                Get.put(TaskController(user: controller.user));
+                Get.find<TaskController>().page = 1;
+                Get.find<TaskController>().hitAPIToGetTaskHistory();
+              }
+            }
           } else {
+            print("calleddddddddddddd============ ");
             isTaskMode = false;
+
+            if (Get.isRegistered<ChatHomeController>()) {
+              Get.find<ChatHomeController>().hitAPIToGetRecentChats(page: 1);
+            } else {
+              Get.put(ChatHomeController());
+              Get.find<ChatHomeController>().hitAPIToGetRecentChats(page: 1);
+            }
+            if (Get.isRegistered<ChatScreenController>()) {
+              if (kIsWeb) {
+                Get.find<ChatScreenController>().page = 1;
+                Get.find<ChatScreenController>().hitAPIToGetChatHistory();
+              }
+            } else {
+              if (kIsWeb) {
+                Get.put(ChatScreenController(user: controller.user));
+                Get.find<ChatScreenController>().page = 1;
+                Get.find<ChatScreenController>().hitAPIToGetChatHistory();
+              }
+            }
           }
           controller.update();
         }
@@ -246,9 +285,9 @@ class AccuChatDashboard extends StatelessWidget {
     );
   }
 }
+
 Widget buildSideNav(DashboardController controller) {
   return Column(
-
     children: [
       Expanded(
         child: NavigationRail(
@@ -258,27 +297,28 @@ Widget buildSideNav(DashboardController controller) {
             controller.updateIndex(index);
             isTaskMode = index == 1;
             final isSetting = index == 3;
-            if(isSetting){
+            if (isSetting) {
               Get.toNamed(AppRoutes.all_settings);
             }
-            if(index == 1 && !isTaskMode){
+            if (index == 1 && !isTaskMode) {
               final taskC = Get.find<TaskController>();
               final taskHomeC = Get.find<TaskHomeController>();
               taskHomeC.selectedChat.value = dashboardController.user;
-
+              taskC.replyToMessage=null;
+              taskC.user =taskHomeC.selectedChat.value;
+              taskC.showPostShimmer =true;
+              taskC.page = 1;
               Future.microtask(() {
                 taskC.openConversation(taskHomeC.selectedChat.value);
-              });
-              // Get.find<TaskController>()!=null? Get.find<TaskController>().openConversation(dashboardController.user) : Get.put(TaskController()).openConversation(dashboardController.user);
-
-
-            }else if(index == 0 && isTaskMode){
-               // Get.find<ChatScreenController>()!=null? Get.find<ChatScreenController>().openConversation(dashboardController.user) : Get.put(ChatScreenController()).openConversation(dashboardController.user);
-               // Get.find<ChatHomeController>().selectedChat.value = dashboardController.user;
+              });} else if (index == 0 && isTaskMode) {
 
               final taskC = Get.find<ChatScreenController>();
               final taskHomeC = Get.find<ChatHomeController>();
               taskHomeC.selectedChat.value = dashboardController.user;
+              taskC.replyToMessage=null;
+              taskC.user =taskHomeC.selectedChat.value;
+              taskC.showPostShimmer =true;
+              taskC.page = 1;
 
               Future.microtask(() {
                 taskC.openConversation(taskHomeC.selectedChat.value);
@@ -299,7 +339,8 @@ Widget buildSideNav(DashboardController controller) {
                 icon: Image.asset(
                   chatHome,
                   height: 22,
-                  color: controller.currentIndex==0?Colors.white:Colors.grey,
+                  color:
+                      controller.currentIndex == 0 ? Colors.white : Colors.grey,
                 ),
                 label: Text(
                   'Chats',
@@ -309,17 +350,24 @@ Widget buildSideNav(DashboardController controller) {
                 icon: Image.asset(
                   tasksHome,
                   height: 22,
-                  color: controller.currentIndex==1?Colors.white:Colors.grey,
+                  color:
+                      controller.currentIndex == 1 ? Colors.white : Colors.grey,
                 ),
-                label: Text('Tasks', style: BalooStyles.baloomediumTextStyle())),
+                label:
+                    Text('Tasks', style: BalooStyles.baloomediumTextStyle())),
             NavigationRailDestination(
                 icon: Image.asset(
                   connectedAppIcon,
                   height: 22,
-                  color: controller.currentIndex==2?Colors.white:Colors.grey,
+                  color:
+                      controller.currentIndex == 2 ? Colors.white : Colors.grey,
                 ),
-                label: Text('Your Companies',
-                    style: BalooStyles.baloomediumTextStyle(),maxLines: 1,overflow: TextOverflow.ellipsis,)),
+                label: Text(
+                  'Your Companies',
+                  style: BalooStyles.baloomediumTextStyle(),
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                )),
 
             /*        NavigationRailDestination(
                   icon: Image.asset(
@@ -332,8 +380,8 @@ Widget buildSideNav(DashboardController controller) {
         ),
       ),
       InkWell(
-        onTap: (){
-            Get.toNamed(AppRoutes.all_settings);
+        onTap: () {
+          Get.toNamed(AppRoutes.all_settings);
         },
         child: Container(
           padding: const EdgeInsets.all(15),

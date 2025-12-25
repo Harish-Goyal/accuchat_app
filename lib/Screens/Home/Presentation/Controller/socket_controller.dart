@@ -552,7 +552,66 @@ class SocketController extends GetxController with WidgetsBindingObserver {
   }
 
 
- void updateResentWeb(){
+
+  void updateResentWeb() {
+    socket?.off('update_recent_list');
+
+    socket?.on('update_recent_list', (messages) {
+      try {
+        final updated = UserDataAPI.fromJson(messages);
+
+        // ✅ 1) Company mismatch => DO NOTHING
+        final activeCompanyId = APIs.me.userCompany?.companyId;
+        final msgCompanyId = updated.userCompany?.companyId;
+
+        if (activeCompanyId == null || msgCompanyId == null) return;
+        if (activeCompanyId != msgCompanyId) return; // ✅ ignore other company
+
+        if (!Get.isRegistered<ChatHomeController>()) return;
+        final chatController = Get.find<ChatHomeController>();
+
+        final selectedUserId = chatController.selectedChat.value?.userId;
+
+        final list = chatController.filteredList;
+
+        // Unique key for recent row (use whatever is unique in your app)
+        final key = updated.userCompany?.userCompanyId;
+
+        final index = list.indexWhere((e) => e.userCompany?.userCompanyId == key);
+
+        // ✅ 2) If chat is currently open for same user => reset pendingCount
+        final isCurrentlyOpen = (selectedUserId != null && updated.userId == selectedUserId);
+
+        if (index != -1) {
+          final existing = list[index];
+
+          existing.lastMessage = updated.lastMessage;
+
+          if (isCurrentlyOpen) {
+            existing.pendingCount = 0;
+          } else {
+            // keep server count if available
+            existing.pendingCount = updated.pendingCount ?? existing.pendingCount;
+          }
+
+          // Move to top
+          if (index != 0) {
+            list.removeAt(index);
+            list.insert(0, existing);
+          }
+        } else {
+          if (isCurrentlyOpen) updated.pendingCount = 0;
+          list.insert(0, updated);
+        }
+
+        list.refresh();
+      } catch (e) {
+        debugPrint("recent update error: $e");
+      }
+    });
+  }
+
+/* void updateResentWeb(){
     socket?.off('update_recent_list');
     socket?.on('update_recent_list', (messages) {
       debugPrint("update_recent_list ${jsonEncode(messages.toString())}");
@@ -596,9 +655,9 @@ class SocketController extends GetxController with WidgetsBindingObserver {
         debugPrint("recent update error: $e");
       }
     });
-  }
+  }*/
 
-  void updateResentTaskWeb(){
+/*  void updateResentTaskWeb(){
     socket?.off('update_recent_task_list');
     socket?.on('update_recent_task_list', (messages) {
       debugPrint("update_recent_task_list ${jsonEncode(messages.toString())}");
@@ -642,9 +701,120 @@ class SocketController extends GetxController with WidgetsBindingObserver {
         debugPrint("recent update error: $e");
       }
     });
+  }*/
+  void updateResentTaskWeb() {
+    socket?.off('update_recent_task_list');
+
+    socket?.on('update_recent_task_list', (messages) {
+      try {
+        final updated = UserDataAPI.fromJson(messages);
+
+        // ✅ 1) Company mismatch => DO NOTHING
+        final activeCompanyId = APIs.me.userCompany?.companyId;
+        final msgCompanyId = updated.userCompany?.companyId;
+
+        if (activeCompanyId == null || msgCompanyId == null) return;
+        if (activeCompanyId != msgCompanyId) return; // ✅ ignore other company
+
+        if (!Get.isRegistered<TaskHomeController>()) return;
+        final taskController = Get.find<TaskHomeController>();
+
+        final selectedUserId = taskController.selectedChat.value?.userId;
+
+        final list = taskController.filteredList;
+
+        // ✅ Use unique key if possible (recommended)
+        final key = updated.userCompany?.userCompanyId;
+
+        final index = (key != null)
+            ? list.indexWhere((u) => u.userCompany?.userCompanyId == key)
+            : list.indexWhere((u) => u.userId == updated.userId);
+
+        final isCurrentlyOpen =
+        (selectedUserId != null && updated.userId == selectedUserId);
+
+        if (index != -1) {
+          final existing = list[index];
+
+          // update preview
+          existing.lastMessage = updated.lastMessage;
+
+          // pending count reset only when current chat is open
+          if (isCurrentlyOpen) {
+            existing.pendingCount = 0;
+          } else {
+            existing.pendingCount = updated.pendingCount ?? existing.pendingCount;
+          }
+
+          // move to top
+          if (index != 0) {
+            list.removeAt(index);
+            list.insert(0, existing);
+          }
+        } else {
+          if (isCurrentlyOpen) updated.pendingCount = 0;
+          list.insert(0, updated);
+        }
+
+        list.refresh();
+      } catch (e) {
+        debugPrint("recent task update error: $e");
+      }
+    });
   }
 
+
   void registerUpdateRecentListListenerMobile() {
+    socket?.off('update_recent_list');
+
+    socket?.on('update_recent_list', (messages) {
+      try {
+        final updated = UserDataAPI.fromJson(messages);
+
+        // ✅ 1) Company mismatch => DO NOTHING
+        final activeCompanyId = APIs.me.userCompany?.companyId;
+        final msgCompanyId = updated.userCompany?.companyId;
+
+        if (activeCompanyId == null || msgCompanyId == null) return;
+        if (activeCompanyId != msgCompanyId) return; // ✅ ignore other company
+
+        if (!Get.isRegistered<ChatHomeController>()) return;
+        final chatController = Get.find<ChatHomeController>();
+
+        final list = chatController.filteredList;
+
+        // ✅ 2) Use a UNIQUE key for recent row (recommended)
+        // Prefer userCompanyId (mapping id) if available, else fallback to userId
+        final key = updated.userCompany?.userCompanyId;
+
+        final idx = (key != null)
+            ? list.indexWhere((t) => t.userCompany?.userCompanyId == key)
+            : list.indexWhere((t) => t.userId == updated.userId);
+
+        if (idx != -1) {
+          final existing = list[idx];
+
+          // Keep pendingCount logic safe (optional)
+          // existing.pendingCount = updated.pendingCount ?? existing.pendingCount;
+
+          existing.lastMessage = updated.lastMessage;
+          existing.pendingCount = updated.pendingCount ?? existing.pendingCount;
+
+          // move to top
+          list.removeAt(idx);
+          list.insert(0, existing);
+        } else {
+          list.insert(0, updated);
+        }
+
+        list.refresh();
+      } catch (e) {
+        debugPrint('update_recent error: $e');
+      }
+    });
+  }
+
+  /*void registerUpdateRecentListListenerMobile() {
     socket?.off('update_recent_list');
     socket?.on('update_recent_list', (messages) {
       debugPrint("update_recent_list ${jsonEncode(messages.toString())}");
@@ -681,9 +851,9 @@ class SocketController extends GetxController with WidgetsBindingObserver {
         debugPrint('update_recent error: $e');
       }
     });
-  }
+  }*/
 
-  void registerUpdateRecentTaskUserListenerMobile() {
+/*  void registerUpdateRecentTaskUserListenerMobile() {
     socket?.off('update_recent_task_list');
     socket?.on('update_recent_task_list', (messages) {
       debugPrint("update_recent_task_list ${jsonEncode(messages.toString())}");
@@ -720,7 +890,56 @@ class SocketController extends GetxController with WidgetsBindingObserver {
         debugPrint('update_recent error: $e');
       }
     });
+  }*/
+
+  void registerUpdateRecentTaskUserListenerMobile() {
+    socket?.off('update_recent_task_list');
+
+    socket?.on('update_recent_task_list', (messages) {
+      try {
+        final updated = UserDataAPI.fromJson(messages);
+
+        // ✅ 1) Company mismatch => DO NOTHING
+        final activeCompanyId = APIs.me.userCompany?.companyId;
+        final msgCompanyId = updated.userCompany?.companyId;
+
+        if (activeCompanyId == null || msgCompanyId == null) return;
+        if (activeCompanyId != msgCompanyId) return; // ✅ ignore other company
+
+        if (!Get.isRegistered<TaskHomeController>()) return;
+        final taskhomeC = Get.find<TaskHomeController>();
+
+        final list = taskhomeC.filteredList;
+
+        // ✅ 2) Use unique key if possible (recommended)
+        final key = updated.userCompany?.userCompanyId;
+
+        final idx = (key != null)
+            ? list.indexWhere((t) => t.userCompany?.userCompanyId == key)
+            : list.indexWhere((t) => t.userId == updated.userId);
+
+        if (idx != -1) {
+          final existing = list[idx];
+
+          // update last preview + pending if you want (optional but useful)
+          existing.lastMessage = updated.lastMessage;
+          existing.pendingCount = updated.pendingCount ?? existing.pendingCount;
+
+          // move to top
+          list.removeAt(idx);
+          list.insert(0, existing);
+        } else {
+          list.insert(0, updated);
+        }
+
+        list.refresh();
+      } catch (e) {
+        debugPrint('update_recent_task_list error: $e');
+      }
+    });
   }
+
+
 
 
   void connectUserEmitter(companyId) {

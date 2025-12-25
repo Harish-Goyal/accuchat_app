@@ -39,7 +39,7 @@ class TaskHomeController extends GetxController{
   @override
   void onInit() {
     super.onInit();
-    _getCompany();
+    getCompany();
 
     Future.delayed(const Duration(milliseconds: 500),(){
       resetPaginationForNewChat();
@@ -65,7 +65,7 @@ class TaskHomeController extends GetxController{
   }
 
   CompanyData? myCompany = CompanyData();
-  _getCompany(){
+  getCompany(){
     final svc = CompanyService.to;
     myCompany = svc.selected;
     update();

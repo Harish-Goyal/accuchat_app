@@ -14,6 +14,7 @@ import '../../../routes/app_routes.dart';
 import '../../../utils/custom_flashbar.dart';
 import '../../Home/Presentation/Controller/company_service.dart';
 import '../../Home/Presentation/Controller/home_controller.dart';
+import '../../Home/Presentation/Controller/socket_controller.dart';
 import '../api/apis.dart';
 import '../models/get_company_res_model.dart';
 import '../models/invite_model.dart';
@@ -120,17 +121,15 @@ class LocalNotificationService {
         _goToTask(user);
         return;
       } else {
-        getCompanyByIdApi(companyId:companyId,user: user,type: "TASK_SEND");
-        customLoader.hide();
-        return;
+        getCompanyByIdApi(companyId:companyId,user: user,type: 'TASK_SEND');
+
       }
     } else if (type == 'CHAT_SEND') {
       if (companyId == APIs.me.userCompany?.companyId) {
         _goToChat(user);
         return;
       } else {
-        getCompanyByIdApi(companyId:companyId,user: user,type: "CHAT_SEND");
-        customLoader.hide();
+        getCompanyByIdApi(companyId:companyId,user: user,type: 'CHAT_SEND');
         return;
       }
     } else if (type == 'SEND_TASK_COMMENT') {
@@ -138,8 +137,7 @@ class LocalNotificationService {
         _goToTask(user);
         return;
       } else {
-        getCompanyByIdApi(companyId:companyId,user: user,type: "SEND_TASK_COMMENT");
-        customLoader.hide();
+        getCompanyByIdApi(companyId:companyId,user: user,type: 'SEND_TASK_COMMENT');
         return;
       }
     } else {
@@ -206,13 +204,17 @@ class LocalNotificationService {
       customLoader.hide();
       companyResponse = value.data;
 
-      await Future.wait<void>([_selectCompany()]);
+    await _selectCompany(companyResponse,type);
 
-      if (type=="TASK_SEND") {
+      if (type=='TASK_SEND') {
         _goToTask(user);
+        Get.find<TaskHomeController>().getCompany();
       } else {
         _goToChat(user);
+        Get.find<ChatHomeController>().getCompany();
       }
+
+
       customLoader.hide();
     }).onError((error, stackTrace) {
       customLoader.hide();
@@ -220,19 +222,36 @@ class LocalNotificationService {
     }).whenComplete(() {});
   }
 
-  static _selectCompany() async {
-    if (Get.isRegistered<CompanyService>()) {
+  static Future<void> _selectCompany(companyResponse,type) async {
+    if (companyResponse == null) {
+      throw Exception("Company not found");
+    }
+    if(Get.isRegistered<CompanyService>()) {
       final svc = CompanyService.to;
-      await svc.select(companyResponse!);
-    } else {
+      await svc.select(companyResponse);
+    }else{
       await Get.putAsync<CompanyService>(
-        () async => await CompanyService().init(),
+            () async => await CompanyService().init(),
         // permanent: true,
       );
       final svc = CompanyService.to;
-      await svc.select(companyResponse!);
+      await svc.select(companyResponse);
     }
-    await APIs.refreshMe(companyId: companyResponse?.companyId ?? 0);
+
+    if (type=='TASK_SEND') {
+      Get.find<TaskHomeController>().getCompany();
+      Get.find<TaskHomeController>().update();
+    } else {
+      Get.find<ChatHomeController>().getCompany();
+      Get.find<ChatHomeController>().update();
+    }
+    await APIs.refreshMe(
+        companyId:
+        companyResponse?.companyId ??
+            0);
+    Get.find<SocketController>()
+        .connectUserEmitter(
+        companyResponse.companyId);
   }
 
   static _goToChat(UserDataAPI user) {
@@ -240,6 +259,9 @@ class LocalNotificationService {
       Get.put(DashboardController());
     }
     Get.find<DashboardController>().updateIndex(0);
+    Get.find<DashboardController>().getCompany();
+    isTaskMode = false;
+    Get.find<DashboardController>().update();
     if (kIsWeb) {
       if (!Get.isRegistered<ChatHomeController>()) {
         Get.put(ChatHomeController());
@@ -269,6 +291,7 @@ class LocalNotificationService {
         arguments: {'user': user},
       );
     }
+    customLoader.hide();
   }
 
   static _goToTask(UserDataAPI user) {
@@ -276,6 +299,9 @@ class LocalNotificationService {
       Get.put(DashboardController());
     }
     Get.find<DashboardController>().updateIndex(1);
+    Get.find<DashboardController>().getCompany();
+    isTaskMode = true;
+    Get.find<DashboardController>().update();
     if (kIsWeb) {
       if (!Get.isRegistered<TaskHomeController>()) {
         Get.put(TaskHomeController());
@@ -296,5 +322,6 @@ class LocalNotificationService {
     } else {
       Get.toNamed(AppRoutes.tasks_li_r, arguments: {'user': user});
     }
+    customLoader.hide();
   }
 }

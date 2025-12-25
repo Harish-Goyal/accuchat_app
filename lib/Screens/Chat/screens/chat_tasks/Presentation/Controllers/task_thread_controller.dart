@@ -162,10 +162,13 @@ class TaskThreadController extends GetxController {
       });
     } else {
       scrollController2.addListener(() {
-        if (scrollController2.position.pixels <=
-            scrollController2.position.minScrollExtent + 50 &&
-            !isPageLoading&& hasMore ) {
-          // resetPaginationForNewChat();
+        if (!scrollController2.hasClients) return;
+
+        final pos = scrollController2.position;
+
+        // NEW: because reverse:true, TOP is maxScrollExtent
+        if (pos.pixels >= pos.maxScrollExtent - 80 &&
+            !isPageLoading &&hasMore) {
           hitAPIToGetCommentsHistory();
         }
       });

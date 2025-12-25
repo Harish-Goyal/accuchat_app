@@ -76,114 +76,8 @@ class TaskThreadScreen extends GetView<TaskThreadController> {
               crossAxisAlignment: CrossAxisAlignment.start,
               mainAxisAlignment: MainAxisAlignment.start,
               children: [
+                _taskCard(),
 
-                Container(
-                  width: Get.width,
-                  padding: EdgeInsets.all(12),
-                  margin: EdgeInsets.symmetric(
-                      horizontal: 12, vertical: 8),
-                  decoration: BoxDecoration(
-                      color: getTaskStatusColor(
-                          controller.taskMessage?.currentStatus?.name?.capitalizeFirst)
-                          .withOpacity(.1),
-                      border: Border.all(
-                          color: getTaskStatusColor(
-                              controller.taskMessage?.currentStatus?.name?.capitalizeFirst)),
-                      //making borders curved
-                      borderRadius:  const BorderRadius.only(
-                          topLeft: Radius.circular(15),
-                          topRight: Radius.circular(14),
-                          bottomLeft: Radius.circular(15))),
-                  child: Column(
-                    mainAxisSize: MainAxisSize.min,
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      DefaultSelectionStyle(
-                        selectionColor: appColorPerple.withOpacity(0.3),
-                        cursorColor: appColorPerple,
-                        child: Row(
-                          mainAxisSize: MainAxisSize.min,
-                          crossAxisAlignment: CrossAxisAlignment.center,
-                          children: [
-                            Icon(
-                              Icons.task_outlined, // <-- your title icon
-                              size: 18,
-                              color: appColorGreen,
-                            ).paddingOnly(right: 6),
-
-                            // Text + links
-                            Expanded(
-                              child: SelectableLinkify(
-                                text: controller.taskMessage?.title??'',
-                                onOpen: (link) {
-                                  launchUrl(
-                                    Uri.parse(link.url),
-                                    mode: LaunchMode.externalApplication,
-                                  );
-                                },
-                                style: BalooStyles.baloosemiBoldTextStyle(
-                                  color: Colors.black87,
-                                  size: 15,
-                                ),
-                                linkStyle: BalooStyles.baloonormalTextStyle(
-                                  color: Colors.blue,
-                                  size: 15,
-                                ),
-                                linkifiers: const [
-                                  UrlLinkifier(),
-                                ],
-                                maxLines: 1,
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-
-                       vGap(5),
-                      SingleChildScrollView(
-                        child: Column(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            SizedBox(
-                              height: 60,
-                              child:
-                              SelectableLinkify(
-                                text: controller.taskMessage?.details ?? '',
-                                onOpen: (link) {
-                                  launchUrl(
-                                    Uri.parse(link.url),
-                                    mode: LaunchMode.externalApplication,
-                                  );
-                                },
-                                style: BalooStyles.baloonormalTextStyle(
-                                  color: Colors.black87,
-                                  size: 14,
-                                ),
-                                linkStyle: BalooStyles.baloonormalTextStyle(
-                                  color: Colors.blue,
-                                  size: 14,
-                                ),
-                                linkifiers: const [
-                                  UrlLinkifier(),
-                                ],
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                      if ((controller.taskMessage?.deadline ?? '')
-                          .isNotEmpty) ...[
-                        vGap(8),
-                        Text(
-                            "⏱️ Est. Time: ${estimateLabel(deadlineIso: controller.taskMessage?.deadline ?? '', createdIso: controller.taskMessage?.createdOn ?? '')}",
-                            style:BalooStyles.balooregularTextStyle(color: Colors.red)),
-                      ],
-                      vGap(8),
-                      Text("Member: ${controller.joined}",
-                          style: BalooStyles.baloothinTextStyle()),
-                    ],
-                  ),
-                ),
                 Expanded(
                   child:   chatMessageBuilder(),
                 ),
@@ -201,6 +95,117 @@ class TaskThreadScreen extends GetView<TaskThreadController> {
           ),
         );
       }
+    );
+  }
+
+
+  _taskCard(){
+    return Container(
+      width: Get.width,
+      padding: EdgeInsets.all(12),
+      margin: EdgeInsets.symmetric(
+          horizontal: 12, vertical: 8),
+      decoration: BoxDecoration(
+          color: getTaskStatusColor(
+              controller.taskMessage?.currentStatus?.name?.capitalizeFirst)
+              .withOpacity(.1),
+          border: Border.all(
+              color: getTaskStatusColor(
+                  controller.taskMessage?.currentStatus?.name?.capitalizeFirst)),
+          //making borders curved
+          borderRadius:  const BorderRadius.only(
+              topLeft: Radius.circular(15),
+              topRight: Radius.circular(14),
+              bottomLeft: Radius.circular(15))),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          DefaultSelectionStyle(
+            selectionColor: appColorPerple.withOpacity(0.3),
+            cursorColor: appColorPerple,
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.center,
+              children: [
+                Icon(
+                  Icons.task_outlined, // <-- your title icon
+                  size: 18,
+                  color: appColorGreen,
+                ).paddingOnly(right: 6),
+
+                // Text + links
+                Expanded(
+                  child: SelectableLinkify(
+                    text: controller.taskMessage?.title??'',
+                    onOpen: (link) {
+                      launchUrl(
+                        Uri.parse(link.url),
+                        mode: LaunchMode.externalApplication,
+                      );
+                    },
+                    style: BalooStyles.baloosemiBoldTextStyle(
+                      color: Colors.black87,
+                      size: 15,
+                    ),
+                    linkStyle: BalooStyles.baloonormalTextStyle(
+                      color: Colors.blue,
+                      size: 15,
+                    ),
+                    linkifiers: const [
+                      UrlLinkifier(),
+                    ],
+                    maxLines: 1,
+                  ),
+                ),
+              ],
+            ),
+          ),
+
+          vGap(5),
+          SingleChildScrollView(
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                SizedBox(
+                  height: 60,
+                  child:
+                  SelectableLinkify(
+                    text: controller.taskMessage?.details ?? '',
+                    onOpen: (link) {
+                      launchUrl(
+                        Uri.parse(link.url),
+                        mode: LaunchMode.externalApplication,
+                      );
+                    },
+                    style: BalooStyles.baloonormalTextStyle(
+                      color: Colors.black87,
+                      size: 14,
+                    ),
+                    linkStyle: BalooStyles.baloonormalTextStyle(
+                      color: Colors.blue,
+                      size: 14,
+                    ),
+                    linkifiers: const [
+                      UrlLinkifier(),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+          ),
+          if ((controller.taskMessage?.deadline ?? '')
+              .isNotEmpty) ...[
+            vGap(8),
+            Text(
+                "⏱️ Est. Time: ${estimateLabel(deadlineIso: controller.taskMessage?.deadline ?? '', createdIso: controller.taskMessage?.createdOn ?? '')}",
+                style:BalooStyles.balooregularTextStyle(color: Colors.red)),
+          ],
+          vGap(8),
+          Text("Member: ${controller.joined}",
+              style: BalooStyles.baloothinTextStyle()),
+        ],
+      ),
     );
   }
 
@@ -228,62 +233,75 @@ class TaskThreadScreen extends GetView<TaskThreadController> {
 
   groupListView() {
     return controller.commentsCategory.isNotEmpty
-        ? GroupedListView<GroupCommentsElement, DateTime>(
-        shrinkWrap: false,
-        padding: const EdgeInsets.only(bottom: 30),
-        controller: controller.scrollController2,
-        elements: controller.commentsCategory,
-        order: GroupedListOrder.DESC,
-        reverse: true,
-        floatingHeader: true,
-        useStickyGroupSeparators: true,
-        groupBy: (GroupCommentsElement element) => DateTime(
-          element.date.year,
-          element.date.month,
-          element.date.day,
-        ),
-        groupHeaderBuilder: _createGroupHeader,
-        indexedItemBuilder:
-            (BuildContext context, GroupCommentsElement element, int index) {
-          String formatatedTime = '';
-          if (element.comments.sentOn != null) {
-            var timeString = element.comments.sentOn ?? '';
+        ? NotificationListener<ScrollNotification>(
+      onNotification: (n) {
+        final m = n.metrics;
 
-            formatatedTime = convertUtcToIndianTime(timeString);
-          }
+        // reverse:true => "TOP" (older) is maxScrollExtent edge
+        final reachedTop = m.atEdge && m.pixels >= m.maxScrollExtent;
 
-          var userid = APIs.me.userId;
-          return StaggeredAnimationListItem(
-            index: index,
-            child: SwipeTo(
-              iconColor: appColorGreen,
-              onRightSwipe: (detail) {
-                // Set the message being replied to
-                controller.refIdis = element.comments.taskCommentId;
-                controller.userIDSender =
-                    element.comments.fromUser?.userId;
-                controller.userNameReceiver =
-                    element.comments.toUser?.displayName ?? '';
-                controller.userNameSender =
-                    element.comments.fromUser?.displayName ?? '';
-                controller.userIDReceiver =
-                    element.comments.toUser?.userId;
-                controller.replyToMessage = element.comments;
+        if (reachedTop && !controller.isPageLoading && controller.hasMore) {
+          controller.hitAPIToGetCommentsHistory();
+        }
+        return false;
+      },
+          child: GroupedListView<GroupCommentsElement, DateTime>(
+          shrinkWrap: false,
+          padding: const EdgeInsets.only(bottom: 30),
+          controller: controller.scrollController2,
+          elements: controller.commentsCategory,
+          order: GroupedListOrder.DESC,
+          reverse: true,
+          floatingHeader: true,
+          useStickyGroupSeparators: true,
+          groupBy: (GroupCommentsElement element) => DateTime(
+            element.date.year,
+            element.date.month,
+            element.date.day,
+          ),
+          groupHeaderBuilder: _createGroupHeader,
+          indexedItemBuilder:
+              (BuildContext context, GroupCommentsElement element, int index) {
+            String formatatedTime = '';
+            if (element.comments.sentOn != null) {
+              var timeString = element.comments.sentOn ?? '';
 
-                controller.update();
+              formatatedTime = convertUtcToIndianTime(timeString);
+            }
 
-              },
-              child: _chatMessageTile(
-                  data: element.comments,
-                  sentByMe: (userid.toString() ==
-                      element.comments.fromUser?.userId
-                          ?.toString()
-                      ? true
-                      : false),
-                  formatedTime: formatatedTime),
-            ),
-          );
-        })
+            var userid = APIs.me.userId;
+            return StaggeredAnimationListItem(
+              index: index,
+              child: SwipeTo(
+                iconColor: appColorGreen,
+                onRightSwipe: (detail) {
+                  // Set the message being replied to
+                  controller.refIdis = element.comments.taskCommentId;
+                  controller.userIDSender =
+                      element.comments.fromUser?.userId;
+                  controller.userNameReceiver =
+                      element.comments.toUser?.displayName ?? '';
+                  controller.userNameSender =
+                      element.comments.fromUser?.displayName ?? '';
+                  controller.userIDReceiver =
+                      element.comments.toUser?.userId;
+                  controller.replyToMessage = element.comments;
+
+                  controller.update();
+
+                },
+                child: _chatMessageTile(
+                    data: element.comments,
+                    sentByMe: (userid.toString() ==
+                        element.comments.fromUser?.userId
+                            ?.toString()
+                        ? true
+                        : false),
+                    formatedTime: formatatedTime),
+              ),
+            );
+          }),
+        )
         : const Center(
         child: Text('Say Hii! 👋', style: TextStyle(fontSize: 20)));
   }

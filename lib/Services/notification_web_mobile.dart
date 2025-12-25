@@ -20,6 +20,7 @@ import '../Screens/Home/Presentation/Controller/home_controller.dart';
 import 'package:googleapis_auth/auth_io.dart';
 import 'package:googleapis_auth/googleapis_auth.dart';
 
+import '../Screens/Home/Presentation/Controller/socket_controller.dart';
 import '../main.dart';
 import '../utils/custom_flashbar.dart';
 import 'APIs/post/post_api_service_impl.dart';
@@ -129,15 +130,11 @@ class NotificationServicess {
     FirebaseMessaging.onMessageOpenedApp.listen((RemoteMessage message) async {
       String? type;
       type = message.data['messageType'];
-      print(message.data);
-      print(type);
       UserDataAPI remoteUser = UserDataAPI();
       final normalized = Map<String, dynamic>.from(message.data);
-
       if(type=='CHAT_SEND'||type=='TASK_SEND'||type=='SEND_TASK_COMMENT'){
         remoteUser = UserDataAPI.fromJson(normalized);
       }
-
       _handleTapByType(type,  remoteUser.userCompany?.companyId, user: remoteUser);
     });
   }
@@ -153,8 +150,7 @@ class NotificationServicess {
         _goToTask(user);
         return;
       } else {
-        getCompanyByIdApi(companyId:companyId,user: user,type: "TASK_SEND");
-        customLoader.hide();
+        getCompanyByIdApi(companyId:companyId,user: user,type: 'TASK_SEND');
         return;
       }
     } else if (type == 'CHAT_SEND') {
@@ -163,8 +159,7 @@ class NotificationServicess {
         return;
       } else {
 
-        getCompanyByIdApi(companyId:companyId,user: user,type: "CHAT_SEND");
-        customLoader.hide();
+        getCompanyByIdApi(companyId:companyId,user: user,type: 'CHAT_SEND');
         return;
       }
     } else if (type == 'SEND_TASK_COMMENT') {
@@ -172,8 +167,8 @@ class NotificationServicess {
         _goToTask(user);
         return;
       } else {
-        getCompanyByIdApi(companyId:companyId,user: user,type: "SEND_TASK_COMMENT");
-        customLoader.hide();
+        getCompanyByIdApi(companyId:companyId,user: user,type: 'SEND_TASK_COMMENT');
+
         return;
       }
     } else {
@@ -184,19 +179,19 @@ class NotificationServicess {
   static CompanyData? companyResponse = CompanyData();
 
   static getCompanyByIdApi({int? companyId, required UserDataAPI user,type}) async {
-    customLoader.show();
     Get.find<PostApiServiceImpl>()
         .getCompanyByIdApiCall(companyId)
         .then((value) async {
       customLoader.hide();
       companyResponse = value.data;
+      await _selectCompany(companyResponse,type);
 
-      await Future.wait<void>([_selectCompany()]);
-
-      if (type == "TASK_SEND") {
+      if (type=='TASK_SEND') {
         _goToTask(user);
+        Get.find<TaskHomeController>().getCompany();
       } else {
         _goToChat(user);
+        Get.find<ChatHomeController>().getCompany();
       }
       customLoader.hide();
     }).onError((error, stackTrace) {
@@ -205,19 +200,39 @@ class NotificationServicess {
     }).whenComplete(() {});
   }
 
-  static _selectCompany() async {
-    if (Get.isRegistered<CompanyService>()) {
+  static Future<void> _selectCompany(companyResponse,type) async {
+    if (companyResponse == null) {
+      throw Exception("Company not found");
+    }
+    if(Get.isRegistered<CompanyService>()) {
       final svc = CompanyService.to;
-      await svc.select(companyResponse!);
-    } else {
+      await svc.select(companyResponse);
+    }else{
       await Get.putAsync<CompanyService>(
             () async => await CompanyService().init(),
-        permanent: true,
+        // permanent: true,
       );
       final svc = CompanyService.to;
-      await svc.select(companyResponse!);
+      await svc.select(companyResponse);
     }
-    await APIs.refreshMe(companyId: companyResponse?.companyId ?? 0);
+
+
+
+    if (type=='TASK_SEND') {
+      Get.find<TaskHomeController>().getCompany();
+      Get.find<TaskHomeController>().update();
+    } else {
+      Get.find<ChatHomeController>().getCompany();
+      Get.find<ChatHomeController>().update();
+    }
+    // controller.getCompany();
+    await APIs.refreshMe(
+        companyId:
+        companyResponse?.companyId ??
+            0);
+    Get.find<SocketController>()
+        .connectUserEmitter(
+        companyResponse.companyId);
   }
 
   static _goToChat(UserDataAPI user) {
@@ -225,11 +240,13 @@ class NotificationServicess {
       Get.put(DashboardController());
     }
     Get.find<DashboardController>().updateIndex(0);
+    Get.find<DashboardController>().getCompany();
+    isTaskMode = false;
+    Get.find<DashboardController>().update();
     if (kIsWeb) {
       if (!Get.isRegistered<ChatHomeController>()) {
         Get.put(ChatHomeController());
       }
-
       if (!Get.isRegistered<ChatScreenController>()) {
         Get.put(ChatScreenController(user: user));
       }
@@ -254,6 +271,7 @@ class NotificationServicess {
         arguments: {'user': user},
       );
     }
+    customLoader.hide();
   }
 
   static _goToTask(UserDataAPI user) {
@@ -262,6 +280,9 @@ class NotificationServicess {
     }
 
     Get.find<DashboardController>().updateIndex(1);
+    Get.find<DashboardController>().getCompany();
+    isTaskMode = true;
+    Get.find<DashboardController>().update();
     if (kIsWeb) {
       if (!Get.isRegistered<TaskHomeController>()) {
         Get.put(TaskHomeController());
@@ -282,6 +303,7 @@ class NotificationServicess {
     } else {
       Get.toNamed(AppRoutes.tasks_li_r, arguments: {'user': user});
     }
+    customLoader.hide();
   }
 
 }
