@@ -44,6 +44,7 @@ import '../Screens/splash/binding/binding.dart';
 import '../Screens/splash/presentation/views/splash_screen.dart';
 import '../Services/APIs/local_keys.dart';
 import '../main.dart';
+import '../utils/notification_redirects.dart';
 import 'app_routes.dart';
 
 class AppPages {
@@ -70,6 +71,9 @@ class AppPages {
       name: AppRoutes.accept_invite,
       page: () => AcceptInvitationScreen(),
       bindings: [AcceptInviteBinding()],
+    ), GetPage(
+      name: AppRoutes.notification,
+      page: () => const NotificationRedirectPage(),
     ),
     GetPage(
       name: AppRoutes.create_company,
@@ -219,3 +223,4 @@ class AppPages {
     ),
   ];
 }
+

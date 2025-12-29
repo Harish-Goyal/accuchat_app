@@ -256,7 +256,6 @@ class AccuChatDashboard extends StatelessWidget {
               }
             }
           } else {
-            print("calleddddddddddddd============ ");
             isTaskMode = false;
 
             if (Get.isRegistered<ChatHomeController>()) {
@@ -301,29 +300,44 @@ Widget buildSideNav(DashboardController controller) {
               Get.toNamed(AppRoutes.all_settings);
             }
             if (index == 1 && !isTaskMode) {
-              final taskC = Get.find<TaskController>();
+              isTaskMode = true;
+              Get.toNamed(AppRoutes.home);
+
+            /*  final taskC = Get.find<TaskController>();
               final taskHomeC = Get.find<TaskHomeController>();
+              if (taskHomeC.filteredList.isNotEmpty) {
+                taskHomeC.selectedChat.value = taskHomeC.filteredList[0];
+              }
+
               taskHomeC.selectedChat.value = dashboardController.user;
-              taskC.replyToMessage=null;
-              taskC.user =taskHomeC.selectedChat.value;
-              taskC.showPostShimmer =true;
+              taskC.replyToMessage = null;
+              taskC.user = taskHomeC.selectedChat.value;
+              taskC.showPostShimmer = true;
               taskC.page = 1;
               Future.microtask(() {
                 taskC.openConversation(taskHomeC.selectedChat.value);
-              });} else if (index == 0 && isTaskMode) {
+              });*/
 
-              final taskC = Get.find<ChatScreenController>();
+              controller.update();
+            } else if (index == 0 && isTaskMode) {
+              isTaskMode = true;
+              Get.toNamed(AppRoutes.home);
+              /*final taskC = Get.find<ChatScreenController>();
               final taskHomeC = Get.find<ChatHomeController>();
+              if (taskHomeC.filteredList.isNotEmpty) {
+                taskHomeC.selectedChat.value = taskHomeC.filteredList[0];
+              }
+
               taskHomeC.selectedChat.value = dashboardController.user;
-              taskC.replyToMessage=null;
-              taskC.user =taskHomeC.selectedChat.value;
-              taskC.showPostShimmer =true;
+              taskC.replyToMessage = null;
+              taskC.user = taskHomeC.selectedChat.value;
+              taskC.showPostShimmer = true;
               taskC.page = 1;
 
               Future.microtask(() {
                 taskC.openConversation(taskHomeC.selectedChat.value);
               });
-
+              taskC.update();*/
             }
             controller.update();
           },

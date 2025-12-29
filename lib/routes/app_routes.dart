@@ -10,6 +10,7 @@ abstract class AppRoutes {
   static const chats_r = '/chats_r';
   static const settings = '/settings';
   static const group_member = '/group_member';
+  static const notification = '/notification';
   static const profile = '/profile';
   static const add_member = '/add_member';
   static const login_r = '/login_r';

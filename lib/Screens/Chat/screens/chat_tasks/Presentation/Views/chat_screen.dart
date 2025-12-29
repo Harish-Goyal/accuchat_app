@@ -426,57 +426,50 @@ class ChatScreen extends GetView<ChatScreenController> {
                               (element.chatMessageItems.media ?? [])
                                   .isNotEmpty) {
                           } else {
-                            try {
-                              Get.back();
-                              controller.refIdis =
-                                  element.chatMessageItems.chatId;
-                              controller.userIDSender =
-                                  element.chatMessageItems.fromUser?.userId;
-                              controller.userNameReceiver = element
-                                      .chatMessageItems
-                                      .toUser
-                                      ?.userCompany
-                                      ?.displayName ??
-                                  '';
-                              controller.userNameSender = element
-                                      .chatMessageItems
-                                      .fromUser
-                                      ?.userCompany
-                                      ?.displayName ??
-                                  '';
-                              controller.userIDReceiver =
-                                  element.chatMessageItems.toUser?.userId;
-                              if ((element.chatMessageItems.media ?? [])
-                                  .isEmpty) {
-                                controller.replyToMessage =
-                                    element.chatMessageItems;
-                              }
 
-                              if (element.chatMessageItems.media != null) {
-                                controller.replyToImage = element
-                                    .chatMessageItems.media?.first.orgFileName;
-                                controller.replyToMessage = ChatHisList(
-                                  chatId: element.chatMessageItems.chatId,
-                                  fromUser: element.chatMessageItems.fromUser,
-                                  toUser: element.chatMessageItems.toUser,
-                                  message: element.chatMessageItems.media?.first
-                                              .mediaType?.mediaCode ==
-                                          "DOC"
-                                      ? element.chatMessageItems.media?.first
-                                          .orgFileName
-                                      : "${ApiEnd.baseUrlMedia}${element.chatMessageItems.media?.first.fileName}",
-                                  // message:getFileNameFromUrl(c.urls[c.index]),
-                                  replyToId: element.chatMessageItems.chatId,
-                                  replyToText: element.chatMessageItems.media
-                                      ?.first.orgFileName,
-                                  // replyToText:getFileNameFromUrl(c.urls[c.index]),
-                                );
-                              }
-                              controller.update();
-                              controller.messageInputFocus.requestFocus();
-                            } catch (e) {
-                              toast('Something went wrong!');
-                            }
+                                final media = element.chatMessageItems.media;
+
+                                if (media == null || media.isEmpty) {
+                                  controller.refIdis = element.chatMessageItems.chatId;
+                                  controller.userIDSender = element.chatMessageItems.fromUser?.userId;
+                                  controller.userNameReceiver =
+                                      element.chatMessageItems.toUser?.userCompany?.displayName ?? '';
+                                  controller.userNameSender =
+                                      element.chatMessageItems.fromUser?.userCompany?.displayName ?? '';
+                                  controller.userIDReceiver = element.chatMessageItems.toUser?.userId;
+                                  controller.replyToMessage = element.chatMessageItems;
+                                  controller.update();
+                                  controller.messageInputFocus.requestFocus();
+                                  Get.back();
+                                } else {
+                                  final firstMedia = media.first;
+                                  controller.refIdis = element.chatMessageItems.chatId;
+                                  controller.userIDSender = element.chatMessageItems.fromUser?.userId;
+                                  controller.userNameReceiver = element.chatMessageItems.toUser?.userCompany?.displayName ?? '';
+                                  controller.userNameSender = element.chatMessageItems.fromUser?.userCompany?.displayName ?? '';
+                                  controller.userIDReceiver = element.chatMessageItems.toUser?.userId;
+
+                                  controller.replyToImage = firstMedia.orgFileName;
+
+                                  final isDoc = firstMedia.mediaType?.mediaCode == "DOC";
+                                  final msg = isDoc
+                                      ? (firstMedia.orgFileName ?? '')
+                                      : "${ApiEnd.baseUrlMedia}${firstMedia.fileName ?? ''}";
+
+                                  controller.replyToMessage = ChatHisList(
+                                    chatId: element.chatMessageItems.chatId,
+                                    fromUser: element.chatMessageItems.fromUser,
+                                    toUser: element.chatMessageItems.toUser,
+                                    message: msg,
+                                    replyToId: element.chatMessageItems.chatId,
+                                    replyToText: firstMedia.orgFileName,
+                                  );
+
+                                  controller.update();
+                                  controller.messageInputFocus.requestFocus();
+                                  Get.back();
+                                }
+
 
                             // // Set the message being replied to
                             // controller.refIdis =

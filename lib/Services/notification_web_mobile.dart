@@ -1,5 +1,6 @@
 import 'dart:convert';
 import 'package:AccuChat/Screens/Chat/screens/auth/models/get_uesr_Res_model.dart';
+import 'package:AccuChat/Services/web_notication_stub.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/material.dart';
@@ -44,11 +45,6 @@ class NotificationServicess {
     // WEB path: NO service-account, just listeners + (optional) token helper
     if (kIsWeb) {
       await _initWebListeners();
-      // Optional: if you want to ensure token now (you already do in _initWebPush)
-      // if (webVapidPublicKey != null) {
-      //   final token = await FirebaseMessaging.instance.getToken(vapidKey: webVapidPublicKey);
-      //   debugPrint('✅ Web FCM Token (NotificationService): $token');
-      // }
       return;
     }
 
@@ -100,10 +96,13 @@ class NotificationServicess {
 
     // When user taps a notification
     FirebaseMessaging.onMessageOpenedApp.listen((RemoteMessage message) async {
+
       String? type;
       type = message.data['messageType'];
-      print(message.data);
-      print(type);
+
+      print('🔔 Notification Data onMessageOpenedApp =${message.data}');
+      print('🔔 Notification tapped. Type: $type');
+
       UserDataAPI remoteUser = UserDataAPI();
       final normalized = Map<String, dynamic>.from(message.data);
 
@@ -111,7 +110,7 @@ class NotificationServicess {
         remoteUser = UserDataAPI.fromJson(normalized);
       }
 
-      _handleTapByType(type, remoteUser.userCompany?.companyId, user: remoteUser);
+      handleTapByType(type, remoteUser.userCompany?.companyId, user: remoteUser);
     });
   }
 
@@ -135,12 +134,12 @@ class NotificationServicess {
       if(type=='CHAT_SEND'||type=='TASK_SEND'||type=='SEND_TASK_COMMENT'){
         remoteUser = UserDataAPI.fromJson(normalized);
       }
-      _handleTapByType(type,  remoteUser.userCompany?.companyId, user: remoteUser);
+      handleTapByType(type,  remoteUser.userCompany?.companyId, user: remoteUser);
     });
   }
 
   // Centralized navigation handler for both web/mobile
-  static Future<void> _handleTapByType(String? type, dynamic companyId,
+  static Future<void> handleTapByType(String? type, dynamic companyId,
       {required UserDataAPI user}) async {
     if (type == 'MEMBER_INVITE_ONLINE') {
       Get.toNamed(AppRoutes.invitations_r);

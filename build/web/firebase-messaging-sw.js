@@ -16,24 +16,44 @@ firebase.initializeApp({
 
 const messaging = firebase.messaging();
 
-/* background/closed tabs
 messaging.onBackgroundMessage((payload) => {
-  const n = payload.notification || {};
-  self.registration.showNotification(n.title || 'New message', {
-    body: n.body || '',
-    icon: n.icon,      // optional
-    image: n.image,    // optional
-    data: { link: (payload?.fcmOptions?.link) || n.click_action || '/' },
+  const data = payload.data || {};
+  const title = (payload.notification && payload.notification.title) || "New message";
+  const body  = (payload.notification && payload.notification.body) || "";
+
+  self.registration.showNotification(title, {
+    body,
+    data, // 🔥 click time yehi data milega
   });
 });
 
-*//* click → open link *//*
+// click -> open your app with query params
 self.addEventListener('notificationclick', (event) => {
   event.notification.close();
-  const url = event.notification?.data?.link || '/';
-  event.waitUntil(clients.openWindow(url));
-});*/
 
+  const data = event.notification.data || {};
+  const params = new URLSearchParams(data).toString();
+
+  // NOTE: if app is hosted in subfolder, change path accordingly
+  const urlToOpen = `/#/notification?${params}`;
+
+  event.waitUntil((async () => {
+    const allClients = await clients.matchAll({ type: 'window', includeUncontrolled: true });
+    for (const client of allClients) {
+      // focus existing tab if already open
+      if ('focus' in client) {
+        client.navigate(urlToOpen);
+        return client.focus();
+      }
+    }
+    // else open new tab
+    if (clients.openWindow) return clients.openWindow(urlToOpen);
+  })());
+});
+
+
+
+/*
 
 
 messaging.onBackgroundMessage((payload) => {
@@ -67,3 +87,4 @@ self.addEventListener('notificationclick', (event) => {
   );
 }
 );
+*/

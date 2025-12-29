@@ -53,8 +53,8 @@ class LocalNotificationService {
       final data = message.data;
 
       final meId = APIs.me.userId?.toString().trim();
-      final senderId = (data['sender_id'] ?? '').toString().trim();
-      final receiverId = (data['receiver_id'] ?? '').toString().trim();
+      final senderId = (APIs.me.userId).toString().trim();
+      final receiverId = (data['user_id'] ?? '').toString().trim();
 
       print(
           '🔔 FCM received: sender=$senderId, receiver=$receiverId, me=$meId');
@@ -73,10 +73,10 @@ class LocalNotificationService {
       }
 
       // ✅ Safe to show notification
-      final senderName = (data['sender_name'] ?? '').toString().trim();
+      final senderName = (data['display_name'] ?? '').toString().trim();
       final messageText =
           (data['title'] ?? '').toString(); // your payload uses "title" as text
-      final companyId = data['company_id'];
+      final companyId = data['user_company']['company_id'];
       final channelId = data['channel_id'] ?? '';
 
       LocalNotificationService.showNotification(

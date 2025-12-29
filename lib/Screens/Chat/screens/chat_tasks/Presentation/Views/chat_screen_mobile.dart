@@ -359,23 +359,66 @@ class ChatScreenMobile extends GetView<ChatScreenController> {
                     (element.chatMessageItems.media ?? [])
                         .isNotEmpty) {
                 } else {
-                  // Set the message being replied to
-                  controller.refIdis =
-                      element.chatMessageItems.chatId;
-                  controller.userIDSender =
-                      element.chatMessageItems.fromUser?.userId;
-                  controller.userNameReceiver =
-                      element.chatMessageItems.toUser?.userCompany?.displayName ??
-                          '';
-                  controller.userNameSender = element
-                      .chatMessageItems.fromUser?.userCompany?.displayName ??
-                      '';
-                  controller.userIDReceiver =
-                      element.chatMessageItems.toUser?.userId;
-                  controller.replyToMessage =
-                      element.chatMessageItems;
-                  controller.update();
-                  controller.messageInputFocus.requestFocus();
+
+                  final media = element.chatMessageItems.media;
+
+                  if (media == null || media.isEmpty) {
+                    controller.refIdis = element.chatMessageItems.chatId;
+                    controller.userIDSender = element.chatMessageItems.fromUser?.userId;
+                    controller.userNameReceiver =
+                        element.chatMessageItems.toUser?.userCompany?.displayName ?? '';
+                    controller.userNameSender =
+                        element.chatMessageItems.fromUser?.userCompany?.displayName ?? '';
+                    controller.userIDReceiver = element.chatMessageItems.toUser?.userId;
+                    controller.replyToMessage = element.chatMessageItems;
+                    controller.update();
+                    controller.messageInputFocus.requestFocus();
+                  } else {
+                    final firstMedia = media.first;
+                    controller.refIdis = element.chatMessageItems.chatId;
+                    controller.userIDSender = element.chatMessageItems.fromUser?.userId;
+                    controller.userNameReceiver = element.chatMessageItems.toUser?.userCompany?.displayName ?? '';
+                    controller.userNameSender = element.chatMessageItems.fromUser?.userCompany?.displayName ?? '';
+                    controller.userIDReceiver = element.chatMessageItems.toUser?.userId;
+
+                    controller.replyToImage = firstMedia.orgFileName;
+
+                    final isDoc = firstMedia.mediaType?.mediaCode == "DOC";
+                    final msg = isDoc
+                        ? (firstMedia.orgFileName ?? '')
+                        : "${ApiEnd.baseUrlMedia}${firstMedia.fileName ?? ''}";
+
+                    controller.replyToMessage = ChatHisList(
+                      chatId: element.chatMessageItems.chatId,
+                      fromUser: element.chatMessageItems.fromUser,
+                      toUser: element.chatMessageItems.toUser,
+                      message: msg,
+                      replyToId: element.chatMessageItems.chatId,
+                      replyToText: firstMedia.orgFileName,
+                    );
+
+                    controller.update();
+                    controller.messageInputFocus.requestFocus();
+                  }
+
+
+                  // // Set the message being replied to
+                  // controller.refIdis =
+                  //     element.chatMessageItems.chatId;
+                  // controller.userIDSender =
+                  //     element.chatMessageItems.fromUser?.userId;
+                  // controller.userNameReceiver =
+                  //     element.chatMessageItems.toUser?.userCompany?.displayName ??
+                  //         '';
+                  // controller.userNameSender = element
+                  //         .chatMessageItems.fromUser?.userCompany?.displayName ??
+                  //     '';
+                  // controller.userIDReceiver =
+                  //     element.chatMessageItems.toUser?.userId;
+                  // controller.replyToMessage =
+                  //     element.chatMessageItems;
+                  // controller.update();
+                  // controller.messageInputFocus.requestFocus();
                 }
               },
               child: _chatMessageTile(
@@ -1582,7 +1625,6 @@ class ChatScreenMobile extends GetView<ChatScreenController> {
                   name: 'Reply',
                   onTap: () async {
                     final media = data.media;
-
                     if (media == null || media.isEmpty) {
                       controller.refIdis = data.chatId;
                       controller.userIDSender = data.fromUser?.userId;
@@ -1594,7 +1636,6 @@ class ChatScreenMobile extends GetView<ChatScreenController> {
                       controller.replyToMessage = data;
                       controller.update();
                       controller.messageInputFocus.requestFocus();
-                      Get.back();
                     } else {
                       final firstMedia = media.first;
                       controller.refIdis = data.chatId;
@@ -1621,7 +1662,6 @@ class ChatScreenMobile extends GetView<ChatScreenController> {
 
                       controller.update();
                       controller.messageInputFocus.requestFocus();
-                      Get.back();
                     }
                   })
                   : const SizedBox(),
