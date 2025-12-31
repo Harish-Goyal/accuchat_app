@@ -26,6 +26,9 @@ class ViewProfileScreen extends GetView<ViewProfileController> {
   @override
   Widget build(BuildContext context) {
     return GetBuilder<ViewProfileController>(builder: (controller) {
+      final about = controller.user?.about?.trim();
+
+
       return GestureDetector(
         // for hiding keyboard
         onTap: () => FocusScope.of(context).unfocus(),
@@ -115,7 +118,7 @@ class ViewProfileScreen extends GetView<ViewProfileController> {
                       'About:',
                       style: BalooStyles.baloosemiBoldTextStyle(),
                     ),
-                    Container(
+                    (about != null && about.isNotEmpty)? Container(
                       padding: const EdgeInsets.all(8),
                       decoration: BoxDecoration(
                         color: Colors.grey.shade100,
@@ -126,6 +129,18 @@ class ViewProfileScreen extends GetView<ViewProfileController> {
                               style: BalooStyles.baloonormalTextStyle(size: 13),
                               maxLines: 2,
                               overflow: TextOverflow.ellipsis)
+                          .paddingSymmetric(horizontal: 8),
+                    ):Container(
+                      padding: const EdgeInsets.all(8),
+                      decoration: BoxDecoration(
+                        color: Colors.grey.shade100,
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                      child: Text(
+                          'I am using Accuchat!',
+                          style: BalooStyles.baloonormalTextStyle(size: 13),
+                          maxLines: 2,
+                          overflow: TextOverflow.ellipsis)
                           .paddingSymmetric(horizontal: 8),
                     ),
                     vGap(15),

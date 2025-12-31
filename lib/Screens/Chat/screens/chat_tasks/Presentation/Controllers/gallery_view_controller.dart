@@ -161,7 +161,7 @@ class GalleryViewerController extends GetxController {
   void _toast(String msg) {
     // Plug your toast/snackbar here
     // e.g., Get.snackbar('Info', msg); or your existing toast()
-    Get.snackbar('AccuChat', msg, snackPosition: SnackPosition.BOTTOM);
+    Get.snackbar('AccuChat', msg, snackPosition: SnackPosition.BOTTOM,duration: Duration(seconds: 6));
   }
   @override
   void onClose() {

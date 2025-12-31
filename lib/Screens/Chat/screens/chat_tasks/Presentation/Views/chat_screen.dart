@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:io';
 import 'dart:math' as math;
 import 'package:AccuChat/Screens/Chat/screens/chat_tasks/Presentation/Controllers/task_home_controller.dart';
 import 'package:AccuChat/utils/text_button.dart';
@@ -765,13 +766,10 @@ class ChatScreen extends GetView<ChatScreenController> {
                           onPressed: () {
                             controller.handleForward(chatId: data.chatId);
                           },
-                          icon: Transform(
-                              alignment: Alignment.center,
-                              transform: Matrix4.rotationX(math.pi),
-                              child: Image.asset(
-                                forwardIcon,
-                                height: 20,
-                              ))).paddingOnly(right: 8)
+                          icon: Image.asset(
+                            forwardIcon,
+                            height: 20,
+                          )).paddingOnly(right: 8)
                       : const SizedBox()
                 ],
               ),
@@ -1819,6 +1817,7 @@ class ChatScreen extends GetView<ChatScreenController> {
     return xfiles;
   }
 
+  int maxBytes = 15 * 1024 * 1024;
   Future<List<PlatformFile>> _pickWebDocs() async {
     final result = await FilePicker.platform.pickFiles(
       allowMultiple: false,
@@ -1857,6 +1856,19 @@ class ChatScreen extends GetView<ChatScreenController> {
       withReadStream: false,
     );
     if (result == null || result.files.isEmpty) return [];
+
+    final f = result.files.single;
+
+    // ✅ Scenario 1: path missing
+    if (f.path == null) {
+      errorDialog("❌ File path not found");
+      return [];
+    }
+    if (f.size > maxBytes) {
+      Dialogs.showSnackbar(Get.context!, "❌ File must be less than 15 MB");
+      return [];
+    }
+
     return result.files;
   }
 

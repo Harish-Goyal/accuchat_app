@@ -253,10 +253,16 @@ class PostApiServiceImpl extends GetxService implements PostApiService {
 
 
   @override
-  Future<ComMemResModel> getComMemApiCall(compId) async {
+  Future<ComMemResModel> getComMemApiCall(compId,page,searchText) async {
     try {
       final response = await dioClient!
-          .get('api/company/active-members/$compId', skipAuth: false);
+          .get('api/company/active-members/$compId',
+          queryParameters: {
+            "page":page,
+            "limit":10,
+            "search":searchText,
+          },
+          skipAuth: false);
       return ComMemResModel.fromJson(response);
     } catch (e) {
       return Future.error(NetworkExceptions.getDioException(e));
@@ -264,11 +270,11 @@ class PostApiServiceImpl extends GetxService implements PostApiService {
   }
 
   @override
-  Future<ComMemResModel> getTaskMemberApiCall(taskId) async {
+  Future<TaskMemResponse> getTaskMemberApiCall(taskId) async {
     try {
       final response = await dioClient!
           .get('api/tasks/members/$taskId', skipAuth: false);
-      return ComMemResModel.fromJson(response);
+      return TaskMemResponse.fromJson(response);
     } catch (e) {
       return Future.error(NetworkExceptions.getDioException(e));
     }
@@ -482,15 +488,16 @@ class PostApiServiceImpl extends GetxService implements PostApiService {
   }
 
   @override
-  Future<AllMediaResModel> getAllMediaAPI({int? page,int? userCId,String? mediaType,String? source}) async {
+  Future<AllMediaResModel> getAllMediaAPI({int? page,int? userCId,int? comId,String? mediaType,String? source}) async {
     try {
       final response = await dioClient!.get("api/user-media",
           skipAuth: false,
        queryParameters: {
         "page":page,
-         "page_size":20,
+         "page_size":10,
          "media_type":mediaType,
          "source":source,
+         "company_id":comId,
          "peer_user_company_id":userCId,
        }
       );

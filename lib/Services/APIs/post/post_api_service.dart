@@ -43,7 +43,7 @@ abstract class PostApiService {
   Future<SuccessResponseModel> deleteSentInvitesApiCall(inviteID);
   Future<GroupResModel> addEditGroupBroadcastApiCall(
       {required FormData dataBody});
-  Future<ComMemResModel> getComMemApiCall(comId);
+  Future<ComMemResModel> getComMemApiCall(comId,page,searchText);
   Future<RecentChatsUserResModel> getRecentChatUserApiCall({comId, page});
   Future<ChatHisResModelAPI> getChatHistoryApiCall(
       {userComId, page, searchText});
@@ -75,12 +75,12 @@ abstract class PostApiService {
 
   Future<SingleTaskRes> getTaskByIdApiCall(taskId);
 
-  Future<ComMemResModel> getTaskMemberApiCall(taskId);
+  Future<TaskMemResponse> getTaskMemberApiCall(taskId);
   Future<PushResgisterResModel> registerPushTokenApiCall(
       {Map<String, dynamic>? dataBody});
   Future<SuccessResponseModel> unregisterPushTokenApiCall(
       {Map<String, dynamic>? dataBody});
   Future<AllMemberResModel> getAllMembersApiCall({comid});
 
-  Future<AllMediaResModel> getAllMediaAPI({int? page,String? mediaType,String? source});
+  Future<AllMediaResModel> getAllMediaAPI({int? page,int? userCId,int? comId,String? mediaType,String? source});
 }

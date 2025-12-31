@@ -97,14 +97,14 @@ class TaskController extends GetxController {
   getArguments() {
     if(kIsWeb){
       _getCompany();
-      // if (Get.parameters != null) {
-      // final String? argUserId = Get.parameters['userId'];
-      // if (argUserId != null) {
-      //   getUserByIdApi(userId: int.parse(argUserId ?? ''));
-      //   }
-      // } else {
+      if (Get.parameters != null) {
+      final String? argUserId = Get.parameters['userId'];
+      if (argUserId != null) {
+        getUserByIdApi(userId: int.parse(argUserId ?? ''));
+        }
+      } else {
         getUserByIdApi(userId: user?.userId);
-      // }
+      }
     }else{
       if (Get.arguments != null) {
         final argUser = Get.arguments['user'];
@@ -132,7 +132,6 @@ class TaskController extends GetxController {
 
   void openConversation(UserDataAPI? useriii) {
     user = useriii;
-    // _getMe();
     _getCompany();
     Future.delayed(const Duration(milliseconds: 500), () {
       resetPaginationForNewChat();
@@ -154,7 +153,6 @@ class TaskController extends GetxController {
   _getCompany() async {
     final svc = CompanyService.to;
     myCompany = svc.selected;
-
   }
 
   List<StatusData> taskStatus = [];
@@ -1481,7 +1479,7 @@ class TaskController extends GetxController {
     if (targetUcId != null &&
         APIs.me.userCompany?.userCompanyId != null &&
         targetUcId ==  APIs.me.userCompany?.userCompanyId) {
-      Get.snackbar('Oops', 'You cannot forward a message to yourself.',backgroundColor: Colors.white,colorText: Colors.black);
+      Get.snackbar('Oops', 'You cannot forward a message to yourself.',backgroundColor: Colors.white,colorText: Colors.black,duration: Duration(seconds: 6));
       return;
     }
     // DIRECT — use UCID, NOT userId
@@ -1697,7 +1695,7 @@ class TaskController extends GetxController {
   void _toast(String msg) {
     // Plug your toast/snackbar here
     // e.g., Get.snackbar('Info', msg); or your existing toast()
-    Get.snackbar('AccuChat', msg, snackPosition: SnackPosition.BOTTOM);
+    Get.snackbar('AccuChat', msg, snackPosition: SnackPosition.BOTTOM,duration: Duration(seconds: 6));
   }
 }
 

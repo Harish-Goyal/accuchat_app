@@ -118,6 +118,8 @@ class NotificationServicess {
   static Future<void> _initWebListeners() async {
     // Foreground: tab open
     FirebaseMessaging.onMessage.listen((RemoteMessage message) {
+      debugPrint('📩 (WEB) Foreground received');
+
       final title = message.notification?.title ?? 'New message';
       final body = message.notification?.body ?? '';
       final click = message.data['click_action'];

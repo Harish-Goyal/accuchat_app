@@ -110,6 +110,9 @@ class TaskScreen extends GetView<TaskController> {
   TaskScreen({super.key, this.taskUser, this.showBack = true});
   final UserDataAPI? taskUser;
   bool showBack;
+
+
+
   @override
   Widget build(BuildContext context) {
     final taskController = Get.put(
@@ -488,7 +491,7 @@ class TaskScreen extends GetView<TaskController> {
                   opacity: 1.0,
                   duration: const Duration(milliseconds: 2000),
                   child: Padding(
-                    padding: const EdgeInsets.only(left: 12.0, top: 4),
+                    padding: const EdgeInsets.only(left: 0.0, top: 4),
                     child: Text(
                       "👆Tap to update status",
                       style: TextStyle(
@@ -498,7 +501,7 @@ class TaskScreen extends GetView<TaskController> {
                       ),
                     ),
                   ),
-                ).paddingSymmetric(horizontal: 15),
+                ).paddingSymmetric(horizontal:0),
               Row(
                 mainAxisSize: MainAxisSize.min,
                 children: [
@@ -507,7 +510,7 @@ class TaskScreen extends GetView<TaskController> {
                     textAlign: TextAlign.start,
                     style: BalooStyles.baloonormalTextStyle(
                         color: Colors.grey, size: 13),
-                  ).marginOnly(left: 15, right: 15),
+                  ).marginOnly(left: 0, right: 15),
                 ],
               ),
               vGap(15),
@@ -988,6 +991,7 @@ class TaskScreen extends GetView<TaskController> {
                       : controller.user?.userCompany?.isBroadcast == 1
                           ? broadcastIcon
                           : ICON_profile,
+                  borderColor: greyText,
                 ),
 
                 //for adding some space
@@ -2625,7 +2629,7 @@ class TaskScreen extends GetView<TaskController> {
     );
 
     if (selectedDateTime.isBefore(now)) {
-      Get.snackbar("Invalid Time", "You cannot select past time!");
+      Get.snackbar("Invalid Time", "You cannot select past time!",duration: Duration(seconds: 6));
       return;
     }
 

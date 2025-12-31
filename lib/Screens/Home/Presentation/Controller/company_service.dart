@@ -146,19 +146,19 @@ class CompanyService extends GetxService {
 
   Future<void> _refreshSessionSafe(int companyId) async {
     try {
-      // if(!Get.isRegistered<Session>()){
-      //   Get.putAsync<Session>(() async {
-      //     final s = Session(Get.find<AuthApiServiceImpl>(), Get.find<AppStorage>());
-      //
-      //     CompanyData? selCompany;
-      //     try {
-      //       final svc = CompanyService.to;
-      //       selCompany = svc.selected; // may be null on clean install
-      //     } catch (_) {}
-      //     await s.initSafe(companyId: selCompany?.companyId??0); // <-- works with null/0
-      //     return s;
-      //   });
-      // }
+      if(!Get.isRegistered<Session>()){
+        Get.putAsync<Session>(() async {
+          final s = Session(Get.find<AuthApiServiceImpl>(), Get.find<AppStorage>());
+
+          CompanyData? selCompany;
+          try {
+            final svc = CompanyService.to;
+            selCompany = svc.selected; // may be null on clean install
+          } catch (_) {}
+          await s.initSafe(companyId: selCompany?.companyId??0); // <-- works with null/0
+          return s;
+        });
+      }
       final session = Get.find<Session>();
       await session.refreshUser(companyId: companyId);
     } catch (e, s) {

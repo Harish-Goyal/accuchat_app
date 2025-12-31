@@ -644,13 +644,15 @@ class ChatScreenMobile extends GetView<ChatScreenController> {
                       child: Container(
                         padding: EdgeInsets.symmetric(
                           horizontal:
-                          (data.media ?? []).isNotEmpty ? 8 : 15,
+                          (data.media ?? []).isNotEmpty ? 12 : 15,
                           vertical:
-                          (data.media ?? []).isNotEmpty ? 0 : 15,
+                          (data.media ?? []).isNotEmpty ? 0 : 10,
                         ),
                         margin: sentByMe
-                            ? const EdgeInsets.only(left: 15, top: 10,right: 15)
-                            : const EdgeInsets.only(right: 15, top: 10,left: 15),
+                            ? const EdgeInsets.only(
+                            left: 6, top: 10, right: 6)
+                            : const EdgeInsets.only(
+                            right: 6, top: 10, left: 6),
 
                         decoration: BoxDecoration(
                             color: sentByMe
@@ -694,13 +696,10 @@ class ChatScreenMobile extends GetView<ChatScreenController> {
                 onPressed: () {
                   controller.handleForward(chatId: data.chatId);
                 },
-                icon: Transform(
-                    alignment: Alignment.center,
-                    transform: Matrix4.rotationX(math.pi),
-                    child: Image.asset(
-                      forwardIcon,
-                      height: 20,
-                    ))).paddingOnly(right: 8)
+                icon: Image.asset(
+                  forwardIcon,
+                  height: 20,
+                ))
                 : const SizedBox()
           ],
         ),

@@ -35,7 +35,6 @@ class DashboardController extends GetxController with WidgetsBindingObserver {
 
   void updateIndex(int index) {
     currentIndex = index;
-
     update();
   }
 
@@ -43,7 +42,8 @@ class DashboardController extends GetxController with WidgetsBindingObserver {
 
   // --- add: simple skeleton widgets to avoid white frame before nav loads
   List<Widget> get _fallbackScreens => [
-   const ChatHomeShimmer(itemCount: 12)
+   const ChatHomeShimmer(itemCount: 12),
+   const ChatHomeShimmer(itemCount: 12),
   //
   ];
 

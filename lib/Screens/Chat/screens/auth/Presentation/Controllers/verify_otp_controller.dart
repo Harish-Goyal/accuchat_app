@@ -55,7 +55,8 @@ class VerifyOtpController extends GetxController{
         // company may not exist yet on fresh install:
         await s.initSafe(companyId: selCompany?.companyId??0); // <-- works with null/0
         return s;
-      });
+
+      },permanent: true);
 
       if(!Get.isRegistered<CompanyService>()) {
         await StorageService.init();
@@ -146,7 +147,7 @@ class VerifyOtpController extends GetxController{
       startCooldown(); // restart 60s timer
     } catch (e) {
       Get.snackbar('Error', e.toString(),
-          snackPosition: SnackPosition.BOTTOM, duration: const Duration(seconds: 3));
+          snackPosition: SnackPosition.BOTTOM, duration: const Duration(seconds: 6));
     } finally {
       isSending.value = false;
     }

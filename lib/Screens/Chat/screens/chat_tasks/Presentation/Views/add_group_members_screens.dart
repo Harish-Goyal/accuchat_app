@@ -4,8 +4,10 @@ import 'package:AccuChat/utils/custom_flashbar.dart';
 import 'package:AccuChat/utils/loading_indicator.dart';
 import 'package:AccuChat/utils/text_style.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import '../../../../../../Constants/app_theme.dart';
 import '../../../../../../Constants/assets.dart';
 import '../../../../../../main.dart';
 import '../../../../../../utils/networl_shimmer_image.dart';
@@ -25,28 +27,17 @@ class AddGroupMembersScreen extends GetView<AddGroupMemController> {
     return GetBuilder<AddGroupMemController>(
       init: AddGroupMemController()
         ..setData(
-          all: controller.allUsersList,
+          all: controller.filteredList,
           group: controller.members,
           current: controller.myCompany?.userCompanies?.userCompanyId,
         ),
       builder: (controller) {
         return Scaffold(
           backgroundColor: Colors.grey.shade100,
-          appBar: AppBar(
-            title: Text(
-              controller.group?.userCompany?.isGroup == 1
-                  ? 'Add Group Members'
-                  : 'Add Broadcast Members',
-              style: themeData.textTheme.titleMedium,
-            ),
-          ),
-
-          // ******************************
-          // RESPONSIVE CENTER WRAPPER
-          // ******************************
+          appBar: _buildAppBar(),
           body: controller.isLoading
               ? const IndicatorLoading()
-              : controller.allUsersList.isEmpty
+              : controller.filteredList.isEmpty
               ? Center(
             child: Text(
               "No User Found!",
@@ -58,9 +49,9 @@ class AddGroupMembersScreen extends GetView<AddGroupMemController> {
               constraints: const BoxConstraints(maxWidth: 650),
               child: ListView.builder(
                 padding: const EdgeInsets.all(16),
-                itemCount: controller.allUsersList.length,
+                itemCount: controller.filteredList.length,
                 itemBuilder: (context, index) {
-                  final user = controller.allUsersList[index];
+                  final user = controller.filteredList[index];
                   final isSelected = controller.selectedUserIds
                       .contains(user.userCompany?.userCompanyId);
                   final isMe =
@@ -176,6 +167,68 @@ class AddGroupMembersScreen extends GetView<AddGroupMemController> {
           ),
         );
       },
+    );
+  }
+  AppBar _buildAppBar(){
+    return AppBar(
+      automaticallyImplyLeading: false,
+      backgroundColor: Colors.white,   // white color
+      elevation: 1,                    // remove shadow
+      scrolledUnderElevation: 0,       // ✨ prevents color change on scroll
+      surfaceTintColor: Colors.white,
+      title: Obx(
+              () {
+            return controller.isSearching.value
+                ? TextField(
+              controller: controller.searchController,
+              cursorColor: appColorGreen,
+              decoration: const InputDecoration(
+                  border: InputBorder.none,
+                  hintText: 'Search User by name and phone ...',
+                  contentPadding: EdgeInsets.symmetric(
+                      vertical: 0, horizontal: 10),
+                  constraints: BoxConstraints(maxHeight: 45)),
+              autofocus: true,
+              style: const TextStyle(
+                  fontSize: 13, letterSpacing: 0.5),
+              onChanged: (val) {
+                controller.searchText = val;
+                controller.onSearch(val);
+              },
+            ).marginSymmetric(vertical: 10)
+                :
+
+            Text(
+              controller.group?.userCompany?.isGroup == 1
+                  ? 'Add Group Members'
+                  : 'Add Broadcast Members',
+              style: themeData.textTheme.titleMedium,
+            );
+          }
+      ),
+      actions: [
+        Obx(
+                () {
+              return IconButton(
+                  onPressed: () {
+                    controller.isSearching.value = !controller.isSearching.value;
+                    controller.isSearching.refresh();
+
+                    if(!controller.isSearching.value){
+                      controller.searchText = '';
+                      controller.onSearch('');
+                      controller.searchController.clear();
+                    }
+                    // controller.update();
+                  },
+                  icon:  controller.isSearching.value?  const Icon(
+                      CupertinoIcons.clear_circled_solid)
+                      : Image.asset(searchPng,height:25,width:25)
+              );
+            }
+        ),
+
+      ],
     );
   }
 }

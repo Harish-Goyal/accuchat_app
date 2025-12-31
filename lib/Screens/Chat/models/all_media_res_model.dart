@@ -64,7 +64,7 @@ class Items {
   int? id;
   String? source;
   int? sourceId;
-  MediaType? mediaType;
+  MediaTypeAPI? mediaType;
   String? fileName;
   String? uploadedOn;
 
@@ -81,7 +81,7 @@ class Items {
     source = json['source'];
     sourceId = json['source_id'];
     mediaType = json['media_type'] != null
-        ? new MediaType.fromJson(json['media_type'])
+        ? new MediaTypeAPI.fromJson(json['media_type'])
         : null;
     fileName = json['file_name'];
     uploadedOn = json['uploaded_on'];
@@ -101,14 +101,14 @@ class Items {
   }
 }
 
-class MediaType {
+class MediaTypeAPI {
   int? id;
   String? code;
   String? name;
 
-  MediaType({this.id, this.code, this.name});
+  MediaTypeAPI({this.id, this.code, this.name});
 
-  MediaType.fromJson(Map<String, dynamic> json) {
+  MediaTypeAPI.fromJson(Map<String, dynamic> json) {
     id = json['id'];
     code = json['code'];
     name = json['name'];

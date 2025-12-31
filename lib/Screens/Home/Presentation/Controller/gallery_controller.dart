@@ -101,7 +101,7 @@ class GalleryController extends GetxController {
 
   // Replace with your preview/viewer
   void openLeaf(GalleryNode node) {
-    Get.snackbar('Open', node.name, snackPosition: SnackPosition.BOTTOM);
+    Get.snackbar('Open', node.name, snackPosition: SnackPosition.BOTTOM,duration: Duration(seconds: 6));
   }
 
   final TextEditingController searchCtrl = TextEditingController();

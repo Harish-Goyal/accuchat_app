@@ -52,11 +52,10 @@ class InitBinding extends Bindings {
       try {
         final svc = CompanyService.to;
         // OPTIONAL: if you add a `Future<void> ready` in CompanyService, await it here:
-        // await svc.ready;
         selCompany = svc.selected; // may be null on clean install
       } catch (_) {}
       // company may not exist yet on fresh install:
-      await s.initSafe(companyId: selCompany?.companyId??0); // <-- works with null/0
+      await s.initSafe(companyId: selCompany?.companyId??0);
       return s;
     }, permanent: true);
   }

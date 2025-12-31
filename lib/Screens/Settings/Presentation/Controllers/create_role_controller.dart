@@ -90,7 +90,7 @@ class CreateRoleController extends GetxController {
   void onSubmit() {
     if (roleNameController.text.isEmpty || selectedPermission == null) {
       Get.snackbar('Validation Error', 'Please fill all fields',
-          snackPosition: SnackPosition.BOTTOM);
+          snackPosition: SnackPosition.BOTTOM,duration: Duration(seconds: 6));
       return;
     }
 

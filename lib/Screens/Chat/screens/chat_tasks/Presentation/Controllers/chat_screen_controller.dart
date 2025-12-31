@@ -19,12 +19,14 @@ import '../../../../../../Services/APIs/local_keys.dart';
 import '../../../../../../Services/APIs/post/post_api_service_impl.dart';
 import '../../../../../../main.dart';
 import '../../../../../../routes/app_routes.dart';
+import '../../../../../../utils/chat_presence.dart';
 import '../../../../../../utils/custom_flashbar.dart';
 import '../../../../../../utils/helper.dart';
 import '../../../../../../utils/helper_widget.dart';
 import '../../../../../Home/Presentation/Controller/company_service.dart';
 import '../../../../../Home/Presentation/Controller/socket_controller.dart';
 import '../../../../api/apis.dart';
+import '../../../../helper/dialogs.dart';
 import '../../../../models/gallery_create.dart';
 import '../../../../models/message.dart';
 import '../../../../models/get_company_res_model.dart';
@@ -275,7 +277,7 @@ class ChatScreenController extends GetxController {
       Get.snackbar('Saved', 'Item saved to "${chosen.name}"',
           snackPosition: SnackPosition.BOTTOM,
           backgroundColor: Colors.white,
-          colorText: Colors.black87);
+          colorText: Colors.black87,duration: Duration(seconds: 6));
     }
   }
 
@@ -304,32 +306,13 @@ class ChatScreenController extends GetxController {
     super.onInit();
     Get.find<ChatHomeController>()
         .isOnRecentList.value = false;
-    // if (kIsWeb) {
-    //   // web pe type karte hi yehi node focused rahe
-    //   focusNode.requestFocus();
-    // }
     replyToMessage = null;
     getArguments();
 
     if (kIsWeb) {
       user = Get.find<ChatHomeController>().selectedChat.value;
-      // _initScroll();
     }
 
-    // markAllVisibleAsReadOnOpen();
-
-    // WidgetsBinding.instance.addPostFrameCallback((_) {
-    //   // for (ChatHisList? m in chatHisList??[]) {
-    //   //   // if (/*m?.fromUser?.userId != APIs.me.userId && */ m?.readOn == null && _alreadyEmitted.add(m?.chatId??0)) {
-    //   //     Get.find<SocketController>().readMsgEmitter(chatId: m?.chatId??0);
-    //   //   // }
-    //   // }
-    //   for (final m in (chatHisList ?? [])) {
-    //     // if (m.readOn == null && _alreadyEmitted.add(m.chatId)) {
-    //     Get.find<SocketController>().readMsgEmitter(chatId: m.chatId); // your existing emitter
-    //     // }
-    //   }
-    // });
     scrollListener();
 
 
@@ -364,7 +347,7 @@ class ChatScreenController extends GetxController {
   void markAllVisibleAsReadOnOpen(toUcID, fromUcId, isGroupChat) {
     Get.find<SocketController>().connectUserEmitter(myCompany?.companyId);
     Get.find<SocketController>().readMsgEmitter(
-        ucID: toUcID,
+        toucID: toUcID,
         fromUcID: fromUcId,
         companyId: myCompany?.companyId,
         is_group_chat: isGroupChat);
@@ -372,6 +355,9 @@ class ChatScreenController extends GetxController {
 
   @override
   void onClose() {
+    if (ChatPresence.activeChatId == user?.userCompany?.userCompanyId) {
+      ChatPresence.activeChatId = null;
+    }
     super.onClose();
     newFolderCtrl.dispose();
     // scrollController.dispose();
@@ -394,8 +380,10 @@ class ChatScreenController extends GetxController {
       }
     } else {
       if (Get.arguments != null) {
-        final argUser = Get.arguments['user'];
+        UserDataAPI argUser = Get.arguments['user'];
+        user = argUser;
         if (argUser != null) {
+          ChatPresence.activeChatId = argUser.userCompany?.userCompanyId;
           openConversation(argUser);
         }
       }
@@ -408,6 +396,8 @@ class ChatScreenController extends GetxController {
         .then((value) async {
       user = value.data;
       openConversation(user);
+      ChatPresence.activeChatId = user?.userCompany?.userCompanyId;
+      print("ChatPresence ===== ${ChatPresence.activeChatId }");
       update();
     }).onError((error, stackTrace) {
       update();
@@ -987,7 +977,7 @@ class ChatScreenController extends GetxController {
     uploadProgress = 0.0;
     update();
   }
-
+   int maxBytes = 15 * 1024 * 1024; // 10MB
   Future<void> pickDocument() async {
     final permission = await requestStoragePermission();
     if (!permission) {
@@ -999,7 +989,7 @@ class ChatScreenController extends GetxController {
     update();
 
     final result = await FilePicker.platform.pickFiles(
-      allowMultiple: true,
+      allowMultiple: false,
       type: FileType.custom,
       allowCompression: true,
       compressionQuality: 60,
@@ -1033,6 +1023,20 @@ class ChatScreenController extends GetxController {
         'RAR',
       ],
     );
+    if (result == null || result.files.isEmpty) return;
+
+    final f = result.files.single;
+
+    // ✅ Scenario 1: path missing
+    if (f.path == null) {
+      errorDialog("❌ File path not found");
+      return;
+    }
+    final actualBytes = await File(f.path!).length(); // reliable on mobile
+    if (actualBytes > maxBytes) {
+      Dialogs.showSnackbar(Get.context!, "❌ File must be less than 15 MB");
+      return;
+    }
 
     if (result != null && result.files.single.path != null) {
       File file = File(result.files.single.path!);
@@ -1090,7 +1094,7 @@ class ChatScreenController extends GetxController {
         me?.userCompany?.userCompanyId != null &&
         targetUcId == me?.userCompany?.userCompanyId) {
       Get.snackbar('Oops', 'You cannot forward a message to yourself.',
-          backgroundColor: Colors.white, colorText: Colors.black);
+          backgroundColor: Colors.white, colorText: Colors.black,duration: Duration(seconds: 6));
       return;
     }
 
@@ -1222,7 +1226,7 @@ class ChatScreenController extends GetxController {
   void _toast(String msg) {
     // Plug your toast/snackbar here
     // e.g., Get.snackbar('Info', msg); or your existing toast()
-    Get.snackbar('AccuChat', msg, snackPosition: SnackPosition.BOTTOM);
+    Get.snackbar('AccuChat', msg, snackPosition: SnackPosition.BOTTOM,duration: Duration(seconds: 6));
   }
 }
 

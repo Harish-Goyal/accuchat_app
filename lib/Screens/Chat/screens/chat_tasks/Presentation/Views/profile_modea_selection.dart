@@ -212,73 +212,67 @@ class _MediaGrid extends StatelessWidget {
         final cols = _columnsForWidth(constraints.maxWidth);
 
         // remove glow + use platform-appropriate physics (bouncing on mobile, clamping on web)
-        return ScrollConfiguration(
-          behavior: const ScrollBehavior().copyWith(
-            overscroll: false,
-            physics: kIsWeb ? const ClampingScrollPhysics() : const BouncingScrollPhysics(),
+        return GridView.builder(
+          physics: kIsWeb ? const ClampingScrollPhysics() : const BouncingScrollPhysics(),
+          controller: controller.scrollController,
+          padding: const EdgeInsets.only(bottom: 8, left: 8, right: 8, top: 8),
+          gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+            crossAxisCount: cols,
+            crossAxisSpacing: 8,
+            mainAxisSpacing: 8,
+            childAspectRatio: 1, // keep squares; adjust if you want cards
           ),
-          child: GridView.builder(
-            physics: kIsWeb ? const ClampingScrollPhysics() : const BouncingScrollPhysics(),
-            controller: controller.scrollController,
-            padding: const EdgeInsets.only(bottom: 8, left: 8, right: 8, top: 8),
-            gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-              crossAxisCount: cols,
-              crossAxisSpacing: 8,
-              mainAxisSpacing: 8,
-              childAspectRatio: 1, // keep squares; adjust if you want cards
-            ),
-            itemCount: items.length,
-            itemBuilder: (_, i) {
-              final m = items[i];
-              final url = '$baseUrl${m.fileName ?? ''}';
-              return InkWell(
-                onTap: (){
-                  Get.to(
-                        () => GalleryViewerPage(
-                      isChat: true,
-                      onReply: (){
+          itemCount: items.length,
+          itemBuilder: (_, i) {
+            final m = items[i];
+            final url = '$baseUrl${m.fileName ?? ''}';
+            return InkWell(
+              onTap: (){
+                Get.to(
+                      () => GalleryViewerPage(
+                    isChat: true,
+                    onReply: (){
 
-                        Get.back();
-                        // controller.refIdis = data.chatId;
-                        // controller.userIDSender =
-                        //     data.fromUser?.userId;
-                        // controller.userNameReceiver =
-                        //     data.toUser?.displayName ?? '';
-                        // controller.userNameSender =
-                        //     data.fromUser?.displayName ?? '';
-                        // controller.userIDReceiver =
-                        //     data.toUser?.userId;
-                        // controller.replyToMessage =data;
-                      },),
-                    binding: BindingsBuilder(() {
-                      Get.put(GalleryViewerController(
-                          urls: items.map((v)=>"${ApiEnd.baseUrlMedia}${v.fileName}").toList()
-                          , index: i,
-                          chathis: ChatHisList()));
-                    }),
-                    fullscreenDialog: true,
-                    transition: Transition.fadeIn,
-                  );
-                },
-                child: Container(
-                  decoration: BoxDecoration(
-                    border: Border.all(color:greyColor, width: 1),
-                    borderRadius: BorderRadius.circular(8),
-                  ),
-                  clipBehavior: Clip.antiAlias,
-                  child: CustomCacheNetworkImage(
-                    url,
-                    height: double.infinity,
-                    width: double.infinity,
-                    borderWidth: 3,
-                    boxFit: BoxFit.cover,
-                    borderColor: Colors.red,
-                    radiusAll: 8,
-                  ),
+                      Get.back();
+                      // controller.refIdis = data.chatId;
+                      // controller.userIDSender =
+                      //     data.fromUser?.userId;
+                      // controller.userNameReceiver =
+                      //     data.toUser?.displayName ?? '';
+                      // controller.userNameSender =
+                      //     data.fromUser?.displayName ?? '';
+                      // controller.userIDReceiver =
+                      //     data.toUser?.userId;
+                      // controller.replyToMessage =data;
+                    },),
+                  binding: BindingsBuilder(() {
+                    Get.put(GalleryViewerController(
+                        urls: items.map((v)=>"${ApiEnd.baseUrlMedia}${v.fileName}").toList()
+                        , index: i,
+                        chathis: ChatHisList()));
+                  }),
+                  fullscreenDialog: true,
+                  transition: Transition.fadeIn,
+                );
+              },
+              child: Container(
+                decoration: BoxDecoration(
+                  border: Border.all(color:greyColor, width: 1),
+                  borderRadius: BorderRadius.circular(8),
                 ),
-              );
-            },
-          ),
+                clipBehavior: Clip.antiAlias,
+                child: CustomCacheNetworkImage(
+                  url,
+                  height: double.infinity,
+                  width: double.infinity,
+                  borderWidth: 3,
+                  boxFit: BoxFit.cover,
+                  borderColor: Colors.red,
+                  radiusAll: 8,
+                ),
+              ),
+            );
+          },
         );
       },
     );

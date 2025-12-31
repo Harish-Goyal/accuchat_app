@@ -25,57 +25,12 @@ class AllUserScreen extends GetView<AllUserController> {
   @override
   Widget build(BuildContext context) {
     return SafeArea(
-      child: GetBuilder<AllUserController>(
-        builder: (controller) {
-          return Scaffold(
-            appBar: AppBar(
-              title: controller.isSearching
-                  ? TextField(
-                controller: controller.seacrhCon,
-                cursorColor: appColorGreen,
-                decoration: const InputDecoration(
-                    border: InputBorder.none,
-                    hintText: 'Search User...',
-                    contentPadding:
-                    EdgeInsets.symmetric(vertical: 0, horizontal: 10),
-                    constraints: BoxConstraints(maxHeight: 45)),
-                autofocus: true,
-                style:
-                const TextStyle(fontSize: 13, letterSpacing: 0.5),
-                onChanged: (val) {
-                  controller.searchQuery = val;
-                  controller.onSearch(val);
-                },
-              ).marginSymmetric(vertical: 10)
-                  : Text(
-                'Users',
-                style: BalooStyles.balooboldTitleTextStyle(),
-              ),
-              leading: IconButton(
-                  onPressed: () {
-                    Get.offAllNamed(AppRoutes.home);
-                  },
-                  icon: Icon(
-                    Icons.arrow_back,
-                    color: Colors.black,
-                  )),
-              actions: [
-                IconButton(
-                    onPressed: () {
-                      controller.isSearching = !controller.isSearching;
-                      controller.update();
-                    },
-                    icon: Icon(
-                      controller.isSearching
-                          ? CupertinoIcons.clear_circled_solid
-                          : Icons.search,
-                      color: colorGrey,
-                    ).paddingOnly(top: 10, right: 10)),
-              ],
-            ),
+      child: Scaffold(
+            appBar: _buildAppBar(),
 
             // ---------------- WEB RESPONSIVE WRAPPER ADDED ----------------
-            body: Center(
+            body:Obx(
+            () => Center(
               child:controller.isLoading?IndicatorLoading(): ConstrainedBox(
                 constraints: BoxConstraints(
                   maxWidth: kIsWeb ? 600 : double.infinity, // FIX WIDTH ON WEB
@@ -175,10 +130,180 @@ class AllUserScreen extends GetView<AllUserController> {
                 ),
               ),
             ),
+            ),
             // ---------------- END RESPONSIVE WRAPPER ----------------
-          );
-        },
+          )
+    );
+  }
+
+
+
+  AppBar _buildAppBar(){
+   return AppBar(
+      automaticallyImplyLeading: false,
+      backgroundColor: Colors.white,   // white color
+      elevation: 1,                    // remove shadow
+      scrolledUnderElevation: 0,       // ✨ prevents color change on scroll
+      surfaceTintColor: Colors.white,
+      leading: IconButton(
+          onPressed: () {
+            Get.offAllNamed(AppRoutes.home);
+          },
+          icon: Icon(
+            Icons.arrow_back,
+            color: Colors.black,
+          )),
+      title: Obx(
+              () {
+
+            return controller.isSearching.value
+                ? TextField(
+              controller: controller.searchController,
+              cursorColor: appColorGreen,
+              decoration: const InputDecoration(
+                  border: InputBorder.none,
+                  hintText: 'Search User by name and phone ...',
+                  contentPadding: EdgeInsets.symmetric(
+                      vertical: 0, horizontal: 10),
+                  constraints: BoxConstraints(maxHeight: 45)),
+              autofocus: true,
+              style: const TextStyle(
+                  fontSize: 13, letterSpacing: 0.5),
+              onChanged: (val) {
+                controller.searchText = val;
+                controller.onSearch(val);
+              },
+            ).marginSymmetric(vertical: 10)
+                :
+
+            /*   DropdownButtonHideUnderline(
+
+                        child: DropdownButton<CompanyData>(
+                          borderRadius: BorderRadius.circular(12),
+                          value: controller.selectedCompany.value,
+                          isExpanded: true,
+
+                          icon: const Icon(Icons.arrow_drop_down),
+                          dropdownColor: Colors.white,
+                          items: controller.joinedCompaniesList.map((company) {
+                            return DropdownMenuItem<CompanyData>(
+                              value: company,
+                              child: Row(
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  SizedBox(
+                                    width: 40,
+                                    child: CustomCacheNetworkImage(
+                                      "${ApiEnd.baseUrlMedia}${company?.logo ?? ''}",
+                                      radiusAll: 100,
+                                      height: 40,
+                                      width: 40,
+                                      borderColor: appColorYellow,
+
+                                      defaultImage: appIcon,
+                                      boxFit: BoxFit.cover,
+                                    ),
+                                  ),
+                                  hGap(10),
+                                  Column(
+                                    mainAxisSize: MainAxisSize.min,
+                                    crossAxisAlignment: CrossAxisAlignment.start,
+                                    children: [
+                                      Text(
+                                        'Chats',
+                                        style:
+                                        BalooStyles.balooboldTitleTextStyle(
+                                            color: AppTheme.appColor,
+                                            size: 16),
+                                      ).paddingOnly(left: 0, top: 4,bottom: 4),
+                                      Text(
+                                        (company?.companyName ?? '')
+                                            .toUpperCase(),
+                                        style: BalooStyles.baloomediumTextStyle(
+                                            color: appColorYellow,
+                                            size:12
+                                        ),
+                                        maxLines: 1,
+                                        overflow: TextOverflow.ellipsis,
+                                      ),
+                                    ],
+                                  )
+                                ],
+                              ),
+                            );
+                          }).toList(),
+                          onChanged: (CompanyData? companyData) async {
+                            if (companyData == null) return;
+
+                            controller.selectedCompany.value = companyData;
+                            controller.update();
+
+                            // --- 🔥 YOUR CHANGE LOGIC ---
+                            customLoader.show();
+
+                            controller.hitAPIToGetSentInvites(
+                              companyData: companyData,
+                              isMember: false,
+                            );
+
+                            final svc = CompanyService.to;
+                            await svc.select(companyData);
+
+                            controller.getCompany();
+
+                            await APIs.refreshMe(companyId: companyData?.companyId??0);
+
+                            Get.find<SocketController>()
+                                .connectUserEmitter(companyData.companyId);
+
+                            controller.resetPaginationForNewChat();
+                            controller.hitAPIToGetRecentChats();
+
+
+                            // Get.find<ChatScreenController>().getArguments();
+                            //
+                            // if (kIsWeb) {
+                            //   Get.find<ChatScreenController>().user = Get.find<ChatHomeController>().selectedChat.value;
+                            //   // _initScroll();
+                            // }
+                            // Get.find<ChatScreenController>().onInit();
+
+                            Get.find<ChatHomeController>().update();
+                            Get.find<ChatScreenController>().update();
+                            customLoader.hide();
+                          },
+                        ),
+                      )*/
+
+            Text(
+              'Users',
+              style: BalooStyles.balooboldTitleTextStyle(),
+            );
+          }
       ),
+      actions: [
+        Obx(
+                () {
+              return IconButton(
+                  onPressed: () {
+                    controller.isSearching.value = !controller.isSearching.value;
+                    controller.isSearching.refresh();
+
+                    if(!controller.isSearching.value){
+                      controller.searchText = '';
+                      controller.onSearch('');
+                      controller.searchController.clear();
+                    }
+                    // controller.update();
+                  },
+                  icon:  controller.isSearching.value?  const Icon(
+                      CupertinoIcons.clear_circled_solid)
+                      : Image.asset(searchPng,height:25,width:25)
+              );
+            }
+        ),
+
+      ],
     );
   }
 }

@@ -195,7 +195,8 @@ class ChatMessageMedia extends StatelessWidget {
           /*_BubbleWrapper(
             fromId: fromId,
             myId: myId,
-            child:*/ _FileTiles(
+            child:*/
+          _FileTiles(
               labelColorForSender: fromId == myId ? Colors.green : Colors.purple,
               showHeaderName: isGroupMessage,
               whoText: fromId == myId ? 'You' : (senderName ?? ''),
@@ -391,7 +392,7 @@ class _FileTiles extends StatelessWidget {
 
           // ✅ nicer hover + pointer on web
           final tile = Transform.translate(
-            offset: Offset(0, -13),
+            offset: Offset(0, kIsWeb?-13:-10),
             child: InkWell(
               onTap: () => onTap(item),
               child: Container(
@@ -419,7 +420,7 @@ class _FileTiles extends StatelessWidget {
                             overflow: TextOverflow.ellipsis,
                             style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w600),
                           ),
-                          const SizedBox(height: 4),
+                          // const SizedBox(height: 4),
                           Row(
                             mainAxisSize: MainAxisSize.min,
                             children: [

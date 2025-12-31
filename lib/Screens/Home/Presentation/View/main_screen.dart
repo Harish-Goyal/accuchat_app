@@ -49,7 +49,7 @@ class AccuChatDashboard extends StatelessWidget {
             ? null
             : controller.screens.isEmpty
                 ? const SizedBox()
-                : _bottomNavigationBar(),
+                : _bottomNavigationBar(isWideScreen),
       );
     }));
   }
@@ -208,7 +208,7 @@ class AccuChatDashboard extends StatelessWidget {
         ));
   }*/
 
-  SnakeNavigationBar _bottomNavigationBar() {
+  SnakeNavigationBar _bottomNavigationBar(bool isWide) {
     return SnakeNavigationBar.gradient(
       behaviour: SnakeBarBehaviour.floating,
       backgroundGradient: LinearGradient(colors: [
@@ -244,12 +244,12 @@ class AccuChatDashboard extends StatelessWidget {
               Get.find<TaskHomeController>().hitAPIToGetRecentTasksUser();
             }
             if (Get.isRegistered<TaskController>()) {
-              if (kIsWeb) {
+              if (kIsWeb && isWide) {
                 Get.find<TaskController>().page = 1;
                 Get.find<TaskController>().hitAPIToGetTaskHistory();
               }
             } else {
-              if (kIsWeb) {
+              if (kIsWeb && isWide) {
                 Get.put(TaskController(user: controller.user));
                 Get.find<TaskController>().page = 1;
                 Get.find<TaskController>().hitAPIToGetTaskHistory();
@@ -265,12 +265,12 @@ class AccuChatDashboard extends StatelessWidget {
               Get.find<ChatHomeController>().hitAPIToGetRecentChats(page: 1);
             }
             if (Get.isRegistered<ChatScreenController>()) {
-              if (kIsWeb) {
+              if (kIsWeb && isWide) {
                 Get.find<ChatScreenController>().page = 1;
                 Get.find<ChatScreenController>().hitAPIToGetChatHistory();
               }
             } else {
-              if (kIsWeb) {
+              if (kIsWeb && isWide) {
                 Get.put(ChatScreenController(user: controller.user));
                 Get.find<ChatScreenController>().page = 1;
                 Get.find<ChatScreenController>().hitAPIToGetChatHistory();
@@ -299,9 +299,14 @@ Widget buildSideNav(DashboardController controller) {
             if (isSetting) {
               Get.toNamed(AppRoutes.all_settings);
             }
-            if (index == 1 && !isTaskMode) {
+            if (index == 1 ) {
+              print("==tapped=");
               isTaskMode = true;
               Get.toNamed(AppRoutes.home);
+              final taskC = Get.find<TaskController>();
+              final taskHomeC = Get.find<TaskHomeController>();
+              taskC.hitAPIToGetTaskHistory();
+              // taskHomeC.
 
             /*  final taskC = Get.find<TaskController>();
               final taskHomeC = Get.find<TaskHomeController>();
@@ -320,7 +325,8 @@ Widget buildSideNav(DashboardController controller) {
 
               controller.update();
             } else if (index == 0 && isTaskMode) {
-              isTaskMode = true;
+              print("==tapped=2222");
+              isTaskMode = false;
               Get.toNamed(AppRoutes.home);
               /*final taskC = Get.find<ChatScreenController>();
               final taskHomeC = Get.find<ChatHomeController>();

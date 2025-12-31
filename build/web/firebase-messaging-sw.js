@@ -1,7 +1,6 @@
-/* web/firebase-messaging-sw.js */
 /* eslint-disable no-undef */
-importScripts('https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js');
-importScripts('https://www.gstatic.com/firebasejs/10.12.0/firebase-messaging-compat.js');
+importScripts('https://www.gstatic.com/firebasejs/10.13.2/firebase-app-compat.js');
+importScripts('https://www.gstatic.com/firebasejs/10.13.2/firebase-messaging-compat.js');
 
 /* Web config: use the SAME values as in firebase_options.dart (web section) */
 firebase.initializeApp({
@@ -17,9 +16,58 @@ firebase.initializeApp({
 const messaging = firebase.messaging();
 
 messaging.onBackgroundMessage((payload) => {
+  console.log("[sw] onBackgroundMessage", payload);
+
+  const title = (payload.notification && payload.notification.title) || "New notification";
+  const options = {
+    body: payload.notification?.body,
+    data: payload.data || {}, // keep data for click
+  };
+
+  self.registration.showNotification(title, options);
+});
+
+// 2) Notification click
+self.addEventListener("notificationclick", (event) => {
+  console.log("[sw] notificationclick", event.notification.data);
+
+  const data = event.notification.data || {};
+  const params = new URLSearchParams(data).toString();
+  console.log('params',params);
+  // Put your deep link here (best: a URL that includes query params)
+  const url =  "#/notification?${params}");
+
+  event.notification.close();
+
+  event.waitUntil(
+    clients.matchAll({ type: "window", includeUncontrolled: true }).then((clientList) => {
+      // Focus existing tab if already open
+      for (const client of clientList) {
+        if (client.url.startsWith(self.location.origin)) {
+          client.focus();
+          // optional: tell the page what was clicked
+          client.postMessage({ type: "PUSH_CLICK", data });
+          return;
+        }
+      }
+      // Otherwise open new tab
+      return clients.openWindow(url);
+    })
+  );
+});
+
+
+/*
+messaging.onBackgroundMessage((payload) => {
+console.log('🔥 BACKGROUND MESSAGE RECEIVED');
+console.log('Payload:', payload);
+
   const data = payload.data || {};
   const title = (payload.notification && payload.notification.title) || "New message";
   const body  = (payload.notification && payload.notification.body) || "";
+ console.log('Data:', data);
+  console.log('Title:', title);
+  console.log('Body:', body);
 
   self.registration.showNotification(title, {
     body,
@@ -29,27 +77,37 @@ messaging.onBackgroundMessage((payload) => {
 
 // click -> open your app with query params
 self.addEventListener('notificationclick', (event) => {
+  console.log('👉 NOTIFICATION CLICKED');
   event.notification.close();
 
   const data = event.notification.data || {};
+  console.log('Click Data:', data);
+
   const params = new URLSearchParams(data).toString();
+  console.log('Query Params:', params);
+
 
   // NOTE: if app is hosted in subfolder, change path accordingly
   const urlToOpen = `/#/notification?${params}`;
 
   event.waitUntil((async () => {
-    const allClients = await clients.matchAll({ type: 'window', includeUncontrolled: true });
-    for (const client of allClients) {
-      // focus existing tab if already open
-      if ('focus' in client) {
-        client.navigate(urlToOpen);
-        return client.focus();
-      }
+    const clientsArr = await clients.matchAll({
+      type: 'window',
+      includeUncontrolled: true
+    });
+
+    for (const client of clientsArr) {
+      console.log('Existing client found:', client.url);
+      await client.navigate(urlToOpen);
+      return client.focus();
     }
-    // else open new tab
-    if (clients.openWindow) return clients.openWindow(urlToOpen);
+
+    console.log('Opening new window');
+    return clients.openWindow(urlToOpen);
   })());
 });
+
+*/
 
 
 

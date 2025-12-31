@@ -90,10 +90,19 @@ class _ChatUserCardMobileState extends State<ChatUserCardMobile>
             //for navigating to chat screen
             // APIs.updateActiveStatus(true);
             if(isTaskMode) {
-              Get.toNamed(AppRoutes.tasks_li_r,arguments: {'user':widget.user});
+              if(kIsWeb){
+                Get.toNamed("${AppRoutes.tasks_li_r}?userId=${widget.user?.userId.toString()}");
+              }else{
+                Get.toNamed(AppRoutes.tasks_li_r,arguments: {'user':widget.user});
+              }
+
             }else{
-              // Get.find<ChatScreenController>().openConversation(widget.user);
+              if(kIsWeb){
+                Get.toNamed("${AppRoutes.chats_li_r}?userId=${widget.user?.userId.toString()}");
+              }else{
                 Get.toNamed(AppRoutes.chats_li_r,arguments: {'user':widget.user});
+              }
+
             }
           },
           child:/*ListTile(

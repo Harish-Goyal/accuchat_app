@@ -18,6 +18,8 @@ class AllUserScreenDialog extends GetView<AllUserController> {
 
   List<TaskMember>? users;
 
+  AllUserController controller  = Get.put(AllUserController());
+
   @override
   Widget build(BuildContext context) {
     return Center(   // <-- NEW
@@ -25,20 +27,7 @@ class AllUserScreenDialog extends GetView<AllUserController> {
         constraints: const BoxConstraints(
           maxWidth: 420,      // WEB me width control
         ),
-        child: GetBuilder<AllUserController>(
-            init: AllUserController(),
-            builder: (controller) {
-              final selectedIds = users?.map((m) => m.userCompanyId).toSet();
-
-              // final listToShow = controller.searchQuery.isEmpty
-              //     ? controller.userList
-              //     : controller.filteredList;
-
-              final listToShow =(users??[]).isEmpty?controller.userList: controller.filteredList.where(
-                    (u) => !selectedIds!.contains(u.userCompany?.userCompanyId??0),
-              ).toList();
-
-              return Container(
+        child:  Container(
                 margin: const EdgeInsets.symmetric(horizontal: 20, vertical: 30),
                 decoration: BoxDecoration(
                   borderRadius: BorderRadius.circular(12),
@@ -46,111 +35,130 @@ class AllUserScreenDialog extends GetView<AllUserController> {
                 ),
                 child: Column(
                   children: [
-                    Row(
-                      mainAxisSize: MainAxisSize.min,
+                   Obx(()=> Row(
+                        mainAxisSize: MainAxisSize.min,
 
-                      children: [
-                        controller.isSearching
-                            ? Expanded(
-                                flex: 4,
-                                child: TextField(
-                                  controller: controller.seacrhCon,
-                                  cursorColor: appColorGreen,
-                                  decoration: const InputDecoration(
-                                      border: InputBorder.none,
-                                      hintText: 'Search User...',
-                                      contentPadding: EdgeInsets.symmetric(
-                                          vertical: 0, horizontal: 10),
-                                      constraints: BoxConstraints(maxHeight: 45)),
-                                  autofocus: true,
-                                  style: const TextStyle(
-                                      fontSize: 13, letterSpacing: 0.5),
-                                  onChanged: (val) {
-                                    controller.searchQuery = val;
-                                    controller.onSearch(val);
-                                  },
-                                ).marginSymmetric(vertical: 10),
-                              )
-                            : Expanded(
-                                flex: 4,
-                                child: Text(
-                                  'Forwarded to',
-                                  style: TextStyle(
-                                      color: Colors.black,
-                                      fontWeight: FontWeight.bold,
-                                      fontSize: 18),
-                                ).paddingOnly(left: 8, top: 10),
-                              ),
-                        Expanded(
-                          child: IconButton(
-                              onPressed: () {
-                                controller.isSearching = !controller.isSearching;
-                                controller.update();
-                              },
-                              icon: Icon(
-                                controller.isSearching
-                                    ? CupertinoIcons.clear_circled_solid
-                                    : Icons.search,
-                                color: colorGrey,
-                              ).paddingOnly(top: 10, right: 10)),
-                        ),
-                      ],
+                        children: [
+                          controller.isSearching.value
+                              ? Expanded(
+                                  flex: 4,
+                                  child: TextField(
+                                    controller: controller.searchController,
+                                    cursorColor: appColorGreen,
+                                    decoration: const InputDecoration(
+                                        border: InputBorder.none,
+                                        hintText: 'Search User...',
+                                        contentPadding: EdgeInsets.symmetric(
+                                            vertical: 0, horizontal: 10),
+                                        constraints: BoxConstraints(maxHeight: 45)),
+                                    autofocus: true,
+                                    style: const TextStyle(
+                                        fontSize: 13, letterSpacing: 0.5),
+                                    onChanged: (val) {
+                                      controller.searchText = val;
+                                      controller.onSearch(val);
+                                    },
+                                  ).marginSymmetric(vertical: 10),
+                                )
+                              : Expanded(
+                                  flex: 4,
+                                  child: Text(
+                                    'Forwarded to',
+                                    style: TextStyle(
+                                        color: Colors.black,
+                                        fontWeight: FontWeight.bold,
+                                        fontSize: 18),
+                                  ).paddingOnly(left: 8, top: 10),
+                                ),
+                          Expanded(
+                            child: IconButton(
+                                onPressed: () {
+                                  controller.isSearching.value = !controller.isSearching.value;
+                                  controller.isSearching.refresh();
+
+                                  if(!controller.isSearching.value){
+                                    controller.searchText = '';
+                                    controller.onSearch('');
+                                    controller.searchController.clear();
+                                  }
+                                },
+                                icon: Icon(
+                                  controller.isSearching.value
+                                      ? CupertinoIcons.clear_circled_solid
+                                      : Icons.search,
+                                  color: colorGrey,
+                                ).paddingOnly(top: 10, right: 10)),
+                          ),
+                        ],
+                      ),
                     ),
                     Expanded(
-                      child: ListView.builder(
-                        itemCount: listToShow.length,
-                        itemBuilder: (_, i) => ListTile(
-                          leading: SizedBox(
-                            width: 50,
-                            child: CustomCacheNetworkImage(
-                              "${ApiEnd.baseUrlMedia}${listToShow[i].userImage ?? ''}",
-                              height: 50,
-                              width: 50,
-                              radiusAll: 100,
-                              boxFit: BoxFit.cover,
-                              borderColor: greyText,
-                              defaultImage:listToShow[i].userCompany?.isGroup==1?groupIcn:
-                              listToShow[i].userCompany?.isBroadcast==1?
-                                  broadcastIcon
-                              :userIcon,
-                            ),
-                          ),
-                          title:
-                          listToShow[i].displayName!=null?  Text(
-                             listToShow[i].displayName ?? '',
+                      child: Obx((){
+                        final selectedIds = users?.map((m) => m.userCompanyId).toSet();
 
-                            style: themeData.textTheme.bodySmall,
-                          ):Text(
-                            listToShow[i].email != null
-                                ? listToShow[i].email ?? ''
-                                : listToShow[i].phone ?? '',
-                            style: themeData.textTheme.bodySmall
-                                ?.copyWith(color: Colors.black87),
+                        // final listToShow = controller.searchQuery.isEmpty
+                        //     ? controller.userList
+                        //     : controller.filteredList;
+
+                        final listToShow =(users??[]).isEmpty?controller.filteredList: controller.filteredList.where(
+                              (u) => !selectedIds!.contains(u.userCompany?.userCompanyId??0),
+                        ).toList();
+                        return  ListView.builder(
+                          itemCount: listToShow.length,
+                          itemBuilder: (_, i) => ListTile(
+                            leading: SizedBox(
+                              width: 50,
+                              child: CustomCacheNetworkImage(
+                                "${ApiEnd.baseUrlMedia}${listToShow[i].userImage ?? ''}",
+                                height: 50,
+                                width: 50,
+                                radiusAll: 100,
+                                boxFit: BoxFit.cover,
+                                borderColor: greyText,
+                                defaultImage:listToShow[i].userCompany?.isGroup==1?groupIcn:
+                                listToShow[i].userCompany?.isBroadcast==1?
+                                broadcastIcon
+                                    :userIcon,
+                              ),
+                            ),
+                            title:
+                            listToShow[i].displayName!=null?  Text(
+                              listToShow[i].displayName ?? '',
+
+                              style: themeData.textTheme.bodySmall,
+                            ):Text(
+                              listToShow[i].email != null
+                                  ? listToShow[i].email ?? ''
+                                  : listToShow[i].phone ?? '',
+                              style: themeData.textTheme.bodySmall
+                                  ?.copyWith(color: Colors.black87),
+                            ),
+                            subtitle:listToShow[i].displayName!=null||listToShow[i].displayName!=""? Text(
+                              listToShow[i].email != null
+                                  ? listToShow[i].email ?? ''
+                                  : listToShow[i].phone ?? '',
+                              style: themeData.textTheme.bodySmall
+                                  ?.copyWith(color: greyText),
+                            ):SizedBox(),
+                            onTap: () {
+                              /* Navigator.push(
+                                    context,
+                                    MaterialPageRoute(
+                                      builder: (_) => ChatScreen(user: listToShow[i]),
+                                    ),
+                                  );
+                                    */
+                              Navigator.pop(context, listToShow[i]);
+                            },
                           ),
-                          subtitle:listToShow[i].displayName!=null||listToShow[i].displayName!=""? Text(
-                            listToShow[i].email != null
-                                ? listToShow[i].email ?? ''
-                                : listToShow[i].phone ?? '',
-                            style: themeData.textTheme.bodySmall
-                                ?.copyWith(color: greyText),
-                          ):SizedBox(),
-                          onTap: () {
-                            /* Navigator.push(
-                                  context,
-                                  MaterialPageRoute(
-                                    builder: (_) => ChatScreen(user: listToShow[i]),
-                                  ),
-                                );
-            */
-                            Navigator.pop(context, listToShow[i]);
-                          },
-                        ),
+                        );
+              }
+
                       ),
                     )
                   ],
                 ).paddingAll(15),
-              );
-            }),
+              )
       ),
     );
   }

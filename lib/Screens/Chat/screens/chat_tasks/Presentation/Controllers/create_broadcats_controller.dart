@@ -1,3 +1,6 @@
+import 'dart:async';
+
+import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
 import 'package:get/get.dart';
 import 'package:flutter/material.dart';
@@ -22,6 +25,7 @@ class CreateBroadcastsController extends GetxController{
   @override
   void onInit() {
     super.onInit();
+    scrollListener();
     _getCompany();
     _getMe();
     
@@ -44,21 +48,100 @@ class CreateBroadcastsController extends GetxController{
 
   bool isLoading = false;
 
-  ComMemResModel comMemResModel = ComMemResModel();
-  List<UserDataAPI> allUsers=[];
+  //Start
+  late ScrollController scrollController;
+  bool isPageLoading =false;
+  bool hasMore =false;
+  int page = 1;
+  String searchText = '';
 
-  hitAPIToGetMember() async {
+  RxBool isSearching = false.obs;
+  Timer? searchDelay;
+  void onSearch(String query) {
+    searchDelay?.cancel();
+    searchDelay = Timer(const Duration(milliseconds: 400), () {
+      searchText = query.trim().toLowerCase();
+      page = 1;
+      hasMore = false;
+      filteredList.clear();
+      hitAPIToGetMember(search: searchText.isEmpty ? null : searchText,);
+    });
+  }
+
+  scrollListener() {
+    if (kIsWeb) {
+      scrollController.addListener(() {
+        if (scrollController.position.pixels >=
+            scrollController.position.maxScrollExtent - 100 &&
+            !isPageLoading && hasMore) {
+          // resetPaginationForNewChat();
+          hitAPIToGetMember();
+        }
+      });
+    } else {
+      scrollController.addListener(() {
+        if (!scrollController.hasClients) return;
+
+        final position = scrollController.position;
+
+        if (position.maxScrollExtent >0) {
+          if (!isPageLoading && hasMore) {
+            hitAPIToGetMember();
+          }
+        }
+      });
+    }
+  }
+  void resetPaginationForNewChat() {
+    page = 1;
+    hasMore = true;
+    members.clear();
+    filteredList.clear();
     isLoading = true;
     update();
+  }
+
+  var filteredList = <UserDataAPI>[].obs;
+  ComMemResModel comMemResModel = ComMemResModel();
+  TextEditingController searchController = TextEditingController();
+  List<UserDataAPI> members=[];
+
+  hitAPIToGetMember({search}) async {
+
+    if(page==1){
+      isLoading = true;
+      filteredList.clear();
+    }
+    isPageLoading = true;
+    update();
     Get.find<PostApiServiceImpl>()
-        .getComMemApiCall(myCompany?.companyId)
+        .getComMemApiCall(myCompany?.companyId,page,search)
         .then((value) async {
       isLoading = false;
-      comMemResModel=value;
-      allUsers = value.data??[];
       update();
+      comMemResModel=value;
+      members=value.data?.records??[];
+      if (members != null && (members ?? []).isNotEmpty) {
+        if (page == 1) {
+          filteredList.assignAll(members??[]);
+        } else {
+          filteredList.addAll(members??[]);
+        }
+
+        page++; // next page
+      } else {
+        hasMore = false;
+        isPageLoading = false;
+        update();
+      }
+      isLoading = false;
+      isPageLoading = false;
+      update();
+
     }).onError((error, stackTrace) {
       isLoading = false;
+      isPageLoading = false;
+      update();
       update();
     });
   }

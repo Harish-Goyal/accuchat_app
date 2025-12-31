@@ -31,9 +31,6 @@ class ChatHomeController extends GetxController{
 
   Rxn<UserDataAPI> selectedChat = Rxn<UserDataAPI>();
 
-  List<ChatUser> list = [];
-  List<ChatGroup> grouplist = [];
-  final List<ChatUser> searchList = [];
   RxBool isSearching = false.obs;
   // RxBool loadingCompany = false.obs;
   String? selectedCompanyId;
@@ -72,8 +69,8 @@ class ChatHomeController extends GetxController{
   }
   @override
   void onInit() {
-    super.onInit();isOnRecentList.value = true;
-
+    super.onInit();
+    isOnRecentList.value = true;
     resetPagination();
     scrollController = ScrollController();
     getCompany();
@@ -289,6 +286,8 @@ class ChatHomeController extends GetxController{
 
 
 }
+
+
 
 
 class AuthGuard extends GetMiddleware {

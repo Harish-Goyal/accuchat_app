@@ -480,7 +480,7 @@ class TaskScreenMobile extends GetView<TaskController> {
                   opacity: 1.0,
                   duration: const Duration(milliseconds: 2000),
                   child: Padding(
-                    padding: const EdgeInsets.only(left: 12.0, top: 4),
+                    padding: const EdgeInsets.only(left: 0.0, top: 4),
                     child: Text(
                       "👆Tap to update status",
                       style: TextStyle(
@@ -490,7 +490,7 @@ class TaskScreenMobile extends GetView<TaskController> {
                       ),
                     ),
                   ),
-                ).paddingSymmetric(horizontal: 15),
+                ).paddingSymmetric(horizontal: 12),
               Row(
                 mainAxisSize: MainAxisSize.min,
                 children: [
@@ -959,7 +959,7 @@ class TaskScreenMobile extends GetView<TaskController> {
                 CustomCacheNetworkImage(
                   radiusAll: 100,
                   "${ApiEnd.baseUrlMedia}${controller.user?.userImage ?? ''}",
-                  height: _avatarSize(Get.context!), // ✅ responsive avatar
+                  height: _avatarSize(Get.context!),
                   width: _avatarSize(Get.context!),
                   boxFit: BoxFit.cover,
                   defaultImage: controller.user?.userCompany?.isGroup == 1
@@ -967,16 +967,16 @@ class TaskScreenMobile extends GetView<TaskController> {
                       : controller.user?.userCompany?.isBroadcast == 1
                           ? broadcastIcon
                           : ICON_profile,
+                  borderColor: greyText,
                 ),
 
-                //user name & last seen time
+                // user name & last seen time
                 Flexible(
                   child: Column(
                     mainAxisAlignment: MainAxisAlignment.center,
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       //user name
-                  
                       Text(
                         controller.user?.displayName != null
                             ? controller.user?.displayName?? ''
@@ -2587,7 +2587,7 @@ class TaskScreenMobile extends GetView<TaskController> {
     );
 
     if (selectedDateTime.isBefore(now)) {
-      Get.snackbar("Invalid Time", "You cannot select past time!");
+      Get.snackbar("Invalid Time", "You cannot select past time!",duration: Duration(seconds: 6));
       return;
     }
 

@@ -18,11 +18,12 @@ class ViewProfileController extends GetxController {
   @override
   void onInit() {
 
-    getArguments();
-    scrollListener();
-    scrollListener2();
-
     super.onInit();
+    getArguments();
+    scrollController.addListener(_onScroll);
+    scrollController2.addListener(_onScroll2);
+    // scrollListener2();
+
   }
 
   bool isLoading =true;
@@ -38,12 +39,45 @@ class ViewProfileController extends GetxController {
     }else{
       if(Get.arguments!=null) {
         user = Get.arguments['user'];
+        resetPaginationForNewChat();
         _fireApiForCurrentTab();
       }
     }
 
   }
 
+
+  void _onScroll() {
+    if (!scrollController.hasClients) return;
+
+    final pos = scrollController.position;
+
+    // "near bottom" trigger
+    if (pos.extentAfter < 300 && !isPageLoading1 && hasMore) {
+      isPageLoading1 = true;        // IMPORTANT: set before await
+      _fireApiForCurrentTab();
+    }
+  }
+void _onScroll2() {
+    if (!scrollController2.hasClients) return;
+
+    final pos = scrollController2.position;
+
+    // "near bottom" trigger
+    if (pos.extentAfter < 300 && !isPageLoading1 && hasMore) {
+      isPageLoading1 = true;        // IMPORTANT: set before await
+      _fireApiForCurrentTab();
+    }
+  }
+
+  @override
+  void dispose() {
+    scrollController.removeListener(_onScroll);
+    scrollController.dispose();
+    scrollController2.removeListener(_onScroll2);
+    scrollController2.dispose();
+    super.dispose();
+  }
 
   CompanyData? myCompany;
   _getCompany() {
@@ -61,6 +95,7 @@ class ViewProfileController extends GetxController {
         .then((value) async {
       isLoading =false;
       user = value.data;
+      resetPaginationForNewChat();
       _fireApiForCurrentTab();
       update();
     }).onError((error, stackTrace) {
@@ -96,46 +131,130 @@ class ViewProfileController extends GetxController {
     if (_tabCtrl!.indexIsChanging) return;
 
     tabIndex.value = _tabCtrl!.index;
+    resetPaginationForNewChat();
     _fireApiForCurrentTab();
   }
 
   void _fireApiForCurrentTab() {
     final idx = _tabCtrl?.index ?? 0;
-    final mediaType = (idx == 0) ? 'IMG' : 'DOC';
-    getAllMediaAPICall( mediaType, sourceFilter.value);
+    final mediaTypea = (idx == 0) ? 'IMG' : 'DOC';
+    getAllMediaAPICall( mediaTypea, sourceFilter.value);
   }
 
 
   int page = 1;
-  bool hasMore = true;
+  bool hasMore = false;
+  bool isPageLoading1 = false;
 
   ScrollController scrollController = ScrollController();
   ScrollController scrollController2 = ScrollController();
 
   scrollListener() {
-    scrollController.addListener(() {
-      if ((scrollController.position.extentAfter) <= 0 && !isLoading) {
-        hasMore = true;
-        page++;
-        update();
-        _fireApiForCurrentTab();
-      }
-    });
+
+    if (kIsWeb) {
+      scrollController.addListener(() {
+        if (scrollController.position.pixels >=
+            scrollController.position.maxScrollExtent -100 &&
+            !isPageLoading1 &&
+            hasMore) {
+          // resetPaginationForNewChat();
+          _fireApiForCurrentTab();
+        }
+      });
+    } else {
+      scrollController.addListener(() {
+        if (scrollController.position.pixels <=
+            scrollController.position.minScrollExtent + 50 &&
+            !isPageLoading1 &&
+            hasMore) {
+          // resetPaginationForNewChat();
+          _fireApiForCurrentTab();
+        }
+      });
+    }
   }
   scrollListener2() {
-    scrollController2.addListener(() {
-      if ((scrollController2.position.extentAfter) <= 0 && !isLoading) {
-        hasMore = true;
+
+    if (kIsWeb) {
+      scrollController2.addListener(() {
+        if (scrollController2.position.pixels >=
+            scrollController2.position.maxScrollExtent - 60 &&
+            !isPageLoading1 &&
+            hasMore) {
+          // resetPaginationForNewChat();
+          _fireApiForCurrentTab();
+        }
+      });
+    } else {
+      scrollController2.addListener(() {
+        if (scrollController2.position.pixels <=
+            scrollController2.position.minScrollExtent + 50 &&
+            !isPageLoading1 &&
+            hasMore) {
+          // resetPaginationForNewChat();
+          _fireApiForCurrentTab();
+        }
+      });
+    }
+  }
+
+  void resetPaginationForNewChat() {
+    page = 1;
+    hasMore = true;
+    profileMediaList.clear();
+    isLoading = true;
+    update();
+  }
+
+
+
+  AllMediaResModel allMEdia = AllMediaResModel();
+
+  getAllMediaAPICall(type,source) async {
+
+    if (page == 1) {
+      isLoading = true;
+      profileMediaList?.clear();
+    }
+
+    isPageLoading1 = true;
+    update();
+
+      Get.find<PostApiServiceImpl>()
+          .getAllMediaAPI(page: page,comId: myCompany?.companyId,source: isTaskMode?'task':'chat',mediaType:type,userCId: user?.userCompany?.userCompanyId )
+          .then((value) async {
+      isLoading = false;
+      allMEdia = value;
+      if (allMEdia.data?.items != null && (allMEdia.data?.items ?? []).isNotEmpty) {
+        if (page == 1) {
+          profileMediaList.assignAll(allMEdia.data?.items ?? []);
+        } else {
+          profileMediaList.addAll(allMEdia.data?.items ?? []);
+        }
+
         page++;
-        update();
-        _fireApiForCurrentTab();
       }
+      else {
+        hasMore = false;
+        isPageLoading1 = false;
+        update();
+      }
+
+      // rebuildFlatRows();
+      isLoading = false;
+      isPageLoading1 = false;
+      update();
+
+    }).onError((error, stackTrace) {
+      isLoading = false;
+      isPageLoading1 = false;
+      update();
     });
   }
 
-  getAllMediaAPICall(type,source) async {
+/*  getAllMediaAPICall(type,source) async {
     Get.find<PostApiServiceImpl>()
-        .getAllMediaAPI(page: 1,source: isTaskMode?'task':'chat',mediaType:type,userCId: user?.userCompany?.userCompanyId )
+        .getAllMediaAPI(page: page,source: isTaskMode?'task':'chat',mediaType:type,userCId: user?.userCompany?.userCompanyId )
         .then((value) async {
       profileMediaList.assignAll(value.data?.items??[]);
       update();
@@ -160,7 +279,7 @@ class ViewProfileController extends GetxController {
       update();
       errorDialog(error.toString());
     }).whenComplete(() {});
-  }
+  }*/
 
 
   void setSourceFilter(String v) => sourceFilter.value = v;

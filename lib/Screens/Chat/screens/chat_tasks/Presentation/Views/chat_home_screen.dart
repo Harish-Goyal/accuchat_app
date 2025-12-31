@@ -272,7 +272,7 @@ class ChatsHomeScreen extends GetView<ChatHomeController> {
                             icon:  controller.isSearching.value?  const Icon(
                                 CupertinoIcons.clear_circled_solid)
                                 : Image.asset(searchPng,height:25,width:25)
-                                ).paddingOnly(top: 0, right: 0);
+                                );
                       }
                     ),
 

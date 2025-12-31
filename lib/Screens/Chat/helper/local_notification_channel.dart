@@ -279,10 +279,12 @@ class LocalNotificationService {
       chatc.user = homec.selectedChat.value;
       chatc.showPostShimmer = true;
       chatc.openConversation(user);
-      chatc.markAllVisibleAsReadOnOpen(
-          APIs.me?.userCompany?.userCompanyId,
-          chatc.user?.userCompany?.userCompanyId,
-          chatc.user?.userCompany?.isGroup == 1 ? 1 : 0);
+      if (homec.selectedChat.value?.pendingCount != 0) {
+        chatc.markAllVisibleAsReadOnOpen(
+            APIs.me?.userCompany?.userCompanyId,
+            chatc.user?.userCompany?.userCompanyId,
+            chatc.user?.userCompany?.isGroup == 1 ? 1 : 0);
+      }
       // homec.selectedChat.refresh();
       chatc.update();
     } else {

@@ -1,16 +1,16 @@
+import 'dart:async';
 import 'package:AccuChat/Screens/Chat/screens/auth/models/get_uesr_Res_model.dart';
 import 'package:AccuChat/Screens/Chat/screens/chat_tasks/Presentation/Controllers/chat_screen_controller.dart';
 import 'package:AccuChat/main.dart';
-import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/foundation.dart';
 import 'package:get/get.dart';
 import '../../../../../../Services/APIs/local_keys.dart';
 import '../../../../../../Services/APIs/post/post_api_service_impl.dart';
 import '../../../../../../utils/custom_flashbar.dart';
+import '../../../../../Home/Models/company_mem_res_model.dart';
 import '../../../../../Home/Presentation/Controller/company_service.dart';
-import '../../../../models/chat_user.dart';
 import '../../../../models/get_company_res_model.dart';
-import '../../../../models/group_mem_api_res.dart';
 import 'members_gr_br_controller.dart';
 
 class AddGroupMemController extends GetxController {
@@ -19,6 +19,8 @@ class AddGroupMemController extends GetxController {
   @override
   void onInit() {
     super.onInit();
+    scrollController = ScrollController();
+    scrollListener();
     _getCompany();
     getArguments();
     _getMe();
@@ -77,13 +79,129 @@ class AddGroupMemController extends GetxController {
     update();
   }
 
+
+
+  late ScrollController scrollController;
+  bool isPageLoading =false;
+  bool hasMore =false;
+  int page = 1;
+  String searchText = '';
+
+  RxBool isSearching = false.obs;
+  Timer? searchDelay;
+  void onSearch(String query) {
+    searchDelay?.cancel();
+    searchDelay = Timer(const Duration(milliseconds: 400), () {
+      searchText = query.trim().toLowerCase();
+      page = 1;
+      hasMore = false;
+      filteredList.clear();
+      hitAPIToAllGetMember(search: searchText.isEmpty ? null : searchText,);
+    });
+  }
+
+  scrollListener() {
+    if (kIsWeb) {
+      scrollController.addListener(() {
+        if (scrollController.position.pixels >=
+            scrollController.position.maxScrollExtent - 100 &&
+            !isPageLoading && hasMore) {
+          // resetPaginationForNewChat();
+          hitAPIToAllGetMember();
+        }
+      });
+    } else {
+      scrollController.addListener(() {
+        if (!scrollController.hasClients) return;
+
+        final position = scrollController.position;
+
+        if (position.maxScrollExtent >0) {
+          if (!isPageLoading && hasMore) {
+            hitAPIToAllGetMember();
+          }
+        }
+      });
+    }
+  }
+  void resetPaginationForNewChat() {
+    page = 1;
+    hasMore = true;
+    members.clear();
+    filteredList.clear();
+    isLoading = true;
+    update();
+  }
+
+  var filteredList = <UserDataAPI>[].obs;
+  ComMemResModel comMemResModel = ComMemResModel();
+  TextEditingController searchController = TextEditingController();
+
+  hitAPIToAllGetMember({search}) async {
+
+    if(page==1){
+      isLoading = true;
+      filteredList.clear();
+    }
+    isPageLoading = true;
+    update();
+    Get.find<PostApiServiceImpl>()
+        .getComMemApiCall(myCompany?.companyId,page,search)
+        .then((value) async {
+      isLoading = false;
+      update();
+      comMemResModel=value;
+      allUsersList=value.data?.records??[];
+      if (allUsersList != null && (allUsersList ?? []).isNotEmpty) {
+        if (page == 1) {
+          filteredList.assignAll(allUsersList??[]);
+          final filteredUsers = allUsersList.where((user) => !membersIds.contains(user.userId)).toList();
+          filteredList.value = filteredUsers;
+          Get.find<GrBrMembersController>().hitAPIToGetMembers();
+
+        } else {
+          filteredList.addAll(allUsersList??[]);
+          final filteredUsers = allUsersList.where((user) => !membersIds.contains(user.userId)).toList();
+          filteredList.value = filteredUsers;
+          Get.find<GrBrMembersController>().hitAPIToGetMembers();
+        }
+
+        page++; // next page
+      } else {
+        hasMore = false;
+        isPageLoading = false;
+        update();
+      }
+      isLoading = false;
+      isPageLoading = false;
+      update();
+
+    }).onError((error, stackTrace) {
+      isLoading = false;
+      isPageLoading = false;
+      update();
+      update();
+    });
+  }
+
+
+
+
+
+
+
+
+
+
+
+
   List<UserDataAPI> allUsersList = [];
 
-  hitAPIToAllGetMember() async {
+/*  hitAPIToAllGetMember() async {
     isLoading = true;
     update();
     Get.find<PostApiServiceImpl>()
-        .getComMemApiCall(myCompany?.companyId)
+        .getComMemApiCall(myCompany?.companyId,1)
         .then((value) async {
       isLoading = false;
 
@@ -96,7 +214,7 @@ class AddGroupMemController extends GetxController {
       isLoading = false;
       update();
     });
-  }
+  }*/
 
   hitAPIToAddMember({bool isGroup = false}) async {
     customLoader.show();

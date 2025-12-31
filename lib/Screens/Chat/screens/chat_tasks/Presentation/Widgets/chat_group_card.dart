@@ -1,16 +1,7 @@
-import 'package:AccuChat/Constants/app_theme.dart';
-import 'package:AccuChat/Constants/assets.dart';
-import 'package:AccuChat/Constants/colors.dart';
-import 'package:AccuChat/routes/app_routes.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
-import 'package:get/get.dart';
-import '../../../../api/apis.dart';
-import '../../../../helper/my_date_util.dart';
-import '../../../../../../main.dart';
 import '../../../../models/chat_user.dart';
 import '../../../../models/message.dart';
-import '../Views/chat_groups.dart';
 
 
 //card to represent a single user in home screen
@@ -18,7 +9,6 @@ class ChatGroupCard extends StatefulWidget with WidgetsBindingObserver{
   final ChatGroup user;
 
   const ChatGroupCard({super.key, required this.user});
-
 
   @override
   State<ChatGroupCard> createState() => _ChatGroupCardState();
