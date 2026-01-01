@@ -19,16 +19,24 @@ class AllUserScreenDialog extends GetView<AllUserController> {
   List<TaskMember>? users;
 
   AllUserController controller  = Get.put(AllUserController());
+   DateTime _lastCall = DateTime.fromMillisecondsSinceEpoch(0);
+
+   bool canFetch() {
+     final now = DateTime.now();
+     if (now.difference(_lastCall).inMilliseconds < 300) return false;
+     _lastCall = now;
+     return true;
+   }
 
   @override
   Widget build(BuildContext context) {
     return Center(   // <-- NEW
       child: ConstrainedBox(   // <-- NEW
         constraints: const BoxConstraints(
-          maxWidth: 420,      // WEB me width control
+          maxWidth: 450,      // WEB me width control
         ),
         child:  Container(
-                margin: const EdgeInsets.symmetric(horizontal: 20, vertical: 30),
+                margin: const EdgeInsets.symmetric(horizontal: 10, vertical: 10),
                 decoration: BoxDecoration(
                   borderRadius: BorderRadius.circular(12),
                   color: Colors.white,
@@ -92,7 +100,8 @@ class AllUserScreenDialog extends GetView<AllUserController> {
                         ],
                       ),
                     ),
-                    Expanded(
+                    SizedBox(
+                      height: MediaQuery.of(context).size.height * 0.8,
                       child: Obx((){
                         final selectedIds = users?.map((m) => m.userCompanyId).toSet();
 
@@ -103,53 +112,70 @@ class AllUserScreenDialog extends GetView<AllUserController> {
                         final listToShow =(users??[]).isEmpty?controller.filteredList: controller.filteredList.where(
                               (u) => !selectedIds!.contains(u.userCompany?.userCompanyId??0),
                         ).toList();
-                        return  ListView.builder(
-                          itemCount: listToShow.length,
-                          itemBuilder: (_, i) => ListTile(
-                            leading: SizedBox(
-                              width: 50,
-                              child: CustomCacheNetworkImage(
-                                "${ApiEnd.baseUrlMedia}${listToShow[i].userImage ?? ''}",
-                                height: 50,
-                                width: 50,
-                                radiusAll: 100,
-                                boxFit: BoxFit.cover,
-                                borderColor: greyText,
-                                defaultImage:listToShow[i].userCompany?.isGroup==1?groupIcn:
-                                listToShow[i].userCompany?.isBroadcast==1?
-                                broadcastIcon
-                                    :userIcon,
-                              ),
-                            ),
-                            title:
-                            listToShow[i].displayName!=null?  Text(
-                              listToShow[i].displayName ?? '',
+                        return NotificationListener<ScrollNotification>(
+                          onNotification: (ScrollNotification n) {
+                            if (n is! ScrollEndNotification) return false; // ✅ avoid spam
 
-                              style: themeData.textTheme.bodySmall,
-                            ):Text(
-                              listToShow[i].email != null
-                                  ? listToShow[i].email ?? ''
-                                  : listToShow[i].phone ?? '',
-                              style: themeData.textTheme.bodySmall
-                                  ?.copyWith(color: Colors.black87),
+                            final m = n.metrics;
+
+                            if (m.extentAfter < 200 &&
+                                !controller.isLoading.value &&
+                                controller.hasMore &&
+                                canFetch()) {
+                              controller.hitAPIToGetMember();
+                            }
+                            return false;
+                          },
+                          child: ListView.builder(
+                            itemCount: listToShow.length,
+                            controller: controller.scrollController,
+                            physics: const AlwaysScrollableScrollPhysics(),
+                            itemBuilder: (_, i) => ListTile(
+                              leading: SizedBox(
+                                width: 50,
+                                child: CustomCacheNetworkImage(
+                                  "${ApiEnd.baseUrlMedia}${listToShow[i].userImage ?? ''}",
+                                  height: 50,
+                                  width: 50,
+                                  radiusAll: 100,
+                                  boxFit: BoxFit.cover,
+                                  borderColor: greyText,
+                                  defaultImage:listToShow[i].userCompany?.isGroup==1?groupIcn:
+                                  listToShow[i].userCompany?.isBroadcast==1?
+                                  broadcastIcon
+                                      :userIcon,
+                                ),
+                              ),
+                              title:
+                              listToShow[i].displayName!=null?  Text(
+                                listToShow[i].displayName ?? '',
+
+                                style: themeData.textTheme.bodySmall,
+                              ):Text(
+                                listToShow[i].email != null
+                                    ? listToShow[i].email ?? ''
+                                    : listToShow[i].phone ?? '',
+                                style: themeData.textTheme.bodySmall
+                                    ?.copyWith(color: Colors.black87),
+                              ),
+                              subtitle:listToShow[i].displayName!=null||listToShow[i].displayName!=""? Text(
+                                listToShow[i].email != null
+                                    ? listToShow[i].email ?? ''
+                                    : listToShow[i].phone ?? '',
+                                style: themeData.textTheme.bodySmall
+                                    ?.copyWith(color: greyText),
+                              ):SizedBox(),
+                              onTap: () {
+                                /* Navigator.push(
+                                      context,
+                                      MaterialPageRoute(
+                                        builder: (_) => ChatScreen(user: listToShow[i]),
+                                      ),
+                                    );
+                                      */
+                                Navigator.pop(context, listToShow[i]);
+                              },
                             ),
-                            subtitle:listToShow[i].displayName!=null||listToShow[i].displayName!=""? Text(
-                              listToShow[i].email != null
-                                  ? listToShow[i].email ?? ''
-                                  : listToShow[i].phone ?? '',
-                              style: themeData.textTheme.bodySmall
-                                  ?.copyWith(color: greyText),
-                            ):SizedBox(),
-                            onTap: () {
-                              /* Navigator.push(
-                                    context,
-                                    MaterialPageRoute(
-                                      builder: (_) => ChatScreen(user: listToShow[i]),
-                                    ),
-                                  );
-                                    */
-                              Navigator.pop(context, listToShow[i]);
-                            },
                           ),
                         );
               }

@@ -140,6 +140,11 @@ class CompanyMemberController extends GetxController{
     isLoading.value = true;
     update();
   }
+  @override
+  void onClose() {
+    scrollController.dispose();
+    super.onClose();
+  }
 
   var filteredList = <UserDataAPI>[].obs;
   ComMemResModel comMemResModel = ComMemResModel();
@@ -149,6 +154,7 @@ class CompanyMemberController extends GetxController{
  hitAPIToGetMember({search}) async {
 
    if(page==1){
+     hasMore = true;
      isLoading.value = true;
      filteredList.clear();
    }
@@ -167,7 +173,6 @@ class CompanyMemberController extends GetxController{
        } else {
          filteredList.addAll(members??[]);
        }
-
        page++; // next page
      } else {
        hasMore = false;
@@ -185,7 +190,6 @@ class CompanyMemberController extends GetxController{
      update();
    });
   }
-
 
   removeCompanyMember(UserDataAPI? memData)async{
     final meId = me?.userId;

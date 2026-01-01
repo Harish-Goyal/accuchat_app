@@ -574,6 +574,8 @@ class SocketController extends GetxController with WidgetsBindingObserver {
     socket?.off('update_recent_list');
 
     socket?.on('update_recent_list', (messages) {
+      debugPrint("update_recent_list listener......9");
+      debugPrint("update_recent_list  listener ${jsonEncode(messages.toString())}");
       try {
         final updated = UserDataAPI.fromJson(messages);
 

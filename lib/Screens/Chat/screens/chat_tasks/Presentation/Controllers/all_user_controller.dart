@@ -57,7 +57,7 @@ class AllUserController extends GetxController{
     update();
   }
 
-  bool isLoading = false;
+  RxBool isLoading = false.obs;
 
 
 
@@ -81,6 +81,11 @@ class AllUserController extends GetxController{
     });
   }
 
+  @override
+  void onClose() {
+    scrollController.dispose();
+    super.onClose();
+  }
   scrollListener() {
     if (kIsWeb) {
       scrollController.addListener(() {
@@ -110,7 +115,7 @@ class AllUserController extends GetxController{
     hasMore = true;
     members.clear();
     filteredList.clear();
-    isLoading = true;
+    isLoading.value = true;
     update();
   }
 
@@ -121,7 +126,8 @@ class AllUserController extends GetxController{
 
   hitAPIToGetMember({search}) async {
     if(page==1){
-      isLoading = true;
+      isLoading.value = true;
+      hasMore = true;
       filteredList.clear();
     }
     isPageLoading = true;
@@ -129,11 +135,11 @@ class AllUserController extends GetxController{
     Get.find<PostApiServiceImpl>()
         .getComMemApiCall(myCompany?.companyId,page,search)
         .then((value) async {
-      isLoading = false;
+      isLoading.value = false;
       update();
       comMemResModel=value;
       members=value.data?.records??[];
-      if (members != null && (members ?? []).isNotEmpty) {
+      if (members != [] && (members ?? []).isNotEmpty) {
         if (page == 1) {
           filteredList.assignAll(members??[]);
 
@@ -147,12 +153,12 @@ class AllUserController extends GetxController{
         isPageLoading = false;
         update();
       }
-      isLoading = false;
+      isLoading.value = false;
       isPageLoading = false;
       update();
 
     }).onError((error, stackTrace) {
-      isLoading = false;
+      isLoading.value = false;
       isPageLoading = false;
       update();
       update();
@@ -161,17 +167,17 @@ class AllUserController extends GetxController{
 
 
   hitAPIToGetRecentChats(String? searchT) async {
-    isLoading=true;
+    isLoading.value=true;
     update();
     Get.find<PostApiServiceImpl>()
         .getRecentChatUserApiCall(comId:myCompany?.companyId,page: page,searchText: searchT??'')
         .then((value) async {
-      isLoading = false;
+      isLoading.value = false;
       members = value.data?.rows??[];
       filteredList.value = members;
       update();
     }).onError((error, stackTrace) {
-      isLoading = false;
+      isLoading.value = false;
       update();
     });
   }
@@ -182,7 +188,7 @@ class AllUserController extends GetxController{
     super.onInit();
     scrollController = ScrollController();
     getArguments();
-    scrollListener();
+    // scrollListener();
     _getCompany();
     _getMe();
 

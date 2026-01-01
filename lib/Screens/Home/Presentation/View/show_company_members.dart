@@ -26,7 +26,14 @@ class CompanyMembers extends GetView<CompanyMemberController> {
 
   DashboardController dcController =
   Get.put<DashboardController>(DashboardController());
+  DateTime _lastCall = DateTime.fromMillisecondsSinceEpoch(0);
 
+  bool canFetch() {
+    final now = DateTime.now();
+    if (now.difference(_lastCall).inMilliseconds < 300) return false;
+    _lastCall = now;
+    return true;
+  }
   @override
   Widget build(BuildContext context) {
     final size = MediaQuery.of(context).size;
@@ -35,19 +42,18 @@ class CompanyMembers extends GetView<CompanyMemberController> {
 
     return Scaffold(
       appBar: _buildAppBar(),
-      body: Obx(()=>
+      body:
      Center(
           child: ConstrainedBox(
             constraints: BoxConstraints(
               maxWidth: isWide ? maxContentWidth : double.infinity,
             ),
             child: Padding(
-              padding: EdgeInsets.symmetric(horizontal: isWide ? 16 : 0),
+              padding: EdgeInsets.symmetric(horizontal: isWide ? 16 : 10),
               child: buildCompanyMembersList(),
             ),
           ),
         ),
-      ),
     );
   }
 
@@ -114,13 +120,26 @@ class CompanyMembers extends GetView<CompanyMemberController> {
   }
 
   Widget buildCompanyMembersList() {
-    return  Container(
-        height: Get.height,
-        padding: const EdgeInsets.symmetric(horizontal: 10),
-        child:controller.isLoading.value?const IndicatorLoading():
-        (controller.filteredList??[]).isEmpty?DataNotFoundText(): ListView.separated(
-          shrinkWrap: true,
+    return Obx(()=> controller.isLoading.value?const IndicatorLoading():
+    (controller.filteredList??[]).isEmpty?DataNotFoundText():  NotificationListener<ScrollNotification>(
+      onNotification: (ScrollNotification n) {
+        if (n is! ScrollEndNotification) return false; // ✅ avoid spam
+
+        final m = n.metrics;
+
+        if (m.extentAfter < 200 &&
+            !controller.isLoading.value &&
+            controller.hasMore &&
+            canFetch()) {
+          controller.hitAPIToGetMember();
+        }
+        return false;
+      },
+      child: ListView.separated(
+          // shrinkWrap: true,
           itemCount: controller.filteredList.length??0,
+          physics: const AlwaysScrollableScrollPhysics(),
+          controller: controller.scrollController,
           itemBuilder: (context, index) {
             final memData = controller.filteredList[index];
             final bool isWide = MediaQuery.of(context).size.width >= 900; // web-aware inside the row
@@ -516,7 +535,7 @@ class CompanyMembers extends GetView<CompanyMemberController> {
             return divider().marginSymmetric(horizontal: 20);
           },
         ),
-
+    ),
     );
   }
 

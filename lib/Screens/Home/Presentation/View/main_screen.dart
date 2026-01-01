@@ -225,9 +225,8 @@ class AccuChatDashboard extends StatelessWidget {
       selectedItemGradient:
           const LinearGradient(colors: [Colors.white, Colors.white]),
       showSelectedLabels: true,
-      selectedLabelStyle:
-          BalooStyles.baloonormalTextStyle(size: 14, color: Colors.white),
-      unselectedLabelStyle: BalooStyles.baloonormalTextStyle(size: 14),
+      selectedLabelStyle: BalooStyles.baloonormalTextStyle(color: Colors.white),
+      unselectedLabelStyle: BalooStyles.baloonormalTextStyle(),
       showUnselectedLabels: true,
       currentIndex: controller.currentIndex,
       onTap: (v) async {
@@ -299,7 +298,7 @@ Widget buildSideNav(DashboardController controller) {
             if (isSetting) {
               Get.toNamed(AppRoutes.all_settings);
             }
-            if (index == 1 ) {
+            if (index == 1) {
               print("==tapped=");
               isTaskMode = true;
               Get.toNamed(AppRoutes.home);
@@ -308,7 +307,7 @@ Widget buildSideNav(DashboardController controller) {
               taskC.hitAPIToGetTaskHistory();
               // taskHomeC.
 
-            /*  final taskC = Get.find<TaskController>();
+              /*  final taskC = Get.find<TaskController>();
               final taskHomeC = Get.find<TaskHomeController>();
               if (taskHomeC.filteredList.isNotEmpty) {
                 taskHomeC.selectedChat.value = taskHomeC.filteredList[0];

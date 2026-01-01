@@ -20,8 +20,17 @@ import '../../../../models/chat_user.dart';
 import 'chat_screen.dart';
 
 class AllUserScreen extends GetView<AllUserController> {
-  const AllUserScreen({super.key});
+   AllUserScreen({super.key});
 
+
+  DateTime _lastCall = DateTime.fromMillisecondsSinceEpoch(0);
+
+  bool canFetch() {
+    final now = DateTime.now();
+    if (now.difference(_lastCall).inMilliseconds < 300) return false;
+    _lastCall = now;
+    return true;
+  }
   @override
   Widget build(BuildContext context) {
     return SafeArea(
@@ -31,7 +40,7 @@ class AllUserScreen extends GetView<AllUserController> {
             // ---------------- WEB RESPONSIVE WRAPPER ADDED ----------------
             body:Obx(
             () => Center(
-              child:controller.isLoading?IndicatorLoading(): ConstrainedBox(
+              child:controller.isLoading.value?IndicatorLoading(): ConstrainedBox(
                 constraints: BoxConstraints(
                   maxWidth: kIsWeb ? 600 : double.infinity, // FIX WIDTH ON WEB
                 ),
@@ -53,78 +62,94 @@ class AllUserScreen extends GetView<AllUserController> {
                     ]
                         : [], // mobile keeps simple, no shadow
                   ),
-                  child: ListView.builder(
-                    itemCount: controller.filteredList.length ?? 0,
-                    physics: BouncingScrollPhysics(),
-                    // shrinkWrap: true,
-                    padding: EdgeInsets.zero,
-                    itemBuilder: (_, i) => ListTile(
-                      leading: SizedBox(
-                        width: 50,
-                        child: CustomCacheNetworkImage(
-                          "${ApiEnd.baseUrlMedia}${controller.filteredList[i].userImage ?? ''}",
-                          height: 50,
+                  child: NotificationListener<ScrollNotification>(
+                    onNotification: (ScrollNotification n) {
+                      if (n is! ScrollEndNotification) return false; // ✅ avoid spam
+
+                      final m = n.metrics;
+
+                      if (m.extentAfter < 200 &&
+                          !controller.isLoading.value &&
+                          controller.hasMore &&
+                          canFetch()) {
+                        controller.hitAPIToGetMember();
+                      }
+                      return false;
+                    },
+                    child: ListView.builder(
+                      itemCount: controller.filteredList.length ?? 0,
+                      physics: AlwaysScrollableScrollPhysics(),
+                      controller: controller.scrollController,
+                      // shrinkWrap: true,
+                      padding: EdgeInsets.zero,
+                      itemBuilder: (_, i) => ListTile(
+                        leading: SizedBox(
                           width: 50,
-                          radiusAll: 100,
-                          borderColor: greyText,
-                          boxFit: BoxFit.cover,
-                          defaultImage: userIcon,
+                          child: CustomCacheNetworkImage(
+                            "${ApiEnd.baseUrlMedia}${controller.filteredList[i].userImage ?? ''}",
+                            height: 50,
+                            width: 50,
+                            radiusAll: 100,
+                            borderColor: greyText,
+                            boxFit: BoxFit.cover,
+                            defaultImage: userIcon,
+                          ),
                         ),
-                      ),
-                      title: Text(
-                        controller.filteredList[i].userId ==
-                            controller.me?.userId
-                            ? "Me"
-                            : (controller.filteredList[i].displayName
+                        title: Text(
+                          controller.filteredList[i].userId ==
+                              controller.me?.userId
+                              ? "Me"
+                              : (controller.filteredList[i].displayName
+                              .toString() ==
+                              '' ||
+                              controller.filteredList[i].displayName ==
+                                  null)
+                              ? controller.filteredList[i].phone ?? ""
+                              : controller.filteredList[i].displayName ?? '',
+                          style: themeData.textTheme.bodySmall,
+                        ),
+                        subtitle: ((controller.filteredList[i].displayName
                             .toString() ==
                             '' ||
                             controller.filteredList[i].displayName ==
-                                null)
-                            ? controller.filteredList[i].phone ?? ""
-                            : controller.filteredList[i].displayName ?? '',
-                        style: themeData.textTheme.bodySmall,
-                      ),
-                      subtitle: ((controller.filteredList[i].displayName
-                          .toString() ==
-                          '' ||
-                          controller.filteredList[i].displayName ==
-                              null) &&
-                          controller.filteredList[i].userId !=
-                              controller.me?.userId)
-                          ? SizedBox()
-                          : Text(
-                        controller.filteredList[i].email.toString() ==
-                            'null' ||
-                            controller.filteredList[i].email
-                                .toString() ==
-                                '' ||
-                            (controller.filteredList[i].email ?? '')
-                                .isEmpty ||
-                            controller.filteredList[i].email == null
-                            ? controller.filteredList[i].phone ?? ''
-                            : controller.filteredList[i].email ?? '',
-                        style: themeData.textTheme.bodySmall
-                            ?.copyWith(color: greyText),
-                      ),
-                      onTap: () {
-                        if (isTaskMode) {
-                          if (kIsWeb) {
-                            Get.to(()=>TaskScreen(taskUser: controller.filteredList[i] ,showBack: true,));
+                                null) &&
+                            controller.filteredList[i].userId !=
+                                controller.me?.userId)
+                            ? SizedBox()
+                            : Text(
+                          controller.filteredList[i].email.toString() ==
+                              'null' ||
+                              controller.filteredList[i].email
+                                  .toString() ==
+                                  '' ||
+                              (controller.filteredList[i].email ?? '')
+                                  .isEmpty ||
+                              controller.filteredList[i].email == null
+                              ? controller.filteredList[i].phone ?? ''
+                              : controller.filteredList[i].email ?? '',
+                          style: themeData.textTheme.bodySmall
+                              ?.copyWith(color: greyText),
+                        ),
+                        onTap: () {
+                          if (isTaskMode) {
+                            if (kIsWeb) {
+                              Get.to(()=>TaskScreen(taskUser: controller.filteredList[i] ,showBack: true,));
+                            } else {
+                              Get.toNamed(AppRoutes.tasks_li_r,
+                                  arguments: {'user': controller.filteredList[i]});
+                            }
                           } else {
-                            Get.toNamed(AppRoutes.tasks_li_r,
-                                arguments: {'user': controller.filteredList[i]});
-                          }
-                        } else {
-                          if (kIsWeb) {
+                            if (kIsWeb) {
 
-                            Get.to(()=>ChatScreen(user: controller.filteredList[i] ,showBack: true,));
+                              Get.to(()=>ChatScreen(user: controller.filteredList[i] ,showBack: true,));
 
-                          } else {
-                            Get.toNamed(AppRoutes.chats_li_r,
-                                arguments: {'user': controller.filteredList[i]});
+                            } else {
+                              Get.toNamed(AppRoutes.chats_li_r,
+                                  arguments: {'user': controller.filteredList[i]});
+                            }
                           }
-                        }
-                      },
+                        },
+                      ),
                     ),
                   ),
                 ),

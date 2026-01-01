@@ -259,7 +259,7 @@ class PostApiServiceImpl extends GetxService implements PostApiService {
           .get('api/company/active-members/$compId',
           queryParameters: {
             "page":page,
-            "limit":10,
+            "limit":15,
             "search":searchText,
           },
           skipAuth: false);

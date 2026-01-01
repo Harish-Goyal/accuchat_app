@@ -137,7 +137,7 @@ class AppPages {
     ),
     GetPage(
       name: AppRoutes.all_users,
-      page: () => const AllUserScreen(),
+      page: () =>  AllUserScreen(),
       bindings: [AllUserScreenBinding()],
     ),
     GetPage(
