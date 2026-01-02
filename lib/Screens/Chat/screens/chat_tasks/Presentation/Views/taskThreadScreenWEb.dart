@@ -66,6 +66,7 @@ class TaskThreadScreenWeb extends GetView<TaskThreadController> {
                     // Get.find<TaskController>().taskHisList = []; // <--- MOST IMPORTANT
                     // Get.find<TaskController>().taskCategory = [];
                     // Get.find<TaskController>().hasMore = false;
+                    Get.find<TaskController>().resetPaginationForNewChat();
                     Get.find<TaskController>().hitAPIToGetTaskHistory();
                     Get.back();
                   }, icon: Icon(Icons.clear,color: Colors.black87,)),

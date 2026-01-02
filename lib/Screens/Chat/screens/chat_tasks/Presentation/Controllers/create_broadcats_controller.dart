@@ -25,6 +25,7 @@ class CreateBroadcastsController extends GetxController{
   @override
   void onInit() {
     super.onInit();
+    scrollController = ScrollController();
     scrollListener();
     _getCompany();
     _getMe();

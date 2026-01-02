@@ -574,7 +574,7 @@ class SocketController extends GetxController with WidgetsBindingObserver {
     socket?.off('update_recent_list');
 
     socket?.on('update_recent_list', (messages) {
-      debugPrint("update_recent_list listener......9");
+      debugPrint("update_recent_list listener......");
       debugPrint("update_recent_list  listener ${jsonEncode(messages.toString())}");
       try {
         final updated = UserDataAPI.fromJson(messages);
@@ -1284,6 +1284,23 @@ class SocketController extends GetxController with WidgetsBindingObserver {
   }) async {
     if (socket != null && socket!.connected) {
       debugPrint("Message sent:---------- $message");
+      final Map<String,dynamic> map = {
+        "type":type,
+        "groupId":groupId,
+        "brID":brID,
+        "companyId":companyId,
+        "receiverId":receiverId,
+        "replyToId":replyToId,
+        "replyToText":replyToText,
+        "message":message,
+        "isGroup":isGroup,
+        "alreadySave":alreadySave,
+        "chatId":chatId,
+        "isForward":isForward,
+        "forwardChatId":forwardChatId,
+      };
+      print("map========");
+      debugPrint(map.toString(),wrapWidth: 2000);
       try {
         socket?.emit('send_message', {
           "mode": type,
@@ -1298,8 +1315,10 @@ class SocketController extends GetxController with WidgetsBindingObserver {
           "already_saved": alreadySave,
           "chat_id": chatId,
           "is_forwarded": isForward,
-          "forward_source_chat_id": forwardChatId
+          "forward_source_chat_id": forwardChatId,
         });
+
+
         debugPrint(
             "Message sent: $message ,receiverId: $receiverId,replyToId: $replyToId, Broadcast user id,: $brID , forwardChatId: $forwardChatId, fromid: ${APIs.me.userId}, comapnyid: ${APIs.me.userCompany?.userCompanyId}, group id: $groupId, alreadySaved: ${alreadySave}");
         var token = StorageService.getToken();

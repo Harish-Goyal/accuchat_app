@@ -62,6 +62,7 @@ class TaskThreadScreen extends GetView<TaskThreadController> {
                       overflow: TextOverflow.ellipsis,
                     ),
                     IconButton(onPressed: (){
+                      Get.find<TaskController>().resetPaginationForNewChat();
                       Get.find<TaskController>().hitAPIToGetTaskHistory();
                       Get.back();
                     }, icon: Icon(Icons.clear,color: Colors.black87,)),

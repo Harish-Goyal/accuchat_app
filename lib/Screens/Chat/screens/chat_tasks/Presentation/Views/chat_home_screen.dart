@@ -441,8 +441,7 @@ class ChatsHomeScreen extends GetView<ChatHomeController> {
       onRefresh: () async {
         controller.resetPagination();
         controller.hitAPIToGetRecentChats(page: 1);
-      }
-         ,
+      },
       child: Obx(
         () {
           return ListView.builder(

@@ -39,6 +39,7 @@ class AddGroupMemController extends GetxController {
     }else{
       if (Get.arguments != null) {
         group = Get.arguments['groupChat'];
+        hitAPIToGetMembers();
       }
     }
 

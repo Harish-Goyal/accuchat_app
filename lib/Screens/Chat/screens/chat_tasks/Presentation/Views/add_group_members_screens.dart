@@ -202,7 +202,7 @@ class AddGroupMembersScreen extends GetView<AddGroupMemController> {
               controller.group?.userCompany?.isGroup == 1
                   ? 'Add Group Members'
                   : 'Add Broadcast Members',
-              style: themeData.textTheme.titleMedium,
+              style: BalooStyles.baloosemiBoldTextStyle(),
             );
           }
       ),

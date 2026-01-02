@@ -1,8 +1,11 @@
-/* eslint-disable no-undef */
-importScripts('https://www.gstatic.com/firebasejs/10.13.2/firebase-app-compat.js');
-importScripts('https://www.gstatic.com/firebasejs/10.13.2/firebase-messaging-compat.js');
 
-/* Web config: use the SAME values as in firebase_options.dart (web section) */
+/* eslint-disable no-undef */
+
+// Import Firebase scripts (compat is simplest in SW)
+importScripts("https://www.gstatic.com/firebasejs/10.12.5/firebase-app-compat.js");
+importScripts("https://www.gstatic.com/firebasejs/10.12.5/firebase-messaging-compat.js");
+
+// Your firebase config (same project)
 firebase.initializeApp({
   apiKey: "AIzaSyCaz1HoDpZxb584tFIAMhHiaz5ORSD0TYk",
   authDomain: "accuchat-d5e99.firebaseapp.com",
@@ -12,22 +15,22 @@ firebase.initializeApp({
   appId: "1:975726861063:web:393a1548c3e686091083a2",
   // measurementId optional
 });
-
 const messaging = firebase.messaging();
 
+// Background push handler (when tab is not focused/closed)
 messaging.onBackgroundMessage((payload) => {
   console.log("[sw] onBackgroundMessage", payload);
 
-  const title = (payload.notification && payload.notification.title) || "New notification";
+  const title = payload?.notification?.title || "New message";
   const options = {
-    body: payload.notification?.body,
-    data: payload.data || {}, // keep data for click
+    body: payload?.notification?.body || "",
+    data: payload?.data || {},      // keep for click
   };
 
   self.registration.showNotification(title, options);
 });
 
-// 2) Notification click
+// Notification tap handler
 self.addEventListener("notificationclick", (event) => {
   console.log("[sw] notificationclick", event.notification.data);
 
@@ -38,19 +41,16 @@ self.addEventListener("notificationclick", (event) => {
   const url =  "#/notification?${params}");
 
   event.notification.close();
-
   event.waitUntil(
     clients.matchAll({ type: "window", includeUncontrolled: true }).then((clientList) => {
-      // Focus existing tab if already open
+      // If app tab already open, focus it + (optional) postMessage
       for (const client of clientList) {
-        if (client.url.startsWith(self.location.origin)) {
+        if (client.url.includes(self.location.origin)) {
           client.focus();
-          // optional: tell the page what was clicked
-          client.postMessage({ type: "PUSH_CLICK", data });
+          client.postMessage({ type: "NOTIF_CLICK", data });
           return;
         }
       }
-      // Otherwise open new tab
       return clients.openWindow(url);
     })
   );
