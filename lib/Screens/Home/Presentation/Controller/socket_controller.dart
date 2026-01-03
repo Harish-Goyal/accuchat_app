@@ -298,7 +298,7 @@ class SocketController extends GetxController with WidgetsBindingObserver {
                   receivedMessageDataModal.toUser?.userCompany?.userCompanyId ??
                       0,
               fromUcID: fromUcId,
-              companyId: APIs.me?.userCompany?.companyId,
+              companyId: APIs.me.userCompany?.companyId,
               is_group_chat:
                   receivedMessageDataModal.fromUser?.userCompany?.isGroup == 0
                       ? 0

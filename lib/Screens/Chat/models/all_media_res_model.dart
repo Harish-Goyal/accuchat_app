@@ -66,6 +66,7 @@ class Items {
   int? sourceId;
   MediaTypeAPI? mediaType;
   String? fileName;
+  String? orgFileName;
   String? uploadedOn;
 
   Items(
@@ -73,6 +74,7 @@ class Items {
         this.source,
         this.sourceId,
         this.mediaType,
+        this.orgFileName,
         this.fileName,
         this.uploadedOn});
 
@@ -80,6 +82,7 @@ class Items {
     id = json['id'];
     source = json['source'];
     sourceId = json['source_id'];
+    orgFileName = json['org_file_name'];
     mediaType = json['media_type'] != null
         ? new MediaTypeAPI.fromJson(json['media_type'])
         : null;
@@ -92,6 +95,7 @@ class Items {
     data['id'] = this.id;
     data['source'] = this.source;
     data['source_id'] = this.sourceId;
+    data['org_file_name'] = this.orgFileName;
     if (this.mediaType != null) {
       data['media_type'] = this.mediaType!.toJson();
     }

@@ -367,9 +367,10 @@ class _DocsList extends StatelessWidget {
         final url = '$baseUrl${d.fileName ?? ''}';
         final name = (d.fileName ?? '').split('/').last;
         final ext = name.split('.').last.toUpperCase();
+        final orgName = d.orgFileName??'';
         return ListTile(
           leading: const Icon(Icons.insert_drive_file_outlined),
-          title: Text(name, maxLines: 1, overflow: TextOverflow.ellipsis, style: BalooStyles.baloonormalTextStyle()),
+          title: Text(orgName, maxLines: 1, overflow: TextOverflow.ellipsis, style: BalooStyles.baloonormalTextStyle()),
           subtitle: Text((d.mediaType?.name ?? 'Document') + (d.source != null ? ' · ${d.source}' : ''),
             style: BalooStyles.baloonormalTextStyle(size: 12, color: Colors.black54),
           ),
