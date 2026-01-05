@@ -55,15 +55,19 @@ class TaskThreadScreen extends GetView<TaskThreadController> {
                   mainAxisSize: MainAxisSize.min,
                   children: [
                     Text(
-                      controller.currentUser?.displayName != null ? controller.currentUser?.displayName??'' :controller.currentUser?.userName !=null? controller.currentUser?.userName ?? ''
+                      controller.currentUser?.userCompany?.displayName != null ? controller.currentUser?.userCompany?.displayName??'' :controller.currentUser?.userName !=null? controller.currentUser?.userName ?? ''
                           :controller.currentUser?.phone ?? '' ,
                       style: BalooStyles.balooboldTitleTextStyle(),
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
                     ),
                     IconButton(onPressed: (){
-                      Get.find<TaskController>().resetPaginationForNewChat();
-                      Get.find<TaskController>().hitAPIToGetTaskHistory();
+                      final taskC= Get.find<TaskController>();
+                      taskC.resetPaginationForNewChat();
+                      taskC.searchQuery = '';
+                      taskC.onSearch('');
+                      taskC.seacrhCon.clear();
+                      taskC.hitAPIToGetTaskHistory();
                       Get.back();
                     }, icon: Icon(Icons.clear,color: Colors.black87,)),
                   ],
@@ -281,9 +285,9 @@ class TaskThreadScreen extends GetView<TaskThreadController> {
                   controller.userIDSender =
                       element.comments.fromUser?.userId;
                   controller.userNameReceiver =
-                      element.comments.toUser?.displayName ?? '';
+                      element.comments.toUser?.userCompany?.displayName ?? '';
                   controller.userNameSender =
-                      element.comments.fromUser?.displayName ?? '';
+                      element.comments.fromUser?.userCompany?.displayName ?? '';
                   controller.userIDReceiver =
                       element.comments.toUser?.userId;
                   controller.replyToMessage = element.comments;
@@ -839,9 +843,9 @@ class TaskThreadScreen extends GetView<TaskThreadController> {
                       controller.userIDSender =
                           data.fromUser?.userId;
                       controller.userNameReceiver =
-                          data.toUser?.displayName ?? '';
+                          data.toUser?.userCompany?.displayName ?? '';
                       controller.userNameSender =
-                          data.fromUser?.displayName ?? '';
+                          data.fromUser?.userCompany?.displayName ?? '';
                       controller.userIDReceiver =
                           data.toUser?.userId;
                       controller.replyToMessage = data;

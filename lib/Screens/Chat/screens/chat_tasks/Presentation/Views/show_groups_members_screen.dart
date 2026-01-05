@@ -255,7 +255,7 @@ class GroupMembersScreen extends StatelessWidget {
                                 mainAxisSize: MainAxisSize.min,
                                 children: [
                                   Text(
-                                    member.displayName ?? '',
+                                    member.userCompany?.displayName ?? '',
                                     style: themeData.textTheme.bodyMedium,
                                   ),
                                   if (isAdmin ?? true)

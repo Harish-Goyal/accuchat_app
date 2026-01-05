@@ -25,7 +25,6 @@ class GalleryTab extends GetView<GalleryController> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
-      
                  Row(
                   children: [
                     controller.isSearchingIcon
@@ -59,10 +58,11 @@ class GalleryTab extends GetView<GalleryController> {
                             controller.isSearchingIcon = !controller.isSearchingIcon;
                             controller.update();
                           },
-                          icon: Icon(controller.isSearchingIcon
-                              ? CupertinoIcons.clear_circled_solid
-                              : Icons.search,color: appColorPerple,)
-                              .paddingOnly(top: 0, right: 10)),
+                          icon:  controller.isSearchingIcon?  const Icon(
+          CupertinoIcons.clear_circled_solid)
+              : Image.asset(searchPng,height:25,width:25)
+          )
+                              .paddingOnly(top: 0, right: 10),
 
                   ],
                 ).paddingSymmetric(horizontal: 15,vertical: 10),

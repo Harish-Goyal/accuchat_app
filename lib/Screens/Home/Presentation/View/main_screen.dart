@@ -32,7 +32,7 @@ class AccuChatDashboard extends StatelessWidget {
         body: Row(
           children: [
             if (isWideScreen)
-              SizedBox(
+            SizedBox(
                   width: Get.width * .13,
                   child: buildSideNav(controller)), // For web/tablet
             Expanded(
@@ -115,20 +115,20 @@ class AccuChatDashboard extends StatelessWidget {
               controller.update();
             },
           ),
-          // ListTile(
-          //   leading: Image.asset(
-          //     galleryIcon,
-          //     height: 22,
-          //   ),
-          //   title: const Text('Gallery'),
-          //   onTap: () {
-          //     controller.updateIndex(3);
-          //     Get.back();
-          //
-          //       isTaskMode = false;
-          //     controller.update();
-          //   },
-          // ),
+          ListTile(
+            leading: Image.asset(
+              galleryIcon,
+              height: 22,
+            ),
+            title: const Text('Gallery'),
+            onTap: () {
+              controller.updateIndex(3);
+              Get.back();
+
+                isTaskMode = false;
+              controller.update();
+            },
+          ),
         ],
       ),
     );
@@ -294,12 +294,11 @@ Widget buildSideNav(DashboardController controller) {
             controller.getCompany();
             controller.updateIndex(index);
             isTaskMode = index == 1;
-            final isSetting = index == 3;
+            final isSetting = index == 4;
             if (isSetting) {
               Get.toNamed(AppRoutes.all_settings);
             }
             if (index == 1) {
-              print("==tapped=");
               isTaskMode = true;
               Get.toNamed(AppRoutes.home);
               final taskC = Get.find<TaskController>();
@@ -388,13 +387,16 @@ Widget buildSideNav(DashboardController controller) {
                   overflow: TextOverflow.ellipsis,
                 )),
 
-            /*        NavigationRailDestination(
+             /*     NavigationRailDestination(
                   icon: Image.asset(
                     galleryIcon,
                     height: 22,
+                    color:
+                    controller.currentIndex == 2 ? Colors.white : Colors.grey,
                   ),
                   label: Text('Gallery',
-                      style: BalooStyles.baloomediumTextStyle())),*/
+                      style: BalooStyles.baloomediumTextStyle(), maxLines: 1,
+                    overflow: TextOverflow.ellipsis,)),*/
           ],
         ),
       ),

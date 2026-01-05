@@ -40,7 +40,9 @@ import '../../../../../../utils/loading_indicator.dart';
 import '../../../../../../utils/product_shimmer_widget.dart';
 import '../../../../../../utils/share_helper.dart';
 import '../../../../../../utils/text_style.dart';
+import '../Controllers/save_in_accuchat_gallery_controller.dart';
 import '../../../../../Home/Presentation/Controller/socket_controller.dart';
+import '../../../../../Home/Presentation/View/save_to_accuchat_gallery_sheet.dart';
 import '../../../../helper/dialogs.dart';
 import '../../../auth/models/get_uesr_Res_model.dart';
 import '../Controllers/task_controller.dart';
@@ -48,6 +50,7 @@ import '../Widgets/reply_msg_widget.dart';
 import '../Widgets/staggered_view.dart';
 import '../Controllers/gallery_view_controller.dart';
 import '../Widgets/media_view.dart';
+import '../dialogs/save_in_gallery_dialog.dart';
 import 'images_gallery_page.dart';
 
 /// -------------------------
@@ -114,6 +117,9 @@ final FocusNode _focusNode = FocusNode();
 class ChatScreen extends GetView<ChatScreenController> {
   final UserDataAPI? user;
   bool showBack = true;
+
+  SaveToGalleryController galleryController = Get.put(SaveToGalleryController());
+
 
   ChatScreen({super.key, this.user, this.showBack = true});
   @override
@@ -209,7 +215,7 @@ class ChatScreen extends GetView<ChatScreenController> {
                                                       CrossAxisAlignment.start,
                                                   children: [
                                                     Text(
-                                                      "${controller.replyToMessage?.fromUser?.userId == controller.me?.userId ? 'You' : controller.user?.displayName ?? ''}",
+                                                      "${controller.replyToMessage?.fromUser?.userId == controller.me?.userId ? 'You' : controller.user?.userCompany?.displayName ?? ''}",
                                                       maxLines: 1,
                                                       overflow:
                                                           TextOverflow.ellipsis,
@@ -903,8 +909,8 @@ class ChatScreen extends GetView<ChatScreenController> {
                     isGroupMessage: data.isGroupChat == 1 ? true : false,
                     myId: (controller.me?.userId ?? 0).toString(),
                     fromId: (data.fromUser?.userId ?? 0).toString(),
-                    senderName: data.fromUser?.displayName != null
-                        ? data.fromUser?.displayName ?? ''
+                    senderName: data.fromUser?.userCompany?.displayName != null
+                        ? data.fromUser?.userCompany?.displayName ?? ''
                         : data.fromUser?.userName ?? '',
                     baseUrl: ApiEnd.baseUrlMedia,
                     defaultGallery: defaultGallery,
@@ -928,6 +934,7 @@ class ChatScreen extends GetView<ChatScreenController> {
                             controller.replyToImage =
                                 data.media?[startIndex].orgFileName ?? '';
                           },
+
                         ),
                         binding: BindingsBuilder(() {
                           Get.put(GalleryViewerController(
@@ -1992,22 +1999,22 @@ class ChatScreen extends GetView<ChatScreenController> {
                       })
                   : const SizedBox(),
 
-              /*_OptionItem(
+              _OptionItem(
                     icon:  Icon(Icons.document_scanner,
                         color: appColorYellow, size: 18),
-                    name: 'Save in Accuchat Gallery',
+                    name: 'Save in Smart Gallery',
                     onTap: () async {
                       try {
                         Get.back();
 
-
+                        // openSaveToGallerySheet(fileId: "12", sourceType: "chat", sourceId: "09",defaultName: "chat_0998782377");
                         showDialog(
                             context: Get.context!,
-                            builder: (_) => _saveDocumentsDialog());
+                            builder: (_) => SaveToCustomFolderDialog(user: user,));
                       } catch (e) {
                         toast('Something went wrong!');
                       }
-                    }),*/
+                    }),
 
               //separator or divider
               if (isMe)
@@ -2101,118 +2108,9 @@ class ChatScreen extends GetView<ChatScreenController> {
         });
   }
 
-  final _formKeyDoc = GlobalKey<FormState>();
-  _saveDocumentsDialog() {
-    return CustomDialogue(
-      title: "Documents",
-      isShowAppIcon: false,
-      content: LayoutBuilder(
-        builder: (context, constraints) {
-          final screenW = MediaQuery.of(context).size.width;
-          final screenH = MediaQuery.of(context).size.height;
 
-          // Sensible responsive max width for the dialog
-          final double maxDialogWidth = screenW >= 1440
-              ? 560
-              : screenW >= 1024
-                  ? 520
-                  : screenW >= 768
-                      ? 500
-                      : screenW * 0.92;
 
-          // Keep height comfortable and scroll if needed
-          final double maxDialogHeight = screenH * 0.9;
 
-          return Center(
-            child: ConstrainedBox(
-              constraints: BoxConstraints(
-                maxWidth: maxDialogWidth,
-                maxHeight: maxDialogHeight,
-              ),
-              child: Material(
-                // keeps proper text scaling/ink on web
-                type: MaterialType.transparency,
-                child: SingleChildScrollView(
-                  padding: EdgeInsets.symmetric(
-                    horizontal: screenW >= 768 ? 16 : 12,
-                    vertical: 12,
-                  ),
-                  child: Form(
-                    key: _formKeyDoc,
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.center,
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        vGap(20),
-                        Text(
-                          "This document or image has been securely saved in your AccuChat Gallery under a custom folder. You can easily access it anytime by searching its name.",
-                          style: BalooStyles.baloonormalTextStyle(),
-                          textAlign: TextAlign.center,
-                        ),
-
-                        vGap(30),
-
-                        CustomTextField(
-                          hintText: "Document Name",
-                          controller: controller.docNameController,
-                          focusNode: FocusNode(),
-                          onFieldSubmitted: (String? value) {
-                            FocusScope.of(Get.context!).unfocus();
-                          },
-                          labletext: "Document Name",
-                          validator: (value) => value?.isEmptyField(
-                              messageTitle: "Document Name"),
-                        ),
-                        vGap(40),
-                        Row(
-                          children: [
-                            Expanded(
-                              child: GradientButton(
-                                name: "Save",
-                                btnColor: appColorYellow,
-                                gradient: LinearGradient(
-                                    colors: [appColorYellow, appColorYellow]),
-                                vPadding: 6,
-                                onTap: () async {
-                                  if (_formKeyDoc.currentState!.validate()) {
-                                    controller.onTapSaveToFolder(
-                                        Get.context!, controller.user);
-                                  }
-                                  // logoutLocal();
-                                },
-                              ),
-                            ),
-                            hGap(15),
-                            Expanded(
-                              child: GradientButton(
-                                name: "Cancel",
-                                btnColor: Colors.black,
-                                color: Colors.black,
-                                gradient: LinearGradient(colors: [
-                                  AppTheme.whiteColor,
-                                  AppTheme.whiteColor
-                                ]),
-                                vPadding: 6,
-                                onTap: () {
-                                  Get.back();
-                                },
-                              ),
-                            ),
-                          ],
-                        )
-                        // Text(STRING_logoutHeading,style: BalooStyles.baloomediumTextStyle(),),
-                      ],
-                    ).paddingSymmetric(horizontal: 8),
-                  ),
-                ),
-              ),
-            ),
-          );
-        },
-      ),
-      onOkTap: () {},
-    );
-  }
 
   Widget buildMessageBubble(ChatHisList msg, {required bool isMine}) {
     final bool isDeleted = (msg.message == null || msg.message!.isEmpty);
@@ -2307,12 +2205,19 @@ class ChatScreen extends GetView<ChatScreenController> {
                 CustomTextButton(
                     onTap: () {
                       try {
-                        Get.find<SocketController>().updateChatMessage(
-                            chatId: message.chatId,
-                            toUcId: message.toUser?.userCompany?.userCompanyId,
-                            message:
-                                controller.updateMsgController.text.trim());
-                        Get.back();
+                        if (controller.updateMsgController.text.trim().isNotEmpty) {
+                          Get.find<SocketController>().updateChatMessage(
+                              chatId: message.chatId,
+                              toUcId: message.toUser?.userCompany
+                                  ?.userCompanyId,
+                              message:
+                              controller.updateMsgController.text.trim());
+                          Get.back();
+                        }else{
+                          Get.back();
+                          Dialogs.showSnackbar(context, "Message cannot be blank");
+                        }
+
                       } catch (e) {
                         toast(e.toString());
                       }

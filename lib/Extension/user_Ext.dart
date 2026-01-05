@@ -4,7 +4,6 @@ extension UserDataAPIEmpty on UserDataAPI {
   static UserDataAPI empty() => UserDataAPI(
     userId: 0,
     userName: '',
-    displayName: '',
     phone: '',
     createdBy: null,
     isAdmin: 0,

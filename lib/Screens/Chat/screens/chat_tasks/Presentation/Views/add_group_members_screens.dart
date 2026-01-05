@@ -91,8 +91,8 @@ class AddGroupMembersScreen extends GetView<AddGroupMemController> {
                         // *********************
                         title: SizedBox(
                           width: Get.width * .4,
-                          child: user.displayName == '' ||
-                              user.displayName == null
+                          child: user.userCompany?.displayName == '' ||
+                              user.userCompany?.displayName == null
                               ? Text(
                             user.isAdmin == 1
                                 ? 'Company'
@@ -103,7 +103,7 @@ class AddGroupMembersScreen extends GetView<AddGroupMemController> {
                             themeData.textTheme.titleMedium,
                           )
                               : Text(
-                            user.displayName ?? 'User',
+                            user.userCompany?.displayName ?? 'User',
                             maxLines: 1,
                             overflow: TextOverflow.ellipsis,
                             style:

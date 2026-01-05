@@ -119,7 +119,7 @@ class GrBrMembersController extends GetxController{
       final chatc =Get.find<ChatScreenController>();
       final chath =Get.find<ChatHomeController>();
       chath.hitAPIToGetRecentChats(page: 1);
-      chatc.user?.displayName = groupOrBr?.displayName;
+      chatc.user?.userCompany?.displayName = groupOrBr?.userCompany?.displayName;
       chatc.user?.userName = groupOrBr?.userName;
       chatc.update();
       update();

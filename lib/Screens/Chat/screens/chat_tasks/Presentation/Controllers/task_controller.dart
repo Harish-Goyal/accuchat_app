@@ -175,9 +175,9 @@ class TaskController extends GetxController {
     refIdis = element.taskMsg.taskId;
     userIDSender = element.taskMsg.fromUser?.userId;
     userNameReceiver =
-        element.taskMsg.toUser?.displayName ?? '';
+        element.taskMsg.toUser?.userCompany?.displayName ?? '';
     userNameSender =
-        element.taskMsg.fromUser?.displayName ?? '';
+        element.taskMsg.fromUser?.userCompany?.displayName ?? '';
     userIDReceiver = element.taskMsg.toUser?.userId;
     // controller.replyToMessage = element.taskMsg;
 

@@ -73,7 +73,7 @@ class HomeScreen extends GetView<DashboardController> {
                                           CrossAxisAlignment.start,
                                       children: [
                                         Text(
-                                          'Hello, ${controller.userData?.displayName != null ?controller.userData?.displayName : 'AccuChat User'}!',
+                                          'Hello, ${controller.userData?.userCompany?.displayName != null ?controller.userData?.userCompany?.displayName : 'AccuChat User'}!',
 
                                           style: BalooStyles.baloosemiBoldTextStyle(
                                               ),

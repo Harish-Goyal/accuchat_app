@@ -1,4 +1,5 @@
 import 'package:AccuChat/Constants/assets.dart';
+import 'package:AccuChat/Screens/Chat/screens/auth/models/get_uesr_Res_model.dart';
 import 'package:AccuChat/Screens/Chat/screens/chat_tasks/Presentation/Controllers/chat_screen_controller.dart';
 import 'package:AccuChat/utils/helper_widget.dart';
 import 'package:AccuChat/utils/networl_shimmer_image.dart';
@@ -9,10 +10,10 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:photo_view/photo_view.dart';
 import 'package:photo_view/photo_view_gallery.dart';
-
 import '../../../../../../utils/share_helper.dart';
 import '../../../../models/chat_history_response_model.dart';
 import '../Controllers/gallery_view_controller.dart';
+import '../dialogs/save_in_gallery_dialog.dart';
 
 class GalleryViewerPage extends StatelessWidget {
   GalleryViewerPage({super.key,required this.onReply,this.isChat=false});
@@ -46,7 +47,6 @@ class GalleryViewerPage extends StatelessWidget {
                     for(String url in c.urls ){
                       await saveImageToGallery(url);
                     }
-
                   }
 
                   if(v == 'share_this'){
@@ -66,9 +66,9 @@ class GalleryViewerPage extends StatelessWidget {
                     chatC.userIDSender =
                         c.chathis.fromUser?.userId;
                     chatC.userNameReceiver =
-                        c.chathis.toUser?.displayName ?? '';
+                        c.chathis.toUser?.userCompany?.displayName ?? '';
                     chatC.userNameSender =
-                        c.chathis.fromUser?.displayName ?? '';
+                        c.chathis.fromUser?.userCompany?.displayName ?? '';
                     chatC.userIDReceiver =
                         c.chathis.toUser?.userId;
 
@@ -87,6 +87,13 @@ class GalleryViewerPage extends StatelessWidget {
                     chatC.update();
                     c.update();
                     Get.back();
+                  }
+
+
+                  if(v== "save_accuchat_this"){
+                    showDialog(
+                        context: Get.context!,
+                        builder: (_) => SaveToCustomFolderDialog(user: UserDataAPI(),));
                   }
                 },
                 itemBuilder: (ctx) {
@@ -113,6 +120,9 @@ class GalleryViewerPage extends StatelessWidget {
                      items.add( PopupMenuItem(
                       value: 'share_this',
                       child: Text('Share on WhatsApp', style:  BalooStyles.baloonormalTextStyle(color: Colors.white)),
+                    )); items.add( PopupMenuItem(
+                      value: 'save_accuchat_this',
+                      child: Text('Save in Smart Gallery', style:  BalooStyles.baloonormalTextStyle(color: Colors.white)),
                     ));
                   }
 

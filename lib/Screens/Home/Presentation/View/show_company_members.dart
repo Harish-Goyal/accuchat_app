@@ -111,7 +111,7 @@ class CompanyMembers extends GetView<CompanyMemberController> {
                   icon:  controller.isSearching.value?  const Icon(
                       CupertinoIcons.clear_circled_solid)
                       : Image.asset(searchPng,height:25,width:25)
-              );
+              ).paddingOnly(right:8);
             }
         ),
 
@@ -320,38 +320,22 @@ class CompanyMembers extends GetView<CompanyMemberController> {
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          memData?.userCompany?.displayName == '' ||
-                              memData?.userCompany?.displayName == null
-                              ? Text(
-                            (memData?.email != null)
-                                ? memData?.email ?? ''
-                                : memData?.phone ?? '',
-                            style: BalooStyles.balooregularTextStyle(),
-                            maxLines: 1,
-                            overflow: TextOverflow.ellipsis,
-                          )
-                              : Text(
-                            memData?.userCompany?.displayName ?? '',
+                         Text(
+                            memData?.userName!=null ? memData?.userName??'' :memData?.userCompany?.displayName!=null?memData?.userCompany?.displayName ?? '':memData?.phone??'',
                             style: BalooStyles.baloosemiBoldTextStyle(),
                             maxLines: 1,
                             overflow: TextOverflow.ellipsis,
                           ),
 
                           vGap(4),
-
-                          memData?.userCompany?.displayName == '' ||
-                              memData?.userCompany?.displayName == null
-                              ? const SizedBox(
-                            height: 0,
-                          )
-                              : Text(
-                            memData?.email != null
-                                ?memData?.email ?? ''
-                                : memData?.phone ?? '',
+                          memData?.userName==null && memData?.userCompany?.displayName==null?SizedBox():  Text(
+                            memData?.phone != null
+                                ?memData?.phone ?? ''
+                                : memData?.email ?? '',
                             style: BalooStyles.balooregularTextStyle(),
                             maxLines: 1,
                             overflow: TextOverflow.ellipsis,
-                          ),
+                          )
                         ],
                       ),
                     ),

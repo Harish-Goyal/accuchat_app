@@ -15,13 +15,13 @@ import '../../../../../../Constants/app_theme.dart';
 import '../../../../../../Constants/colors.dart';
 import '../../../../../../Constants/colors.dart' as AppTheme;
 import '../../../../../../main.dart';
+import '../../../../../../utils/helper_widget.dart';
 import '../../../../api/apis.dart';
 import '../../../../models/chat_user.dart';
 import 'chat_screen.dart';
 
 class AllUserScreen extends GetView<AllUserController> {
-   AllUserScreen({super.key});
-
+  AllUserScreen({super.key});
 
   DateTime _lastCall = DateTime.fromMillisecondsSinceEpoch(0);
 
@@ -31,144 +31,170 @@ class AllUserScreen extends GetView<AllUserController> {
     _lastCall = now;
     return true;
   }
+
   @override
   Widget build(BuildContext context) {
     return SafeArea(
-      child: Scaffold(
-            appBar: _buildAppBar(),
+        child: Scaffold(
+      appBar: _buildAppBar(),
 
-            // ---------------- WEB RESPONSIVE WRAPPER ADDED ----------------
-            body:Obx(
-            () => Center(
-              child:controller.isLoading.value?IndicatorLoading(): ConstrainedBox(
-                constraints: BoxConstraints(
-                  maxWidth: kIsWeb ? 600 : double.infinity, // FIX WIDTH ON WEB
-                ),
-
-                child: Container(
-                  margin: const EdgeInsets.symmetric(vertical: 6, horizontal: 10),
-                  padding: const EdgeInsets.symmetric(vertical: 4),
-                  decoration: BoxDecoration(
-                    color: Colors.white,
-                    borderRadius: BorderRadius.circular(12),
-                    boxShadow: kIsWeb
-                        ? [
-                      BoxShadow(
-                        color: Colors.black.withOpacity(0.05),
-                        blurRadius: 10,
-                        spreadRadius: 2,
-                        offset: const Offset(0, 3),
-                      )
-                    ]
-                        : [], // mobile keeps simple, no shadow
+      // ---------------- WEB RESPONSIVE WRAPPER ADDED ----------------
+      body: Obx(
+        () => Center(
+          child: controller.isLoading.value
+              ? IndicatorLoading()
+              : ConstrainedBox(
+                  constraints: BoxConstraints(
+                    maxWidth:
+                        kIsWeb ? 600 : double.infinity, // FIX WIDTH ON WEB
                   ),
-                  child: NotificationListener<ScrollNotification>(
-                    onNotification: (ScrollNotification n) {
-                      if (n is! ScrollEndNotification) return false; // ✅ avoid spam
+                  child: Container(
+                    margin:
+                        const EdgeInsets.symmetric(vertical: 6, horizontal: 10),
+                    padding: const EdgeInsets.symmetric(vertical: 4),
+                    decoration: BoxDecoration(
+                      color: Colors.white,
+                      borderRadius: BorderRadius.circular(12),
+                      boxShadow: kIsWeb
+                          ? [
+                              BoxShadow(
+                                color: Colors.black.withOpacity(0.05),
+                                blurRadius: 10,
+                                spreadRadius: 2,
+                                offset: const Offset(0, 3),
+                              )
+                            ]
+                          : [], // mobile keeps simple, no shadow
+                    ),
+                    child: NotificationListener<ScrollNotification>(
+                      onNotification: (ScrollNotification n) {
+                        if (n is! ScrollEndNotification)
+                          return false; // ✅ avoid spam
 
-                      final m = n.metrics;
+                        final m = n.metrics;
 
-                      if (m.extentAfter < 200 &&
-                          !controller.isLoading.value &&
-                          controller.hasMore &&
-                          canFetch()) {
-                        controller.hitAPIToGetMember();
-                      }
-                      return false;
-                    },
-                    child: ListView.builder(
-                      itemCount: controller.filteredList.length ?? 0,
-                      physics: AlwaysScrollableScrollPhysics(),
-                      controller: controller.scrollController,
-                      // shrinkWrap: true,
-                      padding: EdgeInsets.zero,
-                      itemBuilder: (_, i) => ListTile(
-                        leading: SizedBox(
-                          width: 50,
-                          child: CustomCacheNetworkImage(
-                            "${ApiEnd.baseUrlMedia}${controller.filteredList[i].userImage ?? ''}",
-                            height: 50,
-                            width: 50,
-                            radiusAll: 100,
-                            borderColor: greyText,
-                            boxFit: BoxFit.cover,
-                            defaultImage: userIcon,
-                          ),
-                        ),
-                        title: Text(
-                          controller.filteredList[i].userId ==
-                              controller.me?.userId
-                              ? "Me"
-                              : (controller.filteredList[i].displayName
-                              .toString() ==
-                              '' ||
-                              controller.filteredList[i].displayName ==
-                                  null)
-                              ? controller.filteredList[i].phone ?? ""
-                              : controller.filteredList[i].displayName ?? '',
-                          style: themeData.textTheme.bodySmall,
-                        ),
-                        subtitle: ((controller.filteredList[i].displayName
-                            .toString() ==
-                            '' ||
-                            controller.filteredList[i].displayName ==
-                                null) &&
-                            controller.filteredList[i].userId !=
-                                controller.me?.userId)
-                            ? SizedBox()
-                            : Text(
-                          controller.filteredList[i].email.toString() ==
-                              'null' ||
-                              controller.filteredList[i].email
-                                  .toString() ==
-                                  '' ||
-                              (controller.filteredList[i].email ?? '')
-                                  .isEmpty ||
-                              controller.filteredList[i].email == null
-                              ? controller.filteredList[i].phone ?? ''
-                              : controller.filteredList[i].email ?? '',
-                          style: themeData.textTheme.bodySmall
-                              ?.copyWith(color: greyText),
-                        ),
-                        onTap: () {
-                          if (isTaskMode) {
-                            if (kIsWeb) {
-                              Get.to(()=>TaskScreen(taskUser: controller.filteredList[i] ,showBack: true,));
-                            } else {
-                              Get.toNamed(AppRoutes.tasks_li_r,
-                                  arguments: {'user': controller.filteredList[i]});
-                            }
-                          } else {
-                            if (kIsWeb) {
-
-                              Get.to(()=>ChatScreen(user: controller.filteredList[i] ,showBack: true,));
-
-                            } else {
-                              Get.toNamed(AppRoutes.chats_li_r,
-                                  arguments: {'user': controller.filteredList[i]});
-                            }
-                          }
-                        },
-                      ),
+                        if (m.extentAfter < 200 &&
+                            !controller.isLoading.value &&
+                            controller.hasMore &&
+                            canFetch()) {
+                          controller.hitAPIToGetMember();
+                        }
+                        return false;
+                      },
+                      child: ListView.builder(
+                          itemCount: controller.filteredList.length ?? 0,
+                          physics: AlwaysScrollableScrollPhysics(),
+                          controller: controller.scrollController,
+                          // shrinkWrap: true,
+                          padding: EdgeInsets.zero,
+                          itemBuilder: (_, i) {
+                            final memData = controller.filteredList[i];
+                            return ListTile(
+                              leading: SizedBox(
+                                width: 50,
+                                child: CustomCacheNetworkImage(
+                                  "${ApiEnd.baseUrlMedia}${controller.filteredList[i].userImage ?? ''}",
+                                  height: 45,
+                                  width: 45,
+                                  radiusAll: 100,
+                                  borderColor: greyText,
+                                  boxFit: BoxFit.cover,
+                                  defaultImage: userIcon,
+                                ),
+                              ),
+                              title: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text(
+                                    memData.userId == controller.me?.userId
+                                        ? "Me"
+                                        : memData?.userName != null
+                                            ? memData?.userName ?? ''
+                                            : memData?.userCompany
+                                                        ?.displayName !=
+                                                    null
+                                                ? memData?.userCompany
+                                                        ?.displayName ??
+                                                    ''
+                                                : memData?.phone ?? '',
+                                    style: BalooStyles.baloosemiBoldTextStyle(),
+                                    maxLines: 1,
+                                    overflow: TextOverflow.ellipsis,
+                                  ),
+                                  vGap(4),
+                                  memData?.userName != null ||
+                                          memData?.userCompany?.displayName !=
+                                              null
+                                      ? Text(
+                                          memData?.phone != null
+                                              ? memData?.phone ?? ''
+                                              : memData?.email ?? '',
+                                          style:
+                                              BalooStyles.balooregularTextStyle(
+                                                  color: greyText),
+                                          maxLines: 1,
+                                          overflow: TextOverflow.ellipsis,
+                                        )
+                                      : SizedBox(),
+                                  memData?.userName == null &&
+                                          memData?.userCompany?.displayName ==
+                                              null
+                                      ? SizedBox()
+                                      : Text(
+                                          memData?.phone != null
+                                              ? memData?.phone ?? ''
+                                              : memData?.email ?? '',
+                                          style: BalooStyles
+                                              .balooregularTextStyle(),
+                                          maxLines: 1,
+                                          overflow: TextOverflow.ellipsis,
+                                        )
+                                ],
+                              ),
+                              onTap: () {
+                                if (isTaskMode) {
+                                  if (kIsWeb) {
+                                    Get.to(() => TaskScreen(
+                                          taskUser: controller.filteredList[i],
+                                          showBack: true,
+                                        ));
+                                  } else {
+                                    Get.toNamed(AppRoutes.tasks_li_r,
+                                        arguments: {
+                                          'user': controller.filteredList[i]
+                                        });
+                                  }
+                                } else {
+                                  if (kIsWeb) {
+                                    Get.to(() => ChatScreen(
+                                          user: controller.filteredList[i],
+                                          showBack: true,
+                                        ));
+                                  } else {
+                                    Get.toNamed(AppRoutes.chats_li_r,
+                                        arguments: {
+                                          'user': controller.filteredList[i]
+                                        });
+                                  }
+                                }
+                              },
+                            );
+                          }),
                     ),
                   ),
                 ),
-              ),
-            ),
-            ),
-            // ---------------- END RESPONSIVE WRAPPER ----------------
-          )
-    );
+        ),
+      ),
+      // ---------------- END RESPONSIVE WRAPPER ----------------
+    ));
   }
 
-
-
-  AppBar _buildAppBar(){
-   return AppBar(
+  AppBar _buildAppBar() {
+    return AppBar(
       automaticallyImplyLeading: false,
-      backgroundColor: Colors.white,   // white color
-      elevation: 1,                    // remove shadow
-      scrolledUnderElevation: 0,       // ✨ prevents color change on scroll
+      backgroundColor: Colors.white, // white color
+      elevation: 1, // remove shadow
+      scrolledUnderElevation: 0, // ✨ prevents color change on scroll
       surfaceTintColor: Colors.white,
       leading: IconButton(
           onPressed: () {
@@ -178,28 +204,25 @@ class AllUserScreen extends GetView<AllUserController> {
             Icons.arrow_back,
             color: Colors.black,
           )),
-      title: Obx(
-              () {
-
-            return controller.isSearching.value
-                ? TextField(
-              controller: controller.searchController,
-              cursorColor: appColorGreen,
-              decoration: const InputDecoration(
-                  border: InputBorder.none,
-                  hintText: 'Search User by name and phone ...',
-                  contentPadding: EdgeInsets.symmetric(
-                      vertical: 0, horizontal: 10),
-                  constraints: BoxConstraints(maxHeight: 45)),
-              autofocus: true,
-              style: const TextStyle(
-                  fontSize: 13, letterSpacing: 0.5),
-              onChanged: (val) {
-                controller.searchText = val;
-                controller.onSearch(val);
-              },
-            ).marginSymmetric(vertical: 10)
-                :
+      title: Obx(() {
+        return controller.isSearching.value
+            ? TextField(
+                controller: controller.searchController,
+                cursorColor: appColorGreen,
+                decoration: const InputDecoration(
+                    border: InputBorder.none,
+                    hintText: 'Search User by name and phone ...',
+                    contentPadding:
+                        EdgeInsets.symmetric(vertical: 0, horizontal: 10),
+                    constraints: BoxConstraints(maxHeight: 45)),
+                autofocus: true,
+                style: const TextStyle(fontSize: 13, letterSpacing: 0.5),
+                onChanged: (val) {
+                  controller.searchText = val;
+                  controller.onSearch(val);
+                },
+              ).marginSymmetric(vertical: 10)
+            :
 
             /*   DropdownButtonHideUnderline(
 
@@ -301,35 +324,29 @@ class AllUserScreen extends GetView<AllUserController> {
                       )*/
 
             Text(
-              'Users',
-              style: BalooStyles.balooboldTitleTextStyle(),
-            );
-          }
-      ),
-      actions: [
-        Obx(
-                () {
-              return IconButton(
-                  onPressed: () {
-                    controller.isSearching.value = !controller.isSearching.value;
-                    controller.isSearching.refresh();
-
-                    if(!controller.isSearching.value){
-                      controller.searchText = '';
-                      controller.onSearch('');
-                      controller.searchController.clear();
-                    }
-                    // controller.update();
-                  },
-                  icon:  controller.isSearching.value?  const Icon(
-                      CupertinoIcons.clear_circled_solid)
-                      : Image.asset(searchPng,height:25,width:25)
+                'Users',
+                style: BalooStyles.balooboldTitleTextStyle(),
               );
-            }
-        ),
+      }),
+      actions: [
+        Obx(() {
+          return IconButton(
+              onPressed: () {
+                controller.isSearching.value = !controller.isSearching.value;
+                controller.isSearching.refresh();
 
+                if (!controller.isSearching.value) {
+                  controller.searchText = '';
+                  controller.onSearch('');
+                  controller.searchController.clear();
+                }
+                // controller.update();
+              },
+              icon: controller.isSearching.value
+                  ? const Icon(CupertinoIcons.clear_circled_solid)
+                  : Image.asset(searchPng, height: 25, width: 25));
+        }),
       ],
     );
   }
 }
-

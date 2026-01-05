@@ -176,7 +176,7 @@ class TaskScreenMobile extends GetView<TaskController> {
                                     const SizedBox(width: 8),
                                     Expanded(
                                       child: Text(
-                                        "${controller.replyToMessage?.fromUser?.userId == APIs.me?.userId ? 'You' : controller.user?.displayName ?? ''}: ${controller.replyToMessage?.message ?? ''}",
+                                        "${controller.replyToMessage?.fromUser?.userId == APIs.me?.userId ? 'You' : controller.user?.userCompany?.displayName ?? ''}: ${controller.replyToMessage?.message ?? ''}",
                                         maxLines: 1,
                                         overflow: TextOverflow.ellipsis,
                                         style: themeData.textTheme.bodySmall
@@ -548,7 +548,7 @@ class TaskScreenMobile extends GetView<TaskController> {
       borderRadius: BorderRadius.circular(30),
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
       itemBuilder: (_) =>
-          _buildMenuItems(statusHis ?? [], APIs.me.displayName ?? ''),
+          _buildMenuItems(statusHis ?? [], APIs.me.userCompany?.displayName ?? ''),
       child: Container(
         padding: const EdgeInsets.only(left: 8, right: 8, top: 4, bottom: 4),
         decoration: BoxDecoration(
@@ -978,8 +978,8 @@ class TaskScreenMobile extends GetView<TaskController> {
                     children: [
                       //user name
                       Text(
-                        controller.user?.displayName != null
-                            ? controller.user?.displayName?? ''
+                        controller.user?.userCompany?.displayName != null
+                            ? controller.user?.userCompany?.displayName?? ''
                             : controller.user?.userName != null
                                 ? controller.user?.userName?? ''
                                 : controller.user?.phone ?? '',
@@ -1277,7 +1277,7 @@ class TaskScreenMobile extends GetView<TaskController> {
                                             builder: (_) =>
                                                 _createTasksDialogWidget(
                                                     controller.user
-                                                            ?.displayName ??
+                                                            ?.userCompany?.displayName ??
                                                         '')).then((pickedTime) {
                                           if (pickedTime != null) {
                                             controller.update();

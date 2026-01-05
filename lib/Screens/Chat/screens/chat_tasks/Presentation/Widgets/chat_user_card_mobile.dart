@@ -208,7 +208,7 @@ class _ChatUserCardMobileState extends State<ChatUserCardMobile>
                 maxLines: 1,
                 overflow: TextOverflow.ellipsis,
               ):Text(
-                (widget.user?.userId==APIs.me.userId)?"Me":  (widget.user?.displayName==''||widget.user?.displayName==null)?widget.user?.phone??'':widget.user?.displayName??'',
+                (widget.user?.userId==APIs.me.userId)?"Me":  (widget.user?.userCompany?.displayName==''||widget.user?.userCompany?.displayName==null)?widget.user?.phone??'':widget.user?.userCompany?.displayName??'',
                 style: BalooStyles.baloonormalTextStyle(),
                 maxLines: 1,
                 overflow: TextOverflow.ellipsis,

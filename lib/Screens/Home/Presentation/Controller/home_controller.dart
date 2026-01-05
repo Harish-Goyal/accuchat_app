@@ -127,8 +127,8 @@ class DashboardController extends GetxController with WidgetsBindingObserver {
         return CompaniesScreen();
 
         
-     /* case 'Gallery Button':
-        return GalleryTab();*/
+      case 'Gallery Button':
+        return GalleryTab();
       default:
       // --- change: visible tiny loader instead of invisible container
         return const Center(child: IndicatorLoading());
@@ -144,8 +144,8 @@ class DashboardController extends GetxController with WidgetsBindingObserver {
         return tasksHome;
       case 'Companies Button':
         return connectedAppIcon;
-      /*case 'Gallery Button':
-        return galleryIcon;*/
+      case 'Gallery Button':
+        return galleryIcon;
       default:
         return appIcon;
     }

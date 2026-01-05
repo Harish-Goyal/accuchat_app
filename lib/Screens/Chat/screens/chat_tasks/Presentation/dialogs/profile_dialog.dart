@@ -55,7 +55,7 @@ class ProfileDialog extends StatelessWidget {
                     children: [
                       Expanded(
                         child: Text(
-                          user?.displayName ?? '',
+                          user?.userCompany?.displayName ?? '',
                           style: const TextStyle(
                               fontSize: 18, fontWeight: FontWeight.w500),
                         ),

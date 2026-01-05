@@ -296,19 +296,17 @@ class AddGroupMemController extends GetxController {
     final s = query.trim().toLowerCase();
     if (s.isNotEmpty) {
       filtered = filtered.where((u) {
-        final name  = u.displayName?.toLowerCase();
+        final name  = u.userCompany?.displayName?.toLowerCase();
         final phone = (u.phone ?? '').toLowerCase();
         final email = (u.email ?? '').toLowerCase();
         return (name??'').contains(s) || phone.contains(s) || email.contains(s);
       });
     }
-
     candidates = filtered.toList()
-      ..sort((a, b) => (a.displayName??'').toLowerCase().compareTo((b.displayName??'').toLowerCase()));
+      ..sort((a, b) => (a.userCompany?.displayName??'').toLowerCase().compareTo((b.userCompany?.displayName??'').toLowerCase()));
 
     update(); // 🔑 rebuild GetBuilder
   }
-
 
 
 }

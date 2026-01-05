@@ -1,5 +1,6 @@
 import 'package:AccuChat/Extension/text_field_extenstion.dart';
 import 'package:AccuChat/Screens/Chat/screens/chat_tasks/Presentation/Controllers/chat_screen_controller.dart';
+import 'package:AccuChat/Screens/Chat/screens/chat_tasks/Presentation/Controllers/save_in_accuchat_gallery_controller.dart';
 import 'package:AccuChat/utils/helper_widget.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
@@ -10,13 +11,12 @@ import '../../../../models/gallery_create.dart';
 
 Future<GalleryFolder?> showSaveToCustomFolderDialog(BuildContext context,user) async {
   // Create a fresh controller for this dialog lifecycle
-  final String tagId = 'gallery-folder-dialog-${UniqueKey()}';
-  final ctrl = Get.put(ChatScreenController(user: user), tag: tagId);
+  final ctrl = Get.put(SaveToGalleryController());
   final result = await showDialog<GalleryFolder?>(
     context: context,
     barrierDismissible: false,
     builder: (_) {
-      return GetBuilder<ChatScreenController>(
+      return GetBuilder<SaveToGalleryController>(
         init: ctrl,
         builder: (c) {
           return AlertDialog(
@@ -135,7 +135,7 @@ Future<GalleryFolder?> showSaveToCustomFolderDialog(BuildContext context,user) a
             actions: [
               TextButton(
                 onPressed: () {
-                  Get.delete<ChatScreenController>(tag: tagId);
+                  Get.delete<SaveToGalleryController>();
                   Navigator.of(context).pop(null);
                 },
                 child: const Text('Cancel'),
@@ -145,7 +145,7 @@ Future<GalleryFolder?> showSaveToCustomFolderDialog(BuildContext context,user) a
                     ? null
                     : () {
                   final chosen = c.selectedFolder!;
-                  Get.delete<ChatScreenController>(tag:tagId);
+                  Get.delete<SaveToGalleryController>();
                   Navigator.of(context).pop(chosen);
                 },
                 child: const Text('Save'),

@@ -36,10 +36,10 @@ class ViewProfileScreen extends GetView<ViewProfileController> {
             //app bar
             appBar: AppBar(
               title: Text(
-                controller.user?.displayName == null ||
-                        controller.user?.displayName == ''
+                controller.user?.userCompany?.displayName == null ||
+                        controller.user?.userCompany?.displayName == ''
                     ? controller.user?.phone ?? ''
-                    : controller.user?.displayName ?? '',
+                    : controller.user?.userCompany?.displayName ?? '',
                 style: BalooStyles.balooboldTitleTextStyle(),
               ),
             ),

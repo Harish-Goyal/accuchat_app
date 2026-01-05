@@ -9,6 +9,8 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import '../../../../../../Constants/colors.dart';
+import '../../../../../../utils/helper_widget.dart';
+import '../../../../../../utils/text_style.dart';
 import '../../../../api/apis.dart';
 import '../../../../models/chat_user.dart';
 import '../Views/chat_screen.dart';
@@ -130,53 +132,71 @@ class AllUserScreenDialog extends GetView<AllUserController> {
                             itemCount: listToShow.length,
                             controller: controller.scrollController,
                             physics: const AlwaysScrollableScrollPhysics(),
-                            itemBuilder: (_, i) => ListTile(
-                              leading: SizedBox(
-                                width: 50,
-                                child: CustomCacheNetworkImage(
-                                  "${ApiEnd.baseUrlMedia}${listToShow[i].userImage ?? ''}",
-                                  height: 50,
-                                  width: 50,
-                                  radiusAll: 100,
-                                  boxFit: BoxFit.cover,
-                                  borderColor: greyText,
-                                  defaultImage:listToShow[i].userCompany?.isGroup==1?groupIcn:
-                                  listToShow[i].userCompany?.isBroadcast==1?
-                                  broadcastIcon
-                                      :userIcon,
-                                ),
-                              ),
-                              title:
-                              listToShow[i].displayName!=null?  Text(
-                                listToShow[i].displayName ?? '',
+                            itemBuilder: (_, i) {
+                             final memData = listToShow[i];
+                              return
+                                ListTile(
+                                  leading: SizedBox(
+                                    width: 50,
+                                    child: CustomCacheNetworkImage(
+                                      "${ApiEnd.baseUrlMedia}${listToShow[i]
+                                          .userImage ?? ''}",
+                                      height: 45,
+                                      width: 45,
+                                      radiusAll: 100,
+                                      boxFit: BoxFit.cover,
+                                      borderColor: greyText,
+                                      defaultImage: listToShow[i].userCompany
+                                          ?.isGroup == 1 ? groupIcn :
+                                      listToShow[i].userCompany?.isBroadcast ==
+                                          1 ?
+                                      broadcastIcon
+                                          : userIcon,
+                                    ),
+                                  ),
+                                  title:
+                                  Column(
+                                    crossAxisAlignment: CrossAxisAlignment
+                                        .start,
+                                    children: [
+                                      Text(
+                                        memData.userId ==
+                                            controller.me?.userId
+                                            ? "Me":   memData?.userName != null ? memData
+                                            ?.userName ?? '' : memData
+                                            ?.userCompany?.displayName != null
+                                            ? memData?.userCompany
+                                            ?.displayName ?? ''
+                                            : memData?.phone ?? '',
+                                        style: BalooStyles
+                                            .baloosemiBoldTextStyle(),
+                                        maxLines: 1,
+                                        overflow: TextOverflow.ellipsis,
+                                      ),
 
-                                style: themeData.textTheme.bodySmall,
-                              ):Text(
-                                listToShow[i].email != null
-                                    ? listToShow[i].email ?? ''
-                                    : listToShow[i].phone ?? '',
-                                style: themeData.textTheme.bodySmall
-                                    ?.copyWith(color: Colors.black87),
-                              ),
-                              subtitle:listToShow[i].displayName!=null||listToShow[i].displayName!=""? Text(
-                                listToShow[i].email != null
-                                    ? listToShow[i].email ?? ''
-                                    : listToShow[i].phone ?? '',
-                                style: themeData.textTheme.bodySmall
-                                    ?.copyWith(color: greyText),
-                              ):SizedBox(),
-                              onTap: () {
-                                /* Navigator.push(
+                                      vGap(4),
+                                      memData?.userName==null && memData?.userCompany?.displayName==null?SizedBox():  Text(
+                                        memData?.phone != null
+                                            ?memData?.phone ?? ''
+                                            : memData?.email ?? '',
+                                        style: BalooStyles.balooregularTextStyle(),
+                                        maxLines: 1,
+                                        overflow: TextOverflow.ellipsis,
+                                      )
+                                    ],
+                                  ),
+                                  onTap: () {
+                                    /* Navigator.push(
                                       context,
                                       MaterialPageRoute(
                                         builder: (_) => ChatScreen(user: listToShow[i]),
                                       ),
                                     );
                                       */
-                                Navigator.pop(context, listToShow[i]);
-                              },
-                            ),
-                          ),
+                                    Navigator.pop(context, listToShow[i]);
+                                  },
+                                );
+                            }),
                         );
               }
 

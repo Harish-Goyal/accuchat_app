@@ -37,6 +37,8 @@ import '../../../../../../utils/share_helper.dart';
 import '../../../../../../utils/text_button.dart';
 import '../../../../../../utils/text_style.dart';
 import '../../../../../Home/Presentation/Controller/socket_controller.dart';
+import '../../../../helper/dialogs.dart';
+import '../Controllers/save_in_accuchat_gallery_controller.dart';
 import '../Controllers/task_controller.dart';
 import '../Controllers/task_home_controller.dart';
 import '../Widgets/reply_msg_widget.dart';
@@ -106,6 +108,8 @@ double _textScaleClamp(BuildContext context) {
 
 class ChatScreenMobile extends GetView<ChatScreenController> {
   ChatScreenMobile({super.key});
+
+  SaveToGalleryController saveGellController =Get.put(SaveToGalleryController());
   @override
   Widget build(BuildContext context) {
     return GetBuilder<ChatScreenController>(builder: (controller) {
@@ -178,7 +182,7 @@ class ChatScreenMobile extends GetView<ChatScreenController> {
                                               crossAxisAlignment: CrossAxisAlignment.start,
                                               children: [
                                                 Text(
-                                                  "${controller.replyToMessage?.fromUser?.userId == controller.me?.userId ? 'You' : controller.user?.displayName ?? ''}",
+                                                  "${controller.replyToMessage?.fromUser?.userId == controller.me?.userId ? 'You' : controller.user?.userCompany?.displayName ?? ''}",
                                                   maxLines: 1,
                                                   overflow: TextOverflow.ellipsis,
                                                   style: themeData.textTheme.bodySmall
@@ -807,7 +811,7 @@ class ChatScreenMobile extends GetView<ChatScreenController> {
                   isGroupMessage: data.isGroupChat==1?true:false,
                   myId: (controller.me?.userId ?? 0).toString(),
                   fromId: (data.fromUser?.userId ?? 0).toString(),
-                  senderName:data.fromUser?.displayName!=null? data.fromUser?.displayName ?? '':data.fromUser?.userName??'',
+                  senderName:data.fromUser?.userCompany?.displayName!=null? data.fromUser?.userCompany?.displayName ?? '':data.fromUser?.userName??'',
                   baseUrl: ApiEnd.baseUrlMedia,
                   defaultGallery: defaultGallery,
                   onOpenDocument: (url) =>
@@ -1668,7 +1672,7 @@ class ChatScreenMobile extends GetView<ChatScreenController> {
               /*_OptionItem(
                     icon:  Icon(Icons.document_scanner,
                         color: appColorYellow, size: 18),
-                    name: 'Save in Accuchat Gallery',
+                    name: 'Save in Smart Gallery',
                     onTap: () async {
                       try {
                         Get.back();
@@ -1828,7 +1832,7 @@ class ChatScreenMobile extends GetView<ChatScreenController> {
 
                         CustomTextField(
                           hintText: "Document Name",
-                          controller: controller.docNameController,
+                          controller: saveGellController.docNameController,
                           focusNode: FocusNode(),
                           onFieldSubmitted: (String? value) {
                             FocusScope.of(Get.context!).unfocus();
@@ -1848,7 +1852,7 @@ class ChatScreenMobile extends GetView<ChatScreenController> {
                                 vPadding: 6,
                                 onTap: () async {
                                   if (_formKeyDoc.currentState!.validate()) {
-                                    controller.onTapSaveToFolder(Get.context!,controller.user);
+                                    saveGellController.onTapSaveToFolder(Get.context!,controller.user);
                                   }
                                   // logoutLocal();
                                 },
@@ -1974,12 +1978,17 @@ class ChatScreenMobile extends GetView<ChatScreenController> {
 
             CustomTextButton(onTap: (){
               try {
+                if (controller.updateMsgController.text.trim().isNotEmpty) {
                 Get.find<SocketController>().updateChatMessage(
                     chatId: message.chatId,
                     toUcId: message.toUser?.userCompany?.userCompanyId,
                     message: controller.updateMsgController.text.trim()
                 );
                 Get.back();
+    }else{
+                  Get.back();
+                  Dialogs.showSnackbar(context, "Message cannot be blank");
+    }
               }catch(e){
                 toast(e.toString());
               }
@@ -2008,7 +2017,8 @@ class _OptionItem extends StatelessWidget {
               left: mq.width * .05,
               top: mq.height * .015,
               bottom: mq.height * .015),
-          child: Row(children: [
+          child: Row(
+            children: [
             icon,
             Flexible(
                 child: Text('    $name',

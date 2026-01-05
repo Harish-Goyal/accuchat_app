@@ -28,12 +28,10 @@ class ProfileMediaSectionGetX extends StatelessWidget {
         child: Builder(
           builder: (context) {
             // hook the TabController to GetX controller (once)
-
               final tabCtrl = DefaultTabController.of(context);
               WidgetsBinding.instance.addPostFrameCallback((_) {
                 controller.attachTabController(tabCtrl);
               });
-
 
             return Column(
               children: [
@@ -52,12 +50,11 @@ class ProfileMediaSectionGetX extends StatelessWidget {
                     ),
                     indicatorPadding: EdgeInsets.zero,
                     indicatorSize: TabBarIndicatorSize.tab,
-
                     dividerColor: Colors.transparent,
                     labelColor: Colors.black,
                     unselectedLabelColor: Colors.black54,
                     padding: EdgeInsets.zero,
-                    tabs: [
+                    tabs: const [
                       Tab(text: 'Photos & Videos'),
                       Tab(text: 'Documents'),
                     ],
