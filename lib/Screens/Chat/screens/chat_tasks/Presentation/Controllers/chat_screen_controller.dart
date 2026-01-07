@@ -99,7 +99,8 @@ class ChatScreenController extends GetxController {
   }
 
   List<ChatRow> flatRows = [];
-  final Map<int, int> chatIdToIndex = {}; // chatId -> index in flatRows
+  final Map<int, int> chatIdToIndex = {};
+  final Map<int, GlobalKey> chatIdToKey = {};
   bool isSearching = false;
   String searchQuery = '';
   TextEditingController seacrhCon = TextEditingController();
@@ -121,14 +122,46 @@ class ChatScreenController extends GetxController {
 
   }
 
+
+  Timer? _pageDebounce;
+
+  void attachPaginationListener({bool reverseList = true}) {
+    itemPositionsListener.itemPositions.addListener(() {
+      if (isPageLoading || !hasMore) return;
+
+      final positions = itemPositionsListener.itemPositions.value;
+      if (positions.isEmpty) return;
+
+      int minIndex = positions.first.index;
+      int maxIndex = positions.first.index;
+
+      for (final p in positions) {
+        if (p.index < minIndex) minIndex = p.index;
+        if (p.index > maxIndex) maxIndex = p.index;
+      }
+
+      // ✅ If you use reverse:true and older messages are at "top",
+      // trigger when user reaches the end side.
+      final nearEnd = reverseList
+          ? (maxIndex >= (flatRows.length - 3))
+          : (minIndex <= 2);
+
+      if (!nearEnd) return;
+
+      _pageDebounce?.cancel();
+      _pageDebounce = Timer(const Duration(milliseconds: 250), () {
+        if (!isPageLoading && hasMore) {
+          hitAPIToGetChatHistory();
+        }
+      });
+    });
+  }
+
   // Call this whenever chatCatygory changes
   void rebuildFlatRows() {
     flatRows = [];
     chatIdToIndex.clear();
 
-    // You used GroupedListOrder.DESC + reverse:true previously.
-    // For ScrollablePositionedList we keep ascending order,
-    // and we’ll start at the bottom using initialScrollIndex.
     final sorted = List<GroupChatElement>.from(chatCatygory)
       ..sort((a, b) => a.date.compareTo(b.date));
 
@@ -140,29 +173,68 @@ class ChatScreenController extends GetxController {
         flatRows?.add(ChatHeaderRow(d));
         lastHeaderDate = d;
       }
+
       flatRows?.add(ChatMessageRow(el));
       final idx = (flatRows?.length ?? 0) - 1;
+
       final id = el.chatMessageItems.chatId;
-      if (id != null) chatIdToIndex[id] = idx;
+      if (id != null) {
+        chatIdToIndex[id] = idx;
+        chatIdToKey.putIfAbsent(id, () => GlobalKey()); // ✅ ensure key exists
+      }
     }
     update();
   }
 
+
   // Jump to a message by chatId
   Future<void> scrollToChatId(int chatId) async {
+    // ✅ 1) If widget is already built, ensureVisible works even when list not scrollable
+    final ctx = chatIdToKey[chatId]?.currentContext;
+    if (ctx != null) {
+      await Scrollable.ensureVisible(
+        ctx,
+        duration: const Duration(milliseconds: 250),
+        curve: Curves.easeInOut,
+        alignment: 0.35,
+      );
+      highlightMessage(chatId); // ✅ always give feedback
+      return;
+    }
+
+    // ✅ 2) Otherwise use index-based scroll
     final idx = chatIdToIndex[chatId];
     if (idx == null) {
       debugPrint("Original message not found (maybe not loaded)");
       return;
     }
-    await itemScrollController?.scrollTo(
+
+    if (!itemScrollController.isAttached) {
+      // list not attached yet (web pe hota hai sometimes) -> run after frame
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        scrollToChatId(chatId);
+      });
+      return;
+    }
+
+    // ✅ 3) If already visible, don't depend on scrollTo
+    final positions = itemPositionsListener.itemPositions.value;
+    final isVisible = positions.any((p) => p.index == idx);
+    if (isVisible) {
+      highlightMessage(chatId);
+      return;
+    }
+
+    await itemScrollController.scrollTo(
       index: idx,
-      duration: const Duration(milliseconds: 450),
+      duration: const Duration(milliseconds: 350),
       curve: Curves.easeInOut,
-      alignment: 0.1, // keeps it a bit below top
+      alignment: 0.35,
     );
-    highlightMessage(chatId); // optional visual flash
+
+    highlightMessage(chatId);
   }
+
 
   // Optional highlight logic
   final highlighted = <int>{}.obs;
@@ -180,6 +252,7 @@ class ChatScreenController extends GetxController {
   @override
   void onInit() {
     super.onInit();
+
     Get.find<ChatHomeController>()
         .isOnRecentList.value = false;
     replyToMessage = null;
@@ -187,8 +260,9 @@ class ChatScreenController extends GetxController {
 
     if (kIsWeb) {
       user = Get.find<ChatHomeController>().selectedChat.value;
+      // _initScroll();
     }
-
+    // attachPaginationListener(reverseList: true);
     scrollListener();
 
 
@@ -268,7 +342,7 @@ class ChatScreenController extends GetxController {
       user = value.data;
       openConversation(user);
       ChatPresence.activeChatId = user?.userCompany?.userCompanyId;
-      print("ChatPresence ===== ${ChatPresence.activeChatId }");
+
       update();
     }).onError((error, stackTrace) {
       update();
@@ -356,15 +430,15 @@ class ChatScreenController extends GetxController {
         }
       });
     } else {
-      scrollController2.addListener(() {
-        if (scrollController2.position.pixels <=
-            scrollController2.position.minScrollExtent + 50 &&
-            !isPageLoading &&
-            hasMore) {
-          // resetPaginationForNewChat();
-          hitAPIToGetChatHistory();
-        }
-      });
+      // scrollController2.addListener(() {
+      //   if (scrollController2.position.pixels <=
+      //       scrollController2.position.minScrollExtent + 50 &&
+      //       !isPageLoading &&
+      //       hasMore) {
+      //     // resetPaginationForNewChat();
+      //     hitAPIToGetChatHistory();
+      //   }
+      // });
     }
   }
 
@@ -423,7 +497,7 @@ class ChatScreenController extends GetxController {
             APIs.me.userCompany?.userCompanyId,
             user?.userCompany?.isGroup == 1 ? 1 : 0);
       }
-      // rebuildFlatRows();
+      rebuildFlatRows();
       showPostShimmer = false;
       isPageLoading = false;
       update();

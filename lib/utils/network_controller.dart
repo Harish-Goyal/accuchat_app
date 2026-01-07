@@ -47,7 +47,6 @@ class NetworkController extends GetxController {
     Get.dialog(
       WillPopScope(
         onWillPop: () async {
-          // Back press par app close
           SystemNavigator.pop(); // Android पर सही; iOS में Apple discourage karta hai
           return false;
         },

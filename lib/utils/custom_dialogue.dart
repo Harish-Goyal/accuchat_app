@@ -64,13 +64,13 @@ class CustomDialogue extends StatelessWidget {
                   mainAxisSize: MainAxisSize.min,
                   children: [
                     isShowAppIcon!? getAppLogo():SizedBox(),
-                    isShowAppIcon!?   vGap(20):vGap(0),
+                    isShowAppIcon!?   vGap(10):vGap(0),
                     Text(
                       title,
                       style: BalooStyles.baloosemiBoldTextStyle(size: 18),
                       textAlign: TextAlign.center,
                     ),
-                    vGap(10),
+
                   ],
                 ),
               ),
@@ -82,7 +82,7 @@ class CustomDialogue extends StatelessWidget {
               crossAxisAlignment: CrossAxisAlignment.center,
               children: [
                 content,
-                isShowAppIcon!?    vGap(40):vGap(0),
+                isShowAppIcon!?vGap(20):vGap(0),
                 isShowAppIcon!?    Row(
                   children: [
                     Expanded(

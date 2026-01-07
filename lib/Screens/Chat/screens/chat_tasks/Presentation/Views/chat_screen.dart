@@ -3,8 +3,10 @@ import 'dart:io';
 import 'dart:math' as math;
 import 'package:AccuChat/Screens/Chat/screens/chat_tasks/Presentation/Controllers/task_home_controller.dart';
 import 'package:AccuChat/utils/text_button.dart';
+import 'package:AccuChat/Screens/voice_to_texx/speech_controller_factory.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter_linkify/flutter_linkify.dart';
+import 'package:scrollable_positioned_list/scrollable_positioned_list.dart';
 import 'package:share_plus/share_plus.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:AccuChat/Extension/text_field_extenstion.dart';
@@ -32,17 +34,13 @@ import 'package:flutter/gestures.dart';
 import '../../../../../../Constants/app_theme.dart';
 import '../../../../../../Constants/assets.dart';
 import '../../../../../../Constants/colors.dart';
-import '../../../../../../utils/common_textfield.dart';
-import '../../../../../../utils/custom_dialogue.dart';
 import '../../../../../../utils/custom_flashbar.dart';
-import '../../../../../../utils/gradient_button.dart';
-import '../../../../../../utils/loading_indicator.dart';
 import '../../../../../../utils/product_shimmer_widget.dart';
 import '../../../../../../utils/share_helper.dart';
+
 import '../../../../../../utils/text_style.dart';
 import '../Controllers/save_in_accuchat_gallery_controller.dart';
 import '../../../../../Home/Presentation/Controller/socket_controller.dart';
-import '../../../../../Home/Presentation/View/save_to_accuchat_gallery_sheet.dart';
 import '../../../../helper/dialogs.dart';
 import '../../../auth/models/get_uesr_Res_model.dart';
 import '../Controllers/task_controller.dart';
@@ -121,7 +119,11 @@ class ChatScreen extends GetView<ChatScreenController> {
   SaveToGalleryController galleryController = Get.put(SaveToGalleryController());
 
 
+
+  final speechC = Get.put(SpeechControllerImpl());
+
   ChatScreen({super.key, this.user, this.showBack = true});
+
   @override
   Widget build(BuildContext context) {
     final chatController = Get.put(
@@ -372,6 +374,103 @@ class ChatScreen extends GetView<ChatScreenController> {
         });
   }
 
+
+  _changeLanguage(){
+   return PopupMenuButton<String>(
+     color: Colors.white,
+      tooltip: 'Voice language',
+      onSelected: (v) {
+        speechC.updateSelectedLang(v);
+        controller.update();
+      },
+      itemBuilder: (_) =>  [
+        PopupMenuItem(value: 'en-IN', child: Text('English',style: BalooStyles.baloonormalTextStyle(),)),
+        PopupMenuItem(value: 'hi-IN', child: Text('Hindi',style: BalooStyles.baloonormalTextStyle())),
+      ],
+      child:  Icon(Icons.language, size: 20,color:speechC.selectedLang=="hi-IN"? appColorGreen:appColorYellow,),
+    );
+  }
+
+  _micButton(Function() appendSpeechToInput){
+    return  Obx(() {
+      final listening = speechC.isListening.value;
+      speechC.onStopped ??= appendSpeechToInput;
+      return Builder(
+        builder: (micContext) {
+          return InkWell(
+            onTap: () {
+              if (!speechC.isSupported) {
+                Get.snackbar('Not supported', 'Voice-to-text is not supported in this browser.');
+                return;
+              }
+
+              speechC.setLanguage(langCode: speechC.selectedLang);
+
+              if (speechC.isListening.value) {
+                speechC.stop(); // ✅ append will happen on speech-end
+              } else {
+                speechC.start();
+              }
+            },
+
+            onLongPress: () async {
+              if (speechC.isListening.value) speechC.stop();
+
+              final RenderBox button = micContext.findRenderObject() as RenderBox;
+              final RenderBox overlay =
+              Overlay.of(micContext).context.findRenderObject() as RenderBox;
+
+              final RelativeRect position = RelativeRect.fromRect(
+                Rect.fromPoints(
+                  button.localToGlobal(Offset.zero, ancestor: overlay),
+                  button.localToGlobal(button.size.bottomRight(Offset.zero),
+                      ancestor: overlay),
+                ),
+                Offset.zero & overlay.size,
+              );
+
+              final selected = await showMenu<String>(
+                context: micContext,
+                position: position,
+                color: Colors.white,
+                items:  [
+                  PopupMenuItem(value: 'en-IN', child: Text('English',style: BalooStyles.baloonormalTextStyle(),)),
+                  PopupMenuItem(value: 'hi-IN', child: Text('Hindi',style: BalooStyles.baloonormalTextStyle())),
+                ],
+              );
+
+              if (selected != null) {
+                speechC.updateSelectedLang(selected);
+              }
+            },
+
+            borderRadius: BorderRadius.circular(8),
+            child: Container(
+              padding: const EdgeInsets.all(5),
+              margin: const EdgeInsets.all(5),
+              decoration: BoxDecoration(
+                borderRadius: BorderRadius.circular(8),
+                border: Border.all(
+                  color: listening
+                      ? Colors.red.withOpacity(.35)
+                      : AppTheme.appColor.withOpacity(.20),
+                ),
+                color: listening
+                    ? Colors.red.withOpacity(.08)
+                    : AppTheme.appColor.withOpacity(.05),
+              ),
+              child: Icon(
+                listening ? Icons.stop_circle : Icons.mic,
+                color: listening ? Colors.red : AppTheme.appColor,
+              ),
+            ),
+          );
+        },
+      );
+    })
+    ;
+
+  }
   Widget chatMessageBuilder() {
     return Column(
       mainAxisSize: MainAxisSize.min,
@@ -393,10 +492,10 @@ class ChatScreen extends GetView<ChatScreenController> {
   }
 
   groupListView() {
-    /*   final initialIndex = (controller.flatRows.isEmpty)
+      /* final initialIndex = (controller.flatRows.isEmpty)
         ? 0
         : controller.flatRows.length - 1;*/
-    return (controller.chatCatygory ?? []).isNotEmpty
+    return (controller.flatRows ?? []).isNotEmpty
         ? GroupedListView<GroupChatElement, DateTime>(
             shrinkWrap: true,
             padding: const EdgeInsets.only(bottom: 30),
@@ -422,99 +521,97 @@ class ChatScreen extends GetView<ChatScreenController> {
               }
 
               var userid = controller.me?.userId;
-              return StaggeredAnimationListItem(
-                index: index,
-                child: SwipeTo(
-                  iconColor: appColorGreen,
-                  onRightSwipe: element.chatMessageItems.isActivity == 1
-                      ? (v) {}
-                      : (detail) {
-                          if (element.chatMessageItems.isActivity == 1 ||
-                              (element.chatMessageItems.media ?? [])
-                                  .isNotEmpty) {
-                          } else {
+              return SwipeTo(
+                iconColor: appColorGreen,
+                onRightSwipe: element.chatMessageItems.isActivity == 1
+                    ? (v) {}
+                    : (detail) {
+                        if (element.chatMessageItems.isActivity == 1 ||
+                            (element.chatMessageItems.media ?? [])
+                                .isNotEmpty) {
+                        } else {
 
-                                final media = element.chatMessageItems.media;
+                              final media = element.chatMessageItems.media;
 
-                                if (media == null || media.isEmpty) {
-                                  controller.refIdis = element.chatMessageItems.chatId;
-                                  controller.userIDSender = element.chatMessageItems.fromUser?.userId;
-                                  controller.userNameReceiver =
-                                      element.chatMessageItems.toUser?.userCompany?.displayName ?? '';
-                                  controller.userNameSender =
-                                      element.chatMessageItems.fromUser?.userCompany?.displayName ?? '';
-                                  controller.userIDReceiver = element.chatMessageItems.toUser?.userId;
-                                  controller.replyToMessage = element.chatMessageItems;
-                                  controller.update();
-                                  controller.messageInputFocus.requestFocus();
-                                  Get.back();
-                                } else {
-                                  final firstMedia = media.first;
-                                  controller.refIdis = element.chatMessageItems.chatId;
-                                  controller.userIDSender = element.chatMessageItems.fromUser?.userId;
-                                  controller.userNameReceiver = element.chatMessageItems.toUser?.userCompany?.displayName ?? '';
-                                  controller.userNameSender = element.chatMessageItems.fromUser?.userCompany?.displayName ?? '';
-                                  controller.userIDReceiver = element.chatMessageItems.toUser?.userId;
+                              if (media == null || media.isEmpty) {
+                                controller.refIdis = element.chatMessageItems.chatId;
+                                controller.userIDSender = element.chatMessageItems.fromUser?.userId;
+                                controller.userNameReceiver =
+                                    element.chatMessageItems.toUser?.userCompany?.displayName ?? '';
+                                controller.userNameSender =
+                                    element.chatMessageItems.fromUser?.userCompany?.displayName ?? '';
+                                controller.userIDReceiver = element.chatMessageItems.toUser?.userId;
+                                controller.replyToMessage = element.chatMessageItems;
+                                controller.update();
+                                controller.messageInputFocus.requestFocus();
+                                Get.back();
+                              } else {
+                                final firstMedia = media.first;
+                                controller.refIdis = element.chatMessageItems.chatId;
+                                controller.userIDSender = element.chatMessageItems.fromUser?.userId;
+                                controller.userNameReceiver = element.chatMessageItems.toUser?.userCompany?.displayName ?? '';
+                                controller.userNameSender = element.chatMessageItems.fromUser?.userCompany?.displayName ?? '';
+                                controller.userIDReceiver = element.chatMessageItems.toUser?.userId;
 
-                                  controller.replyToImage = firstMedia.orgFileName;
+                                controller.replyToImage = firstMedia.orgFileName;
 
-                                  final isDoc = firstMedia.mediaType?.mediaCode == "DOC";
-                                  final msg = isDoc
-                                      ? (firstMedia.orgFileName ?? '')
-                                      : "${ApiEnd.baseUrlMedia}${firstMedia.fileName ?? ''}";
+                                final isDoc = firstMedia.mediaType?.mediaCode == "DOC";
+                                final msg = isDoc
+                                    ? (firstMedia.orgFileName ?? '')
+                                    : "${ApiEnd.baseUrlMedia}${firstMedia.fileName ?? ''}";
 
-                                  controller.replyToMessage = ChatHisList(
-                                    chatId: element.chatMessageItems.chatId,
-                                    fromUser: element.chatMessageItems.fromUser,
-                                    toUser: element.chatMessageItems.toUser,
-                                    message: msg,
-                                    replyToId: element.chatMessageItems.chatId,
-                                    replyToText: firstMedia.orgFileName,
-                                  );
+                                controller.replyToMessage = ChatHisList(
+                                  chatId: element.chatMessageItems.chatId,
+                                  fromUser: element.chatMessageItems.fromUser,
+                                  toUser: element.chatMessageItems.toUser,
+                                  message: msg,
+                                  replyToId: element.chatMessageItems.chatId,
+                                  replyToText: firstMedia.orgFileName,
+                                );
 
-                                  controller.update();
-                                  controller.messageInputFocus.requestFocus();
-                                  Get.back();
-                                }
+                                controller.update();
+                                controller.messageInputFocus.requestFocus();
+                                Get.back();
+                              }
 
 
-                            // // Set the message being replied to
-                            // controller.refIdis =
-                            //     element.chatMessageItems.chatId;
-                            // controller.userIDSender =
-                            //     element.chatMessageItems.fromUser?.userId;
-                            // controller.userNameReceiver =
-                            //     element.chatMessageItems.toUser?.userCompany?.displayName ??
-                            //         '';
-                            // controller.userNameSender = element
-                            //         .chatMessageItems.fromUser?.userCompany?.displayName ??
-                            //     '';
-                            // controller.userIDReceiver =
-                            //     element.chatMessageItems.toUser?.userId;
-                            // controller.replyToMessage =
-                            //     element.chatMessageItems;
-                            // controller.update();
-                            // controller.messageInputFocus.requestFocus();
-                          }
-                        },
-                  child: _chatMessageTile(
-                      data: element.chatMessageItems,
-                      sentByMe: (userid?.toString() ==
-                              element.chatMessageItems.fromUser?.userId
-                                  ?.toString()
-                          ? true
-                          : false),
-                      formatedTime: formatatedTime),
-                ),
+                          // // Set the message being replied to
+                          // controller.refIdis =
+                          //     element.chatMessageItems.chatId;
+                          // controller.userIDSender =
+                          //     element.chatMessageItems.fromUser?.userId;
+                          // controller.userNameReceiver =
+                          //     element.chatMessageItems.toUser?.userCompany?.displayName ??
+                          //         '';
+                          // controller.userNameSender = element
+                          //         .chatMessageItems.fromUser?.userCompany?.displayName ??
+                          //     '';
+                          // controller.userIDReceiver =
+                          //     element.chatMessageItems.toUser?.userId;
+                          // controller.replyToMessage =
+                          //     element.chatMessageItems;
+                          // controller.update();
+                          // controller.messageInputFocus.requestFocus();
+                        }
+                      },
+                child: _chatMessageTile(
+                    data: element.chatMessageItems,
+                    sentByMe: (userid?.toString() ==
+                            element.chatMessageItems.fromUser?.userId
+                                ?.toString()
+                        ? true
+                        : false),
+                    formatedTime: formatatedTime),
               );
             })
         : const Center(
             child: Text('Say Hii! 👋', style: TextStyle(fontSize: 20)));
 
-    /*ScrollablePositionedList.builder(
+/*    ScrollablePositionedList.builder(
       itemScrollController: controller.itemScrollController,
       itemPositionsListener: controller.itemPositionsListener,
       initialScrollIndex: initialIndex,        // start at bottom (chat-like)
+
       initialAlignment: 1.0,
       shrinkWrap: true,// align bottom
       padding: const EdgeInsets.only(bottom: 30),
@@ -555,9 +652,9 @@ class ChatScreen extends GetView<ChatScreenController> {
                   controller.refIdis = element.chatMessageItems.chatId;
                   controller.userIDSender = element.chatMessageItems.fromUser?.userId;
                   controller.userNameReceiver =
-                      element.chatMessageItems.toUser?.displayName ?? '';
+                      element.chatMessageItems.toUser?.userCompany?.displayName ?? '';
                   controller.userNameSender =
-                      element.chatMessageItems.fromUser?.displayName ?? '';
+                      element.chatMessageItems.fromUser?.userCompany?.displayName ?? '';
                   controller.userIDReceiver =
                       element.chatMessageItems.toUser?.userId;
                   controller.replyToMessage = element.chatMessageItems;
@@ -610,26 +707,26 @@ class ChatScreen extends GetView<ChatScreenController> {
       ),
     );
   }
-  /* Widget _createGroupHeader(date) {
-    return Container(
-      color: Colors.transparent,
-      child: Row(
-        children: [
-          Expanded(child: divider(color: appColorGreen.withOpacity(.3))),
-          CustomContainer(
-            elevation: 2,
-              vPadding: 3,
-              hPadding: 7,
-              color: AppTheme.whiteColor.withOpacity(.6),
-              childWidget: Text(DateFormat.yMMMd().format(date),
-              // childWidget: Text(DateFormat.yMMMd().format(element.date),
-              style: BalooStyles.balooregularTextStyle(),),
-          ),
-          Expanded(child: divider(color: appColorGreen.withOpacity(.3))),
-        ],
-      ),
-    );
-  }*/
+  //  Widget _createGroupHeader(date) {
+  //   return Container(
+  //     color: Colors.transparent,
+  //     child: Row(
+  //       children: [
+  //         Expanded(child: divider(color: appColorGreen.withOpacity(.3))),
+  //         CustomContainer(
+  //           elevation: 2,
+  //             vPadding: 3,
+  //             hPadding: 7,
+  //             color: AppTheme.whiteColor.withOpacity(.6),
+  //             childWidget: Text(DateFormat.yMMMd().format(date),
+  //             // childWidget: Text(DateFormat.yMMMd().format(element.date),
+  //             style: BalooStyles.balooregularTextStyle(),),
+  //         ),
+  //         Expanded(child: divider(color: appColorGreen.withOpacity(.3))),
+  //       ],
+  //     ),
+  //   );
+  // }
 
   Widget _chatMessageTile(
       {required ChatHisList data, required bool sentByMe, formatedTime}) {
@@ -815,6 +912,11 @@ class ChatScreen extends GetView<ChatScreenController> {
               ? ReplyMessageWidget(
                       isCancel: false,
                       sentByMe: sentByMe,
+                      onReplu: (){
+                        print("clicked-========");
+                        controller.scrollToChatId(data.replyToId??0);
+
+                      },
                       empIdsender: data.fromUser?.userId.toString(),
                       chatdata: data,
                       empIdreceiver: data.toUser?.userId.toString(),
@@ -825,6 +927,7 @@ class ChatScreen extends GetView<ChatScreenController> {
                               ? data.fromUser?.userCompany?.displayName ?? ''
                               : data.toUser?.userCompany?.displayName ?? '',
                       message: data.replyToText ?? '',
+
                       orignalMsg: data.replyToText ?? '')
                   .paddingOnly(bottom: 4)
               : const SizedBox(),
@@ -1261,6 +1364,219 @@ class ChatScreen extends GetView<ChatScreenController> {
 
   // bottom chat input field
   Widget _chatInput() {
+    final speechC = Get.put(SpeechControllerImpl());
+    void _appendSpeechToInput() {
+      final text = speechC.getCombinedText();
+      if (text.isEmpty) return;
+
+      final old = controller.textController.text.trim();
+      controller.textController.text = old.isEmpty ? text : '$old $text';
+
+      controller.textController.selection = TextSelection.fromPosition(
+        TextPosition(offset: controller.textController.text.length),
+      );
+
+      // reset cached result so next time fresh start
+      speechC.finalText.value = '';
+      speechC.interimText.value = '';
+    }
+
+    return Container(
+      padding: EdgeInsets.symmetric(vertical: 0, horizontal: mq.width * .025),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.center,
+        children: [
+          _changeLanguage(),
+          hGap(4),
+          Expanded(
+            child: Row(
+              crossAxisAlignment: CrossAxisAlignment.end,
+              children: [
+                Expanded(
+                  child: SingleChildScrollView(
+                    child: Column(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        // ✅ Listening strip (premium feel)
+                        Obx(() {
+                          if (!kIsWeb) return const SizedBox.shrink();
+                          if (!speechC.isListening.value) return const SizedBox.shrink();
+
+                          final live = speechC.getCombinedText();
+                          return Container(
+                            width: double.infinity,
+                            margin: const EdgeInsets.only(bottom: 6),
+                            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+                            decoration: BoxDecoration(
+                              borderRadius: BorderRadius.circular(8),
+                              border: Border.all(color: AppTheme.appColor.withOpacity(.15)),
+                              color: AppTheme.appColor.withOpacity(.04),
+                            ),
+                            child: Row(
+                              children: [
+                                const Icon(Icons.graphic_eq, size: 18),
+                                const SizedBox(width: 8),
+                                Expanded(
+                                  child: Text(
+                                    live.isEmpty ? 'Listening...' : live,
+                                    maxLines: 2,
+                                    overflow: TextOverflow.ellipsis,
+                                    style: themeData.textTheme.bodySmall,
+                                  ),
+                                ),
+                                const SizedBox(width: 8),
+                                InkWell(
+                                  onTap: () {
+                                    speechC.stop();
+                                    _appendSpeechToInput();
+                                    speechC.update();
+                                  },
+                                  child: Container(
+                                    padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                                    decoration: BoxDecoration(
+                                      borderRadius: BorderRadius.circular(8),
+                                      color: Colors.red.withOpacity(.10),
+                                      border: Border.all(color: Colors.red.withOpacity(.25)),
+                                    ),
+                                    child: const Text('Stop', style: TextStyle(color: Colors.red)),
+                                  ),
+                                )
+                              ],
+                            ),
+                          );
+                        }),
+
+                        Focus(
+                          focusNode: controller.messageParentFocus,
+                          autofocus: true,
+                          onKeyEvent: (node, event) {
+                            if (!kIsWeb) return KeyEventResult.ignored;
+
+                            if (event is KeyDownEvent &&
+                                event.logicalKey == LogicalKeyboardKey.enter) {
+                              final bool shiftPressed =
+                                  HardwareKeyboard.instance.logicalKeysPressed
+                                      .contains(LogicalKeyboardKey.shiftLeft) ||
+                                      HardwareKeyboard.instance.logicalKeysPressed
+                                          .contains(LogicalKeyboardKey.shiftRight);
+
+                              if (shiftPressed) {
+                                return KeyEventResult.ignored; // SHIFT+ENTER new line
+                              } else {
+                                _sendMessage();
+                                return KeyEventResult.handled;
+                              }
+                            }
+                            return KeyEventResult.ignored;
+                          },
+                          child: ConstrainedBox(
+                            constraints: BoxConstraints(
+                              maxHeight: Get.height * .3,
+                              minHeight: 30,
+                            ),
+                            child: Container(
+                              margin: const EdgeInsets.symmetric(vertical: 4),
+                              decoration: BoxDecoration(
+                                borderRadius: BorderRadius.circular(8),
+                                border: Border.all(
+                                  color: AppTheme.appColor.withOpacity(.2),
+                                ),
+                              ),
+                              child: Row(
+                                children: [
+                                  Expanded(
+                                    child: TextFormField(
+                                      controller: controller.textController,
+                                      keyboardType: TextInputType.multiline,
+                                      focusNode: controller.messageInputFocus,
+                                      textInputAction: TextInputAction.newline,
+                                      maxLines: null,
+                                      minLines: 1,
+                                      autofocus: true,
+                                      onTap: () {
+                                        controller.messageInputFocus.requestFocus();
+                                      },
+                                      decoration: InputDecoration(
+                                        isDense: true,
+                                        hintText: 'Type Something...',
+                                        hintStyle: themeData.textTheme.bodySmall,
+                                        contentPadding: const EdgeInsets.all(8),
+                                        border: InputBorder.none,
+                                        enabledBorder: InputBorder.none,
+                                        disabledBorder: InputBorder.none,
+                                        errorBorder: InputBorder.none,
+                                        focusedBorder: InputBorder.none,
+                                      ),
+                                      inputFormatters: [
+                                        FilteringTextInputFormatter.allow(RegExp(r'[\s\S]')),
+                                      ],
+                                    ),
+                                  ),
+
+                                  // ✅ MIC button (Web only) — upload ke paas
+                                  if (kIsWeb)
+                                   _micButton(_appendSpeechToInput),
+
+                                  if (!isTaskMode)
+                                    Visibility(
+                                      visible: isVisibleUpload,
+                                      child: InkWell(
+                                        onTap: () => showUploadOptions(Get.context!),
+                                        child: Container(
+                                          padding: const EdgeInsets.all(5),
+                                          margin: const EdgeInsets.all(5),
+                                          decoration: BoxDecoration(
+                                            borderRadius: BorderRadius.circular(8),
+                                            border: Border.all(color: appColorGreen),
+                                            color: appColorGreen.withOpacity(.1),
+                                          ),
+                                          child: Icon(
+                                            Icons.upload_outlined,
+                                            color: appColorGreen,
+                                          ),
+                                        ),
+                                      ),
+                                    ),
+                                ],
+                              ),
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+
+          hGap(6),
+
+          InkWell(
+            onTap: () async {
+              // if mic listening, stop & append before sending (optional)
+              if (kIsWeb && speechC.isListening.value) {
+                speechC.stop();
+                _appendSpeechToInput();
+              }
+              _sendMessage();
+            },
+            child: Container(
+              padding: const EdgeInsets.all(12),
+              decoration: BoxDecoration(
+                borderRadius: BorderRadius.circular(8),
+                color: appColorGreen,
+              ),
+              child: const Icon(Icons.send, color: Colors.white),
+            ),
+          ).marginOnly(bottom: 4),
+
+        ],
+      ),
+    );
+  }
+
+/*  Widget _chatInput() {
     return Container(
       // height: Get.height*.4,
       padding: EdgeInsets.symmetric(vertical: 0, horizontal: mq.width * .025),
@@ -1273,13 +1589,13 @@ class ChatScreen extends GetView<ChatScreenController> {
               crossAxisAlignment: CrossAxisAlignment.end,
               children: [
                 //emoji button
-                /* IconButton(
+                *//* IconButton(
                           onPressed: () {
                             FocusScope.of(context).unfocus();
                             setState(() => _showEmoji = !_showEmoji);
                           },
                           icon: const Icon(Icons.emoji_emotions,
-                              color: Colors.blueAccent, size: 25)),*/
+                              color: Colors.blueAccent, size: 25)),*//*
 
                 Expanded(
                   child: SingleChildScrollView(
@@ -1387,7 +1703,7 @@ class ChatScreen extends GetView<ChatScreenController> {
                           ),
                         )
 
-                        /*ConstrainedBox(
+                        *//*ConstrainedBox(
                           constraints: BoxConstraints(
                               maxHeight: Get.height * .3, minHeight: 30),
                           child: Container(
@@ -1479,7 +1795,7 @@ class ChatScreen extends GetView<ChatScreenController> {
                               ],
                             ),
                           ),
-                        ),*/
+                        ),*//*
                       ],
                     ),
                   ),
@@ -1487,7 +1803,7 @@ class ChatScreen extends GetView<ChatScreenController> {
               ],
             ),
           ),
-          /*hGap(6),
+          *//*hGap(6),
                 Card(
                   clipBehavior: Clip.none,
                   color: Colors.transparent,
@@ -1533,7 +1849,7 @@ class ChatScreen extends GetView<ChatScreenController> {
                               color: Colors.blueAccent, size: 26)),
                     ],
                   ),
-                ),*/
+                ),*//*
 
           hGap(6),
           InkWell(
@@ -1548,11 +1864,15 @@ class ChatScreen extends GetView<ChatScreenController> {
               ),
               child: const Icon(Icons.send, color: Colors.white),
             ),
-          ).marginOnly(bottom: 4)
+          ).marginOnly(bottom: 4),
+
+          Visibility(
+            visible: !speechC.isListening.value || isVisibleUpload,
+              child: _languageToggle())
         ],
       ),
     );
-  }
+  }*/
 
   KeyEventResult _handleKey(FocusNode node, KeyEvent event) {
     if (!kIsWeb) return KeyEventResult.ignored;
@@ -1998,15 +2318,14 @@ class ChatScreen extends GetView<ChatScreenController> {
                         }
                       })
                   : const SizedBox(),
-
+              ((data.media ?? []).isNotEmpty)?
               _OptionItem(
                     icon:  Icon(Icons.document_scanner,
                         color: appColorYellow, size: 18),
-                    name: 'Save in Smart Gallery',
+                    name: 'Save to Smart Gallery',
                     onTap: () async {
                       try {
                         Get.back();
-
                         // openSaveToGallerySheet(fileId: "12", sourceType: "chat", sourceId: "09",defaultName: "chat_0998782377");
                         showDialog(
                             context: Get.context!,
@@ -2014,7 +2333,7 @@ class ChatScreen extends GetView<ChatScreenController> {
                       } catch (e) {
                         toast('Something went wrong!');
                       }
-                    }),
+                    }):SizedBox(),
 
               //separator or divider
               if (isMe)

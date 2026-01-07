@@ -259,7 +259,7 @@ class PostApiServiceImpl extends GetxService implements PostApiService {
           .get('api/company/active-members/$compId',
           queryParameters: {
             "page":page,
-            "limit":15,
+            "limit":18,
             "search":searchText,
           },
           skipAuth: false);
@@ -285,7 +285,7 @@ class PostApiServiceImpl extends GetxService implements PostApiService {
       {comId, page,searchText}) async {
     try {
       final response = await dioClient!
-          .get('api/recent?company_id=$comId&page=$page&limit=10&search=$searchText', skipAuth: false);
+          .get('api/recent?company_id=$comId&page=$page&limit=20&search=$searchText', skipAuth: false);
       return RecentChatsUserResModel.fromJson(response);
     } catch (e) {
       return Future.error(NetworkExceptions.getDioException(e));
@@ -297,7 +297,7 @@ class PostApiServiceImpl extends GetxService implements PostApiService {
       {comId, page,searchText}) async {
     try {
       final response = await dioClient!
-          .get('api/taskslist/recent?company_id=$comId&page=$page&limit=10&search=$searchText', skipAuth: false);
+          .get('api/taskslist/recent?company_id=$comId&page=$page&limit=20&search=$searchText', skipAuth: false);
       return RecentTaskUserData.fromJson(response);
     } catch (e) {
       return Future.error(NetworkExceptions.getDioException(e));
@@ -325,7 +325,7 @@ class PostApiServiceImpl extends GetxService implements PostApiService {
           queryParameters: {
             'company_id':companyId,
             'page':page,
-            'limit':15,
+            'limit':18,
           },
           skipAuth: false);
       return TaskCommentsResModel.fromJson(response);
@@ -342,7 +342,7 @@ class PostApiServiceImpl extends GetxService implements PostApiService {
           .get('api/task-history/$userComId',
           queryParameters: {
             'page':page,
-            'limit':15,
+            'limit':18,
             'statusId':statusId,
             'startDate':fromDate,
             'endDate':toDate,
@@ -494,7 +494,7 @@ class PostApiServiceImpl extends GetxService implements PostApiService {
           skipAuth: false,
        queryParameters: {
         "page":page,
-         "page_size":10,
+         "page_size":18,
          "media_type":mediaType,
          "source":source,
          "company_id":comId,

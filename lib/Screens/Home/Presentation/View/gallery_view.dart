@@ -1,9 +1,13 @@
 import 'package:AccuChat/Constants/assets.dart';
 import 'package:AccuChat/Constants/colors.dart';
+import 'package:AccuChat/Screens/Home/Presentation/View/create_folder_dialog.dart';
+import 'package:AccuChat/utils/helper_widget.dart';
+import 'package:AccuChat/utils/text_style.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
+import '../../../../utils/confirmation_dialog.dart';
 import '../../../Chat/models/gallery_node.dart';
 import '../Controller/gallery_controller.dart';
 import 'home_screen.dart';
@@ -15,85 +19,118 @@ class GalleryTab extends GetView<GalleryController> {
   @override
   Widget build(BuildContext context) {
     return SafeArea(
-      child: GetBuilder<GalleryController>(
-        builder: (c) {
-          return WillPopScope(
-            onWillPop: () async {
-              final consumed = c.goUp();
-              return !consumed; // false = handled internally, true = pop route
+      child: Scaffold(
+        floatingActionButton:Padding(
+          padding: const EdgeInsets.only(bottom: 10),
+          child:FloatingActionButton.extended(
+            backgroundColor: Colors.white,
+            elevation: 1,
+            onPressed: () async {
+              final name = await showCreateFolderDialog(
+                onCreate: (folderName) async {
+                  // TODO: your API or local create
+                  // await controller.createFolder(folderName);
+                },
+              );
+
+              if (name != null) {
+                // success
+                // Get.snackbar("Created", name);
+              }
             },
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.stretch,
-              children: [
-                 Row(
-                  children: [
-                    controller.isSearchingIcon
-                        ? Expanded(
-                          child: TextField(
-                            controller: controller.searchCtrl,
-                            cursorColor: appColorGreen,
-                            decoration: const InputDecoration(
-                            border: InputBorder.none,
-                            hintText: 'Search User, Group & Collection ...',
-                            contentPadding:
-                            EdgeInsets.symmetric(vertical: 0, horizontal: 10),
-                            constraints: BoxConstraints(maxHeight: 45)),
-                                                autofocus: true,
-                                                style: const TextStyle(fontSize: 13, letterSpacing: 0.5),
-                                                onChanged: (val) {
-                          controller.query = val;
-                          controller.onSearchChanged(val);
-                                                },
-                                              ).marginSymmetric(vertical: 10),
-                        ):
-                    const Flexible(
-                      child: SectionHeader(
-                        title: 'Your Gallery',
-                        icon: galleryIcon,
-                      ),
-                    ),
+            icon: const Icon(Icons.create_new_folder_outlined),
+            label: Text('New Folder', style: BalooStyles.baloosemiBoldTextStyle()),
+          ),
+        ),
+        body: GetBuilder<GalleryController>(
+          builder: (c) {
+            return WillPopScope(
+              onWillPop: () async {
+                final consumed = c.goUp();
+                return !consumed; // false = handled internally, true = pop route
+              },
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
 
-                      IconButton(
-                          onPressed: () {
-                            controller.isSearchingIcon = !controller.isSearchingIcon;
-                            controller.update();
-                          },
-                          icon:  controller.isSearchingIcon?  const Icon(
-          CupertinoIcons.clear_circled_solid)
-              : Image.asset(searchPng,height:25,width:25)
-          )
-                              .paddingOnly(top: 0, right: 10),
-
-                  ],
-                ).paddingSymmetric(horizontal: 15,vertical: 10),
-                if (!c.isSearching)
-                _GalleryHeader(
-                  isRoot: c.isRoot,
-                  breadcrumbs: c.breadcrumbs,
-                  onBack: c.goUp,
-                  onRootTap: c.goToRoot,
-                  onCrumbTap: c.goToCrumb,
-                ),
-                const SizedBox(height: 8),
-                Expanded(
-                  child: Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 12),
-                    child:c.isSearching
-                        ? _SearchResultsList(
-                      results: c.searchResults,
-                      onTap: c.openSearchResult,
-                    )
-                        : _GalleryGrid(
-                      items: c.items,
-                      onFolderTap: c.openFolder,
-                      onLeafTap: c.openLeaf,
-                    ),
+                  _searchBar(),
+                  if (!c.isSearching)
+                  _GalleryHeader(
+                    isRoot: c.isRoot,
+                    breadcrumbs: c.breadcrumbs,
+                    onBack: c.goUp,
+                    onRootTap: c.goToRoot,
+                    onCrumbTap: c.goToCrumb,
                   ),
-                ),
-              ],
-            ),
-          );
-        },
+                  const SizedBox(height: 8),
+                  _listView()
+                ],
+              ),
+            );
+          },
+        ),
+      ),
+    );
+  }
+
+  _searchBar(){
+    return Row(
+      children: [
+        controller.isSearchingIcon
+            ? Expanded(
+          child: TextField(
+            controller: controller.searchCtrl,
+            cursorColor: appColorGreen,
+            decoration: const InputDecoration(
+                border: InputBorder.none,
+                hintText: 'Search User, Group & Collection ...',
+                contentPadding:
+                EdgeInsets.symmetric(vertical: 0, horizontal: 10),
+                constraints: BoxConstraints(maxHeight: 45)),
+            autofocus: true,
+            style: const TextStyle(fontSize: 13, letterSpacing: 0.5),
+            onChanged: (val) {
+              controller.query = val;
+              controller.onSearchChanged(val);
+            },
+          ).marginSymmetric(vertical: 10),
+        ):
+        const Flexible(
+          child: SectionHeader(
+            title: 'Your Smart Gallery',
+            icon: galleryIcon,
+          ),
+        ),
+
+        IconButton(
+            onPressed: () {
+              controller.isSearchingIcon = !controller.isSearchingIcon;
+              controller.update();
+            },
+            icon:  controller.isSearchingIcon?  const Icon(
+                CupertinoIcons.clear_circled_solid)
+                : Image.asset(searchPng,height:25,width:25)
+        ).paddingOnly(top: 0, right: 10),
+      ],
+    ).paddingSymmetric(horizontal: 15,vertical: 10);
+
+  }
+
+
+  _listView(){
+   return Expanded(
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 12),
+        child:controller.isSearching
+            ? _SearchResultsList(
+          results: controller.searchResults,
+          onTap: controller.openSearchResult,
+        )
+            : _GalleryGrid(
+          items: controller.items,
+          onFolderTap: controller.openFolder,
+          onLeafTap: controller.openLeaf,
+        ),
       ),
     );
   }
@@ -139,7 +176,7 @@ class _SearchResultsList extends StatelessWidget {
           onTap: () => onTap(r),
           dense: true,
           leading: Icon(icon),
-          title: _HighlightedText(full: n.name, query: Get.find<GalleryController>().searchCtrl.text),
+          title: _HighlightedText(full: n.name??'', query: Get.find<GalleryController>().searchCtrl.text),
           subtitle: pathText.isEmpty ? null : Text(pathText, maxLines: 1, overflow: TextOverflow.ellipsis),
           trailing: const Icon(Icons.chevron_right),
         );
@@ -260,7 +297,7 @@ class _GalleryHeader extends StatelessWidget {
                           borderRadius: BorderRadius.circular(16),
                         ),
                         child: Text(
-                          breadcrumbs[i].name,
+                          breadcrumbs[i].name??'',
                           style: theme.textTheme.bodySmall?.copyWith(
                             fontWeight: (i == breadcrumbs.length - 1) ? FontWeight.w600 : FontWeight.w400,
                           ),
@@ -320,6 +357,7 @@ class _GalleryGrid extends StatelessWidget {
     );
   }
 }
+enum FolderMenuAction { rename, share, delete }
 
 class _GalleryTile extends StatelessWidget {
   final GalleryNode node;
@@ -330,6 +368,7 @@ class _GalleryTile extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final controller  = Get.find<GalleryController>();
 
     Widget preview;
     if (node.type == NodeType.image && node.thumbnail != null) {
@@ -347,7 +386,7 @@ class _GalleryTile extends StatelessWidget {
     }
 
     return InkWell(
-      onTap: onTap,
+      onTap: onTap, // open folder / preview
       borderRadius: BorderRadius.circular(12),
       child: Ink(
         decoration: BoxDecoration(
@@ -362,33 +401,143 @@ class _GalleryTile extends StatelessWidget {
             ),
           ],
         ),
-        child: Padding(
-          padding: const EdgeInsets.all(8),
-          child: Column(
-            children: [
-              Expanded(child: preview),
-              const SizedBox(height: 8),
-              Text(
-                node.name,
-                maxLines: 2,
-                overflow: TextOverflow.ellipsis,
-                textAlign: TextAlign.center,
-                style: theme.textTheme.bodySmall,
+        child: Stack(
+          children: [
+            // Main content
+            Padding(
+              padding: const EdgeInsets.all(8),
+              child: Column(
+                children: [
+                  Expanded(child: preview),
+                  const SizedBox(height: 8),
+                  Obx(() {
+                    final isRenaming = controller.renamingId.value == node.id; // ✅ node must have unique id
+                    if (!isRenaming) {
+                      return Text(
+                        node.name??'',
+                        maxLines: 2,
+                        overflow: TextOverflow.ellipsis,
+                        textAlign: TextAlign.center,
+                        style: theme.textTheme.bodySmall,
+                      );
+                    }
+
+                    final ctrl = controller.textCtrlFor(node.id??'', node.name??'');
+                    final focus = controller.focusNodeFor(node.id??'');
+
+                    return Focus(
+                      onFocusChange: (hasFocus) {
+                        // ✅ when user clicks outside => save
+                        if (!hasFocus) {
+                          controller.submitRename(
+                            id: node.id??'',
+                            oldName: node.name??'',
+                            onRename: (newName) async {
+                              // ✅ your API / update logic
+                              await controller.renameFolder(node.id??'', newName);
+                            },
+                          );
+                        }
+                      },
+                      child: TextField(
+                        controller: ctrl,
+                        focusNode: focus,
+                        textAlign: TextAlign.center,
+                        style: theme.textTheme.bodySmall,
+                        maxLines: 1,
+                        textInputAction: TextInputAction.done,
+                        onSubmitted: (_) {
+                          controller.submitRename(
+                            id: node.id??'',
+                            oldName: node.name??"",
+                            onRename: (newName) async {
+                              await controller.renameFolder(node.id??'', newName);
+                            },
+                          );
+                        },
+                        decoration: const InputDecoration(
+                          isDense: true,
+                          border: OutlineInputBorder(),
+                          contentPadding: EdgeInsets.symmetric(horizontal: 6, vertical: 6),
+                        ),
+                      ),
+                    );
+                  }),
+                  if (node.isFolder) ...[
+                    const SizedBox(height: 4),
+                    Text(
+                      '${node.children.length} items',
+                      style: theme.textTheme.labelSmall?.copyWith(
+                        color: theme.colorScheme.onSurface.withOpacity(0.6),
+                      ),
+                    ),
+                  ],
+                ],
               ),
-              if (node.isFolder) ...[
-                const SizedBox(height: 4),
-                Text(
-                  '${node.children.length} items',
-                  style: theme.textTheme.labelSmall?.copyWith(
-                    color: theme.colorScheme.onSurface.withOpacity(0.6),
+            ),
+
+            // Top-right menu (only for folder)
+            if (node.isFolder)
+              Positioned(
+                top: 4,
+                right: 4,
+                child: Material(
+                  color: Colors.transparent,
+                  child: PopupMenuButton<FolderMenuAction>(
+                    tooltip: "More",
+                    padding: EdgeInsets.zero,
+                    position: PopupMenuPosition.under,
+                    borderRadius: BorderRadius.circular(12),
+                    color: Colors.white
+                    ,
+                    onSelected: (action) {
+                      switch (action) {
+                        case FolderMenuAction.rename:
+                          controller.startRename(id: node.id??'', currentName: node.name??'');
+                          break;
+                        case FolderMenuAction.delete:
+                          showResponsiveConfirmationDialog(onConfirm:  () async {
+                            Get.back();
+                          },title: "Delete ${node.name} Folder(Permanently Deleted)");
+                          break;
+                        case FolderMenuAction.share:
+                          // onShare?.call(node);
+                          break;
+                      }
+                    },
+                    itemBuilder: (context) => const [
+                      PopupMenuItem(
+                        value: FolderMenuAction.rename,
+                        child: Text("Rename"),
+                      ),
+                      PopupMenuItem(
+                        value: FolderMenuAction.share,
+                        child: Text("Share"),
+                      ),
+                      PopupMenuDivider(),
+                      PopupMenuItem(
+                        value: FolderMenuAction.delete,
+                        child: Text("Delete"),
+                      ),
+                    ],
+                    child: InkWell(
+                      // important: tap on menu should NOT open folder
+                      onTap: null,
+                      borderRadius: BorderRadius.circular(100),
+                      child: Icon(
+                        Icons.more_vert,
+                        size: 18,
+                        color: Colors.black87,
+                      ).paddingAll(5),
+                    ),
                   ),
                 ),
-              ],
-            ],
-          ),
+              ),
+          ],
         ),
       ),
     );
+
   }
 }
 

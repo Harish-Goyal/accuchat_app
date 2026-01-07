@@ -2,6 +2,7 @@ import 'package:AccuChat/Screens/Home/Presentation/Controller/home_controller.da
 import 'package:AccuChat/routes/app_pages.dart';
 import 'package:AccuChat/routes/app_routes.dart';
 import 'package:AccuChat/utils/network_controller.dart';
+import 'package:AccuChat/utils/no_network.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/foundation.dart';
@@ -56,6 +57,7 @@ Future<void>? _bootOnce;
 // ---------------------------------------------
 
 Future<void> main() async {
+  Get.put(NoNetworkController(), permanent: true);
   // (kept) system UI style
   SystemChrome.setSystemUIOverlayStyle(const SystemUiOverlayStyle(
     statusBarColor: Colors.white,
@@ -179,7 +181,6 @@ Future<void> _deferredBoot() async {
   //   // storageBoot.timeout(const Duration(seconds: 6), onTimeout: () => null),
   // ]);
 
-  Get.lazyPut(() => NetworkController(), fenix: true);
 
   // (kept) open boxes in try/catch – deferred
   // try {

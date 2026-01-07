@@ -51,5 +51,64 @@
       .catch((err) => console.error('❌ Service Worker registration failed:', err));
   })();
 </script>
+<script>
+  (function () {
+    const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+    if (!SpeechRecognition) {
+      window.__speech_not_supported__ = true;
+      return;
+    }
+
+    const recognition = new SpeechRecognition();
+    recognition.continuous = true;
+    recognition.interimResults = true;
+    recognition.lang = 'en-IN'; // change to 'hi-IN' for Hindi
+
+    window.__speech__ = {
+      isListening: false,
+      start: function () {
+        try {
+          recognition.start();
+          window.__speech__.isListening = true;
+        } catch (e) {}
+      },
+      stop: function () {
+        try {
+          recognition.stop();
+          window.__speech__.isListening = false;
+        } catch (e) {}
+      },
+      setLang: function (lang) {
+        recognition.lang = lang || 'en-IN';
+      }
+    };
+
+    recognition.onresult = function (event) {
+      let interim = '';
+      let finalText = '';
+
+      for (let i = event.resultIndex; i < event.results.length; i++) {
+        const transcript = event.results[i][0].transcript;
+        if (event.results[i].isFinal) finalText += transcript;
+        else interim += transcript;
+      }
+
+      // Send to Flutter via a CustomEvent
+      window.dispatchEvent(new CustomEvent('speech-result', {
+        detail: { interim: interim, final: finalText }
+      }));
+    };
+
+    recognition.onerror = function (e) {
+      window.dispatchEvent(new CustomEvent('speech-error', { detail: e.error || 'speech_error' }));
+    };
+
+    recognition.onend = function () {
+      window.__speech__.isListening = false;
+      window.dispatchEvent(new CustomEvent('speech-end'));
+    };
+  })();
+</script>
+
 </body>
 </html>

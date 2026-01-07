@@ -28,10 +28,10 @@ class SaveToCustomFolderDialog extends StatelessWidget {
 
   _mainBody(fKey,controller){
     return CustomDialogue(
-      title: "Documents",
-      isShowAppIcon: false,
+      title: "Save In Accuchat's Smart Gallery",
+      isShowAppIcon: true,
       content: SizedBox(
-        width: Get.width * .56,
+        width: 500,
         child: Material(
           // keeps proper text scaling/ink on web
           type: MaterialType.transparency,
@@ -46,16 +46,23 @@ class SaveToCustomFolderDialog extends StatelessWidget {
                 crossAxisAlignment: CrossAxisAlignment.center,
                 mainAxisSize: MainAxisSize.min,
                 children: [
+                  divider().paddingSymmetric(horizontal: 40),
 
-                  vGap(20),
+                  // vGap(12),
 
                   Text(
-                    "This document or image will be saved in your AccuChat Gallery under the selected folder.",
-                    style: BalooStyles.baloonormalTextStyle(),
+                    "This media will be saved in your AccuChat Gallery under the selected folder.",
+                    style: BalooStyles.baloonormalTextStyle(size: 13),
+                    textAlign: TextAlign.center,
+                  ),
+                  vGap(3),
+                  Text(
+                    "Search your media by Name, Date and User Individuals",
+                    style: BalooStyles.baloonormalTextStyle(size: 12),
                     textAlign: TextAlign.center,
                   ),
 
-                  vGap(25),
+                  vGap(30),
 
                   /// Document name
                   CustomTextField(

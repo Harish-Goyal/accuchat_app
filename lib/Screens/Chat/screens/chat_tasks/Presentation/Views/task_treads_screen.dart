@@ -228,7 +228,7 @@ class TaskThreadScreen extends GetView<TaskThreadController> {
                 child: ChatHistoryShimmer(
                   chatData: ChatHisList(),
                 )),
-            child: AnimationLimiter(child: groupListView()),
+            child: groupListView(),
           ),
         ),
         // vGap(80)
@@ -240,14 +240,16 @@ class TaskThreadScreen extends GetView<TaskThreadController> {
     return controller.commentsCategory.isNotEmpty
         ? NotificationListener<ScrollNotification>(
       onNotification: (n) {
-        final m = n.metrics;
 
-        // reverse:true => "TOP" (older) is maxScrollExtent edge
-        final reachedTop = m.atEdge && m.pixels >= m.maxScrollExtent;
+        if (n is ScrollEndNotification &&
+            n.metrics.extentAfter <= 0 &&
+            !controller.isPageLoading &&
+            controller.hasMore) {
 
-        if (reachedTop && !controller.isPageLoading && controller.hasMore) {
+          controller.isPageLoading = true;
           controller.hitAPIToGetCommentsHistory();
         }
+
         return false;
       },
           child: GroupedListView<GroupCommentsElement, DateTime>(
@@ -275,35 +277,32 @@ class TaskThreadScreen extends GetView<TaskThreadController> {
             }
 
             var userid = APIs.me.userId;
-            return StaggeredAnimationListItem(
-              index: index,
-              child: SwipeTo(
-                iconColor: appColorGreen,
-                onRightSwipe: (detail) {
-                  // Set the message being replied to
-                  controller.refIdis = element.comments.taskCommentId;
-                  controller.userIDSender =
-                      element.comments.fromUser?.userId;
-                  controller.userNameReceiver =
-                      element.comments.toUser?.userCompany?.displayName ?? '';
-                  controller.userNameSender =
-                      element.comments.fromUser?.userCompany?.displayName ?? '';
-                  controller.userIDReceiver =
-                      element.comments.toUser?.userId;
-                  controller.replyToMessage = element.comments;
+            return SwipeTo(
+              iconColor: appColorGreen,
+              onRightSwipe: (detail) {
+                // Set the message being replied to
+                controller.refIdis = element.comments.taskCommentId;
+                controller.userIDSender =
+                    element.comments.fromUser?.userId;
+                controller.userNameReceiver =
+                    element.comments.toUser?.userCompany?.displayName ?? '';
+                controller.userNameSender =
+                    element.comments.fromUser?.userCompany?.displayName ?? '';
+                controller.userIDReceiver =
+                    element.comments.toUser?.userId;
+                controller.replyToMessage = element.comments;
 
-                  controller.update();
+                controller.update();
 
-                },
-                child: _chatMessageTile(
-                    data: element.comments,
-                    sentByMe: (userid.toString() ==
-                        element.comments.fromUser?.userId
-                            ?.toString()
-                        ? true
-                        : false),
-                    formatedTime: formatatedTime),
-              ),
+              },
+              child: _chatMessageTile(
+                  data: element.comments,
+                  sentByMe: (userid.toString() ==
+                      element.comments.fromUser?.userId
+                          ?.toString()
+                      ? true
+                      : false),
+                  formatedTime: formatatedTime),
             );
           }),
         )

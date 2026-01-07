@@ -305,13 +305,11 @@ Widget buildSideNav(DashboardController controller) {
               final taskHomeC = Get.find<TaskHomeController>();
               taskC.hitAPIToGetTaskHistory();
               // taskHomeC.
-
               /*  final taskC = Get.find<TaskController>();
               final taskHomeC = Get.find<TaskHomeController>();
               if (taskHomeC.filteredList.isNotEmpty) {
                 taskHomeC.selectedChat.value = taskHomeC.filteredList[0];
               }
-
               taskHomeC.selectedChat.value = dashboardController.user;
               taskC.replyToMessage = null;
               taskC.user = taskHomeC.selectedChat.value;
@@ -387,16 +385,16 @@ Widget buildSideNav(DashboardController controller) {
                   overflow: TextOverflow.ellipsis,
                 )),
 
-             /*     NavigationRailDestination(
+                NavigationRailDestination(
                   icon: Image.asset(
                     galleryIcon,
                     height: 22,
                     color:
-                    controller.currentIndex == 2 ? Colors.white : Colors.grey,
+                    controller.currentIndex == 3 ? Colors.white : Colors.grey,
                   ),
                   label: Text('Gallery',
                       style: BalooStyles.baloomediumTextStyle(), maxLines: 1,
-                    overflow: TextOverflow.ellipsis,)),*/
+                    overflow: TextOverflow.ellipsis,)),
           ],
         ),
       ),

@@ -10,8 +10,75 @@ class IndexedNode {
   IndexedNode({required this.node, required this.path});
 }
 class GalleryController extends GetxController {
+
+  //folder tile
+  final RxString renamingId = ''.obs;
+
+  // controllers & focus per node
+  final Map<String, TextEditingController> _textCtrls = {};
+  final Map<String, FocusNode> _focusNodes = {};
+
+  TextEditingController textCtrlFor(String id, String initial) {
+    return _textCtrls.putIfAbsent(id, () => TextEditingController(text: initial));
+  }
+
+  FocusNode focusNodeFor(String id) {
+    return _focusNodes.putIfAbsent(id, () => FocusNode());
+  }
+
+  void startRename({required String id, required String currentName}) {
+    renamingId.value = id;
+
+    final c = textCtrlFor(id, currentName);
+    c.text = currentName;
+
+    // focus + select all
+    Future.microtask(() {
+      final fn = focusNodeFor(id);
+      fn.requestFocus();
+      c.selection = TextSelection(baseOffset: 0, extentOffset: c.text.length);
+    });
+  }
+
+
+  Future<void> submitRename({
+    required String id,
+    required String oldName,
+    required Future<void> Function(String newName) onRename,
+  }) async {
+    final c = _textCtrls[id];
+    final newName = (c?.text ?? '').trim();
+
+    if (newName.isEmpty || newName == oldName) {
+      renamingId.value = '';
+      return;
+    }
+
+    await onRename(newName);
+    renamingId.value = '';
+  }
+
+  Future<void> renameFolder(String id, String name) async {
+    // await api.renameFolder(id, name);
+    // update in list
+    final idx = items.indexWhere((e) => e.id == id);
+    if (idx != -1) {
+      items[idx].name = name;
+       // if folders is RxList
+    }
+  }
+
+  void cancelRename() {
+    renamingId.value = '';
+  }
+
+  //folder tile
+
+
+
+
   // Dummy tree
-  final List<GalleryNode> root = const [
+  final List<GalleryNode> root = [
     GalleryNode(
       id: 'fld_01',
       name: 'Design Assets',
@@ -45,7 +112,7 @@ class GalleryController extends GetxController {
         ),
       ],
     ),
-    GalleryNode(
+     GalleryNode(
       id: 'fld_02',
       name: 'Client Docs',
       type: NodeType.folder,
@@ -54,7 +121,7 @@ class GalleryController extends GetxController {
         GalleryNode(id: 'doc_203', name: 'proposal_v3.docx', type: NodeType.doc),
       ],
     ),
-    GalleryNode(
+     GalleryNode(
       id: 'img_104',
       name: 'bdaygirl.png',
       type: NodeType.image,
@@ -101,7 +168,7 @@ class GalleryController extends GetxController {
 
   // Replace with your preview/viewer
   void openLeaf(GalleryNode node) {
-    Get.snackbar('Open', node.name, snackPosition: SnackPosition.BOTTOM,duration: Duration(seconds: 6));
+    Get.snackbar('Open', node.name??'', snackPosition: SnackPosition.BOTTOM,duration: Duration(seconds: 6));
   }
 
   final TextEditingController searchCtrl = TextEditingController();
@@ -126,7 +193,7 @@ class GalleryController extends GetxController {
     final q = query.trim().toLowerCase();
     if (q.isEmpty) return const [];
     // name contains, any type
-    return index.where((e) => e.node.name.toLowerCase().contains(q)).toList();
+    return index.where((e) => (e.node.name??'').toLowerCase().contains(q)).toList();
   }
 
   bool get isSearching => query.trim().isNotEmpty;
@@ -163,8 +230,14 @@ class GalleryController extends GetxController {
 
   @override
   void onClose() {
-    searchCtrl.dispose();
     super.onClose();
+    searchCtrl.dispose();
+    for (final c in _textCtrls.values) {
+      c.dispose();
+    }
+    for (final f in _focusNodes.values) {
+      f.dispose();
+    }
   }
 
 }

@@ -122,7 +122,7 @@ class GalleryViewerPage extends StatelessWidget {
                       child: Text('Share on WhatsApp', style:  BalooStyles.baloonormalTextStyle(color: Colors.white)),
                     )); items.add( PopupMenuItem(
                       value: 'save_accuchat_this',
-                      child: Text('Save in Smart Gallery', style:  BalooStyles.baloonormalTextStyle(color: Colors.white)),
+                      child: Text('Save to Smart Gallery', style:  BalooStyles.baloonormalTextStyle(color: Colors.white)),
                     ));
                   }
 

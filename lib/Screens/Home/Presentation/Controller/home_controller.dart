@@ -59,10 +59,10 @@ class DashboardController extends GetxController with WidgetsBindingObserver {
       icon: Image.asset(connectedAppIcon,height: 22),
       label: 'Companies',
     ),
-    /*BottomNavigationBarItem(
+    BottomNavigationBarItem(
       icon: Image.asset(galleryIcon,height: 22),
       label: 'Gallery',
-    ),*/
+    ),
   ];
 
   // --- add: ensure we always have something to render
@@ -260,7 +260,7 @@ class DashboardController extends GetxController with WidgetsBindingObserver {
         NavigationItem(navigationItem: 'Chat Button', isActive: 1, sortingOrder: 1, navigationPlace: bottom_nav_key),
         NavigationItem(navigationItem: 'Task Button', isActive: 1, sortingOrder: 2, navigationPlace: bottom_nav_key),
         NavigationItem(navigationItem: 'Companies Button', isActive: 1, sortingOrder: 3, navigationPlace: bottom_nav_key),
-        // NavigationItem(navigationItem: 'Gallery Button', isActive: 1, sortingOrder: 4, navigationPlace: bottom_nav_key),
+        NavigationItem(navigationItem: 'Gallery Button', isActive: 1, sortingOrder: 4, navigationPlace: bottom_nav_key),
       ];
     }
 

@@ -22,6 +22,7 @@ import '../../../../../../Services/APIs/local_keys.dart';
 import '../../../../../../Services/APIs/post/post_api_service_impl.dart';
 import '../../../../../../main.dart';
 import '../../../../../../routes/app_routes.dart';
+import '../../../../../../utils/chat_presence.dart';
 import '../../../../../../utils/custom_flashbar.dart';
 import '../../../../../../utils/helper.dart';
 import '../../../../../Home/Presentation/Controller/company_service.dart';
@@ -81,10 +82,15 @@ class TaskController extends GetxController {
 
   @override
   void onInit() {
-    getArguments();
-    getUserNavigation();
-
     super.onInit();
+    getArguments();
+    if (kIsWeb) {
+      user = Get.find<TaskHomeController>().selectedChat.value;
+    }
+
+    getUserNavigation();
+    scrollListener();
+
   }
 
   @override
@@ -97,18 +103,20 @@ class TaskController extends GetxController {
   getArguments() {
     if(kIsWeb){
       _getCompany();
-      if (Get.parameters != null) {
+      // if (Get.parameters != null) {
       final String? argUserId = Get.parameters['userId'];
       if (argUserId != null) {
         getUserByIdApi(userId: int.parse(argUserId ?? ''));
-        }
+        // }
       } else {
         getUserByIdApi(userId: user?.userId);
       }
     }else{
       if (Get.arguments != null) {
-        final argUser = Get.arguments['user'];
+        UserDataAPI argUser = Get.arguments['user'];
+        user = argUser;
         if (argUser != null) {
+          ChatPresence.activeChatId = argUser.userCompany?.userCompanyId;
           openConversation(argUser);
         }
       }
@@ -138,7 +146,7 @@ class TaskController extends GetxController {
       hitAPIToGetTaskHistory();
     });
     hitAPIToGetTaskStatus();
-    scrollListener();
+
   }
 
   String selectedFilter = 'all';

@@ -24,12 +24,14 @@ class ReplyMessageWidget extends StatelessWidget {
   bool? isCancel = false;
   bool? sentByMe = false;
   final VoidCallback? onCancelReply;
+  final Function() onReplu;
   ReplyMessageWidget({
     @required this.message,
     @required this.orignalMsg,
     this.onCancelReply,
     this.empIdsender,
     this.chatdata,
+    required this.onReplu,
     this.empIdreceiver,
     this.empName,
     this.sentByMe,
@@ -87,12 +89,7 @@ class ReplyMessageWidget extends StatelessWidget {
   Widget buildReplyMessage(isSendByME) {
     return InkWell(
       hoverColor: Colors.transparent,
-      onTap:(){
-      //   // final replyToId = chatdata?.replyToId;
-      //   // if (replyToId != null) {
-      //   //   Get.find<ChatScreenController>().scrollToChatId(replyToId);
-      //   // }
-      },
+      onTap:onReplu,
       child: Container(
         // decoration: BoxDecoration(
         //     borderRadius: BorderRadius.circular(12),

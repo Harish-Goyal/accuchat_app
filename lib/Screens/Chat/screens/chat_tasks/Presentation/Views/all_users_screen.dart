@@ -136,19 +136,7 @@ class AllUserScreen extends GetView<AllUserController> {
                                           overflow: TextOverflow.ellipsis,
                                         )
                                       : SizedBox(),
-                                  memData?.userName == null &&
-                                          memData?.userCompany?.displayName ==
-                                              null
-                                      ? SizedBox()
-                                      : Text(
-                                          memData?.phone != null
-                                              ? memData?.phone ?? ''
-                                              : memData?.email ?? '',
-                                          style: BalooStyles
-                                              .balooregularTextStyle(),
-                                          maxLines: 1,
-                                          overflow: TextOverflow.ellipsis,
-                                        )
+
                                 ],
                               ),
                               onTap: () {

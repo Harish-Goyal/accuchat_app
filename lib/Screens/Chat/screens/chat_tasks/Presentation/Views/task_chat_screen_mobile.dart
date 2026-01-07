@@ -263,7 +263,7 @@ class TaskScreenMobile extends GetView<TaskController> {
                 child: ChatHistoryShimmer(
               chatData: ChatHisList(),
             )),
-            child: AnimationLimiter(child: groupListView()),
+            child: groupListView(),
           ),
         ),
         // vGap(80)
@@ -274,34 +274,46 @@ class TaskScreenMobile extends GetView<TaskController> {
   groupListView() {
     return controller.taskCategory.isNotEmpty &&
             (controller.taskHisList ?? []).isNotEmpty
-        ? GroupedListView<GroupTaskElement, DateTime>(
-            shrinkWrap: false,
-            padding: const EdgeInsets.only(bottom: 30),
-            controller: controller.scrollController2,
-            elements: controller.taskCategory,
-            order: GroupedListOrder.DESC,
-            reverse: true,
-            floatingHeader: true,
-            useStickyGroupSeparators: true,
-            groupBy: (GroupTaskElement element) => DateTime(
-                  element.date.year,
-                  element.date.month,
-                  element.date.day,
-                ),
-            groupHeaderBuilder: _createGroupHeader,
-            indexedItemBuilder:
-                (BuildContext context, GroupTaskElement element, int index) {
-              String formatatedTime = '';
-              if (element.taskMsg.createdOn != null) {
-                var timeString = element.taskMsg.createdOn ?? '';
+        ? NotificationListener<ScrollNotification>(
+      onNotification: (n) {
 
-                formatatedTime = controller.convertUtcToIndianTime(timeString);
-              }
+        if (n is ScrollEndNotification &&
+            n.metrics.extentAfter <= 0 &&
+            !controller.isPageLoading &&
+            controller.hasMore) {
 
-              var userid = APIs.me?.userId;
-              return StaggeredAnimationListItem(
-                index: index,
-                child: SwipeTo(
+          controller.isPageLoading = true;
+          controller.hitAPIToGetTaskHistory();
+        }
+
+        return false;
+      },
+          child: GroupedListView<GroupTaskElement, DateTime>(
+              shrinkWrap: false,
+              padding: const EdgeInsets.only(bottom: 30),
+              controller: controller.scrollController2,
+              elements: controller.taskCategory,
+              order: GroupedListOrder.DESC,
+              reverse: true,
+              floatingHeader: true,
+              useStickyGroupSeparators: true,
+              groupBy: (GroupTaskElement element) => DateTime(
+                    element.date.year,
+                    element.date.month,
+                    element.date.day,
+                  ),
+              groupHeaderBuilder: _createGroupHeader,
+              indexedItemBuilder:
+                  (BuildContext context, GroupTaskElement element, int index) {
+                String formatatedTime = '';
+                if (element.taskMsg.createdOn != null) {
+                  var timeString = element.taskMsg.createdOn ?? '';
+
+                  formatatedTime = controller.convertUtcToIndianTime(timeString);
+                }
+
+                var userid = APIs.me?.userId;
+                return SwipeTo(
                   iconColor: appColorGreen,
                   onRightSwipe: (detail) {
                     controller.openTaskThreadSmart(
@@ -339,9 +351,9 @@ class TaskScreenMobile extends GetView<TaskController> {
                           : false),
                       formatedTime: formatatedTime,
                       contexts: context),
-                ),
-              );
-            })
+                );
+              }),
+        )
         : const Center(
             child: Text('Task Send as Chat!', style: TextStyle(fontSize: 20)));
   }

@@ -10,7 +10,7 @@ class StaggeredAnimationListItem extends StatelessWidget {
   Widget build(BuildContext context) {
     return   AnimationConfiguration.staggeredList(
         position: index,
-        duration: const Duration(milliseconds: 375),
+        duration: const Duration(milliseconds: 200),
         child: SlideAnimation(
             horizontalOffset: 80,
             curve: Curves.easeInOutBack,

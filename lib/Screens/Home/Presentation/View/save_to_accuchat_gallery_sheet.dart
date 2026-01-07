@@ -28,7 +28,7 @@
 //               children: [
 //                 const Expanded(
 //                   child: Text(
-//                     'Save in Smart Gallery',
+//                     'Save to Smart Gallery',
 //                     style: TextStyle(fontSize: 16, fontWeight: FontWeight.w700),
 //                   ),
 //                 ),

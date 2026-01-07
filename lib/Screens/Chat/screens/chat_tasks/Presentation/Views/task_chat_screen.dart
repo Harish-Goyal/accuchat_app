@@ -275,7 +275,7 @@ class TaskScreen extends GetView<TaskController> {
                 child: ChatHistoryShimmer(
               chatData: ChatHisList(),
             )),
-            child: AnimationLimiter(child: groupListView()),
+            child: groupListView(),
           ),
         ),
         // vGap(80)
@@ -310,47 +310,44 @@ class TaskScreen extends GetView<TaskController> {
               }
 
               var userid = APIs.me?.userId;
-              return StaggeredAnimationListItem(
-                index: index,
-                child: SwipeTo(
-                  iconColor: appColorGreen,
-                  onRightSwipe: (detail) {
-                    controller.openTaskThreadSmart(
-                        context: context, groupElement: element);
-                    // Get.find<SocketController>().joinTaskEmitter(taskId: element.taskMsg.taskId??0);
-                    //
-                    // // Set the message being replied to
-                    // controller.refIdis = element.taskMsg.taskId;
-                    // controller.userIDSender = element.taskMsg.fromUser?.userId;
-                    // controller.userNameReceiver =
-                    //     element.taskMsg.toUser?.userName ?? '';
-                    // controller.userNameSender =
-                    //     element.taskMsg.fromUser?.userName ?? '';
-                    // controller.userIDReceiver = element.taskMsg.toUser?.userId;
-                    // // controller.replyToMessage = element.taskMsg;
-                    //
-                    // controller.update();
-                    //
-                    // if(kIsWeb){
-                    //   Get.toNamed("${AppRoutes.task_threads}?currentUserId=${controller.user?.userId.toString()}&taskMsgId=${element.taskMsg.taskId.toString()}"
-                    //     );
-                    //
-                    // }else{
-                    //   Get.toNamed(AppRoutes.task_threads,
-                    //       arguments: {
-                    //         'taskMsg':  element.taskMsg, 'currentUser': controller.user!
-                    //       });
-                    // }
-                  },
-                  child: _chatMessageTile(element,
-                      data: element.taskMsg,
-                      sentByMe: (userid.toString() ==
-                              element.taskMsg.fromUser?.userId?.toString()
-                          ? true
-                          : false),
-                      formatedTime: formatatedTime,
-                      contexts: context),
-                ),
+              return SwipeTo(
+                iconColor: appColorGreen,
+                onRightSwipe: (detail) {
+                  controller.openTaskThreadSmart(
+                      context: context, groupElement: element);
+                  // Get.find<SocketController>().joinTaskEmitter(taskId: element.taskMsg.taskId??0);
+                  //
+                  // // Set the message being replied to
+                  // controller.refIdis = element.taskMsg.taskId;
+                  // controller.userIDSender = element.taskMsg.fromUser?.userId;
+                  // controller.userNameReceiver =
+                  //     element.taskMsg.toUser?.userName ?? '';
+                  // controller.userNameSender =
+                  //     element.taskMsg.fromUser?.userName ?? '';
+                  // controller.userIDReceiver = element.taskMsg.toUser?.userId;
+                  // // controller.replyToMessage = element.taskMsg;
+                  //
+                  // controller.update();
+                  //
+                  // if(kIsWeb){
+                  //   Get.toNamed("${AppRoutes.task_threads}?currentUserId=${controller.user?.userId.toString()}&taskMsgId=${element.taskMsg.taskId.toString()}"
+                  //     );
+                  //
+                  // }else{
+                  //   Get.toNamed(AppRoutes.task_threads,
+                  //       arguments: {
+                  //         'taskMsg':  element.taskMsg, 'currentUser': controller.user!
+                  //       });
+                  // }
+                },
+                child: _chatMessageTile(element,
+                    data: element.taskMsg,
+                    sentByMe: (userid.toString() ==
+                            element.taskMsg.fromUser?.userId?.toString()
+                        ? true
+                        : false),
+                    formatedTime: formatatedTime,
+                    contexts: context),
               );
             })
         : const Center(
