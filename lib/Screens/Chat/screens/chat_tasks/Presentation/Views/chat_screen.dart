@@ -387,7 +387,7 @@ class ChatScreen extends GetView<ChatScreenController> {
         PopupMenuItem(value: 'en-IN', child: Text('English',style: BalooStyles.baloonormalTextStyle(),)),
         PopupMenuItem(value: 'hi-IN', child: Text('Hindi',style: BalooStyles.baloonormalTextStyle())),
       ],
-      child:  Icon(Icons.language, size: 20,color:speechC.selectedLang=="hi-IN"? appColorGreen:appColorYellow,),
+      child:  Image.asset(translationPng, height: 20,color:speechC.selectedLang=="hi-IN"? appColorGreen:appColorYellow,),
     );
   }
 
@@ -459,9 +459,10 @@ class ChatScreen extends GetView<ChatScreenController> {
                     ? Colors.red.withOpacity(.08)
                     : AppTheme.appColor.withOpacity(.05),
               ),
-              child: Icon(
-                listening ? Icons.stop_circle : Icons.mic,
+              child: Image.asset(
+                listening ? pausePng : micPng,
                 color: listening ? Colors.red : AppTheme.appColor,
+                height: 16,
               ),
             ),
           );

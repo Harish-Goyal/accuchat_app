@@ -371,12 +371,25 @@ Widget buildSideNav(DashboardController controller) {
                 ),
                 label:
                     Text('Tasks', style: BalooStyles.baloomediumTextStyle())),
+
+
+                NavigationRailDestination(
+                  icon: Image.asset(
+                    galleryIcon,
+                    height: 22,
+                    color:
+                    controller.currentIndex == 2 ? Colors.white : Colors.grey,
+                  ),
+                  label: Text('Gallery',
+                      style: BalooStyles.baloomediumTextStyle(), maxLines: 1,
+                    overflow: TextOverflow.ellipsis,)),
+
             NavigationRailDestination(
                 icon: Image.asset(
                   connectedAppIcon,
                   height: 22,
                   color:
-                      controller.currentIndex == 2 ? Colors.white : Colors.grey,
+                  controller.currentIndex == 3 ? Colors.white : Colors.grey,
                 ),
                 label: Text(
                   'Your Companies',
@@ -384,17 +397,6 @@ Widget buildSideNav(DashboardController controller) {
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
                 )),
-
-                NavigationRailDestination(
-                  icon: Image.asset(
-                    galleryIcon,
-                    height: 22,
-                    color:
-                    controller.currentIndex == 3 ? Colors.white : Colors.grey,
-                  ),
-                  label: Text('Gallery',
-                      style: BalooStyles.baloomediumTextStyle(), maxLines: 1,
-                    overflow: TextOverflow.ellipsis,)),
           ],
         ),
       ),

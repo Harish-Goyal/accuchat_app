@@ -197,7 +197,7 @@ class _ChatUserCardState extends State<ChatUserCard>
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
                   ):Text(
-                    (widget.user?.userId==APIs.me.userId)?"Me":  (widget.user?.userCompany?.displayName==''||widget.user?.userCompany?.displayName==null)?widget.user?.phone??'':widget.user?.userCompany?.displayName??'',
+                    (widget.user?.userId==APIs.me.userId)?"Me":  (widget.user?.userCompany?.displayName!=null)?widget.user?.userCompany?.displayName??'':widget.user?.userName!=null?widget.user?.userName??'':widget.user?.phone??'',
                     style: BalooStyles.baloonormalTextStyle(),
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,

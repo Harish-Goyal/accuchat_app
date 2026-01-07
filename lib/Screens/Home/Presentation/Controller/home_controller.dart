@@ -55,13 +55,14 @@ class DashboardController extends GetxController with WidgetsBindingObserver {
     ),BottomNavigationBarItem(
       icon: Image.asset(tasksHome,height: 22),
       label: 'Task',
-    ),BottomNavigationBarItem(
-      icon: Image.asset(connectedAppIcon,height: 22),
-      label: 'Companies',
     ),
     BottomNavigationBarItem(
       icon: Image.asset(galleryIcon,height: 22),
       label: 'Gallery',
+    ),
+    BottomNavigationBarItem(
+      icon: Image.asset(connectedAppIcon,height: 22),
+      label: 'Companies',
     ),
   ];
 
@@ -123,14 +124,11 @@ class DashboardController extends GetxController with WidgetsBindingObserver {
         return ChatsHomeScreen();
       case 'Task Button':
         return TaskHomeScreen();
-      case 'Companies Button':
-        return CompaniesScreen();
-
-        
       case 'Gallery Button':
         return GalleryTab();
+      case 'Companies Button':
+        return CompaniesScreen();
       default:
-      // --- change: visible tiny loader instead of invisible container
         return const Center(child: IndicatorLoading());
 
     }
@@ -142,10 +140,11 @@ class DashboardController extends GetxController with WidgetsBindingObserver {
         return chatHome;
       case 'Task Button':
         return tasksHome;
-      case 'Companies Button':
-        return connectedAppIcon;
+
       case 'Gallery Button':
         return galleryIcon;
+      case 'Companies Button':
+        return connectedAppIcon;
       default:
         return appIcon;
     }
@@ -259,8 +258,9 @@ class DashboardController extends GetxController with WidgetsBindingObserver {
       bottomNavItems = [
         NavigationItem(navigationItem: 'Chat Button', isActive: 1, sortingOrder: 1, navigationPlace: bottom_nav_key),
         NavigationItem(navigationItem: 'Task Button', isActive: 1, sortingOrder: 2, navigationPlace: bottom_nav_key),
-        NavigationItem(navigationItem: 'Companies Button', isActive: 1, sortingOrder: 3, navigationPlace: bottom_nav_key),
-        NavigationItem(navigationItem: 'Gallery Button', isActive: 1, sortingOrder: 4, navigationPlace: bottom_nav_key),
+        NavigationItem(navigationItem: 'Gallery Button', isActive: 1, sortingOrder: 3, navigationPlace: bottom_nav_key),
+        NavigationItem(navigationItem: 'Companies Button', isActive: 1, sortingOrder: 4, navigationPlace: bottom_nav_key),
+
       ];
     }
 
