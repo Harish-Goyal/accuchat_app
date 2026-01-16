@@ -3,9 +3,9 @@ const MANIFEST = 'flutter-app-manifest';
 const TEMP = 'flutter-temp-cache';
 const CACHE_NAME = 'flutter-app-cache';
 
-const RESOURCES = {"assets/AssetManifest.bin": "45ee2feaf9f96a24951292d429d882ed",
-"assets/AssetManifest.bin.json": "fc1d1dad4630664f1227511bdf66fe3d",
-"assets/AssetManifest.json": "6296a50f4359f07399e1cd8d6e0430e2",
+const RESOURCES = {"assets/AssetManifest.bin": "9f95ec4cb2be9c172af21ef554f40748",
+"assets/AssetManifest.bin.json": "21d6d9bfea2b94839091915f268d9559",
+"assets/AssetManifest.json": "0a7f01bc8856c7b392253354343fbf0b",
 "assets/assets/icons/add-user.png": "15b42787a11b58336b2bfcfffe41fb86",
 "assets/assets/icons/app.png": "b7dc1bb2d0316ba0fd1d00fe81f5636c",
 "assets/assets/icons/appIconC.png": "0f1bd86862483855a9093d9752f100ba",
@@ -37,6 +37,7 @@ const RESOURCES = {"assets/AssetManifest.bin": "45ee2feaf9f96a24951292d429d882ed
 "assets/assets/icons/tasks.png": "73f6d263cfac70d579893b9aa393fcac",
 "assets/assets/icons/translation.png": "f2d1d7cfb01522a943c66ea83dd9ad21",
 "assets/assets/icons/video-pause-button.png": "3ca503ddf423659cc119a5ff052080e9",
+"assets/assets/icons/wifi.png": "e4ed2d42f114625b4976ad88f1be1195",
 "assets/assets/images/Accutask_pro_logo.png": "6a5ba4e3663180296a2442e3abb1119c",
 "assets/assets/images/accutecherp.png": "1054ff953f9a8c4cfd3792e72f216353",
 "assets/assets/images/add_image.png": "fadd33f06d24f495ad2f48b18e9d019f",
@@ -71,7 +72,7 @@ const RESOURCES = {"assets/AssetManifest.bin": "45ee2feaf9f96a24951292d429d882ed
 "assets/assets/service-account.json": "63c2dfd5aa9210b621d476e35d4e63c2",
 "assets/assets/sounds/long-buzzer-38398.mp3": "4008b01e43ea13671e58ab219e2ffc11",
 "assets/FontManifest.json": "5a32d4310a6f5d9a6b651e75ba0d7372",
-"assets/fonts/MaterialIcons-Regular.otf": "5c9a94134f0e008cf0398aa0880f34b4",
+"assets/fonts/MaterialIcons-Regular.otf": "b5098a3538b89ae0a3af0adf0edd3d96",
 "assets/NOTICES": "aa5867280b80b2e7d8bc326fa67fda7a",
 "assets/packages/country_code_picker/flags/ad.png": "796914c894c19b68adf1a85057378dbc",
 "assets/packages/country_code_picker/flags/ae.png": "045eddd7da0ef9fb3a7593d7d2262659",
@@ -623,14 +624,14 @@ const RESOURCES = {"assets/AssetManifest.bin": "45ee2feaf9f96a24951292d429d882ed
 "favicon.png": "e7b0966193fe97c600b0e1f2c460ba1e",
 "firebase-messaging-sw.js": "42f3d7d2fb2331e238c94657ef7d0b5a",
 "flutter.js": "76f08d47ff9f5715220992f993002504",
-"flutter_bootstrap.js": "b799ffde90d270e817840b9dcd1fb28c",
+"flutter_bootstrap.js": "19075e94662184e46b8c9274c8d95da2",
 "icons/Icon-192.png": "36f6fb3645e6382e5671f2944098f43c",
 "icons/Icon-512.png": "0104a8a0bdca52cd3ee63781dcd2deb7",
 "icons/Icon-maskable-192.png": "36f6fb3645e6382e5671f2944098f43c",
 "icons/Icon-maskable-512.png": "0104a8a0bdca52cd3ee63781dcd2deb7",
-"index.html": "142547171eaddc5cddf83560ec875075",
-"/": "142547171eaddc5cddf83560ec875075",
-"main.dart.js": "111268cc105bea73c5c1810e3628838a",
+"index.html": "b2728b5f4536a0822569b98de56153fe",
+"/": "b2728b5f4536a0822569b98de56153fe",
+"main.dart.js": "dc4de570f771018ea88db70cb6d045fe",
 "manifest.json": "9cbba53907fa21f47602ffbcb6f80bed",
 "version.json": "0af01196d05d5cf8f9687f1fd67a3dd7"};
 // The application shell files that are downloaded before a service worker can

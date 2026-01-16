@@ -5,6 +5,7 @@ import 'package:AccuChat/Screens/Chat/models/chat_his_res_model.dart';
 import 'package:AccuChat/Screens/Chat/models/chat_history_response_model.dart';
 import 'package:AccuChat/Screens/Chat/screens/chat_tasks/Presentation/Controllers/task_controller.dart';
 import 'package:AccuChat/Screens/Chat/screens/chat_tasks/Presentation/Controllers/task_home_controller.dart';
+import 'package:AccuChat/utils/register_image.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
@@ -15,10 +16,7 @@ import 'package:image_picker/image_picker.dart';
 import 'package:mime/mime.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:scrollable_positioned_list/scrollable_positioned_list.dart';
-import '../../../../../../Services/APIs/local_keys.dart';
 import '../../../../../../Services/APIs/post/post_api_service_impl.dart';
-import '../../../../../../main.dart';
-import '../../../../../../routes/app_routes.dart';
 import '../../../../../../utils/chat_presence.dart';
 import '../../../../../../utils/custom_flashbar.dart';
 import '../../../../../../utils/helper.dart';
@@ -34,10 +32,7 @@ import '../../../auth/models/get_uesr_Res_model.dart';
 import 'package:dio/dio.dart' as multi;
 import 'package:path/path.dart' as p;
 import 'dart:typed_data';
-
-import '../Views/chat_screen.dart';
 import '../Widgets/all_users_dialog.dart';
-import '../Widgets/create_custom_folder.dart';
 import 'chat_home_controller.dart';
 
 class ChatScreenController extends GetxController {
@@ -252,10 +247,12 @@ class ChatScreenController extends GetxController {
   @override
   void onInit() {
     super.onInit();
-
+    _getCompany();
+    scrollListener();
     Get.find<ChatHomeController>()
         .isOnRecentList.value = false;
     replyToMessage = null;
+    // resetPaginationForNewChat();
     getArguments();
 
     if (kIsWeb) {
@@ -263,11 +260,71 @@ class ChatScreenController extends GetxController {
       // _initScroll();
     }
     // attachPaginationListener(reverseList: true);
-    scrollListener();
 
 
+    if (kIsWeb) {
+      registerImage((XFile image) {
+        _handlePastedImage(image);
+      });
+    }
   }
 
+  Future<void> _handlePastedImage(XFile file) async {
+    // same flow as picker
+    images.clear();
+    images.add(file);
+
+    await uploadMediaApiCall(
+      type: ChatMediaType.IMAGE.name,
+    );
+  }
+
+  Future<List<XFile>> pickWebImages({int maxFiles = 10}) async {
+    final result = await FilePicker.platform.pickFiles(
+      allowMultiple: true,
+      type: FileType.custom,
+      compressionQuality: 80,
+      allowCompression: true,
+      allowedExtensions: const [
+        'jpg',
+        'jpeg',
+        'png',
+        'webp',
+        'JPG',
+        "JPEG",
+        "PNG",
+        "WEBP"
+      ],
+      withData: true, // we need bytes for XFile.fromData
+      withReadStream: false,
+    );
+
+    if (result == null || result.files.isEmpty) return [];
+
+    final files = result.files.take(maxFiles).where((f) => f.bytes != null);
+    final xfiles = <XFile>[];
+    for (final f in files) {
+      final String name = f.name;
+      final Uint8List bytes = f.bytes!;
+      // best effort mime guess
+      final String mime = _guessImageMime(name);
+      xfiles.add(XFile.fromData(
+        bytes,
+        name: name,
+        mimeType: mime,
+        // length: bytes.length, // optional
+      ));
+    }
+    return xfiles;
+  }
+
+  String _guessImageMime(String name) {
+    final lower = name.toLowerCase();
+    if (lower.endsWith('.png')) return 'image/png';
+    if (lower.endsWith('.webp')) return 'image/webp';
+    if (lower.endsWith('.jpg') || lower.endsWith('.jpeg')) return 'image/jpeg';
+    return 'image/*';
+  }
   _initScroll() {
     WidgetsBinding.instance.addPostFrameCallback((_) async {
       // 1) if list hasn't loaded yet, don't scroll
@@ -328,7 +385,7 @@ class ChatScreenController extends GetxController {
         UserDataAPI argUser = Get.arguments['user'];
         user = argUser;
         if (argUser != null) {
-          ChatPresence.activeChatId = argUser.userCompany?.userCompanyId;
+          ChatPresence.activeChatId = argUser?.userCompany?.userCompanyId;
           openConversation(argUser);
         }
       }
@@ -351,7 +408,7 @@ class ChatScreenController extends GetxController {
   }
 
   void openConversation(UserDataAPI? useriii) {
-    _getCompany();
+
     user = useriii;
     update();
     _getMe();
@@ -430,15 +487,15 @@ class ChatScreenController extends GetxController {
         }
       });
     } else {
-      // scrollController2.addListener(() {
-      //   if (scrollController2.position.pixels <=
-      //       scrollController2.position.minScrollExtent + 50 &&
-      //       !isPageLoading &&
-      //       hasMore) {
-      //     // resetPaginationForNewChat();
-      //     hitAPIToGetChatHistory();
-      //   }
-      // });
+      scrollController2.addListener(() {
+        if (scrollController2.position.pixels <=
+            scrollController2.position.minScrollExtent + 50 &&
+            !isPageLoading &&
+            hasMore) {
+          // resetPaginationForNewChat();
+          hitAPIToGetChatHistory();
+        }
+      });
     }
   }
 
@@ -717,7 +774,7 @@ class ChatScreenController extends GetxController {
               ? 'group'
               : user?.userCompany?.isBroadcast == 1
                   ? "broadcast"
-                  : '',
+                  : 'direct',
           groupId: user?.userCompany?.userCompanyId,
           brID: user?.userCompany?.userCompanyId,
         );
@@ -1094,7 +1151,7 @@ class ChatScreenController extends GetxController {
 
     // DIRECT — use UCID, NOT userId
     socket.sendMessage(
-      receiverId: selectedUser.userId ?? 0, // <-- key fix (UCID)
+      receiverId: selectedUser.userId ?? 0,
       type: "direct",
       isGroup: 0,
       companyId: selectedUser.userCompany?.companyId,

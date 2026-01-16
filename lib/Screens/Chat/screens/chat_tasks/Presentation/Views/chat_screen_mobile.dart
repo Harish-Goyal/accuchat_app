@@ -840,7 +840,6 @@ class ChatScreenMobile extends GetView<ChatScreenController> {
               ? Row(
             mainAxisSize: MainAxisSize.min,
             children: [
-
               Flexible(
                 child: Text(
                     data.fromUser?.userId == controller.me?.userId
@@ -1442,6 +1441,7 @@ class ChatScreenMobile extends GetView<ChatScreenController> {
                                       decoration: InputDecoration(
                                         isDense: true,
                                         hintText: 'Type Something...',
+                                        hintMaxLines: 1,
                                         hintStyle: themeData.textTheme.bodySmall,
                                         contentPadding: const EdgeInsets.all(8),
                                         border: InputBorder.none,
@@ -1634,6 +1634,7 @@ class ChatScreenMobile extends GetView<ChatScreenController> {
                                       decoration: InputDecoration(
                                         isDense: true,
                                         hintText: 'Type Something...',
+                                        hintMaxLines: 1,
                                         hintStyle:
                                         themeData.textTheme.bodySmall,
                                         contentPadding: const EdgeInsets.all(8),
@@ -2279,7 +2280,7 @@ class ChatScreenMobile extends GetView<ChatScreenController> {
           );
         },
       ),
-      onOkTap: () {},
+      onOkTap: () {}, isShowActions: false,
     );
   }
 

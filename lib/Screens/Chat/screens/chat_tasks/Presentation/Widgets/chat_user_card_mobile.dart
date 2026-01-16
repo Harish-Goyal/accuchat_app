@@ -100,6 +100,7 @@ class _ChatUserCardMobileState extends State<ChatUserCardMobile>
               if(kIsWeb){
                 Get.toNamed("${AppRoutes.chats_li_r}?userId=${widget.user?.userId.toString()}");
               }else{
+                print("go to ${widget.user?.userCompany?.displayName} screen");
                 Get.toNamed(AppRoutes.chats_li_r,arguments: {'user':widget.user});
               }
 

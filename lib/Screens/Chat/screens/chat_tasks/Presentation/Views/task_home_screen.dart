@@ -3,13 +3,11 @@ import 'package:AccuChat/Constants/colors.dart';
 import 'package:AccuChat/Constants/themes.dart';
 import 'package:AccuChat/Screens/Chat/screens/chat_tasks/Presentation/Views/task_chat_screen.dart';
 import 'package:AccuChat/routes/app_routes.dart';
-import 'package:AccuChat/utils/loading_indicator.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:swipe_to/swipe_to.dart';
-import '../../../../../../Constants/app_theme.dart';
 import '../../../../../../Services/APIs/api_ends.dart';
 import '../../../../../../main.dart';
 import '../../../../../../utils/common_textfield.dart';
@@ -19,20 +17,10 @@ import '../../../../../../utils/gradient_button.dart';
 import '../../../../../../utils/helper_widget.dart';
 import '../../../../../../utils/networl_shimmer_image.dart';
 import '../../../../../../utils/text_style.dart';
-import '../../../../../Home/Presentation/Controller/company_service.dart';
-import '../../../../api/apis.dart';
-import '../../../../helper/dialogs.dart';
-import '../../../../models/chat_user.dart';
 import '../Controllers/task_home_controller.dart';
-import '../Widgets/broad_cast_card.dart';
-import '../Widgets/chat_group_card.dart';
 import '../Widgets/chat_user_card.dart';
-import '../Controllers/chat_home_controller.dart';
 import '../Widgets/chat_user_card_mobile.dart';
-import 'chat_groups.dart';
 import 'chat_task_shimmmer.dart';
-import 'chats_broadcasts.dart';
-import 'create_broadcast_dialog_screen.dart';
 
 class TaskHomeScreen extends GetView<TaskHomeController> {
   TaskHomeScreen({super.key});
@@ -115,10 +103,10 @@ class TaskHomeScreen extends GetView<TaskHomeController> {
                                         color:appColorYellow,size: 16),
                                   ).paddingOnly(left: 8, top: 4),
                                   Text(
-                                   ( controller.myCompany?.companyName??'').toUpperCase(),
+                                   ( controller.myCompany?.companyName??''),
                                     style: BalooStyles.baloomediumTextStyle(
                                       color: appColorYellow,
-                                    size: 12),
+                                   ),
                                     maxLines: 1,
                                     overflow: TextOverflow.ellipsis,
                                   ).paddingOnly(left: 8, top: 2),
@@ -351,6 +339,7 @@ class TaskHomeScreen extends GetView<TaskHomeController> {
   _groupDialogWidget() {
     return CustomDialogue(
       title: "Create Group",
+      isShowActions: false,
       isShowAppIcon: false,
       content: Column(
         crossAxisAlignment: CrossAxisAlignment.center,

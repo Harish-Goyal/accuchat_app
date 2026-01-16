@@ -88,7 +88,7 @@ class CompanyMembers extends GetView<CompanyMemberController> {
                 :
 
             Text(
-              ("${(controller.companyName ?? '').toUpperCase()}'s Members"),
+              ("${(controller.companyName ?? '')}'s Members"),
               style: BalooStyles.balooboldTitleTextStyle(),
             );
           }

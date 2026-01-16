@@ -1,4 +1,5 @@
 import 'package:flutter/cupertino.dart';
+import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
 import '../../../Chat/models/gallery_node.dart';
@@ -9,8 +10,8 @@ class IndexedNode {
   final List<GalleryNode> path; // ancestors from root to parent
   IndexedNode({required this.node, required this.path});
 }
-class GalleryController extends GetxController {
-
+class GalleryController extends GetxController with GetSingleTickerProviderStateMixin {
+  late TabController tabController;
   //folder tile
   final RxString renamingId = ''.obs;
 
@@ -72,11 +73,6 @@ class GalleryController extends GetxController {
     renamingId.value = '';
   }
 
-  //folder tile
-
-
-
-
   // Dummy tree
   final List<GalleryNode> root = [
     GalleryNode(
@@ -120,12 +116,98 @@ class GalleryController extends GetxController {
         GalleryNode(id: 'doc_202', name: 'invoice_0925.pdf', type: NodeType.doc),
         GalleryNode(id: 'doc_203', name: 'proposal_v3.docx', type: NodeType.doc),
       ],
+    ), GalleryNode(
+      id: 'fld_03',
+      name: 'My Docs',
+      type: NodeType.folder,
+      children: [
+        GalleryNode(id: 'doc_202', name: 'invoice_0925.pdf', type: NodeType.doc),
+        GalleryNode(id: 'doc_203', name: 'proposal_v3.docx', type: NodeType.doc),
+      ],
+    ), GalleryNode(
+      id: 'fld_04',
+      name: 'Company Docs',
+      type: NodeType.folder,
+      children: [
+        GalleryNode(id: 'doc_202', name: 'invoice_0925.pdf', type: NodeType.doc),
+        GalleryNode(id: 'doc_203', name: 'proposal_v3.docx', type: NodeType.doc),
+      ],
+    ), GalleryNode(
+      id: 'fld_05',
+      name: 'AccuTech Docs',
+      type: NodeType.folder,
+      children: [
+        GalleryNode(id: 'doc_202', name: 'invoice_0925.pdf', type: NodeType.doc),
+        GalleryNode(id: 'doc_203', name: 'proposal_v3.docx', type: NodeType.doc),
+      ],
+    ),GalleryNode(
+      id: 'fld_06',
+      name: 'Rachana Docs',
+      type: NodeType.folder,
+      children: [
+        GalleryNode(id: 'doc_202', name: 'invoice_0925.pdf', type: NodeType.doc),
+        GalleryNode(id: 'doc_203', name: 'proposal_v3.docx', type: NodeType.doc),
+      ],
+    ),GalleryNode(
+      id: 'fld_07',
+      name: 'Muskan Docs',
+      type: NodeType.folder,
+      children: [
+        GalleryNode(id: 'doc_202', name: 'invoice_0925.pdf', type: NodeType.doc),
+        GalleryNode(id: 'doc_203', name: 'proposal_v3.docx', type: NodeType.doc),
+      ],
+    ),GalleryNode(
+      id: 'fld_08',
+      name: 'Sales Docs',
+      type: NodeType.folder,
+      children: [
+        GalleryNode(id: 'doc_202', name: 'invoice_0925.pdf', type: NodeType.doc),
+        GalleryNode(id: 'doc_203', name: 'proposal_v3.docx', type: NodeType.doc),
+      ],
     ),
      GalleryNode(
-      id: 'img_104',
+      id: 'img_105',
       name: 'bdaygirl.png',
       type: NodeType.image,
       thumbnail: 'https://picsum.photos/seed/hero_banner/300/300',
+    ),GalleryNode(
+      id: 'fld_09',
+      name: 'Sales Docs',
+      type: NodeType.folder,
+      children: [
+        GalleryNode(id: 'doc_202', name: 'invoice_0925.pdf', type: NodeType.doc),
+        GalleryNode(id: 'doc_203', name: 'proposal_v3.docx', type: NodeType.doc),
+      ],
+    ),
+     GalleryNode(
+      id: 'img_106',
+      name: 'bdaygirl.png',
+      type: NodeType.image,
+      thumbnail: 'https://fastly.picsum.photos/id/786/200/300.jpg?hmac=ukrca61AOMxrxsEnCf7j49AnyoIwIsyIikReiUhm6zQ',
+    ),GalleryNode(
+      id: 'fld_010',
+      name: 'Sales Docs',
+      type: NodeType.folder,
+      children: [
+        GalleryNode(id: 'doc_202', name: 'invoice_0925.pdf', type: NodeType.doc),
+        GalleryNode(id: 'doc_203', name: 'proposal_v3.docx', type: NodeType.doc),
+      ],
+    ),
+     GalleryNode(
+      id: 'img_107',
+      name: 'bdaygirl.png',
+      type: NodeType.image,
+      thumbnail: 'https://picsum.photos/id/237/200/300',
+    ),     GalleryNode(
+      id: 'img_108',
+      name: 'bdaygirl.png',
+      type: NodeType.image,
+      thumbnail: 'https://picsum.photos/200/300',
+    ),     GalleryNode(
+      id: 'img_109',
+      name: 'bdaygirl.png',
+      type: NodeType.image,
+      thumbnail: 'https://picsum.photos/seed/picsum/200/300',
     ),
   ];
 
@@ -148,7 +230,6 @@ class GalleryController extends GetxController {
       update();
       return true;
     }
-
     return false;
   }
 
@@ -224,7 +305,9 @@ class GalleryController extends GetxController {
   @override
   void onInit() {
     super.onInit();
+    tabController = TabController(length: 2, vsync: this);
     _buildIndex();
+
     searchCtrl.addListener(() => onSearchChanged(searchCtrl.text));
   }
 
@@ -232,6 +315,7 @@ class GalleryController extends GetxController {
   void onClose() {
     super.onClose();
     searchCtrl.dispose();
+    tabController.dispose();
     for (final c in _textCtrls.values) {
       c.dispose();
     }

@@ -186,6 +186,7 @@ class CreateRoleScreen extends StatelessWidget {
                                       context: Get.context!,
                                       builder: (_) => CustomDialogue(
                                             title: "Delete Roles",
+                                        isShowActions: false,
                                             isShowAppIcon: false,
                                             content: Column(
                                               crossAxisAlignment:

@@ -191,7 +191,7 @@ class UpdateCompanyController extends GetxController {
   initData() {
     companyLogoUrl = companyResponse?.logo ?? '';
     nameController = TextEditingController(
-        text: (companyResponse?.companyName ?? '').toUpperCase());
+        text: (companyResponse?.companyName ?? ''));
     emailController = TextEditingController(text: companyResponse?.email ?? '');
     phoneController = TextEditingController(text: companyResponse?.phone ?? '');
     addressController =

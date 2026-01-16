@@ -25,6 +25,7 @@ const String addUserIcon = "assets/icons/add-user.png";
 const String micPng = "assets/icons/mic.png";
 const String translationPng = "assets/icons/translation.png";
 const String pausePng = "assets/icons/video-pause-button.png";
+const String wifiPng = "assets/icons/wifi.png";
 const String chaticon = "assets/icons/chatsicon.png";
 const String changePassPNG = "assets/images/change_pass.png";
 const String noDataFoundPng = "assets/images/no_data_found.png";

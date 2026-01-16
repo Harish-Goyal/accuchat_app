@@ -244,7 +244,9 @@ class ChatHomeController extends GetxController{
       groupController.clear();
       toast(value.message??'');
       Dialogs.showSnackbar(Get.context!, "Scroll down to see your latest create 'Group'");
-
+      Get.find<SocketController>()
+          .connectUserEmitter(
+          myCompany?.companyId);
       hitAPIToGetRecentChats(userData: groupResModel.data,page: 1);
       // Future.delayed(Duration(milliseconds: 1200),(){
       //   final homec = Get.find<ChatHomeController>();

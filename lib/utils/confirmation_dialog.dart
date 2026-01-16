@@ -45,6 +45,7 @@ void showResponsiveConfirmationDialog({required Function() onConfirm, title}) {
                 // 👇 Your dialog code is untouched and placed as-is
                 child: CustomDialogue(
                   title: title,
+                  isShowActions: false,
                   isShowAppIcon: false,
                   content: Column(
                     crossAxisAlignment: CrossAxisAlignment.center,

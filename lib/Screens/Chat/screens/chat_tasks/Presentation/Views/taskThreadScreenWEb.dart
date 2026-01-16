@@ -283,31 +283,25 @@ class TaskThreadScreenWeb extends GetView<TaskThreadController> {
                 }
 
                 var userid = APIs.me.userId;
-                return StaggeredAnimationListItem(
-                  index: index,
-                  child: SwipeTo(
-                    iconColor: appColorGreen,
-                    onRightSwipe: (detail) {
-                      // Set the message being replied to
-                      controller.refIdis = element.comments.taskCommentId;
-                      controller.userIDSender = element.comments.fromUser?.userId;
-                      controller.userNameReceiver =
-                          element.comments.toUser?.userCompany?.displayName ?? '';
-                      controller.userNameSender =
-                          element.comments.fromUser?.userCompany?.displayName ?? '';
-                      controller.userIDReceiver = element.comments.toUser?.userId;
-                      controller.replyToMessage = element.comments;
-
-                      controller.update();
-                    },
-                    child: _chatMessageTile(
-                        data: element.comments,
-                        sentByMe: (userid.toString() ==
-                                element.comments.fromUser?.userId?.toString()
-                            ? true
-                            : false),
-                        formatedTime: formatatedTime),
-                  ),
+                return SwipeTo(
+                  iconColor: appColorGreen,
+                  onRightSwipe: (detail) {
+                    // Set the message being replied to
+                    controller.refIdis = element.comments.taskCommentId;
+                    controller.userIDSender = element.comments.fromUser?.userId;
+                    controller.userNameReceiver = element.comments.toUser?.userCompany?.displayName ?? '';
+                    controller.userNameSender = element.comments.fromUser?.userCompany?.displayName ?? '';
+                    controller.userIDReceiver = element.comments.toUser?.userId;
+                    controller.replyToMessage = element.comments;
+                    controller.update();
+                  },
+                  child: _chatMessageTile(
+                      data: element.comments,
+                      sentByMe: (userid.toString() ==
+                              element.comments.fromUser?.userId?.toString()
+                          ? true
+                          : false),
+                      formatedTime: formatatedTime),
                 );
               }),
         )

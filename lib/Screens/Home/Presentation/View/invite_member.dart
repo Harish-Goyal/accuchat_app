@@ -51,7 +51,7 @@ class InviteMembersScreen extends GetView<InviteMemberController> {
                     child: Column(
                       children: [
                         Text(
-                          (c.companyName ?? '').toUpperCase(),
+                          (c.companyName ?? ''),
                           style: BalooStyles.baloosemiBoldTextStyle(color: appColorGreen),
                         ),
                         vGap(30),
@@ -74,7 +74,7 @@ class InviteMembersScreen extends GetView<InviteMemberController> {
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
                               Text(
-                                (c.companyName ?? '').toUpperCase(),
+                                (c.companyName ?? ''),
                                 style: BalooStyles.baloosemiBoldTextStyle(color: appColorGreen),
                               ),
                               CustomTextField(

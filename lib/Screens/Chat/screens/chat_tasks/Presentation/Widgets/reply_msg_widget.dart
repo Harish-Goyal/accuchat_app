@@ -130,7 +130,6 @@ class ReplyMessageWidget extends StatelessWidget {
             ).paddingSymmetric(horizontal: 5,vertical: 3),
 
            isImageOrVideo()?Container(
-             // color: Colors.red,
              width: 70,
              margin: const EdgeInsets.only(left: 8,bottom: 8,right: 8),
              child: CustomCacheNetworkImage("${ApiEnd.baseUrlMedia}${orignalMsg??''}",
@@ -152,11 +151,11 @@ class ReplyMessageWidget extends StatelessWidget {
                    message??'',
                    maxLines: 1,
                    overflow: TextOverflow.ellipsis,
-                   style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w500),
+                   style: BalooStyles.baloonormalTextStyle(),
                  ),
                ),
              ],
-           ).paddingSymmetric(horizontal: 8)
+           ).paddingSymmetric(horizontal: 5)
                :  Container(
               // width: Get.width * .78,
                 child: Text(

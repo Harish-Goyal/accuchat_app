@@ -1,6 +1,8 @@
 import 'dart:math' as math;
 import 'package:flutter/material.dart';
 
+import '../Constants/assets.dart';
+
 class NoInternetDialog extends StatefulWidget {
   const NoInternetDialog({
     super.key,
@@ -191,9 +193,9 @@ class _WifiPulseIconState extends State<_WifiPulseIcon>
                     color: theme.colorScheme.error.withOpacity(0.25),
                   ),
                 ),
-                child: Icon(
-                  Icons.wifi_off_rounded,
-                  size: 30,
+                child: Image.asset(
+                  wifiPng,
+                  height: 20,
                   color: theme.colorScheme.error,
                 ),
               ),

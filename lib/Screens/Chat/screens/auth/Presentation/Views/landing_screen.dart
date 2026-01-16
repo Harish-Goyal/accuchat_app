@@ -93,7 +93,7 @@ class LandingPage extends GetView<LandingScreenController> {
                                           "${ApiEnd.baseUrlMedia}${company.logo ?? ''}",
                                         ),
                                       ),
-                                      title: (company.companyName ?? '').toUpperCase(),
+                                      title: (company.companyName ?? ''),
                                       subtitle: 'Tap to enter this company',
 
                                       onTap: () async {
@@ -613,6 +613,7 @@ void showResponsiveLogoutDialog() {
                 // 👇 Your dialog code is untouched and placed as-is
                 child: CustomDialogue(
                   title: "Logout",
+                  isShowActions: false,
                   isShowAppIcon: false,
                   content: Column(
                     crossAxisAlignment: CrossAxisAlignment.center,

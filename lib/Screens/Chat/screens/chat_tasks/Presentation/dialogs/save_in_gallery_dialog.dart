@@ -21,7 +21,6 @@ class SaveToCustomFolderDialog extends StatelessWidget {
   Widget build(BuildContext context) {
     final c = Get.find<SaveToGalleryController>();
     final _formKeyDoc = GlobalKey<FormState>();
-
     return _mainBody(_formKeyDoc,c);
   }
 
@@ -30,6 +29,7 @@ class SaveToCustomFolderDialog extends StatelessWidget {
     return CustomDialogue(
       title: "Save In Accuchat's Smart Gallery",
       isShowAppIcon: true,
+      isShowActions: false,
       content: SizedBox(
         width: 500,
         child: Material(
@@ -47,9 +47,7 @@ class SaveToCustomFolderDialog extends StatelessWidget {
                 mainAxisSize: MainAxisSize.min,
                 children: [
                   divider().paddingSymmetric(horizontal: 40),
-
                   // vGap(12),
-
                   Text(
                     "This media will be saved in your AccuChat Gallery under the selected folder.",
                     style: BalooStyles.baloonormalTextStyle(size: 13),
@@ -116,7 +114,8 @@ class SaveToCustomFolderDialog extends StatelessWidget {
                   vGap(12),
 
                   /// ===================== ACTION BUTTONS =====================
-                  _buttomAction(fKey,controller),                ],
+                  _buttomAction(fKey,controller),
+                ],
               ).paddingSymmetric(horizontal: 8),
             ),
           ),

@@ -211,10 +211,9 @@ class ChatsHomeScreen extends GetView<ChatHomeController> {
                                         ).paddingOnly(left: 4, top: 4),
                                         Text(
                                           (controller.myCompany?.companyName ?? '')
-                                              .toUpperCase(),
+                                             ,
                                           style: BalooStyles.baloomediumTextStyle(
                                             color: appColorYellow,
-                                            size:12
                                           ),
                                           maxLines: 1,
                                           overflow: TextOverflow.ellipsis,
@@ -556,7 +555,7 @@ class ChatsHomeScreen extends GetView<ChatHomeController> {
                 isShowAppIcon: false,
                 // In case content grows, let it scroll
                 content: SingleChildScrollView(child: _dialogBody()),
-                onOkTap: () {},
+                onOkTap: () {}, isShowActions: false,
               ),
             ),
           ),

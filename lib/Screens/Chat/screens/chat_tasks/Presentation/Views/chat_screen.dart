@@ -232,7 +232,9 @@ class ChatScreen extends GetView<ChatScreenController> {
                                                                     ?.message ??
                                                                 '')
                                                         ? Text(
-                                                            "Media",
+                                                        controller.replyToMessage
+                                                            ?.media?.first?.orgFileName ??
+                                                            '',
                                                             maxLines: 2,
                                                             overflow:
                                                                 TextOverflow
@@ -496,7 +498,7 @@ class ChatScreen extends GetView<ChatScreenController> {
       /* final initialIndex = (controller.flatRows.isEmpty)
         ? 0
         : controller.flatRows.length - 1;*/
-    return (controller.flatRows ?? []).isNotEmpty
+    return (controller.chatCatygory ?? []).isNotEmpty
         ? GroupedListView<GroupChatElement, DateTime>(
             shrinkWrap: true,
             padding: const EdgeInsets.only(bottom: 30),
@@ -533,7 +535,6 @@ class ChatScreen extends GetView<ChatScreenController> {
                         } else {
 
                               final media = element.chatMessageItems.media;
-
                               if (media == null || media.isEmpty) {
                                 controller.refIdis = element.chatMessageItems.chatId;
                                 controller.userIDSender = element.chatMessageItems.fromUser?.userId;
@@ -780,7 +781,7 @@ class ChatScreen extends GetView<ChatScreenController> {
                         sentByMe ? Alignment.centerRight : Alignment.centerLeft,
                     child: ConstrainedBox(
                       constraints: BoxConstraints(
-                        maxWidth: Get.width * (kIsWeb ? 0.45 : 0.75),
+                        maxWidth: Get.width * (kIsWeb ? 0.4 : 0.75),
                       ),
                       child: Column(
                         // mainAxisSize: MainAxisSize.min,
@@ -1225,10 +1226,10 @@ class ChatScreen extends GetView<ChatScreenController> {
                 ),
               ),
         controller.isSearching
-            ? SizedBox()
+            ? const SizedBox()
             : (controller.user?.userCompany?.isBroadcast == 1 ||
                     controller.user?.userCompany?.isGroup == 1)
-                ? SizedBox()
+                ? const SizedBox()
                 : CustomTextButton(
                     onTap: () {
                       if (controller.user == null) return;
@@ -1255,7 +1256,7 @@ class ChatScreen extends GetView<ChatScreenController> {
                       taskHome.selectedChat.refresh();
                     },
                     title: "Go to Task"),
-        controller.isSearching ? SizedBox() : hGap(10),
+        controller.isSearching ? const SizedBox() : hGap(10),
         IconButton(
                 onPressed: () {
                   controller.isSearching = !controller.isSearching;
@@ -1271,9 +1272,9 @@ class ChatScreen extends GetView<ChatScreenController> {
                     ? const Icon(CupertinoIcons.clear_circled_solid)
                     : Image.asset(searchPng, height: 25, width: 25))
             .paddingOnly(top: 0, right: 0),
-        controller.isSearching ? SizedBox() : hGap(10),
+        controller.isSearching ? const SizedBox() : hGap(10),
         controller.isSearching
-            ? SizedBox()
+            ? const SizedBox()
             : (controller.user?.userCompany?.isGroup == 1 ||
                     controller.user?.userCompany?.isBroadcast == 1)
                 ? PopupMenuButton<String>(
@@ -1356,7 +1357,7 @@ class ChatScreen extends GetView<ChatScreenController> {
                     ],
                   )
                 : const SizedBox(),
-        controller.isSearching ? SizedBox() : hGap(8)
+        controller.isSearching ? const SizedBox() : hGap(8)
       ],
     );
   }
@@ -1383,12 +1384,13 @@ class ChatScreen extends GetView<ChatScreenController> {
     }
 
     return Container(
-      padding: EdgeInsets.symmetric(vertical: 0, horizontal: mq.width * .025),
+      padding: const EdgeInsets.symmetric(vertical: 0, horizontal: 5),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.center,
+        mainAxisAlignment: MainAxisAlignment.start,
         children: [
           _changeLanguage(),
-          hGap(4),
+          hGap(10),
           Expanded(
             child: Row(
               crossAxisAlignment: CrossAxisAlignment.end,
@@ -1500,7 +1502,8 @@ class ChatScreen extends GetView<ChatScreenController> {
                                       decoration: InputDecoration(
                                         isDense: true,
                                         hintText: 'Type Something...',
-                                        hintStyle: themeData.textTheme.bodySmall,
+                                        hintStyle: BalooStyles.baloonormalTextStyle(),
+                                        hintMaxLines: 1,
                                         contentPadding: const EdgeInsets.all(8),
                                         border: InputBorder.none,
                                         enabledBorder: InputBorder.none,
@@ -1550,9 +1553,7 @@ class ChatScreen extends GetView<ChatScreenController> {
               ],
             ),
           ),
-
           hGap(6),
-
           InkWell(
             onTap: () async {
               // if mic listening, stop & append before sending (optional)
@@ -1570,13 +1571,13 @@ class ChatScreen extends GetView<ChatScreenController> {
               ),
               child: const Icon(Icons.send, color: Colors.white),
             ),
-          ).marginOnly(bottom: 4),
-
+          ).marginOnly(bottom: 4,top: 4),
         ],
       ),
     );
   }
 
+  //No Voice to text
 /*  Widget _chatInput() {
     return Container(
       // height: Get.height*.4,
@@ -2059,7 +2060,7 @@ class ChatScreen extends GetView<ChatScreenController> {
           TextButton(
             onPressed: () async {
               //IMAGES (multiple)
-              final images = await _pickWebImages(maxFiles: 10);
+              final images = await controller.pickWebImages(maxFiles: 10);
               if (images.isNotEmpty) {
                 controller.images.addAll(images);
                 controller.uploadMediaApiCall(type: ChatMediaType.IMAGE.name);
@@ -2105,45 +2106,7 @@ class ChatScreen extends GetView<ChatScreenController> {
 
   /// ====== HELPERS (WEB) ======
 
-  Future<List<XFile>> _pickWebImages({int maxFiles = 10}) async {
-    final result = await FilePicker.platform.pickFiles(
-      allowMultiple: true,
-      type: FileType.custom,
-      compressionQuality: 80,
-      allowCompression: true,
 
-      allowedExtensions: const [
-        'jpg',
-        'jpeg',
-        'png',
-        'webp',
-        'JPG',
-        "JPEG",
-        "PNG",
-        "WEBP"
-      ],
-      withData: true, // we need bytes for XFile.fromData
-      withReadStream: false,
-    );
-
-    if (result == null || result.files.isEmpty) return [];
-
-    final files = result.files.take(maxFiles).where((f) => f.bytes != null);
-    final xfiles = <XFile>[];
-    for (final f in files) {
-      final String name = f.name;
-      final Uint8List bytes = f.bytes!;
-      // best effort mime guess
-      final String mime = _guessImageMime(name);
-      xfiles.add(XFile.fromData(
-        bytes,
-        name: name,
-        mimeType: mime,
-        // length: bytes.length, // optional
-      ));
-    }
-    return xfiles;
-  }
 
   int maxBytes = 15 * 1024 * 1024;
   Future<List<PlatformFile>> _pickWebDocs() async {
@@ -2200,13 +2163,7 @@ class ChatScreen extends GetView<ChatScreenController> {
     return result.files;
   }
 
-  String _guessImageMime(String name) {
-    final lower = name.toLowerCase();
-    if (lower.endsWith('.png')) return 'image/png';
-    if (lower.endsWith('.webp')) return 'image/webp';
-    if (lower.endsWith('.jpg') || lower.endsWith('.jpeg')) return 'image/jpeg';
-    return 'image/*';
-  }
+
 
   // bottom sheet for modifying message details
   void _showBottomSheet(bool isMe, {required ChatHisList data}) async {
@@ -2270,7 +2227,7 @@ class ChatScreen extends GetView<ChatScreenController> {
                           : const SizedBox()
                       : const SizedBox(),
 
-              (!(data.media ?? []).isNotEmpty || data.media?.length == 1)
+              ((data.media ?? []).isNotEmpty || data.media?.length == 1)
                   ? _OptionItem(
                       icon: Icon(Icons.reply, color: appColorGreen, size: 18),
                       name: 'Reply',
@@ -2319,7 +2276,8 @@ class ChatScreen extends GetView<ChatScreenController> {
                         }
                       })
                   : const SizedBox(),
-              ((data.media ?? []).isNotEmpty)?
+
+              ((data.media ?? []).isNotEmpty || data.media?.length == 1)?
               _OptionItem(
                     icon:  Icon(Icons.document_scanner,
                         color: appColorYellow, size: 18),
@@ -2334,7 +2292,7 @@ class ChatScreen extends GetView<ChatScreenController> {
                       } catch (e) {
                         toast('Something went wrong!');
                       }
-                    }):SizedBox(),
+                    }):const SizedBox(),
 
               //separator or divider
               if (isMe)
@@ -2384,7 +2342,7 @@ class ChatScreen extends GetView<ChatScreenController> {
                               : null);
                     }),
 
-              (data.message != null && (data.media?.isEmpty ?? true))
+              (data.message != null || ((data.media?.isNotEmpty ?? true) &&data.media?.length==1 ))
                   ? _OptionItem(
                       icon: Icon(Icons.share, color: appColorGreen, size: 18),
                       name: 'Share on WhatsApp',
@@ -2394,7 +2352,7 @@ class ChatScreen extends GetView<ChatScreenController> {
                           ShareHelper.shareOnWhatsApp(msg);
                         }
                       })
-                  : SizedBox()
+                  : const SizedBox()
               //separator or divider
               /* if (!widget.isForward)
                 Divider(

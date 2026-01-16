@@ -90,13 +90,11 @@ class TaskThreadController extends GetxController {
 
   String get joined {
     final names = allUsersList
-        .map((v) => (v.userCompany?.displayName ?? '').trim())
+        .map((v) => (v.userCompany?.displayName !=null?v.userCompany?.displayName ?? '':v.userName!=null?v.userName??'':v.phone??'').trim())
         .where((s) => s.isNotEmpty)
         .toList();
-
     final unique = <String>{};
     final cleaned = names.where((n) => unique.add(n)).toList();
-
     return cleaned.join(', ');
   }
 
@@ -106,7 +104,6 @@ class TaskThreadController extends GetxController {
         .getUserByApiCall(userID: userId,comid: myCompany?.companyId)
         .then((value) async {
       currentUser = value.data;
-
       update();
     }).onError((error, stackTrace) {
       update();

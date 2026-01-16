@@ -28,7 +28,7 @@ class ProfileDialog extends StatelessWidget {
 
     return Center(
       child: ConstrainedBox(
-        constraints: BoxConstraints(
+        constraints: const BoxConstraints(
           maxWidth: kIsWeb ? 520 : double.infinity,
           maxHeight: kIsWeb ? 420 : double.infinity,
           minWidth: 300,
@@ -63,13 +63,25 @@ class ProfileDialog extends StatelessWidget {
                       MaterialButton(
                         onPressed: () {
                           Get.back();
-                          if (kIsWeb) {
-                            Get.toNamed(
-                              "${AppRoutes.view_profile}?userId=${user?.userId.toString()}",
-                            );
+                          if (!(user?.userCompany?.isGroup == 1 ||
+                              user?.userCompany?.isBroadcast == 1)) {
+                            if (kIsWeb) {
+                              Get.toNamed(
+                                "${AppRoutes.view_profile}?userId=${user?.userId}",
+                              );
+                            } else {
+                              Get.toNamed(AppRoutes.view_profile,
+                                  arguments: {'user': user});
+                            }
                           } else {
-                            Get.toNamed(AppRoutes.view_profile,
-                                arguments: {'user': user});
+                            if (kIsWeb) {
+                              Get.toNamed(
+                                "${AppRoutes.member_sr}?userId=${user?.userId}",
+                              );
+                            } else {
+                              Get.toNamed(AppRoutes.member_sr,
+                                  arguments: {'user': user});
+                            }
                           }
                         },
                         minWidth: 0,

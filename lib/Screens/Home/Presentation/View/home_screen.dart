@@ -150,7 +150,7 @@ class HomeScreen extends GetView<DashboardController> {
                                                   ),
                                                   vGap(4),
                                                   Text(
-                                                    (invites.company?.companyName ?? '').toUpperCase(),
+                                                    (invites.company?.companyName ?? ''),
                                                     maxLines: 1,
                                                     overflow: TextOverflow.ellipsis,
                                                     style: BalooStyles.baloosemiBoldTextStyle(),

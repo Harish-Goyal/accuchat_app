@@ -109,6 +109,27 @@
     };
   })();
 </script>
+<script>
+  window.addEventListener("paste", async (event) => {
+    if (!event.clipboardData) return;
+
+    for (const item of event.clipboardData.items) {
+      if (item.type.startsWith("image/")) {
+        const blob = item.getAsFile();
+        const arrayBuffer = await blob.arrayBuffer();
+        const bytes = new Uint8Array(arrayBuffer);
+
+        window.flutterImagePasteHandler?.({
+          name: blob.name || "pasted-image.png",
+          type: blob.type,
+          bytes: Array.from(bytes)
+        });
+
+        event.preventDefault();
+      }
+    }
+  });
+</script>
 
 </body>
 </html>

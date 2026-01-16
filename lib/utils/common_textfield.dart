@@ -212,7 +212,7 @@ class CustomTextField extends StatelessWidget {
             decoration: InputDecoration(
               alignLabelWithHint: true,
                 isDense: true,
-
+                hintMaxLines: 1,
                 hintText: hintText,
                 // contentPadding: EdgeInsets.only(top: 10),
                 // constraints: BoxConstraints(maxHeight: 50),

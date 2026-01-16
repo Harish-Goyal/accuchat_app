@@ -1,3 +1,4 @@
+import 'package:AccuChat/Constants/colors.dart';
 import 'package:AccuChat/Screens/Home/Presentation/Controller/home_controller.dart';
 import 'package:AccuChat/Screens/Settings/Presentation/Views/static_page.dart';
 import 'package:AccuChat/Services/APIs/api_ends.dart';
@@ -30,7 +31,7 @@ class AllSettingsScreen extends GetView<AllSettingsController> {
       builder: (controller) {
         return Scaffold(
           appBar: AppBar(
-            title: const Text('Settings'),
+            title:  Text('Settings',style: BalooStyles.balooboldTitleTextStyle(),),
             // Slightly increase toolbar height on very wide web to breathe
             toolbarHeight: isWide ? 64 : kToolbarHeight,
           ),
@@ -89,7 +90,7 @@ class AllSettingsScreen extends GetView<AllSettingsController> {
                     children: [
                       Text(
                         // APIs.me.selectedCompany?.name ?? '',
-                        (controller.myCompany?.companyName??"").toUpperCase(),
+                        controller.myCompany?.companyName??"",
                         style: BalooStyles.baloosemiBoldTextStyle(),
                         overflow: TextOverflow.ellipsis,
                         maxLines: 1,
@@ -101,6 +102,13 @@ class AllSettingsScreen extends GetView<AllSettingsController> {
                         style: BalooStyles.balooregularTextStyle(),
                         overflow: TextOverflow.ellipsis,
                         maxLines: 1,
+                      ),
+                      vGap(4),
+                      Text(
+                        "You are now connected to ${controller.myCompany?.companyName??""}",
+                        style: BalooStyles.balooregularTextStyle(color: appColorGreen,size: 12),
+                        overflow: TextOverflow.ellipsis,
+                        maxLines: 4,
                       ),
                     ],
                   ),

@@ -67,7 +67,7 @@ class AcceptInvitationScreen extends GetView<AcceptInviteController> {
                             ),
                             vGap(4),
                             Text(
-                              (invites.company?.companyName ?? '').toUpperCase(),
+                              (invites.company?.companyName ?? ''),
                               maxLines: 1,
                               overflow: TextOverflow.ellipsis,
                               style: BalooStyles.baloosemiBoldTextStyle(),

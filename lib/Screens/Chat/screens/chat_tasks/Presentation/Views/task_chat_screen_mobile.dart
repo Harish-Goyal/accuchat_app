@@ -1,11 +1,7 @@
 import 'dart:async';
 import 'dart:io';
 import 'dart:math' as math;
-import 'package:AccuChat/Screens/Chat/screens/auth/models/get_uesr_Res_model.dart';
-import 'package:AccuChat/Screens/Chat/screens/chat_tasks/Presentation/Controllers/chat_home_controller.dart';
-import 'package:AccuChat/Screens/Chat/screens/chat_tasks/Presentation/Controllers/chat_screen_controller.dart';
 import 'package:AccuChat/Screens/Chat/screens/chat_tasks/Presentation/Controllers/task_home_controller.dart';
-import 'package:AccuChat/Screens/Chat/screens/chat_tasks/Presentation/Views/chat_screen.dart';
 import 'package:AccuChat/Services/storage_service.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/cupertino.dart';
@@ -25,7 +21,6 @@ import 'package:AccuChat/utils/helper_widget.dart';
 import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:flutter_staggered_animations/flutter_staggered_animations.dart';
 import 'package:get/get.dart';
 import 'package:grouped_list/grouped_list.dart';
 import 'package:image_picker/image_picker.dart';
@@ -37,7 +32,6 @@ import 'package:flutter/gestures.dart'; // ✅ added: better web scrolling
 import '../../../../../../Constants/app_theme.dart';
 import '../../../../../../Constants/assets.dart';
 import '../../../../../../Constants/colors.dart';
-import '../../../../../../Services/APIs/local_keys.dart';
 import '../../../../../../utils/common_textfield.dart';
 import '../../../../../../utils/custom_container.dart';
 import '../../../../../../utils/custom_dialogue.dart';
@@ -50,7 +44,6 @@ import '../../../../../../utils/text_style.dart';
 import '../../../../../Home/Presentation/Controller/socket_controller.dart';
 import '../../../../models/task_res_model.dart';
 import '../Controllers/task_controller.dart';
-import '../Widgets/staggered_view.dart';
 import '../../../../api/apis.dart';
 import 'package:path_provider/path_provider.dart';
 
@@ -1709,6 +1702,7 @@ class TaskScreenMobile extends GetView<TaskController> {
           title:
               "Create Task for ${controller.user?.userId == APIs.me.userId ? 'You' : userName.isEmpty ? controller.user?.phone : userName}",
           isShowAppIcon: false,
+          isShowActions: false,
           content: Center(
             child: ConstrainedBox(
               constraints: BoxConstraints(
@@ -2405,6 +2399,7 @@ class TaskScreenMobile extends GetView<TaskController> {
 
         return CustomDialogue(
           title: "Update Task",
+          isShowActions: false,
           isShowAppIcon: false,
           content: Center(
             child: ConstrainedBox(

@@ -11,13 +11,15 @@ class CustomDialogue extends StatelessWidget {
   CustomDialogue(
       {super.key,
       required this.title,
-      this.isShowAppIcon,
+      required this.isShowAppIcon,
+      required this.isShowActions,
       required this.content,
       required this.onOkTap});
   String title = "";
   Function() onOkTap;
   Widget content;
-  bool? isShowAppIcon =true;
+  bool isShowAppIcon =true;
+  bool isShowActions =true;
 
   @override
   Widget build(BuildContext context) {
@@ -83,7 +85,7 @@ class CustomDialogue extends StatelessWidget {
               children: [
                 content,
                 isShowAppIcon!?vGap(20):vGap(0),
-                isShowAppIcon!?    Row(
+                isShowActions!?    Row(
                   children: [
                     Expanded(
                       child: dynamicButton(
@@ -93,6 +95,7 @@ class CustomDialogue extends StatelessWidget {
             
                           Get.back();
                         },
+                        gradient: LinearGradient(colors:[AppTheme.redErrorColor,AppTheme.redErrorColor,] ),
                         isShowIconText: false, leanIcon: null,
                         btnColor: AppTheme.redErrorColor,
                       ),
@@ -102,6 +105,8 @@ class CustomDialogue extends StatelessWidget {
                         child: dynamicButton(
                             name: STRING_yes,
                             isShowText: true,
+                          gradient: LinearGradient(colors:[AppTheme.appColor,AppTheme.appColor,] ),
+
                           btnColor: AppTheme.appColor,
                             onTap:onOkTap, isShowIconText: false, leanIcon: null,)),
                   ],

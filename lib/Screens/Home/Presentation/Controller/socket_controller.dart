@@ -160,41 +160,6 @@ class SocketController extends GetxController with WidgetsBindingObserver {
             Get.find<ChatScreenController>();
         ChatHomeController homeController = Get.find<ChatHomeController>();
         ChatHisList receivedMessageDataModal = ChatHisList.fromJson(messages);
-        /*final selectedUserId = chatDetailController.user?.userId?.toString();
-        final selectedUser = chatDetailController.user;
-        final meId = APIs.me?.userId?.toString();
-        final selectedRoomId =
-        (selectedUser?.userCompany?.userCompanyId)?.toString();
-        final incomingRoomId =
-        (receivedMessageDataModal.fromUser?.userCompany?.userCompanyId)
-            ?.toString();
-        final isIncomingGroup = receivedMessageDataModal.isGroupChat == 1;
-        final isSelectedGroup = selectedUser?.userCompany?.isGroup == 1;
-
-
-        final msgFrom = receivedMessageDataModal.fromUser?.userId?.toString();
-        final msgTo = receivedMessageDataModal.toUser?.userId?.toString();
-        print("selectedUserId : $selectedUserId, meId - $meId,msgTo -  $msgTo, msgFrom : $msgFrom ");
-
-// allow only when the message belongs to CURRENT OPEN CHAT
-        */ /*final isMessageForThisChat =
-            (msgFrom == selectedUserId && msgTo == meId) || // selectedUser → me
-                (msgFrom == meId && msgTo == selectedUserId);*/ /*
-        bool isMessageForThisChat =false;
-        if (isIncomingGroup) {
-          // ✅ GROUP: match by room id
-          isMessageForThisChat =
-              isSelectedGroup &&
-                  selectedRoomId != null &&
-                  incomingRoomId != null &&
-                  incomingRoomId == selectedRoomId;
-        } else {
-          // ✅ 1-to-1 CHAT → MATCH BY USERS
-          isMessageForThisChat =
-              (msgFrom == selectedUserId && msgTo == meId) ||
-                  (msgFrom == meId && msgTo == selectedUserId);
-        }*/
-
         final selectedUserId = chatDetailController.user?.userId
             ?.toString(); // 1-1 userId OR group userId
         final meId = APIs.me?.userId?.toString();
@@ -203,7 +168,11 @@ class SocketController extends GetxController with WidgetsBindingObserver {
         final msgTo = receivedMessageDataModal.toUser?.userId?.toString();
 
         final incomingIsGroup = receivedMessageDataModal.isGroupChat == 1;
-
+        // final activeCompanyId = APIs.me.userCompany?.companyId;
+        // final msgCompanyId = receivedMessageDataModal.fromUser?.userCompany?.companyId;
+        //
+        // if (activeCompanyId == null || msgCompanyId == null) return;
+        // if (activeCompanyId != msgCompanyId) return;
 // IMPORTANT: groupId nikaalo (jo user object me is_group=1 ho)
         String? incomingGroupId;
         if (incomingIsGroup) {
@@ -360,7 +329,11 @@ class SocketController extends GetxController with WidgetsBindingObserver {
         final meId = APIs.me.userId?.toString();
         final msgFrom = receivedMessageDataModal.fromUser?.userId?.toString();
         final msgTo = receivedMessageDataModal.toUser?.userId?.toString();
-
+        // final activeCompanyId = APIs.me.userCompany?.companyId;
+        // final msgCompanyId = receivedMessageDataModal.fromUser?.userCompany?.companyId;
+        //
+        // if (activeCompanyId == null || msgCompanyId == null) return;
+        // if (activeCompanyId != msgCompanyId) return;
 // allow only when the message belongs to CURRENT OPEN CHAT
         final isMessageForThisChat =
             (msgFrom == selectedUserId && msgTo == meId) || // selectedUser → me
@@ -1266,7 +1239,7 @@ class SocketController extends GetxController with WidgetsBindingObserver {
     }
   }
 
-  Future<void> sendMessage({
+  Future<void>  sendMessage({
     int? receiverId,
     String? message,
     var companyId,

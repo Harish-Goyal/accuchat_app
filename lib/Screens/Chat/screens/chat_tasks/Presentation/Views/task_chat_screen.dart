@@ -1734,6 +1734,7 @@ class TaskScreen extends GetView<TaskController> {
           title:
               "Create Task for ${controller.user?.userId == APIs.me.userId ? 'You' : userName.isEmpty ? controller.user?.phone : userName}",
           isShowAppIcon: false,
+          isShowActions: false,
           content: Center(
             child: ConstrainedBox(
               constraints: BoxConstraints(
@@ -2429,7 +2430,8 @@ class TaskScreen extends GetView<TaskController> {
 
         return CustomDialogue(
           title: "Update Task",
-          isShowAppIcon: false,
+          isShowAppIcon: false,        isShowActions: false,
+
           content: Center(
             child: ConstrainedBox(
               constraints: BoxConstraints(maxWidth: maxW, maxHeight: maxH),

@@ -10,6 +10,7 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:photo_view/photo_view.dart';
 import 'package:photo_view/photo_view_gallery.dart';
+import '../../../../../../utils/save_image.dart';
 import '../../../../../../utils/share_helper.dart';
 import '../../../../models/chat_history_response_model.dart';
 import '../Controllers/gallery_view_controller.dart';
@@ -36,7 +37,8 @@ class GalleryViewerPage extends StatelessWidget {
             actions: [
               IconButton(
                 tooltip: 'Save image',
-                onPressed: c.saving ? null :()=> saveImageToGallery(c.urls[c.index]),
+                onPressed: c.saving ? null :() async {
+                  await saveImage(c.urls[c.index]);},
                 icon: const Icon(Icons.download),
               ),
               PopupMenuButton<String>(
@@ -45,7 +47,7 @@ class GalleryViewerPage extends StatelessWidget {
                 onSelected: (v) async {
                   if (v == 'save_all'){
                     for(String url in c.urls ){
-                      await saveImageToGallery(url);
+                      await saveImage(url);
                     }
                   }
 
@@ -58,7 +60,7 @@ class GalleryViewerPage extends StatelessWidget {
 
                   }
                   if (v == 'save_one') {
-                    await saveImageToGallery(c.urls[c.index]);}
+                    await saveImage(c.urls[c.index]);}
 
                   if(v=="reply"){
                     final chatC = Get.find<ChatScreenController>();

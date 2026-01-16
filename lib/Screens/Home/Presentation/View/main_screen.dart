@@ -12,6 +12,7 @@ import 'package:flutter_snake_navigationbar/flutter_snake_navigationbar.dart';
 import 'package:get/get.dart';
 import '../../../../main.dart';
 import '../../../../routes/app_routes.dart';
+import '../../../Chat/api/apis.dart';
 
 class AccuChatDashboard extends StatelessWidget {
   final DashboardController controller = Get.put(DashboardController());
@@ -292,55 +293,93 @@ Widget buildSideNav(DashboardController controller) {
           selectedIndex: controller.currentIndex,
           onDestinationSelected: (index) {
             controller.getCompany();
-            controller.updateIndex(index);
-            isTaskMode = index == 1;
+
             final isSetting = index == 4;
             if (isSetting) {
               Get.toNamed(AppRoutes.all_settings);
             }
-            if (index == 1) {
-              isTaskMode = true;
-              Get.toNamed(AppRoutes.home);
-              final taskC = Get.find<TaskController>();
-              final taskHomeC = Get.find<TaskHomeController>();
-              taskC.hitAPIToGetTaskHistory();
-              // taskHomeC.
-              /*  final taskC = Get.find<TaskController>();
-              final taskHomeC = Get.find<TaskHomeController>();
-              if (taskHomeC.filteredList.isNotEmpty) {
-                taskHomeC.selectedChat.value = taskHomeC.filteredList[0];
+            Get.toNamed(AppRoutes.home);
+
+            isTaskMode = index == 1;
+            if(index == 0){
+              final homec = Get.find<ChatHomeController>();
+
+
+              if(Get.isRegistered<ChatScreenController>()){
+                final chatc = Get.find<ChatScreenController>();
+                chatc.replyToMessage=null;
+                chatc.user =homec.selectedChat.value;
+                chatc.showPostShimmer =true;
+                chatc.openConversation(chatc.user);
+                if (homec.selectedChat.value?.pendingCount != 0) {
+                  chatc.markAllVisibleAsReadOnOpen(
+                      APIs.me?.userCompany?.userCompanyId,
+                      chatc.user?.userCompany?.userCompanyId,
+                      chatc.user?.userCompany?.isGroup == 1 ? 1 : 0);
+                }
+                // homec.selectedChat.refresh();
+                chatc.update();
+
+              }else{
+                Future.delayed(Duration(milliseconds: 1000),(){
+                  if(homec.filteredList.isNotEmpty) {
+                    Get.put(ChatScreenController(user: homec.filteredList[0]));
+                    final chatc = Get.find<ChatScreenController>();
+                    chatc.replyToMessage=null;
+                    chatc.user =homec.filteredList[0];
+                    chatc.showPostShimmer =true;
+                    chatc.openConversation(chatc.user);
+                    if (homec.selectedChat.value?.pendingCount != 0) {
+                      chatc.markAllVisibleAsReadOnOpen(
+                          APIs.me?.userCompany?.userCompanyId,
+                          chatc.user?.userCompany?.userCompanyId,
+                          chatc.user?.userCompany?.isGroup == 1 ? 1 : 0);
+                    }
+                    // homec.selectedChat.refresh();
+                    chatc.update();
+                    chatc.update();
+                  }
+                });
+
               }
-              taskHomeC.selectedChat.value = dashboardController.user;
-              taskC.replyToMessage = null;
-              taskC.user = taskHomeC.selectedChat.value;
-              taskC.showPostShimmer = true;
-              taskC.page = 1;
-              Future.microtask(() {
-                taskC.openConversation(taskHomeC.selectedChat.value);
-              });*/
+              // homec.page = 1;
+              // homec.hitAPIToGetRecentChats();
 
-              controller.update();
-            } else if (index == 0 && isTaskMode) {
-              print("==tapped=2222");
-              isTaskMode = false;
-              Get.toNamed(AppRoutes.home);
-              /*final taskC = Get.find<ChatScreenController>();
-              final taskHomeC = Get.find<ChatHomeController>();
-              if (taskHomeC.filteredList.isNotEmpty) {
-                taskHomeC.selectedChat.value = taskHomeC.filteredList[0];
-              }
-
-              taskHomeC.selectedChat.value = dashboardController.user;
-              taskC.replyToMessage = null;
-              taskC.user = taskHomeC.selectedChat.value;
-              taskC.showPostShimmer = true;
-              taskC.page = 1;
-
-              Future.microtask(() {
-                taskC.openConversation(taskHomeC.selectedChat.value);
-              });
-              taskC.update();*/
             }
+
+            if(index == 1){
+              final homec = Get.find<TaskHomeController>();
+              if(Get.isRegistered<TaskController>()){
+                final chatc = Get.find<TaskController>();
+                chatc.replyToMessage=null;
+                chatc.user =homec.selectedChat.value;
+                chatc.showPostShimmer =true;
+                chatc.openConversation(chatc.user);
+                // homec.selectedChat.refresh();
+                chatc.update();
+
+              }else{
+                Future.delayed(Duration(milliseconds: 1000),(){
+                  if(homec.filteredList.isNotEmpty) {
+                    Get.put(TaskController(user: homec.filteredList[0]));
+                    final chatc = Get.find<TaskController>();
+                    chatc.replyToMessage=null;
+                    chatc.user =homec.filteredList[0];
+                    chatc.showPostShimmer =true;
+                    chatc.openConversation(chatc.user);
+
+                    // homec.selectedChat.refresh();
+                    chatc.update();
+                    chatc.update();
+                  }
+                });
+
+              }
+              // homec.page = 1;
+              // homec.hitAPIToGetRecentChats();
+
+            }
+            controller.updateIndex(index);
             controller.update();
           },
           unselectedIconTheme: const IconThemeData(color: Colors.black45),
