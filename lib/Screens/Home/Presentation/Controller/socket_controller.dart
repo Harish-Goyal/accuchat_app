@@ -168,11 +168,11 @@ class SocketController extends GetxController with WidgetsBindingObserver {
         final msgTo = receivedMessageDataModal.toUser?.userId?.toString();
 
         final incomingIsGroup = receivedMessageDataModal.isGroupChat == 1;
-        // final activeCompanyId = APIs.me.userCompany?.companyId;
-        // final msgCompanyId = receivedMessageDataModal.fromUser?.userCompany?.companyId;
+        final activeCompanyId = APIs.me.userCompany?.companyId;
+        final msgCompanyId = receivedMessageDataModal.fromUser?.userCompany?.companyId;
         //
-        // if (activeCompanyId == null || msgCompanyId == null) return;
-        // if (activeCompanyId != msgCompanyId) return;
+        if (activeCompanyId == null || msgCompanyId == null) return;
+        if (activeCompanyId != msgCompanyId) return;
 // IMPORTANT: groupId nikaalo (jo user object me is_group=1 ho)
         String? incomingGroupId;
         if (incomingIsGroup) {
@@ -329,11 +329,11 @@ class SocketController extends GetxController with WidgetsBindingObserver {
         final meId = APIs.me.userId?.toString();
         final msgFrom = receivedMessageDataModal.fromUser?.userId?.toString();
         final msgTo = receivedMessageDataModal.toUser?.userId?.toString();
-        // final activeCompanyId = APIs.me.userCompany?.companyId;
-        // final msgCompanyId = receivedMessageDataModal.fromUser?.userCompany?.companyId;
-        //
-        // if (activeCompanyId == null || msgCompanyId == null) return;
-        // if (activeCompanyId != msgCompanyId) return;
+        final activeCompanyId = APIs.me.userCompany?.companyId;
+        final msgCompanyId = receivedMessageDataModal.fromUser?.userCompany?.companyId;
+
+        if (activeCompanyId == null || msgCompanyId == null) return;
+        if (activeCompanyId != msgCompanyId) return;
 // allow only when the message belongs to CURRENT OPEN CHAT
         final isMessageForThisChat =
             (msgFrom == selectedUserId && msgTo == meId) || // selectedUser → me

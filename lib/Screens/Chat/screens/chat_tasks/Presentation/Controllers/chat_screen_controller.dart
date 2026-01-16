@@ -263,6 +263,7 @@ class ChatScreenController extends GetxController {
 
 
     if (kIsWeb) {
+      messageInputFocus.requestFocus();
       registerImage((XFile image) {
         _handlePastedImage(image);
       });
