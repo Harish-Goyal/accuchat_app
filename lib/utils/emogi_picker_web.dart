@@ -96,14 +96,20 @@ void openWhatsAppEmojiPicker({
                           appendEmoji(emoji.emoji); // ✅ keep sheet open
                         },
                         onBackspacePressed: backspace, // supports built-in backspace too
-                        config: Config(
+
+                        config: const Config(
                           height: 260,
                           checkPlatformCompatibility: true,
-                          emojiViewConfig: const EmojiViewConfig(emojiSizeMax: 28),
-                          skinToneConfig: const SkinToneConfig(),
-                          categoryViewConfig: const CategoryViewConfig(),
-                          bottomActionBarConfig: const BottomActionBarConfig(enabled: false),
-                          searchViewConfig: const SearchViewConfig(),
+                          emojiViewConfig: EmojiViewConfig(emojiSizeMax: 28),
+                          skinToneConfig: SkinToneConfig(),
+                          categoryViewConfig: CategoryViewConfig(
+                            iconColor: Colors.grey,
+                            iconColorSelected: Colors.blue,
+                            indicatorColor: Colors.blue,
+                          ),
+
+                          bottomActionBarConfig: BottomActionBarConfig(enabled: false),
+                          searchViewConfig: SearchViewConfig(),
                         ),
                       ),
                     ),

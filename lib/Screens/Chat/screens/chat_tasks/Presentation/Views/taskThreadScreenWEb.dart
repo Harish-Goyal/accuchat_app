@@ -238,7 +238,7 @@ class TaskThreadScreenWeb extends GetView<TaskThreadController> {
                 child: ChatHistoryShimmer(
               chatData: ChatHisList(),
             )),
-            child: AnimationLimiter(child: groupListView()),
+            child: groupListView(),
           ),
         ),
         // vGap(80)
@@ -327,6 +327,7 @@ class TaskThreadScreenWeb extends GetView<TaskThreadController> {
     return Column(
       crossAxisAlignment:
           sentByMe ? CrossAxisAlignment.end : CrossAxisAlignment.start,
+      mainAxisSize: MainAxisSize.min,
       children: [
         vGap(3),
         /*data.replyToId != null

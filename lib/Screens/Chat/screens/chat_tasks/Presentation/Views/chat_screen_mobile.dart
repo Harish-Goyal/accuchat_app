@@ -1243,7 +1243,7 @@ class ChatScreenMobile extends GetView<ChatScreenController> {
                 border: Border.all(
                   color: listening
                       ? Colors.red.withOpacity(.35)
-                      : AppTheme.appColor.withOpacity(.20),
+                      : AppTheme.appColor.withOpacity(.3),
                 ),
                 color: listening
                     ? Colors.red.withOpacity(.08)
@@ -1252,7 +1252,7 @@ class ChatScreenMobile extends GetView<ChatScreenController> {
               child: Image.asset(
                 listening ? pausePng : micPng,
                 color: listening ? Colors.red : AppTheme.appColor,
-                height: 16,
+                height: 20,
               ),
             ),
           );
@@ -1440,11 +1440,12 @@ class ChatScreenMobile extends GetView<ChatScreenController> {
                                           margin: const EdgeInsets.all(5),
                                           decoration: BoxDecoration(
                                             borderRadius: BorderRadius.circular(8),
-                                            border: Border.all(color: appColorGreen),
+                                            border: Border.all(color: AppTheme.appColor.withOpacity(.3),),
                                             color: appColorGreen.withOpacity(.1),
                                           ),
                                           child: Icon(
                                             Icons.upload_outlined,
+                                            size: 20,
                                             color: appColorGreen,
                                           ),
                                         ),
@@ -1469,11 +1470,12 @@ class ChatScreenMobile extends GetView<ChatScreenController> {
                                           margin: const EdgeInsets.all(5),
                                           decoration: BoxDecoration(
                                             borderRadius: BorderRadius.circular(8),
-                                            border: Border.all(color: appColorGreen),
+                                            border: Border.all(color: AppTheme.appColor.withOpacity(.3),),
                                             color: appColorGreen.withOpacity(.1),
                                           ),
-                                          child: Icon(
-                                            Icons.emoji_emotions_outlined,
+                                          child:Image.asset(
+                                            emojiPng,
+                                            height: 20,
                                             color: appColorGreen,
                                           ),
                                         ),

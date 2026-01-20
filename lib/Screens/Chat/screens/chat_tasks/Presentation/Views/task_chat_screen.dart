@@ -1646,202 +1646,206 @@ class TaskScreen extends GetView<TaskController> {
 
       final bool isDesktop = w >= 1024;
       final bool isTablet = w >= 700 && w < 1024;
-
-      // Web par dialog ki max width/height clamp
       final double maxW = isDesktop ? 700 : (isTablet ? 720 : w * 0.95);
       final double maxH = h * (kIsWeb ? 0.9 : 0.95);
-      return StatefulBuilder(builder: (context, setStateInside) {
-        return CustomDialogue(
-          title:
-              "Create Task for ${controller.user?.userId == APIs.me.userId ? 'You' : userName.isEmpty ? controller.user?.phone : userName}",
-          isShowAppIcon: false,
-          isShowActions: false,
-          content: Center(
-            child: ConstrainedBox(
-              constraints: BoxConstraints(
-                maxWidth: maxW,
-                // Agar content zyada ho jaye to vertical scroll allow
-                maxHeight: maxH,
-              ),
-              child: Scrollbar(
-                thumbVisibility: kIsWeb, // web par scrollbar visible
-                child: SingleChildScrollView(
-                  padding: const EdgeInsets.all(12),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.center,
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      Text(
-                        "Enter Task Details",
-                        style: BalooStyles.baloonormalTextStyle(),
-                        textAlign: TextAlign.center,
-                      ),
-                      Text(
-                        controller.validString,
-                        style: BalooStyles.baloonormalTextStyle(
-                            color: AppTheme.redErrorColor),
-                        textAlign: TextAlign.center,
-                      ),
-                      vGap(10),
-                      _taskInputArea(setStateInside),
-                      vGap(10),
-                      const Text("Attachments",
-                          style: TextStyle(fontWeight: FontWeight.bold)),
-                      vGap(10),
-                      if (controller.isUploadingTaskDoc)
-                        const IndicatorLoading(),
-                      Wrap(
-                        spacing: 8,
-                        runSpacing: 8,
-                        children: controller.attachedFiles.map((file) {
-                          final String type = file['type'];
-                          final String name = file['name'];
-                          final url = file['file'];
+        return StatefulBuilder(builder: (context, setStateInside) {
+          final sc = ScrollController();
+          return CustomDialogue(
+            title:
+            "Create Task for ${controller.user?.userId == APIs.me.userId ? 'You' : userName.isEmpty ? controller.user?.phone : userName}",
+            isShowAppIcon: false,
+            isShowActions: false,
+            content: Center(
+              child: ConstrainedBox(
+                constraints: BoxConstraints(maxWidth: maxW, maxHeight: maxH),
+                child: Scrollbar(
+                  controller: sc,
+                  thumbVisibility: kIsWeb,
+                  child: SingleChildScrollView(
+                    controller: sc,
+                    padding: const EdgeInsets.all(12),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.center,
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Text(
+                          "Enter Task Details",
+                          style: BalooStyles.baloonormalTextStyle(),
+                          textAlign: TextAlign.center,
+                        ),
+                        Text(
+                          controller.validString,
+                          style: BalooStyles.baloonormalTextStyle(
+                              color: AppTheme.redErrorColor),
+                          textAlign: TextAlign.center,
+                        ),
+                        vGap(10),
+                        _taskInputArea(setStateInside),
+                        vGap(10),
+                        const Text("Attachments",
+                            style: TextStyle(fontWeight: FontWeight.bold)),
+                        vGap(10),
+                        if (controller.isUploadingTaskDoc)
+                          const IndicatorLoading(),
+                        Wrap(
+                          spacing: 8,
+                          runSpacing: 8,
+                          children: controller.attachedFiles.map((file) {
+                            final String type = file['type'];
+                            final String name = file['name'];
+                            final url = file['file'];
 
-                          Widget preview;
+                            Widget preview;
 
-                          if (type == 'image') {
-                            // On mobile: we stored a File in 'file'
-                            // On web: we stored Uint8List in 'bytes'
-                            final fileis = file['file']; // File? (mobile)
-                            final bytes = file['bytes']; // Uint8List? (web)
+                            if (type == 'image') {
+                              // On mobile: we stored a File in 'file'
+                              // On web: we stored Uint8List in 'bytes'
+                              final fileis = file['file']; // File? (mobile)
+                              final bytes = file['bytes']; // Uint8List? (web)
 
-                            if (kIsWeb && bytes != null) {
+                              if (kIsWeb && bytes != null) {
+                                preview = Container(
+                                  width: 75,
+                                  height: 75,
+                                  decoration: BoxDecoration(
+                                    border:
+                                    Border.all(color: Colors.grey.shade400),
+                                    borderRadius: BorderRadius.circular(8),
+                                  ),
+                                  child: ClipRRect(
+                                    borderRadius: BorderRadius.circular(8),
+                                    child: Image.memory(
+                                      bytes,
+                                      width: 75,
+                                      height: 75,
+                                      fit: BoxFit.cover,
+                                    ),
+                                  ),
+                                );
+                              } else if (!kIsWeb && file != null) {
+                                preview = Container(
+                                  width: 75,
+                                  height: 75,
+                                  decoration: BoxDecoration(
+                                    border:
+                                    Border.all(color: Colors.grey.shade400),
+                                    borderRadius: BorderRadius.circular(8),
+                                  ),
+                                  child: ClipRRect(
+                                    borderRadius: BorderRadius.circular(8),
+                                    child: Image.file(
+                                      fileis,
+                                      width: 75,
+                                      height: 75,
+                                      fit: BoxFit.cover,
+                                    ),
+                                  ),
+                                );
+                              } else {
+                                preview = const SizedBox();
+                              }
+                            } else if (type == 'doc') {
+                              IconData icon;
+                              if (name.endsWith('.pdf')) {
+                                icon = Icons.picture_as_pdf;
+                              } else if (name.endsWith('.doc') ||
+                                  name.endsWith('.docx')) {
+                                icon = Icons.description;
+                              } else if (name.endsWith('.txt')) {
+                                icon = Icons.note;
+                              } else {
+                                icon = Icons.insert_drive_file;
+                              }
+
                               preview = Container(
                                 width: 75,
                                 height: 75,
+                                padding:
+                                const EdgeInsets.symmetric(horizontal: 2),
                                 decoration: BoxDecoration(
-                                  border:
-                                      Border.all(color: Colors.grey.shade400),
+                                  border: Border.all(color: Colors.grey.shade400),
                                   borderRadius: BorderRadius.circular(8),
                                 ),
-                                child: ClipRRect(
-                                  borderRadius: BorderRadius.circular(8),
-                                  child: Image.memory(
-                                    bytes,
-                                    width: 75,
-                                    height: 75,
-                                    fit: BoxFit.cover,
-                                  ),
-                                ),
-                              );
-                            } else if (!kIsWeb && file != null) {
-                              preview = Container(
-                                width: 75,
-                                height: 75,
-                                decoration: BoxDecoration(
-                                  border:
-                                      Border.all(color: Colors.grey.shade400),
-                                  borderRadius: BorderRadius.circular(8),
-                                ),
-                                child: ClipRRect(
-                                  borderRadius: BorderRadius.circular(8),
-                                  child: Image.file(
-                                    fileis,
-                                    width: 75,
-                                    height: 75,
-                                    fit: BoxFit.cover,
-                                  ),
+                                child: Column(
+                                  mainAxisAlignment: MainAxisAlignment.center,
+                                  children: [
+                                    Icon(icon, size: 30, color: Colors.grey),
+                                    Text(name,
+                                        textAlign: TextAlign.center,
+                                        maxLines: 2,
+                                        overflow: TextOverflow.ellipsis,
+                                        style: const TextStyle(fontSize: 10)),
+                                  ],
                                 ),
                               );
                             } else {
                               preview = const SizedBox();
                             }
-                          } else if (type == 'doc') {
-                            IconData icon;
-                            if (name.endsWith('.pdf')) {
-                              icon = Icons.picture_as_pdf;
-                            } else if (name.endsWith('.doc') ||
-                                name.endsWith('.docx')) {
-                              icon = Icons.description;
-                            } else if (name.endsWith('.txt')) {
-                              icon = Icons.note;
-                            } else {
-                              icon = Icons.insert_drive_file;
-                            }
 
-                            preview = Container(
-                              width: 75,
-                              height: 75,
-                              padding:
-                                  const EdgeInsets.symmetric(horizontal: 2),
-                              decoration: BoxDecoration(
-                                border: Border.all(color: Colors.grey.shade400),
-                                borderRadius: BorderRadius.circular(8),
-                              ),
-                              child: Column(
-                                mainAxisAlignment: MainAxisAlignment.center,
-                                children: [
-                                  Icon(icon, size: 30, color: Colors.grey),
-                                  Text(name,
-                                      textAlign: TextAlign.center,
-                                      maxLines: 2,
-                                      overflow: TextOverflow.ellipsis,
-                                      style: const TextStyle(fontSize: 10)),
-                                ],
-                              ),
-                            );
-                          } else {
-                            preview = const SizedBox();
-                          }
-
-                          return Stack(
-                            alignment: Alignment.topRight,
-                            clipBehavior: Clip.none,
-                            children: [
-                              preview,
-                              Positioned(
-                                top: -5,
-                                right: -5,
-                                child: GestureDetector(
-                                  onTap: () {
-                                    setStateInside(() {
-                                      controller.attachedFiles.remove(file);
-                                    });
-                                    controller.update();
-                                  },
-                                  child: const CircleAvatar(
-                                    radius: 13,
-                                    backgroundColor: Colors.red,
-                                    child: Icon(Icons.close,
-                                        size: 12, color: Colors.white),
+                            return Stack(
+                              alignment: Alignment.topRight,
+                              clipBehavior: Clip.none,
+                              children: [
+                                preview,
+                                Positioned(
+                                  top: -5,
+                                  right: -5,
+                                  child: GestureDetector(
+                                    onTap: () {
+                                      setStateInside(() {
+                                        controller.attachedFiles.remove(file);
+                                      });
+                                      controller.update();
+                                    },
+                                    child: const CircleAvatar(
+                                      radius: 13,
+                                      backgroundColor: Colors.red,
+                                      child: Icon(Icons.close,
+                                          size: 12, color: Colors.white),
+                                    ),
                                   ),
                                 ),
-                              ),
-                            ],
-                          );
-                        }).toList(),
-                      ),
-                      vGap(10),
-                      GestureDetector(
-                        onTap: () => controller.attachedFiles.length < 3
-                            ? showUploadOptionsForTask(context, setStateInside)
-                            : toast("You can upload upto 3 attachments only"),
-                        child: const Chip(
-                          avatar: Icon(Icons.attach_file),
-                          label: Text("Add Attachments"),
-                          backgroundColor: Colors.white,
+                              ],
+                            );
+                          }).toList(),
                         ),
-                      ),
-                      vGap(20),
-                      GradientButton(
-                        name:
-                            "Send Task to ${controller.user?.userId == APIs.me?.userId ? 'You' : userName.isEmpty ? controller.user?.phone : userName}",
-                        btnColor: AppTheme.appColor,
-                        vPadding: 8,
-                        onTap: () {
-                          if (controller.tasksFormKey.currentState!
-                              .validate()) {
-                            if (controller.getEstimatedTime(setStateInside) !=
-                                    "" &&
-                                controller.selectedDate != null &&
-                                controller.selectedTime != null) {
-                              if (controller.getEstimatedTime(setStateInside) ==
-                                  "Oops! The selected time is in the past. Please choose a valid future time.") {
-                                setStateInside(() {
-                                  controller.validString =
-                                      "Please select valid time check AM PM correctly";
-                                });
+                        vGap(10),
+                        GestureDetector(
+                          onTap: () => controller.attachedFiles.length < 3
+                              ? showUploadOptionsForTask(context, setStateInside)
+                              : toast("You can upload upto 3 attachments only"),
+                          child: const Chip(
+                            avatar: Icon(Icons.attach_file),
+                            label: Text("Add Attachments"),
+                            backgroundColor: Colors.white,
+                          ),
+                        ),
+                        vGap(20),
+                        GradientButton(
+                          name:
+                          "Send Task to ${controller.user?.userId == APIs.me?.userId ? 'You' : userName.isEmpty ? controller.user?.phone : userName}",
+                          btnColor: AppTheme.appColor,
+                          vPadding: 8,
+                          onTap: () {
+                            if (controller.tasksFormKey.currentState!
+                                .validate()) {
+                              if (controller.getEstimatedTime(setStateInside) !=
+                                  "" &&
+                                  controller.selectedDate != null &&
+                                  controller.selectedTime != null) {
+                                if (controller.getEstimatedTime(setStateInside) ==
+                                    "Oops! The selected time is in the past. Please choose a valid future time.") {
+                                  setStateInside(() {
+                                    controller.validString =
+                                    "Please select valid time check AM PM correctly";
+                                  });
+                                } else {
+                                  if (!controller.isUploadingTaskDoc) {
+                                    controller.sendTaskApiCall();
+                                  } else {
+                                    toast("Please wait");
+                                  }
+                                }
                               } else {
                                 if (!controller.isUploadingTaskDoc) {
                                   controller.sendTaskApiCall();
@@ -1849,26 +1853,19 @@ class TaskScreen extends GetView<TaskController> {
                                   toast("Please wait");
                                 }
                               }
-                            } else {
-                              if (!controller.isUploadingTaskDoc) {
-                                controller.sendTaskApiCall();
-                              } else {
-                                toast("Please wait");
-                              }
                             }
-                          }
-                        },
-                      )
-                    ],
+                          },
+                        )
+                      ],
+                    ),
                   ),
                 ),
               ),
-            ),
-          ),
-          onOkTap: () {},
-        );
-      });
-    });
+            ), onOkTap: () {  },
+          );
+        });
+      }
+    );
   }
 
 /*  Widget _taskInputArea(setStateInside, {TaskData? taskDetails}) {
@@ -2171,6 +2168,7 @@ class TaskScreen extends GetView<TaskController> {
     final Set<String> _removedExistingMediaIds = {};
     bool _hydrated = false;
 
+
     // helper to hydrate only once from taskDetails.media
     void _ensureHydrated() {
       if (_hydrated) return;
@@ -2354,141 +2352,138 @@ class TaskScreen extends GetView<TaskController> {
           content: Center(
             child: ConstrainedBox(
               constraints: BoxConstraints(maxWidth: maxW, maxHeight: maxH),
-              child: Scrollbar(
-                thumbVisibility: kIsWeb,
-                child: SingleChildScrollView(
-                  padding: const EdgeInsets.all(12),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.center,
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      Text(
-                        "Enter Task Details",
-                        style: BalooStyles.baloonormalTextStyle(),
-                        textAlign: TextAlign.center,
+              child: SingleChildScrollView(
+                padding: const EdgeInsets.all(12),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.center,
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Text(
+                      "Enter Task Details",
+                      style: BalooStyles.baloonormalTextStyle(),
+                      textAlign: TextAlign.center,
+                    ),
+                    Text(
+                      controller.validString,
+                      style: BalooStyles.baloonormalTextStyle(
+                        color: AppTheme.redErrorColor,
                       ),
-                      Text(
-                        controller.validString,
-                        style: BalooStyles.baloonormalTextStyle(
-                          color: AppTheme.redErrorColor,
-                        ),
-                        textAlign: TextAlign.center,
-                      ),
-                      vGap(10),
+                      textAlign: TextAlign.center,
+                    ),
+                    vGap(10),
 
-                      // your existing fields block
-                      _taskInputArea(setStateInside, taskDetails: taskDetails),
+                    // your existing fields block
+                    _taskInputArea(setStateInside, taskDetails: taskDetails),
 
-                      vGap(12),
-                      const Text("Attachments",
-                          style: TextStyle(fontWeight: FontWeight.bold)),
-                      vGap(10),
-                      if (controller.isUploadingTaskDoc)
-                        const IndicatorLoading(),
+                    vGap(12),
+                    const Text("Attachments",
+                        style: TextStyle(fontWeight: FontWeight.bold)),
+                    vGap(10),
+                    if (controller.isUploadingTaskDoc)
+                      const IndicatorLoading(),
 
-                      // Editable attachments grid (existing + new)
-                      Wrap(
-                        spacing: 8,
-                        runSpacing: 8,
-                        children: _editAttachedFiles.map((file) {
-                          return Stack(
-                            alignment: Alignment.topRight,
-                            clipBehavior: Clip.none,
-                            children: [
-                              _attachmentPreview(file),
-                              Positioned(
-                                top: -5,
-                                right: -5,
-                                child: GestureDetector(
-                                  onTap: () {
-                                    setStateInside(() {
-                                      // if existing, remember its id for deletion
-                                      if (file['isExisting'] == true &&
-                                          file['mediaId'] != null) {
-                                        _removedExistingMediaIds
-                                            .add(file['mediaId'].toString());
-                                      }
-                                      _editAttachedFiles.remove(file);
-                                    });
-                                    controller.update(); // if needed elsewhere
-                                  },
-                                  child: const CircleAvatar(
-                                    radius: 13,
-                                    backgroundColor: Colors.red,
-                                    child: Icon(Icons.close,
-                                        size: 12, color: Colors.white),
-                                  ),
+                    // Editable attachments grid (existing + new)
+                    Wrap(
+                      spacing: 8,
+                      runSpacing: 8,
+                      children: _editAttachedFiles.map((file) {
+                        return Stack(
+                          alignment: Alignment.topRight,
+                          clipBehavior: Clip.none,
+                          children: [
+                            _attachmentPreview(file),
+                            Positioned(
+                              top: -5,
+                              right: -5,
+                              child: GestureDetector(
+                                onTap: () {
+                                  setStateInside(() {
+                                    // if existing, remember its id for deletion
+                                    if (file['isExisting'] == true &&
+                                        file['mediaId'] != null) {
+                                      _removedExistingMediaIds
+                                          .add(file['mediaId'].toString());
+                                    }
+                                    _editAttachedFiles.remove(file);
+                                  });
+                                  controller.update(); // if needed elsewhere
+                                },
+                                child: const CircleAvatar(
+                                  radius: 13,
+                                  backgroundColor: Colors.red,
+                                  child: Icon(Icons.close,
+                                      size: 12, color: Colors.white),
                                 ),
                               ),
-                            ],
-                          );
-                        }).toList(),
+                            ),
+                          ],
+                        );
+                      }).toList(),
+                    ),
+
+                    vGap(10),
+                    GestureDetector(
+                      onTap: () async {
+                        if (_editAttachedFiles.length >= 3) {
+                          toast("You can upload upto 3 attachments only");
+                          return;
+                        }
+                        // Reuse your existing upload sheet; it should push to controller.attachedFiles
+                        showUploadOptionsForTask(context, setStateInside);
+                        // Make sure our local buffer stays in sync
+                        setStateInside(() {
+                          _editAttachedFiles = controller.attachedFiles;
+                        });
+                      },
+                      child: const Chip(
+                        avatar: Icon(Icons.attach_file),
+                        label: Text("Add Attachments"),
+                        backgroundColor: Colors.white,
                       ),
+                    ),
 
-                      vGap(10),
-                      GestureDetector(
-                        onTap: () async {
-                          if (_editAttachedFiles.length >= 3) {
-                            toast("You can upload upto 3 attachments only");
-                            return;
-                          }
-                          // Reuse your existing upload sheet; it should push to controller.attachedFiles
-                          showUploadOptionsForTask(context, setStateInside);
-                          // Make sure our local buffer stays in sync
-                          setStateInside(() {
-                            _editAttachedFiles = controller.attachedFiles;
-                          });
-                        },
-                        child: const Chip(
-                          avatar: Icon(Icons.attach_file),
-                          label: Text("Add Attachments"),
-                          backgroundColor: Colors.white,
-                        ),
-                      ),
+                    vGap(20),
+                    GradientButton(
+                      name: "Update",
+                      btnColor: AppTheme.appColor,
+                      vPadding: 8,
+                      onTap: () async {
+                        if (controller.tasksFormKey.currentState!
+                            .validate()) {
+                          // keep controller in sync before API call
+                          controller.attachedFiles = _editAttachedFiles;
+                          controller.removedMediaIds =
+                              _removedExistingMediaIds.toList();
 
-                      vGap(20),
-                      GradientButton(
-                        name: "Update",
-                        btnColor: AppTheme.appColor,
-                        vPadding: 8,
-                        onTap: () async {
-                          if (controller.tasksFormKey.currentState!
-                              .validate()) {
-                            // keep controller in sync before API call
-                            controller.attachedFiles = _editAttachedFiles;
-                            controller.removedMediaIds =
-                                _removedExistingMediaIds.toList();
-
-                            if (controller.getEstimatedTime(setStateInside) !=
-                                    "" &&
-                                controller.selectedDate != null &&
-                                controller.selectedTime != null) {
-                              if (controller.getEstimatedTime(setStateInside) ==
-                                  "Oops! The selected time is in the past. Please choose a valid future time.") {
-                                setStateInside(() {
-                                  controller.validString =
-                                      "Please select valid time check AM PM correctly";
-                                });
-                              } else {
-                                if (!controller.isUploadingTaskDoc) {
-                                  controller.updateTaskApiCall(
-                                      task: taskDetails);
-                                } else {
-                                  toast("Please wait");
-                                }
-                              }
+                          if (controller.getEstimatedTime(setStateInside) !=
+                                  "" &&
+                              controller.selectedDate != null &&
+                              controller.selectedTime != null) {
+                            if (controller.getEstimatedTime(setStateInside) ==
+                                "Oops! The selected time is in the past. Please choose a valid future time.") {
+                              setStateInside(() {
+                                controller.validString =
+                                    "Please select valid time check AM PM correctly";
+                              });
                             } else {
                               if (!controller.isUploadingTaskDoc) {
-                                controller.updateTaskApiCall(task: taskDetails);
+                                controller.updateTaskApiCall(
+                                    task: taskDetails);
                               } else {
                                 toast("Please wait");
                               }
                             }
+                          } else {
+                            if (!controller.isUploadingTaskDoc) {
+                              controller.updateTaskApiCall(task: taskDetails);
+                            } else {
+                              toast("Please wait");
+                            }
                           }
-                        },
-                      ),
-                    ],
-                  ),
+                        }
+                      },
+                    ),
+                  ],
                 ),
               ),
             ),

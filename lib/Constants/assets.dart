@@ -23,6 +23,7 @@ const String connectedAppIcon = "assets/icons/connectApp.png";
 const String galleryIcon = "assets/icons/gallery.png";
 const String addUserIcon = "assets/icons/add-user.png";
 const String micPng = "assets/icons/mic.png";
+const String emojiPng = "assets/icons/happy.png";
 const String translationPng = "assets/icons/translation.png";
 const String pausePng = "assets/icons/video-pause-button.png";
 const String wifiPng = "assets/icons/wifi.png";
