@@ -97,7 +97,6 @@ List<_ViewMedia> toViewMediaList({
   }).toList();
 }
 
-
 class ChatMessageMedia extends StatelessWidget {
   final ChatHisList chat;                 // your message row
   final bool isGroupMessage;
@@ -213,7 +212,6 @@ class ChatMessageMedia extends StatelessWidget {
 }
 
 
-
 class _ImagesGrid extends StatelessWidget {
   final List<_ViewMedia> items;
   final bool isGroupMessage;
@@ -243,19 +241,7 @@ class _ImagesGrid extends StatelessWidget {
       // ✅ Constrain big images on web and keep nice aspect ratio
       final maxW = _bubbleMaxWidth(context);
       final gap = _gridGapForWidth(MediaQuery.of(context).size.width);
-      return Column(
-        crossAxisAlignment: CrossAxisAlignment.end,
-        mainAxisSize: MainAxisSize.min,
-        mainAxisAlignment: MainAxisAlignment.start,
-        children: [
-          /*if (isGroupMessage)
-            Text(
-              fromId == myId ? "You" : (senderName ?? ''),
-              style: Theme.of(context)
-                  .textTheme
-                  .bodySmall
-                  ?.copyWith(fontSize: 13, color: fromId == myId ? Colors.green : Colors.purple),
-            ).paddingAll(0),*/
+      return
           InkWell(
             onTap: () => onTapImage(0),
             borderRadius:BorderRadius.circular(15),
@@ -278,24 +264,26 @@ class _ImagesGrid extends StatelessWidget {
                 ),
               ),
             )*/Transform.translate(
-              offset:kIsWeb? Offset(0, -14) :Offset(0, -10),
-              child: AspectRatio(
-                aspectRatio: kIsWeb ? 4/4 : 4 / 4,
+              offset: Offset(0, kIsWeb?-13:-10),
+              child: ConstrainedBox(
+                constraints: BoxConstraints(
+                  maxWidth: _bubbleMaxWidth(context),
+                  maxHeight: kIsWeb ? 520 : 420,
+                ),
                 child: CustomCacheNetworkImage(
                   item.url,
                   radiusAll: 15, // radius handled by ClipRRect above
-                  boxFit: BoxFit.cover,
                   // height: Get.height*.6,
                   // width:kIsWeb? Get.height*.45:150,
+                  boxFit: BoxFit.cover,
                   defaultImage: defaultGallery,
                   borderColor: greyText,
                   assetPadding: 0,
                 ).paddingOnly(bottom: 0,top: 2),
               ),
             ),
-          ),
-        ],
-      );
+          )
+      ;
     }
 
     // 2–4 images → grid
@@ -303,35 +291,35 @@ class _ImagesGrid extends StatelessWidget {
     final width = MediaQuery.of(context).size.width;
     final crossAxisCount = _crossAxisForWidthAndCount(width, count);
     final gap = _gridGapForWidth(width);
-    final aspect = _childAspectForWidth(width);
+    final aspect = 1.0;
 
-    return Transform.translate(
-      offset: Offset(0, -13),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.end,
-        children: [
-          // if (isGroupMessage)
-          //   Text(
-          //     fromId == myId ? "You" : (senderName ?? ''),
-          //     style: Theme.of(context)
-          //         .textTheme
-          //         .bodySmall
-          //         ?.copyWith(fontSize: 13, color: fromId == myId ? Colors.green : Colors.purple),
-          //   ),
-          GridView.builder(
-            shrinkWrap: true,
-            physics: const NeverScrollableScrollPhysics(),
-            itemCount: count,
-            padding: EdgeInsets.zero,
-            gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-              crossAxisCount: crossAxisCount,
-              mainAxisSpacing: gap,
-              crossAxisSpacing: gap,
-              childAspectRatio: aspect,
-            ),
-            itemBuilder: (context, index) {
-              final item = items[index];
-              return MouseRegion(
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.end,
+      children: [
+        // if (isGroupMessage)
+        //   Text(
+        //     fromId == myId ? "You" : (senderName ?? ''),
+        //     style: Theme.of(context)
+        //         .textTheme
+        //         .bodySmall
+        //         ?.copyWith(fontSize: 13, color: fromId == myId ? Colors.green : Colors.purple),
+        //   ),
+        GridView.builder(
+          shrinkWrap: true,
+          physics: const NeverScrollableScrollPhysics(),
+          itemCount: count,
+          padding: EdgeInsets.zero,
+          gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+            crossAxisCount: crossAxisCount,
+            mainAxisSpacing: gap,
+            crossAxisSpacing: gap,
+            childAspectRatio: aspect,
+          ),
+          itemBuilder: (context, index) {
+            final item = items[index];
+            return Transform.translate(
+              offset: Offset(0, kIsWeb?-13:-10),
+              child: MouseRegion(
                   cursor: SystemMouseCursors.basic, // no hand cursor
                   child: GestureDetector(
                   behavior: HitTestBehavior.opaque,
@@ -343,11 +331,11 @@ class _ImagesGrid extends StatelessWidget {
                     defaultImage: defaultGallery,
                   ),
                 ),
-              );
-            },
-          ).paddingOnly(bottom: 0,top: 0),
-        ],
-      ),
+              ),
+            );
+          },
+        ).paddingOnly(bottom: 0,top: 0),
+      ],
     );
   }
 }

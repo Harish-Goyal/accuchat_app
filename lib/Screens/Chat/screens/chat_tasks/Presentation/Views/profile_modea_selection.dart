@@ -22,12 +22,11 @@ class ProfileMediaSectionGetX extends StatelessWidget {
   Widget build(BuildContext context) {
     final controller = Get.find<ViewProfileController>();
 
-    return // Inside your ViewProfileScreen build (after About section)
+    return
       DefaultTabController(
         length: 2,
         child: Builder(
           builder: (context) {
-            // hook the TabController to GetX controller (once)
               final tabCtrl = DefaultTabController.of(context);
               WidgetsBinding.instance.addPostFrameCallback((_) {
                 controller.attachTabController(tabCtrl);
@@ -35,9 +34,8 @@ class ProfileMediaSectionGetX extends StatelessWidget {
 
             return Column(
               children: [
-                // your header + chips (optional source filter using controller.sourceFilter)
                 Container(
-                  padding: EdgeInsets.symmetric(vertical: 4),
+                  padding: const EdgeInsets.symmetric(vertical: 4),
                   decoration: BoxDecoration(
                     color: Colors.grey.shade200,
                     borderRadius: BorderRadius.circular(12),
@@ -67,17 +65,15 @@ class ProfileMediaSectionGetX extends StatelessWidget {
                   height: 400,
                   child: TabBarView(
                     children: [
-                      // MEDIA GRID (uses controller.profileMediaList)
                       Obx(() => _MediaGrid(
                         baseUrl: ApiEnd.baseUrlMedia,
                         onTapF: (){},
                         controller: controller,
                         items: controller.profileMediaList
-                            .where((m) => isImageOrVideo(m)) // if _isImageOrVideo is private, duplicate logic here
+                            .where((m) => isImageOrVideo(m))
                             .toList(),
                       )),
 
-                      // DOC LIST
                       Obx(() => _DocsList(
                         baseUrl: ApiEnd.baseUrlMedia,
                         controller: controller,
@@ -94,89 +90,6 @@ class ProfileMediaSectionGetX extends StatelessWidget {
         ),
       )
     ;
-  }
-
-  Widget _mediaGrid(List<Items> media) {
-    if (media.isEmpty) {
-      return Center(child: Text('No media found', style: BalooStyles.baloonormalTextStyle()));
-    }
-    return GridView.builder(
-      physics: const BouncingScrollPhysics(),
-      padding: const EdgeInsets.only(bottom: 8),
-      gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-        crossAxisCount: 3, crossAxisSpacing: 4, mainAxisSpacing: 4,
-      ),
-      itemCount: media.length,
-      itemBuilder: (context, i) {
-        final m = media[i];
-        final url = '$baseUrl${m.fileName ?? ''}';
-        return GestureDetector(
-          onTap: () {
-            // Get.toNamed(AppRoutes.media_viewer, arguments: {'url': url, 'item': m});
-          },
-          child: ClipRRect(
-            borderRadius: BorderRadius.circular(8),
-            child: CustomCacheNetworkImage(
-              url,
-              height: double.infinity,
-              width: double.infinity,
-              boxFit: BoxFit.cover,
-              radiusAll: 0,
-            ),
-          ),
-        );
-      },
-    );
-  }
-
-  Widget _docsList(List<Items> docs) {
-    if (docs.isEmpty) {
-      return Center(child: Text('No documents found', style: BalooStyles.baloonormalTextStyle()));
-    }
-    return ListView.separated(
-      physics: const BouncingScrollPhysics(),
-      itemCount: docs.length,
-      separatorBuilder: (_, __) => Divider(color: Colors.grey.shade300, height: 1),
-      itemBuilder: (context, i) {
-        final d = docs[i];
-        final url = '$baseUrl${d.fileName ?? ''}';
-        final name = (d.fileName ?? '').split('/').last;
-        final ext = name.split('.').last.toUpperCase();
-        final icon = _docIcon(ext);
-
-        return ListTile(
-          leading: Container(
-            width: 42, height: 42, alignment: Alignment.center,
-            decoration: BoxDecoration(color: Colors.grey.shade200, borderRadius: BorderRadius.circular(8)),
-            child: Icon(icon, color: Colors.black87, size: 22),
-          ),
-          title: Text(name, maxLines: 1, overflow: TextOverflow.ellipsis, style: BalooStyles.baloonormalTextStyle()),
-          subtitle: Text(
-            (d.mediaType?.name ?? 'Document') + (d.source != null ? ' · ${d.source}' : ''),
-            style: BalooStyles.baloonormalTextStyle(size: 12, color: Colors.black54),
-          ),
-          trailing: const Icon(Icons.open_in_new),
-          onTap: () async {
-            // url_launcher or in-app viewer
-            // await launchUrl(Uri.parse(url), mode: LaunchMode.externalApplication);
-          },
-        );
-      },
-    );
-  }
-
-  IconData _docIcon(String ext) {
-    switch (ext) {
-      case 'PDF': return Icons.picture_as_pdf;
-      case 'XLS':
-      case 'XLSX': return Icons.grid_on;
-      case 'DOC':
-      case 'DOCX': return Icons.description_outlined;
-      case 'PPT':
-      case 'PPTX': return Icons.slideshow;
-      case 'CSV': return Icons.table_chart_outlined;
-      default: return Icons.insert_drive_file_outlined;
-    }
   }
 }
 

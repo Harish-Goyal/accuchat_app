@@ -3,16 +3,12 @@ import 'package:AccuChat/Services/APIs/api_ends.dart';
 import 'package:AccuChat/utils/custom_flashbar.dart';
 import 'package:AccuChat/utils/loading_indicator.dart';
 import 'package:AccuChat/utils/text_style.dart';
-import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import '../../../../../../Constants/app_theme.dart';
 import '../../../../../../Constants/assets.dart';
 import '../../../../../../main.dart';
 import '../../../../../../utils/networl_shimmer_image.dart';
-import '../../../../api/apis.dart';
-import '../../../../models/chat_user.dart';
 import '../Controllers/add_group_mem_controller.dart';
 
 
@@ -35,111 +31,7 @@ class AddGroupMembersScreen extends GetView<AddGroupMemController> {
         return Scaffold(
           backgroundColor: Colors.grey.shade100,
           appBar: _buildAppBar(),
-          body: controller.isLoading
-              ? const IndicatorLoading()
-              : controller.filteredList.isEmpty
-              ? Center(
-            child: Text(
-              "No User Found!",
-              style: BalooStyles.baloomediumTextStyle(),
-            ),
-          )
-              : Center(
-            child: ConstrainedBox(
-              constraints: const BoxConstraints(maxWidth: 650),
-              child: ListView.builder(
-                padding: const EdgeInsets.all(16),
-                itemCount: controller.filteredList.length,
-                itemBuilder: (context, index) {
-                  final user = controller.filteredList[index];
-                  final isSelected = controller.selectedUserIds
-                      .contains(user.userCompany?.userCompanyId);
-                  final isMe =
-                      controller.me?.userId == user.userId;
-
-                  // ******************
-                  // CARD UI WRAPPER
-                  // ******************
-                  return Card(
-                    elevation: 1,
-                    margin: const EdgeInsets.only(bottom: 12),
-                    color: Colors.white,
-                    shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(14)),
-                    child: Padding(
-                      padding: const EdgeInsets.symmetric(
-                          horizontal: 4, vertical: 4),
-                      child: CheckboxListTile(
-                        value: isSelected,
-                        checkColor: Colors.white,
-                        activeColor: appColorGreen,
-                        onChanged: (selected) {
-                          if (selected == true) {
-                            controller.selectedUserIds.add(
-                                user.userCompany?.userCompanyId ??
-                                    0);
-                          } else {
-                            controller.selectedUserIds.remove(
-                                user.userCompany?.userCompanyId ??
-                                    0);
-                          }
-                          controller.update();
-                        },
-
-                        // *********************
-                        // USER NAME + AUDJUSTED WIDTH
-                        // *********************
-                        title: SizedBox(
-                          width: Get.width * .4,
-                          child: user.userCompany?.displayName == '' ||
-                              user.userCompany?.displayName == null
-                              ? Text(
-                            user.isAdmin == 1
-                                ? 'Company'
-                                : "Member",
-                            maxLines: 1,
-                            overflow: TextOverflow.ellipsis,
-                            style:
-                            themeData.textTheme.titleMedium,
-                          )
-                              : Text(
-                            user.userCompany?.displayName ?? 'User',
-                            maxLines: 1,
-                            overflow: TextOverflow.ellipsis,
-                            style:
-                            themeData.textTheme.titleMedium,
-                          ),
-                        ),
-
-                        subtitle: Text(
-                          user.email == null
-                              ? user.phone ?? ''
-                              : user.email ?? '',
-                          style: themeData.textTheme.bodySmall,
-                        ),
-
-                        // *********************
-                        // AVATAR
-                        // *********************
-                        secondary: SizedBox(
-                          width: mq.height * .055,
-                          child: CustomCacheNetworkImage(
-                            radiusAll: 100,
-                            "${ApiEnd.baseUrlMedia}${user.userImage ?? ""}",
-                            height: mq.height * .055,
-                            width: mq.height * .055,
-                            boxFit: BoxFit.cover,
-                            borderColor: greyText,
-                            defaultImage: ICON_profile,
-                          ),
-                        ),
-                      ),
-                    ),
-                  );
-                },
-              ),
-            ),
-          ),
+          body: _mainBody(),
 
           // ******************************
           // SAME FAB (NO CHANGE)
@@ -167,6 +59,115 @@ class AddGroupMembersScreen extends GetView<AddGroupMemController> {
           ),
         );
       },
+    );
+  }
+
+
+  _mainBody(){
+    return controller.isLoading
+        ? const IndicatorLoading()
+        : controller.filteredList.isEmpty
+        ? Center(
+      child: Text(
+        "No User Found!",
+        style: BalooStyles.baloomediumTextStyle(),
+      ),
+    )
+        : Center(
+      child: ConstrainedBox(
+        constraints: const BoxConstraints(maxWidth: 650),
+        child: ListView.builder(
+          padding: const EdgeInsets.all(16),
+          itemCount: controller.filteredList.length,
+          itemBuilder: (context, index) {
+            final user = controller.filteredList[index];
+            final isSelected = controller.selectedUserIds
+                .contains(user.userCompany?.userCompanyId);
+            final isMe =
+                controller.me?.userId == user.userId;
+
+            // ******************
+            // CARD UI WRAPPER
+            // ******************
+            return Card(
+              elevation: 1,
+              margin: const EdgeInsets.only(bottom: 12),
+              color: Colors.white,
+              shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(14)),
+              child: Padding(
+                padding: const EdgeInsets.symmetric(
+                    horizontal: 4, vertical: 4),
+                child: CheckboxListTile(
+                  value: isSelected,
+                  checkColor: Colors.white,
+                  activeColor: appColorGreen,
+                  onChanged: (selected) {
+                    if (selected == true) {
+                      controller.selectedUserIds.add(
+                          user.userCompany?.userCompanyId ??
+                              0);
+                    } else {
+                      controller.selectedUserIds.remove(
+                          user.userCompany?.userCompanyId ??
+                              0);
+                    }
+                    controller.update();
+                  },
+
+                  // *********************
+                  // USER NAME + AUDJUSTED WIDTH
+                  // *********************
+                  title: SizedBox(
+                    width: Get.width * .4,
+                    child: user.userCompany?.displayName == '' ||
+                        user.userCompany?.displayName == null
+                        ? Text(
+                      user.isAdmin == 1
+                          ? 'Company'
+                          : "Member",
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style:
+                      BalooStyles.baloonormalTextStyle(),
+                    )
+                        : Text(
+                      user.userCompany?.displayName!=null?user.userCompany?.displayName??'':user.userName!=null?user.userName??'':user.phone??'',
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style:
+                      BalooStyles.baloonormalTextStyle(),
+                    ),
+                  ),
+
+                  subtitle: Text(
+                    user.email == null
+                        ? user.phone ?? ''
+                        : user.email ?? '',
+                    style:  BalooStyles.baloonormalTextStyle(),
+                  ),
+
+                  // *********************
+                  // AVATAR
+                  // *********************
+                  secondary: SizedBox(
+                    width: mq.height * .055,
+                    child: CustomCacheNetworkImage(
+                      radiusAll: 100,
+                      "${ApiEnd.baseUrlMedia}${user.userImage ?? ""}",
+                      height: mq.height * .055,
+                      width: mq.height * .055,
+                      boxFit: BoxFit.cover,
+                      borderColor: greyText,
+                      defaultImage: ICON_profile,
+                    ),
+                  ),
+                ),
+              ),
+            );
+          },
+        ),
+      )
     );
   }
   AppBar _buildAppBar(){

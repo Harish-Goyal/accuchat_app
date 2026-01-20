@@ -441,7 +441,6 @@ Future<void> openDocumentFromUrl(String url) async {
     customLoader.hide();
     await OpenFilex.open(filePath);
   } catch (e) {
-    print("❌ Failed to open document: $e");
     customLoader.hide();
   }
 }

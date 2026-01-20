@@ -78,8 +78,6 @@ class CreateCompanyController extends GetxController {
     }else{
       if (Get.arguments != null) {
         final  _isHomeBool =  Get.arguments['isHome'];
-        print("isHome=======");
-        print(isHome);
         isHome = _isHomeBool=="1"?true:false;
       }
     }

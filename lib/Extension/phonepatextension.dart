@@ -10,7 +10,7 @@ extension EncodingExtensions on String {
   List<int> get toUtf8 {
     return utf8.encode(this);
   }
-  /// To Sha256
+  // To Sha256
   // String get toSha256 {
   //   return sha256.convert(toUtf8).toString();
   // }

@@ -249,8 +249,11 @@ class ChatScreenController extends GetxController {
     super.onInit();
     _getCompany();
     scrollListener();
-    Get.find<ChatHomeController>()
-        .isOnRecentList.value = false;
+    if(Get.isRegistered<ChatHomeController>()){
+      Get.find<ChatHomeController>()
+          .isOnRecentList.value = false;
+    }
+
     replyToMessage = null;
     // resetPaginationForNewChat();
     getArguments();
@@ -284,7 +287,7 @@ class ChatScreenController extends GetxController {
     final result = await FilePicker.platform.pickFiles(
       allowMultiple: true,
       type: FileType.custom,
-      compressionQuality: 80,
+      compressionQuality: 75,
       allowCompression: true,
       allowedExtensions: const [
         'jpg',
@@ -1013,7 +1016,7 @@ class ChatScreenController extends GetxController {
       allowMultiple: false,
       type: FileType.custom,
       allowCompression: true,
-      compressionQuality: 60,
+      compressionQuality: 75,
       withData: kIsWeb,
       allowedExtensions: [
         'pdf',

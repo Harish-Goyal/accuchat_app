@@ -27,8 +27,8 @@ import 'package:image_picker/image_picker.dart';
 import 'package:intl/intl.dart';
 import 'package:open_filex/open_filex.dart';
 import 'package:swipe_to/swipe_to.dart';
-import 'package:flutter/foundation.dart' show kIsWeb; // ✅ added: detect web
-import 'package:flutter/gestures.dart'; // ✅ added: better web scrolling
+import 'package:flutter/foundation.dart' show kIsWeb;
+import 'package:flutter/gestures.dart';
 import '../../../../../../Constants/app_theme.dart';
 import '../../../../../../Constants/assets.dart';
 import '../../../../../../Constants/colors.dart';
@@ -47,9 +47,6 @@ import '../Controllers/task_controller.dart';
 import '../../../../api/apis.dart';
 import 'package:path_provider/path_provider.dart';
 
-/// -------------------------
-/// Responsive helpers (added)
-/// -------------------------
 class _NoGlowScrollBehavior extends ScrollBehavior {
   const _NoGlowScrollBehavior();
   @override
@@ -70,7 +67,6 @@ class _NoGlowScrollBehavior extends ScrollBehavior {
 double _maxChatWidth(BuildContext context) {
   final w = MediaQuery.of(context).size.width;
   if (!kIsWeb) return double.infinity;
-  // keep chat column pleasant on desktops
   if (w >= 1600) return 1200;
   if (w >= 1366) return 1100;
   if (w >= 1200) return 1000;
@@ -94,7 +90,6 @@ double _avatarSize(BuildContext context) {
 
 double _textScaleClamp(BuildContext context) {
   final t = MediaQuery.of(context).textScaleFactor;
-  // prevent giant scaling on browser zoom
   return t.clamp(0.9, 1.2);
 }
 
@@ -108,139 +103,63 @@ class TaskScreenMobile extends GetView<TaskController> {
         onTap: () => FocusScope.of(context).unfocus(),
         child: SafeArea(
           child: WillPopScope(
-            //if emojis are shown & back button is pressed then hide emojis
-            //or else simple close current screen on back button click
             onWillPop: () {
               Get.find<TaskHomeController>().hitAPIToGetRecentTasksUser();
               return Future.value(true);
             },
             child: SafeArea(
               child: Scaffold(
-                //app bar
-                appBar: AppBar(
-                  backgroundColor: Colors.white, // white color
-                  elevation: 1, // remove shadow
-                  scrolledUnderElevation:
-                      0, // ✨ prevents color change on scroll
-                  surfaceTintColor: Colors.white,
-                  automaticallyImplyLeading: false,
-                  flexibleSpace: MediaQuery(
-                    // ✅ clamp text scale for web
-                    data: MediaQuery.of(context)
-                        .copyWith(textScaleFactor: _textScaleClamp(context)),
-                    child: _appBar(),
-                  ),
-                ),
+                appBar: _appBarWidget(),
 
                 backgroundColor: const Color.fromARGB(255, 234, 248, 255),
-
-                //body
-                body: ScrollConfiguration(
-                  // ✅ nicer scrolling on web + no glow
-                  behavior: const _NoGlowScrollBehavior(),
-                  child: Center(
-                    // ✅ center content on wide screens
-                    child: ConstrainedBox(
-                      constraints:
-                          BoxConstraints(maxWidth: _maxChatWidth(context)),
-                      child: Padding(
-                        padding: _shellHPadding(context),
-                        child: Column(
-                          children: [
-                            Expanded(
-                                child: RepaintBoundary(
-                                    child: chatMessageBuilder())),
-
-                            //TODO
-                            if (controller.replyToMessage != null)
-                              Container(
-                                padding: const EdgeInsets.all(8),
-                                margin: const EdgeInsets.only(
-                                    bottom: 4, left: 8, right: 8),
-                                decoration: BoxDecoration(
-                                  color: Colors.white54,
-                                  border: Border.all(
-                                      color: appColorGreen, width: .4),
-                                  borderRadius: BorderRadius.circular(8),
-                                ),
-                                child: Row(
-                                  children: [
-                                    Icon(Icons.reply, color: appColorGreen),
-                                    const SizedBox(width: 8),
-                                    Expanded(
-                                      child: Text(
-                                        "${controller.replyToMessage?.fromUser?.userId == APIs.me?.userId ? 'You' : controller.user?.userCompany?.displayName ?? ''}: ${controller.replyToMessage?.message ?? ''}",
-                                        maxLines: 1,
-                                        overflow: TextOverflow.ellipsis,
-                                        style: themeData.textTheme.bodySmall
-                                            ?.copyWith(color: greyText),
-                                      ) /*:SizedBox()*/,
-                                    ),
-                                    IconButton(
-                                        icon: const Icon(
-                                          Icons.close,
-                                          color: blueColor,
-                                        ),
-                                        onPressed: () {
-                                          controller.replyToMessage = null;
-                                          controller.update();
-                                        }),
-                                  ],
-                                ),
-                              ),
-                            if (controller.isUploading)
-                              const Align(
-                                  alignment: Alignment.centerRight,
-                                  child: Padding(
-                                      padding: EdgeInsets.symmetric(
-                                          vertical: 8, horizontal: 20),
-                                      child: CircularProgressIndicator(
-                                          strokeWidth: 2))),
-
-                            (controller.uploadProgress > 0 &&
-                                    controller.uploadProgress < 100)
-                                ? Column(
-                                    children: [
-                                      LinearProgressIndicator(
-                                        value: controller.uploadProgress /
-                                            100, // 0.0 → 1.0
-                                        backgroundColor: Colors.grey[300],
-                                        color: Colors.blue,
-                                        minHeight: 6,
-                                      ),
-                                      const SizedBox(height: 4),
-                                      Text(
-                                          "${controller.uploadProgress.toStringAsFixed(0)}%"),
-                                    ],
-                                  )
-                                : const SizedBox.shrink(),
-
-                            _chatInput(),
-                            //show emojis on keyboard emoji button click & vice versa
-                            // if (_showEmoji)
-                            // SizedBox(
-                            //   height: mq.height * .35,
-                            //   child: EmojiPicker(
-                            //     textEditingController: _textController,
-                            //     config: Config(
-                            //       bgColor: const Color.fromARGB(255, 234, 248, 255),
-                            //       columns: 8,
-                            //       emojiSizeMax: 32 * (Platform.isIOS ? 1.30 : 1.0),
-                            //     ),
-                            //   ),
-                            // )
-                          ],
-                        ),
-                      ),
-                    ),
-                  ),
-                ),
+                body:_mainBody(),
               ),
             ),
           ),
         ),
       );
     });
+  }
+
+  _mainBody(){
+    return  ScrollConfiguration(
+      behavior: const _NoGlowScrollBehavior(),
+      child: Center(
+        child: ConstrainedBox(
+          constraints:
+          BoxConstraints(maxWidth: _maxChatWidth(Get.context!)),
+          child: Padding(
+            padding: _shellHPadding(Get.context!),
+            child: Column(
+              children: [
+                Expanded(
+                    child: RepaintBoundary(
+                        child: chatMessageBuilder())),
+
+                _chatInput(),
+
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
+  AppBar _appBarWidget(){
+    return AppBar(
+      backgroundColor: Colors.white,
+      elevation: 1,
+      scrolledUnderElevation:
+      0,
+      surfaceTintColor: Colors.white,
+      automaticallyImplyLeading: false,
+      flexibleSpace: MediaQuery(
+        data: MediaQuery.of(Get.context!)
+            .copyWith(textScaleFactor: _textScaleClamp(Get.context!)),
+        child: _appBar(),
+      ),
+    );
   }
 
   Widget chatMessageBuilder() {
@@ -826,7 +745,6 @@ class TaskScreenMobile extends GetView<TaskController> {
       customLoader.hide();
       await OpenFilex.open(filePath);
     } catch (e) {
-      print("❌ Failed to open document: $e");
       customLoader.hide();
     }
   }
@@ -1210,29 +1128,17 @@ class TaskScreenMobile extends GetView<TaskController> {
 
   bool isVisibleUpload = true;
 
-  // bottom chat input field
   Widget _chatInput() {
     return Container(
-      // height: Get.height*.4,
       padding: EdgeInsets.symmetric(
           vertical: mq.height * .01, horizontal: mq.width * .025),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.end,
         children: [
-          //input field & buttons
           Expanded(
             child: Row(
               crossAxisAlignment: CrossAxisAlignment.end,
               children: [
-                //emoji button
-                /* IconButton(
-                          onPressed: () {
-                            FocusScope.of(context).unfocus();
-                            setState(() => _showEmoji = !_showEmoji);
-                          },
-                          icon: const Icon(Icons.emoji_emotions,
-                              color: Colors.blueAccent, size: 25)),*/
-
                 Expanded(
                   child: SingleChildScrollView(
                     child: Column(
@@ -1241,7 +1147,6 @@ class TaskScreenMobile extends GetView<TaskController> {
                           constraints: BoxConstraints(
                               maxHeight: Get.height * .4, minHeight: 40),
                           child: Container(
-                            // color: Colors.red,
                             decoration: BoxDecoration(
                                 borderRadius: BorderRadius.circular(8),
                                 border: Border.all(
@@ -1256,25 +1161,10 @@ class TaskScreenMobile extends GetView<TaskController> {
                                     maxLines: null,
                                     readOnly: true,
                                     onChanged: (text) {
-                                      // if (text.isNotEmpty) {
-                                      //   list[0].isTyping = true;
-                                      //   APIs.updateTypingStatus(true);
-                                      //   if(isVisibleUpload){
-                                      //     isVisibleUpload = false;
-                                      //     controller.update();
-                                      //   }
-                                      // } else {
-                                      //   list[0].isTyping = false;
-                                      //   APIs.updateTypingStatus(false);
-                                      //   if(!isVisibleUpload){
-                                      //     isVisibleUpload = true;
-                                      //     controller.update();
-                                      //   }
-                                      // }
+
                                     },
                                     onTap: () {
-                                      // if (_showEmoji)
-                                      //   setState(() => _showEmoji = !_showEmoji);
+
                                       controller.clearFields();
                                       if (isTaskMode) {
                                         showDialog(
@@ -1286,7 +1176,6 @@ class TaskScreenMobile extends GetView<TaskController> {
                                                         '')).then((pickedTime) {
                                           if (pickedTime != null) {
                                             controller.update();
-                                            // _selectedTime = pickedTime;
                                           }
                                         });
                                       }
@@ -1315,53 +1204,6 @@ class TaskScreenMobile extends GetView<TaskController> {
               ],
             ),
           ),
-          /*hGap(6),
-                Card(
-                  clipBehavior: Clip.none,
-                  color: Colors.transparent,
-                  shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(8)),
-                  child: Row(
-                    children: [
-                      //pick image from gallery button
-                        IconButton(
-                          onPressed: () async {
-                            final ImagePicker picker = ImagePicker();
-
-                            // Picking multiple images
-                            final List<XFile> imgs =
-                            await picker.pickMultiImage(imageQuality: 70);
-                              controller.images.addAll(imgs);
-
-                          },
-                          icon: const Icon(Icons.image,
-                              color: Colors.blueAccent, size: 26)),
-
-                      //take image from camera button
-                      IconButton(
-                          onPressed: () async {
-                            // final ImagePicker picker = ImagePicker();
-                            // // Pick an image
-                            // final XFile? image = await picker.pickImage(
-                            //     source: ImageSource.camera, imageQuality: 70);
-                            // if (image != null) {
-                            //   // log('Image Path: ${image.path}');
-                            //   setState(() => _isUploading = true);
-                            //
-                            //   await APIs.sendChatImage(
-                            //       widget.user, File(image.path));
-                            //   setState(() => _isUploading = false);
-                            // }
-                            controller.chooseMediaSource();
-                          },
-                          tooltip: "Choose image from Gallery or Camera",
-                          padding: EdgeInsets.all(0),
-                          splashRadius: 1,
-                          icon: const Icon(Icons.camera_alt_outlined,
-                              color: Colors.blueAccent, size: 26)),
-                    ],
-                  ),
-                ),*/
 
           hGap(6),
           InkWell(
@@ -1395,7 +1237,6 @@ class TaskScreenMobile extends GetView<TaskController> {
                   controller.replyToMessage = null;
                   controller.update();
                 } else {
-                  print(controller.textController.text);
                   Get.find<SocketController>().sendMessage(
                     receiverId: controller.user?.userId ?? 0,
                     message: controller.textController.text.trim(),
@@ -1410,10 +1251,8 @@ class TaskScreenMobile extends GetView<TaskController> {
                   controller.replyToMessage = null;
                   controller.update();
                 }
-
                 Get.find<TaskController>().hitAPIToGetTaskHistory();
 
-                // APIs.updateTypingStatus(false);
               }
             },
             child: Container(
@@ -1432,7 +1271,6 @@ class TaskScreenMobile extends GetView<TaskController> {
 
   void showUploadOptionsForTask(BuildContext context, setStateInside) {
     if (kIsWeb) {
-      // Web: use a simple dialog + file_picker
       showDialog(
         context: context,
         builder: (_) => AlertDialog(
@@ -1492,7 +1330,6 @@ class TaskScreenMobile extends GetView<TaskController> {
 
                   try {
                     final ImagePicker picker = ImagePicker();
-                    // Pick an image
                     final XFile? image = await picker.pickImage(
                         source: ImageSource.camera, imageQuality: 50);
                     if (image != null) {
@@ -1509,7 +1346,6 @@ class TaskScreenMobile extends GetView<TaskController> {
                       controller.update();
                     }
                   } catch (e) {
-                    print(e.toString());
                     setStateInside(() {
                       controller.isUploadingTaskDoc = true;
                     });
@@ -1553,7 +1389,6 @@ class TaskScreenMobile extends GetView<TaskController> {
                       });
                     }
                   } catch (e) {
-                    print(e.toString());
                     setStateInside(() {
                       controller.isUploadingTaskDoc = true;
                     });
@@ -1578,7 +1413,6 @@ class TaskScreenMobile extends GetView<TaskController> {
     );
   }
 
-  // bottom sheet for modifying message details
   void _showBottomSheet(bool isMe, GroupTaskElement element,
       {required TaskData data}) async {
     await showModalBottomSheet(
@@ -1591,7 +1425,6 @@ class TaskScreenMobile extends GetView<TaskController> {
           return ListView(
             shrinkWrap: true,
             children: [
-              //black divider
               Container(
                 height: 4,
                 margin: EdgeInsets.symmetric(
@@ -1600,7 +1433,6 @@ class TaskScreenMobile extends GetView<TaskController> {
                     color: Colors.grey, borderRadius: BorderRadius.circular(8)),
               ),
 
-              //copy option
               _OptionItem(
                   icon: const Icon(Icons.copy_all_rounded,
                       color: Colors.blue, size: 18),
@@ -1609,10 +1441,8 @@ class TaskScreenMobile extends GetView<TaskController> {
                     Get.back();
                     controller.openTaskThreadSmart(
                         context: Get.context!, groupElement: element);
-                    // Dialogs.showSnackbar(context, 'Text Copied!');
                   }),
 
-              //separator or divider
               if (isMe)
                 Divider(
                   color: Colors.black54,
@@ -1620,18 +1450,14 @@ class TaskScreenMobile extends GetView<TaskController> {
                   indent: mq.width * .04,
                 ),
 
-              //edit option
               if (isMe)
                 _OptionItem(
                     icon: const Icon(Icons.edit, color: Colors.blue, size: 18),
                     name: 'Edit',
                     onTap: () {
-                      //for hiding bottom sheet
                       Get.back();
-
                       final currentStatus =
                           data.currentStatus?.name?.toLowerCase() ?? 'Pending';
-
                       (['Done', 'Completed', 'Cancelled']
                               .contains(currentStatus))
                           ? toast(
@@ -1639,7 +1465,6 @@ class TaskScreenMobile extends GetView<TaskController> {
                           : openUpdateTaskDialog(data);
                     }),
 
-              // delete option
               if ((APIs.me?.userId == controller.myCompany?.createdBy))
                 _OptionItem(
                     icon: const Icon(Icons.delete_forever,
@@ -1662,12 +1487,10 @@ class TaskScreenMobile extends GetView<TaskController> {
   }
 
   void openUpdateTaskDialog(TaskData task) {
-    // reset UI list first
     controller.titleController.text = task.title ?? '';
     controller.descController.text = task.details ?? '';
     controller.attachedFiles = [];
 
-    // hydrate from server media -> attachedFiles
     for (TaskMedia m in (task.media ?? [])) {
       controller.attachedFiles.add({
         'type': (m.mediaType?.mediaType ?? '').toLowerCase() == 'image'
@@ -1686,7 +1509,7 @@ class TaskScreenMobile extends GetView<TaskController> {
     );
   }
 
-  _createTasksDialogWidget(String userName) {
+  Widget _createTasksDialogWidget(String userName) {
     return LayoutBuilder(builder: (context, constraints) {
       final w = MediaQuery.of(context).size.width;
       final h = MediaQuery.of(context).size.height;
@@ -1694,7 +1517,6 @@ class TaskScreenMobile extends GetView<TaskController> {
       final bool isDesktop = w >= 1024;
       final bool isTablet = w >= 700 && w < 1024;
 
-      // Web par dialog ki max width/height clamp
       final double maxW = isDesktop ? 700 : (isTablet ? 720 : w * 0.95);
       final double maxH = h * (kIsWeb ? 0.9 : 0.95);
       return StatefulBuilder(builder: (context, setStateInside) {
@@ -1741,7 +1563,6 @@ class TaskScreenMobile extends GetView<TaskController> {
                         spacing: 8,
                         runSpacing: 8,
                         children: controller.attachedFiles.map((file) {
-                          print(controller.attachedFiles.map((v) => v));
                           final String type = file['type'];
                           final String name = file['name'];
                           final url = file['file'];
@@ -1749,8 +1570,6 @@ class TaskScreenMobile extends GetView<TaskController> {
                           Widget preview;
 
                           if (type == 'image') {
-                            // On mobile: we stored a File in 'file'
-                            // On web: we stored Uint8List in 'bytes'
                             final fileis = file['file']; // File? (mobile)
                             final bytes = file['bytes']; // Uint8List? (web)
 
@@ -1918,65 +1737,8 @@ class TaskScreenMobile extends GetView<TaskController> {
       });
     });
   }
-
-/*  Widget _taskInputArea(setStateInside, {TaskData? taskDetails}) {
-    return Form(
-      key: controller.tasksFormKey,
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          _buildTaskField("Title", controller.titleController, 1, 50),
-          vGap(15),
-          _buildTaskField("Description", controller.descController, 5, 300),
-          vGap(8),
-         //TODO
-            InkWell(
-            onTap: () async {
-              _showDateTimePicker(setStateInside);
-            },
-            child: Container(
-              padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 12),
-              decoration: BoxDecoration(
-                  color: appColorGreen.withOpacity(.1),
-                  borderRadius: BorderRadius.circular(12)),
-              child: Row(
-                // mainAxisSize: MainAxisSize.min,
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Flexible(
-                    child: Text(
-                      // Text(
-                      //   "Selected Time: ${_selectedTime?.format(context) ?? 'Not selected'}",
-                      //   style: const TextStyle(fontSize: 14),
-                      // )
-
-                      (controller.selectedDate != null &&
-                              controller.selectedTime != null)
-                          ? "Est. Time : ${controller.getEstimatedTime(setStateInside)}"
-                          : "Select task deadline",
-                      style: themeData.textTheme.bodySmall?.copyWith(
-                          color: controller.getEstimatedTime(setStateInside) ==
-                                  "Oops! The selected time is in the past. Please choose a valid future time."
-                              ? AppTheme.redErrorColor
-                              : Colors.black),
-                    ).paddingAll(5),
-                  ),
-                  Icon(
-                    Icons.access_time,
-                    color: appColorGreen,
-                  ).paddingOnly(right: 5, top: 5),
-                ],
-              ),
-            ),
-          ),
-        ],
-      ),
-    );
-  }*/
   Widget _taskInputArea(setStateInside, {TaskData? taskDetails}) {
-    // ---------- hydrate once for UPDATE ----------
     if (taskDetails != null) {
-      // Title/Description only if empty (so user-typed text isn't overwritten)
       if (controller.titleController.text.trim().isEmpty) {
         controller.titleController.text = taskDetails.title ?? '';
       }
@@ -1984,7 +1746,6 @@ class TaskScreenMobile extends GetView<TaskController> {
         controller.descController.text = taskDetails.details ?? '';
       }
 
-      // Deadline → selectedDate/selectedTime (only if not already chosen)
       if (controller.selectedDate == null && controller.selectedTime == null) {
         final dl = taskDetails.deadline; // String/DateTime supported
         DateTime? d;
@@ -2000,8 +1761,6 @@ class TaskScreenMobile extends GetView<TaskController> {
         }
       }
     }
-    // ---------------------------------------------
-
     return Form(
       key: controller.tasksFormKey,
       child: Column(
@@ -2011,8 +1770,6 @@ class TaskScreenMobile extends GetView<TaskController> {
           vGap(15),
           _buildTaskField("Description", controller.descController, 6, 300),
           vGap(8),
-
-          // DEADLINE (unchanged UI)
           InkWell(
             onTap: () async {
               await _showDateTimePicker(setStateInside);
@@ -2213,14 +1970,10 @@ class TaskScreenMobile extends GetView<TaskController> {
   }*/
 
   _updateTasksDialogWidget(TaskData taskDetails) {
-    // Local edit buffer for attachments (new + existing mapped to the same shape
-    // you already use in Create dialog)
     List<Map<String, dynamic>> _editAttachedFiles = [];
-    // Track which existing media the user removed (so you can delete server-side)
     final Set<String> _removedExistingMediaIds = {};
     bool _hydrated = false;
 
-    // helper to hydrate only once from taskDetails.media
     void _ensureHydrated() {
       if (_hydrated) return;
       final existing = (taskDetails.media ?? []);
@@ -2235,7 +1988,6 @@ class TaskScreenMobile extends GetView<TaskController> {
             path.endsWith('.JPEG') ||
             path.endsWith('.webp');
         path.endsWith('.WEBP');
-        print(att.fileName);
 
         _editAttachedFiles.add({
           'type': isImage ? 'image' : 'doc',
@@ -2285,8 +2037,6 @@ class TaskScreenMobile extends GetView<TaskController> {
           // File for mobile/desktop local previews (guarded)
           File? localFile;
           if (pf != null && pf.path != null && pf.path!.isNotEmpty) {
-            print("pf.path====");
-            print(pf.path);
             localFile = File(pf.path!);
           } else if (m['file'] is File) {
             localFile = m['file'] as File;

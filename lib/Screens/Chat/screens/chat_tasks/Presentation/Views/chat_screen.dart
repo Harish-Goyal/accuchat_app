@@ -4,6 +4,7 @@ import 'dart:math' as math;
 import 'package:AccuChat/Screens/Chat/screens/chat_tasks/Presentation/Controllers/task_home_controller.dart';
 import 'package:AccuChat/utils/text_button.dart';
 import 'package:AccuChat/Screens/voice_to_texx/speech_controller_factory.dart';
+import 'package:emoji_picker_flutter/emoji_picker_flutter.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter_linkify/flutter_linkify.dart';
 import 'package:scrollable_positioned_list/scrollable_positioned_list.dart';
@@ -35,6 +36,7 @@ import '../../../../../../Constants/app_theme.dart';
 import '../../../../../../Constants/assets.dart';
 import '../../../../../../Constants/colors.dart';
 import '../../../../../../utils/custom_flashbar.dart';
+import '../../../../../../utils/emogi_picker_web.dart';
 import '../../../../../../utils/product_shimmer_widget.dart';
 import '../../../../../../utils/share_helper.dart';
 
@@ -138,8 +140,6 @@ class ChatScreen extends GetView<ChatScreenController> {
             onTap: () => FocusScope.of(context).unfocus(),
             child: SafeArea(
               child: WillPopScope(
-                //if emojis are shown & back button is pressed then hide emojis
-                //or else simple close current screen on back button click
                 onWillPop: () {
                   Get.find<ChatHomeController>()
                       .hitAPIToGetRecentChats(page: 1);
@@ -147,233 +147,204 @@ class ChatScreen extends GetView<ChatScreenController> {
                 },
                 child: SafeArea(
                   child: Scaffold(
-                    //app bar
-                    appBar: AppBar(
-                      backgroundColor: Colors.white, // white color
-                      elevation: 1, // remove shadow
-                      scrolledUnderElevation:
-                          0, // ✨ prevents color change on scroll
-                      surfaceTintColor: Colors.white,
-                      automaticallyImplyLeading: false,
-                      flexibleSpace: MediaQuery(
-                        // ✅ clamp text scale for web
-                        data: MediaQuery.of(context).copyWith(
-                            textScaleFactor: _textScaleClamp(context)),
-                        child: _appBar(),
-                      ),
-                    ),
-
+                    appBar: _appBarWidget(),
                     backgroundColor: const Color.fromARGB(255, 234, 248, 255),
-
-                    //body
-                    body: ScrollConfiguration(
-                      // ✅ nicer scrolling on web + no glow
-                      behavior: const _NoGlowScrollBehavior(),
-                      child: Center(
-                        // ✅ center content on wide screens
-                        child: ConstrainedBox(
-                          constraints:
-                              BoxConstraints(maxWidth: _maxChatWidth(context)),
-                          child: Padding(
-                            padding: _shellHPadding(context),
-                            child: Column(
-                              children: [
-                                Expanded(
-                                    child: RepaintBoundary(
-                                        child: chatMessageBuilder())),
-
-                                if (controller.replyToMessage != null)
-                                  Container(
-                                    padding: const EdgeInsets.all(2),
-                                    margin: const EdgeInsets.only(
-                                        bottom: 0, left: 10, right: 63),
-                                    decoration: BoxDecoration(
-                                      color: Colors.white54,
-                                      border: Border.all(
-                                          color: appColorGreen, width: .4),
-                                      borderRadius: BorderRadius.circular(8),
-                                    ),
-                                    child: Row(
-                                      children: [
-                                        Container(
-                                          height: 40,
-                                          width: 3,
-                                          color: appColorYellow,
-                                        ),
-                                        Icon(
-                                          Icons.reply,
-                                          color: appColorGreen,
-                                          size: 18,
-                                        ),
-                                        Expanded(
-                                          child: Row(
-                                            mainAxisSize: MainAxisSize.min,
-                                            mainAxisAlignment:
-                                                MainAxisAlignment.spaceBetween,
-                                            children: [
-                                              Flexible(
-                                                child: Column(
-                                                  crossAxisAlignment:
-                                                      CrossAxisAlignment.start,
-                                                  children: [
-                                                    Text(
-                                                      "${controller.replyToMessage?.fromUser?.userId == controller.me?.userId ? 'You' : controller.user?.userCompany?.displayName ?? ''}",
-                                                      maxLines: 1,
-                                                      overflow:
-                                                          TextOverflow.ellipsis,
-                                                      style: themeData
-                                                          .textTheme.bodySmall
-                                                          ?.copyWith(
-                                                              color: greyText),
-                                                    ),
-                                                    controller.isImageOrVideo(
-                                                            controller
-                                                                    .replyToMessage
-                                                                    ?.message ??
-                                                                '')
-                                                        ? Text(
-                                                        controller.replyToMessage
-                                                            ?.media?.first?.orgFileName ??
-                                                            '',
-                                                            maxLines: 2,
-                                                            overflow:
-                                                                TextOverflow
-                                                                    .ellipsis,
-                                                            style: themeData
-                                                                .textTheme
-                                                                .bodySmall
-                                                                ?.copyWith(
-                                                                    color:
-                                                                        greyText),
-                                                          )
-                                                        : const SizedBox()
-                                                  ],
-                                                ).paddingSymmetric(
-                                                    horizontal: 4),
-                                              ),
-                                              Text(
-                                                " : ",
-                                                maxLines: 1,
-                                                overflow: TextOverflow.ellipsis,
-                                                style: themeData
-                                                    .textTheme.bodySmall
-                                                    ?.copyWith(
-                                                        color: appColorYellow),
-                                              ),
-                                              !controller.isImageOrVideo(
-                                                      controller.replyToMessage
-                                                              ?.message ??
-                                                          '')
-                                                  ? Flexible(
-                                                      flex: 2,
-                                                      child: Text(
-                                                        controller
-                                                                .replyToMessage
-                                                                ?.message ??
-                                                            '',
-                                                        maxLines: 1,
-                                                        overflow: TextOverflow
-                                                            .ellipsis,
-                                                        style: themeData
-                                                            .textTheme.bodySmall
-                                                            ?.copyWith(
-                                                                color:
-                                                                    greyText),
-                                                      ),
-                                                    )
-                                                  : Container(
-                                                      width: 50,
-                                                      height: 50,
-                                                      decoration: BoxDecoration(
-                                                          borderRadius:
-                                                              BorderRadius
-                                                                  .circular(8),
-                                                          border: Border.all(
-                                                              color:
-                                                                  appColorGreen,
-                                                              width: .3)),
-                                                      child:
-                                                          CustomCacheNetworkImage(
-                                                        controller
-                                                                .replyToMessage
-                                                                ?.message ??
-                                                            '',
-                                                        width: 50,
-                                                        height: 50,
-                                                        radiusAll: 8,
-                                                        borderColor:
-                                                            appColorGreen,
-                                                        boxFit: BoxFit.cover,
-                                                      )),
-                                            ],
-                                          ),
-                                        ),
-                                        IconButton(
-                                            icon: const Icon(
-                                              Icons.close,
-                                              color: blueColor,
-                                              size: 18,
-                                            ),
-                                            onPressed: () {
-                                              controller.replyToMessage = null;
-                                              controller.update();
-                                            }),
-                                      ],
-                                    ),
-                                  ),
-                                if (controller.isUploading)
-                                  const Align(
-                                      alignment: Alignment.centerRight,
-                                      child: Padding(
-                                          padding: EdgeInsets.symmetric(
-                                              vertical: 8, horizontal: 20),
-                                          child: CircularProgressIndicator(
-                                              strokeWidth: 2))),
-
-                                (controller.uploadProgress > 0 &&
-                                        controller.uploadProgress < 100)
-                                    ? Column(
-                                        children: [
-                                          LinearProgressIndicator(
-                                            value: controller.uploadProgress /
-                                                100, // 0.0 → 1.0
-                                            backgroundColor: Colors.grey[300],
-                                            color: Colors.blue,
-                                            minHeight: 6,
-                                          ),
-                                          const SizedBox(height: 4),
-                                          Text(
-                                              "${controller.uploadProgress.toStringAsFixed(0)}%"),
-                                        ],
-                                      )
-                                    : const SizedBox.shrink(),
-
-                                _chatInput(),
-                                //show emojis on keyboard emoji button click & vice versa
-                                // if (_showEmoji)
-                                // SizedBox(
-                                //   height: mq.height * .35,
-                                //   child: EmojiPicker(
-                                //     textEditingController: _textController,
-                                //     config: Config(
-                                //       bgColor: const Color.fromARGB(255, 234, 248, 255),
-                                //       columns: 8,
-                                //       emojiSizeMax: 32 * (Platform.isIOS ? 1.30 : 1.0),
-                                //     ),
-                                //   ),
-                                // )
-                              ],
-                            ),
-                          ),
-                        ),
-                      ),
-                    ),
+                    body: _mainBody(),
                   ),
                 ),
               ),
             ),
           );
         });
+  }
+
+  AppBar _appBarWidget(){
+    return AppBar(
+      backgroundColor: Colors.white, // white color
+      elevation: 1, // remove shadow
+      scrolledUnderElevation:
+      0, // ✨ prevents color change on scroll
+      surfaceTintColor: Colors.white,
+      automaticallyImplyLeading: false,
+      flexibleSpace: MediaQuery(
+        // ✅ clamp text scale for web
+        data: MediaQuery.of(Get.context!).copyWith(
+            textScaleFactor: _textScaleClamp(Get.context!)),
+        child: _appBar(),
+      ),
+    );
+  }
+
+  Widget _mainBody(){
+    return ScrollConfiguration(
+      behavior: const _NoGlowScrollBehavior(),
+      child: Center(
+        child: ConstrainedBox(
+          constraints:
+          BoxConstraints(maxWidth: _maxChatWidth(Get.context!)),
+          child: Padding(
+            padding: _shellHPadding(Get.context!),
+            child: Column(
+              children: [
+                Expanded(
+                    child: RepaintBoundary(
+                        child: chatMessageBuilder())),
+
+                if (controller.replyToMessage != null)
+                  _replyToMessageWidget(),
+                if (controller.isUploading)
+                  const Align(
+                      alignment: Alignment.centerRight,
+                      child: Padding(
+                          padding: EdgeInsets.symmetric(
+                              vertical: 8, horizontal: 20),
+                          child: CircularProgressIndicator(
+                              strokeWidth: 2))),
+
+                (controller.uploadProgress > 0 &&
+                    controller.uploadProgress < 100)
+                    ? Column(
+                  children: [
+                    LinearProgressIndicator(
+                      value: controller.uploadProgress /
+                          100, // 0.0 → 1.0
+                      backgroundColor: Colors.grey[300],
+                      color: Colors.blue,
+                      minHeight: 6,
+                    ),
+                    const SizedBox(height: 4),
+                    Text(
+                        "${controller.uploadProgress.toStringAsFixed(0)}%"),
+                  ],
+                )
+                    : const SizedBox.shrink(),
+
+                _chatInput(),
+
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _replyToMessageWidget(){
+    final  username =controller.user?.userCompany?.displayName!=null?controller.user?.userCompany?.displayName ?? '':controller.user?.userName!=null?controller.user?.userName?? '':controller.user?.phone?? '';
+    return Container(
+      padding: const EdgeInsets.all(2),
+      margin: const EdgeInsets.only(
+          bottom: 0, left: 10, right: 63),
+      decoration: BoxDecoration(
+        color: Colors.white54,
+        border: Border.all(
+            color: appColorGreen, width: .4),
+        borderRadius: BorderRadius.circular(8),
+      ),
+      child: Row(
+        children: [
+          Container(
+            height: 40,
+            width: 3,
+            color: appColorYellow,
+          ),
+          Icon(
+            Icons.reply,
+            color: appColorGreen,
+            size: 18,
+          ),
+          Expanded(
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              mainAxisAlignment:
+              MainAxisAlignment.spaceBetween,
+              children: [
+                Flexible(
+                  child: Column(
+                    crossAxisAlignment:
+                    CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        "${controller.replyToMessage?.fromUser?.userId == controller.me?.userId ? 'You' : username}",
+                        maxLines: 1,
+                        overflow:
+                        TextOverflow.ellipsis,
+                        style: themeData
+                            .textTheme.bodySmall
+                            ?.copyWith(
+                            color: greyText),
+                      ),
+                    ],
+                  ).paddingSymmetric(
+                      horizontal: 4),
+                ),
+                Text(
+                  " : ",
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: themeData
+                      .textTheme.bodySmall
+                      ?.copyWith(
+                      color: appColorYellow),
+                ),
+
+             isDocument(controller
+                    .replyToMessage
+                    ?.message??'')? Text(
+                  controller.replyToMessage
+                      ?.replyToText ??
+                      '',
+                  maxLines: 2,
+                  overflow:
+                  TextOverflow
+                      .ellipsis,
+                  style: themeData
+                      .textTheme
+                      .bodySmall
+                      ?.copyWith(
+                      color:
+                      greyText),
+                ):
+                Container(
+                  width: 50,
+                  height: 50,
+                  decoration: BoxDecoration(
+                      borderRadius:
+                      BorderRadius
+                          .circular(8),
+                      border: Border.all(
+                          color:
+                          appColorGreen,
+                          width: .3)),
+                  child: CustomCacheNetworkImage(
+                    controller
+                        .replyToMessage
+                        ?.message??'',
+                    width: 50,
+                    height: 50,
+                    radiusAll: 8,
+                    borderColor:
+                    appColorGreen,
+                    boxFit: BoxFit.cover,
+                  )
+                )
+
+              ],
+            ),
+          ),
+          IconButton(
+              icon: const Icon(
+                Icons.close,
+                color: blueColor,
+                size: 18,
+              ),
+              onPressed: () {
+                controller.replyToMessage = null;
+                controller.update();
+              }),
+        ],
+      ),
+    );
   }
 
 
@@ -529,10 +500,7 @@ class ChatScreen extends GetView<ChatScreenController> {
                 onRightSwipe: element.chatMessageItems.isActivity == 1
                     ? (v) {}
                     : (detail) {
-                        if (element.chatMessageItems.isActivity == 1 ||
-                            (element.chatMessageItems.media ?? [])
-                                .isNotEmpty) {
-                        } else {
+
 
                               final media = element.chatMessageItems.media;
                               if (media == null || media.isEmpty) {
@@ -569,6 +537,7 @@ class ChatScreen extends GetView<ChatScreenController> {
                                   message: msg,
                                   replyToId: element.chatMessageItems.chatId,
                                   replyToText: firstMedia.orgFileName,
+                                  replyToMedia: msg,
                                 );
 
                                 controller.update();
@@ -594,7 +563,7 @@ class ChatScreen extends GetView<ChatScreenController> {
                           //     element.chatMessageItems;
                           // controller.update();
                           // controller.messageInputFocus.requestFocus();
-                        }
+
                       },
                 child: _chatMessageTile(
                     data: element.chatMessageItems,
@@ -781,10 +750,9 @@ class ChatScreen extends GetView<ChatScreenController> {
                         sentByMe ? Alignment.centerRight : Alignment.centerLeft,
                     child: ConstrainedBox(
                       constraints: BoxConstraints(
-                        maxWidth: Get.width * (kIsWeb ? 0.4 : 0.75),
+                        maxWidth:  (kIsWeb ? 300 : Get.width*0.75),
                       ),
                       child: Column(
-                        // mainAxisSize: MainAxisSize.min,
                         crossAxisAlignment: sentByMe
                             ? CrossAxisAlignment.end
                             : CrossAxisAlignment.start,
@@ -915,7 +883,6 @@ class ChatScreen extends GetView<ChatScreenController> {
                       isCancel: false,
                       sentByMe: sentByMe,
                       onReplu: (){
-                        print("clicked-========");
                         controller.scrollToChatId(data.replyToId??0);
 
                       },
@@ -929,8 +896,8 @@ class ChatScreen extends GetView<ChatScreenController> {
                               ? data.fromUser?.userCompany?.displayName ?? ''
                               : data.toUser?.userCompany?.displayName ?? '',
                       message: data.replyToText ?? '',
-
-                      orignalMsg: data.replyToText ?? '')
+                      orignalMsg: data.replyToMedia ?? ''
+          )
                   .paddingOnly(bottom: 4)
               : const SizedBox(),
           controller.user?.userCompany?.isGroup == 1
@@ -976,8 +943,8 @@ class ChatScreen extends GetView<ChatScreenController> {
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis)
                   .marginOnly(
-                  left: sentByMe ? 0 : 10,
-                  right: sentByMe ? 10 : 0,
+                  top: 8,
+
                 )
               : const SizedBox(),
           data.message != '' || data.message != null
@@ -1005,60 +972,55 @@ class ChatScreen extends GetView<ChatScreenController> {
                 )
               : const SizedBox(),
           ((data.media ?? []).isNotEmpty)
-              ? ConstrainedBox(
-                  constraints: BoxConstraints(
-                    maxWidth: Get.width * (kIsWeb ? 0.3 : 0.64),
-                  ),
-                  child: ChatMessageMedia(
-                    chat: data,
-                    isGroupMessage: data.isGroupChat == 1 ? true : false,
-                    myId: (controller.me?.userId ?? 0).toString(),
-                    fromId: (data.fromUser?.userId ?? 0).toString(),
-                    senderName: data.fromUser?.userCompany?.displayName != null
-                        ? data.fromUser?.userCompany?.displayName ?? ''
-                        : data.fromUser?.userName ?? '',
-                    baseUrl: ApiEnd.baseUrlMedia,
-                    defaultGallery: defaultGallery,
-                    onOpenDocument: (url) =>
-                        openDocumentFromUrl(url), // your existing function
-                    onOpenImageViewer: (mediaurls, startIndex) {
-                      // push your gallery view
-                      // Get.to(() => ImageViewer(urls: urls, initialIndex: startIndex));
-                      Get.to(
-                        () => GalleryViewerPage(
-                          onReply: () {
-                            Get.back();
-                            controller.refIdis = data.chatId;
-                            controller.userIDSender = data.fromUser?.userId;
-                            controller.userNameReceiver =
-                                data.toUser?.userCompany?.displayName ?? '';
-                            controller.userNameSender =
-                                data.fromUser?.userCompany?.displayName ?? '';
-                            controller.userIDReceiver = data.toUser?.userId;
-                            controller.replyToMessage = data;
-                            controller.replyToImage =
-                                data.media?[startIndex].orgFileName ?? '';
-                          },
+              ? ChatMessageMedia(
+                chat: data,
+                isGroupMessage: data.isGroupChat == 1 ? true : false,
+                myId: (controller.me?.userId ?? 0).toString(),
+                fromId: (data.fromUser?.userId ?? 0).toString(),
+                senderName: data.fromUser?.userCompany?.displayName != null
+                    ? data.fromUser?.userCompany?.displayName ?? ''
+                    : data.fromUser?.userName ?? '',
+                baseUrl: ApiEnd.baseUrlMedia,
+                defaultGallery: defaultGallery,
+                onOpenDocument: (url) =>
+                    openDocumentFromUrl(url), // your existing function
+                onOpenImageViewer: (mediaurls, startIndex) {
+                  // push your gallery view
+                  // Get.to(() => ImageViewer(urls: urls, initialIndex: startIndex));
+                  Get.to(
+                    () => GalleryViewerPage(
+                      onReply: () {
+                        Get.back();
+                        controller.refIdis = data.chatId;
+                        controller.userIDSender = data.fromUser?.userId;
+                        controller.userNameReceiver =
+                            data.toUser?.userCompany?.displayName ?? '';
+                        controller.userNameSender =
+                            data.fromUser?.userCompany?.displayName ?? '';
+                        controller.userIDReceiver = data.toUser?.userId;
+                        controller.replyToMessage = data;
+                        controller.replyToImage =
+                            data.media?[startIndex].orgFileName ?? '';
+                      },
 
-                        ),
-                        binding: BindingsBuilder(() {
-                          Get.put(GalleryViewerController(
-                              urls: mediaurls,
-                              index: startIndex,
-                              chathis: data));
-                        }),
-                        fullscreenDialog: true,
-                        transition: Transition.fadeIn,
-                      );
-                    },
-                    onOpenVideo: (url) {
-                      // open video player route/sheet if available
-                    },
-                    onOpenAudio: (url) {
-                      // open audio player route/sheet if available
-                    },
-                  ),
-                )
+                    ),
+                    binding: BindingsBuilder(() {
+                      Get.put(GalleryViewerController(
+                          urls: mediaurls,
+                          index: startIndex,
+                          chathis: data));
+                    }),
+                    fullscreenDialog: true,
+                    transition: Transition.fadeIn,
+                  );
+                },
+                onOpenVideo: (url) {
+                  // open video player route/sheet if available
+                },
+                onOpenAudio: (url) {
+                  // open audio player route/sheet if available
+                },
+              )
               : const SizedBox(),
         ],
       ),
@@ -1451,7 +1413,8 @@ class ChatScreen extends GetView<ChatScreenController> {
 
                         Focus(
                           focusNode: controller.messageParentFocus,
-                          autofocus: true,
+                          canRequestFocus: false,   // important
+                          skipTraversal: true,
                           onKeyEvent: (node, event) {
                             if (!kIsWeb) return KeyEventResult.ignored;
 
@@ -1499,6 +1462,14 @@ class ChatScreen extends GetView<ChatScreenController> {
                                       onTap: () {
                                         controller.messageInputFocus.requestFocus();
                                       },
+                                      onChanged: (v){
+                                        if(controller.textController.text!=''){
+                                          isVisibleUpload = false;
+                                        }else{
+                                          isVisibleUpload = true;
+                                        }
+                                        controller.update();
+                                      },
                                       decoration: InputDecoration(
                                         isDense: true,
                                         hintText: 'Type Something...',
@@ -1516,7 +1487,6 @@ class ChatScreen extends GetView<ChatScreenController> {
                                       ],
                                     ),
                                   ),
-
                                   // ✅ MIC button (Web only) — upload ke paas
                                   if (kIsWeb)
                                    _micButton(_appendSpeechToInput),
@@ -1536,6 +1506,34 @@ class ChatScreen extends GetView<ChatScreenController> {
                                           ),
                                           child: Icon(
                                             Icons.upload_outlined,
+                                            color: appColorGreen,
+                                          ),
+                                        ),
+                                      ),
+                                    ),
+
+                                  if (!isTaskMode)
+                                    Visibility(
+                                      visible: isVisibleUpload,
+                                      child: InkWell(
+                                        onTap: () {
+                                          openWhatsAppEmojiPicker(
+                                            context: Get.context!, // prefer widget context, not Get.context!
+                                            textController: controller.textController,
+                                            onSend: () => Get.back(),
+                                            isMobile: false
+                                          );
+                                        },
+                                        child: Container(
+                                          padding: const EdgeInsets.all(5),
+                                          margin: const EdgeInsets.all(5),
+                                          decoration: BoxDecoration(
+                                            borderRadius: BorderRadius.circular(8),
+                                            border: Border.all(color: appColorGreen),
+                                            color: appColorGreen.withOpacity(.1),
+                                          ),
+                                          child: Icon(
+                                            Icons.emoji_emotions_outlined,
                                             color: appColorGreen,
                                           ),
                                         ),
@@ -1953,6 +1951,9 @@ class ChatScreen extends GetView<ChatScreenController> {
     }
   }
 
+
+
+
   void showUploadOptions(BuildContext context) {
     if (kIsWeb) {
       showUploadOptionsWeb(context);
@@ -2114,7 +2115,7 @@ class ChatScreen extends GetView<ChatScreenController> {
       allowMultiple: false,
       type: FileType.custom,
       allowCompression: true,
-      compressionQuality: 60,
+      compressionQuality: 75,
       allowedExtensions: const [
         'pdf',
         'doc',
@@ -2212,7 +2213,7 @@ class ChatScreen extends GetView<ChatScreenController> {
                       !((data.media ?? []).isNotEmpty)
                           ? _OptionItem(
                               icon: Icon(Icons.download_rounded,
-                                  color: appColorYellow, size: 18),
+                                  color: appColorYellow, size: 16),
                               name: 'Save Image',
                               onTap: () async {
                                 try {
@@ -2229,7 +2230,7 @@ class ChatScreen extends GetView<ChatScreenController> {
 
               ((data.media ?? []).isNotEmpty || data.media?.length == 1)
                   ? _OptionItem(
-                      icon: Icon(Icons.reply, color: appColorGreen, size: 18),
+                      icon: Icon(Icons.reply, color: appColorGreen, size: 16),
                       name: 'Reply',
                       onTap: () async {
                         final media = data.media;
@@ -2268,6 +2269,7 @@ class ChatScreen extends GetView<ChatScreenController> {
                             message: msg,
                             replyToId: data.chatId,
                             replyToText: firstMedia.orgFileName,
+                            replyToMedia:msg,
                           );
 
                           controller.update();
@@ -2280,7 +2282,7 @@ class ChatScreen extends GetView<ChatScreenController> {
               ((data.media ?? []).isNotEmpty || data.media?.length == 1)?
               _OptionItem(
                     icon:  Icon(Icons.document_scanner,
-                        color: appColorYellow, size: 18),
+                        color: appColorYellow, size: 16),
                     name: 'Save to Smart Gallery',
                     onTap: () async {
                       try {
@@ -2306,7 +2308,7 @@ class ChatScreen extends GetView<ChatScreenController> {
 
               if (data.message != "" && isMe && diffMinutes <= 15)
                 _OptionItem(
-                    icon: Icon(Icons.edit, color: appColorGreen, size: 18),
+                    icon: Icon(Icons.edit, color: appColorGreen, size: 16),
                     name: 'Edit Message',
                     onTap: () {
                       Get.back();
@@ -2327,7 +2329,7 @@ class ChatScreen extends GetView<ChatScreenController> {
                   isMe)
                 _OptionItem(
                     icon: const Icon(Icons.delete_forever,
-                        color: Colors.red, size: 18),
+                        color: Colors.red, size: 16),
                     name: 'Delete Message',
                     onTap: () async {
                       Get.find<SocketController>().deleteMsgEmitter(
@@ -2344,12 +2346,18 @@ class ChatScreen extends GetView<ChatScreenController> {
 
               (data.message != null || ((data.media?.isNotEmpty ?? true) &&data.media?.length==1 ))
                   ? _OptionItem(
-                      icon: Icon(Icons.share, color: appColorGreen, size: 18),
+                      icon: Icon(Icons.share, color: appColorGreen, size: 16),
                       name: 'Share on WhatsApp',
                       onTap: () async {
                         if (kIsWeb) {
                           final msg = data.message ?? '';
-                          ShareHelper.shareOnWhatsApp(msg);
+
+                          if(msg!='') {
+                            ShareHelper.shareOnWhatsApp(msg);
+                          }else{
+                            ShareHelper.shareOnWhatsApp("${ApiEnd.baseUrlMedia}${data.media?.first.fileName??''}");
+                          }
+
                         }
                       })
                   : const SizedBox()

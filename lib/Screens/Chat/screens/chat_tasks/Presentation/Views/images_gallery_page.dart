@@ -10,13 +10,14 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:photo_view/photo_view.dart';
 import 'package:photo_view/photo_view_gallery.dart';
+import '../../../../../../Services/APIs/api_ends.dart';
 import '../../../../../../utils/save_image.dart';
 import '../../../../../../utils/share_helper.dart';
 import '../../../../models/chat_history_response_model.dart';
 import '../Controllers/gallery_view_controller.dart';
 import '../dialogs/save_in_gallery_dialog.dart';
 
-class GalleryViewerPage extends StatelessWidget {
+class GalleryViewerPage extends GetView<GalleryViewerController> {
   GalleryViewerPage({super.key,required this.onReply,this.isChat=false});
   Function() onReply;
   bool isChat;
@@ -55,7 +56,11 @@ class GalleryViewerPage extends StatelessWidget {
                     if(kIsWeb){
                       ShareHelper.shareOnWhatsApp(c.urls[c.index]);
                     }else{
-                      ShareHelper.shareNetworkImage(c.urls[c.index]);
+                      await ShareHelper.shareNetworkFile(
+                        "${ApiEnd.baseUrlMedia}${c.urls[c.index]}",
+                        text: "From AccuChat",
+                      );
+                      // ShareHelper.shareNetworkImage(c.urls[c.index]);
                     }
 
                   }
@@ -83,7 +88,8 @@ class GalleryViewerPage extends StatelessWidget {
                             // message:getFileNameFromUrl(c.urls[c.index]),
                             replyToId:c.chathis.chatId,
                             replyToText:c.urls[c.index],
-                            // replyToText:getFileNameFromUrl(c.urls[c.index]),
+                          replyToMedia: c.urls[c.index],
+                            // replyToT0ext:getFileNameFromUrl(c.urls[c.index]),
                         );
 
                     chatC.update();
@@ -136,55 +142,60 @@ class GalleryViewerPage extends StatelessWidget {
               vGap(4),
             ],
           ),
-          body: Stack(
-            children: [
-              PhotoViewGallery.builder(
-                pageController: _pageController,
-                itemCount: c.urls.length,
-                backgroundDecoration: const BoxDecoration(color: Colors.black),
-                builder: (context, index) {
-                  final url = c.urls[index];
-                  return PhotoViewGalleryPageOptions(
-                    imageProvider: CachedNetworkImageProvider(url),
-                    heroAttributes: PhotoViewHeroAttributes(tag: url),
-                    minScale: PhotoViewComputedScale.contained,
-                    maxScale: PhotoViewComputedScale.covered * 3.0,
-                    errorBuilder: (context, error, stackTrace) => Center(
-                      child: Image.asset(appIcon, fit: BoxFit.contain),
-                    ),
-                  );
-                },
-                onPageChanged: (i) => c.setIndex(i),
-                loadingBuilder: (_, __) => const Center(
-                  child: CircularProgressIndicator(),
-                ),
-              ),
-
-              // Small bottom toast for status
-              if (c.toast != null)
-                Positioned(
-                  left: 16,
-                  right: 16,
-                  bottom: 24,
-                  child: Center(
-                    child: Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-                      decoration: BoxDecoration(
-                        color: Colors.black.withOpacity(0.7),
-                        borderRadius: BorderRadius.circular(8),
-                        border: Border.all(color: Colors.white24),
-                      ),
-                      child: Text(
-                        c.toast!,
-                        style: const TextStyle(color: Colors.white),
-                      ),
-                    ),
-                  ),
-                ),
-            ],
-          ),
+          body: _mainBody(),
         );
       },
+    );
+  }
+
+
+  _mainBody(){
+    return Stack(
+      children: [
+        PhotoViewGallery.builder(
+          pageController: _pageController,
+          itemCount: controller.urls.length,
+          backgroundDecoration: const BoxDecoration(color: Colors.black),
+          builder: (context, index) {
+            final url = controller.urls[index];
+            return PhotoViewGalleryPageOptions(
+              imageProvider: CachedNetworkImageProvider(url),
+              heroAttributes: PhotoViewHeroAttributes(tag: url),
+              minScale: PhotoViewComputedScale.contained,
+              maxScale: PhotoViewComputedScale.covered * 3.0,
+              errorBuilder: (context, error, stackTrace) => Center(
+                child: Image.asset(appIcon, fit: BoxFit.contain),
+              ),
+            );
+          },
+          onPageChanged: (i) => controller.setIndex(i),
+          loadingBuilder: (_, __) => const Center(
+            child: CircularProgressIndicator(),
+          ),
+        ),
+
+        // Small bottom toast for status
+        if (controller.toast != null)
+          Positioned(
+            left: 16,
+            right: 16,
+            bottom: 24,
+            child: Center(
+              child: Container(
+                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                decoration: BoxDecoration(
+                  color: Colors.black.withOpacity(0.7),
+                  borderRadius: BorderRadius.circular(8),
+                  border: Border.all(color: Colors.white24),
+                ),
+                child: Text(
+                  controller.toast!,
+                  style: const TextStyle(color: Colors.white),
+                ),
+              ),
+            ),
+          ),
+      ],
     );
   }
 }

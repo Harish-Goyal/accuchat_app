@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:shimmer/shimmer.dart';
 
-/// Colors you mentioned (use anywhere in your UI as needed)
 const kBrandOrange = Color(0xFFffaf2c);
 const kBrandGreen  = Color(0xFF08c189);
 
@@ -20,21 +19,20 @@ class ChatHomeShimmer extends StatelessWidget {
     final base = Colors.grey.shade300;
     final highlight = Colors.grey.shade100;
 
-    return IgnorePointer( // make the skeleton non-interactive
+    return IgnorePointer(
       child: SafeArea(
-        bottom: false, // don't interfere with your bottom nav bar
+        bottom: false,
         child: Shimmer.fromColors(
           baseColor: base,
           highlightColor: highlight,
           period: const Duration(milliseconds: 1200),
           child: Column(
             children: [
-              // Header (avatar + titles + actions)
               Padding(
                 padding: padding.copyWith(bottom: 8),
                 child: Row(
                   children: [
-                    _circle(48), // profile
+                    _circle(48),
                     const SizedBox(width: 12),
                     Expanded(
                       child: Column(

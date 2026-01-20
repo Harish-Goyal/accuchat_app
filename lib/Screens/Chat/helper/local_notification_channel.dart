@@ -56,9 +56,9 @@ class LocalNotificationService {
       final senderId = (APIs.me.userId).toString().trim();
       final receiverId = (data['user_id'] ?? '').toString().trim();
 
-      print(
+      debugPrint(
           '🔔 FCM received: sender=$senderId, receiver=$receiverId, me=$meId');
-      print('🔔 Notification Data =${data}');
+      debugPrint('🔔 Notification Data =${data}');
 
       // 1️⃣ Skip if self not logged in properly
       if (meId == null || meId.isEmpty) return;
@@ -68,7 +68,6 @@ class LocalNotificationService {
 
       // 3️⃣ Skip if message is from self OR to self
       if (senderId == meId || receiverId == meId && senderId == meId) {
-        print('🔕 Skipping self-message notification');
         return;
       }
 
@@ -97,8 +96,8 @@ class LocalNotificationService {
       final data = message.data;
       String? type;
       type = data['messageType'];
-      print('🔔 Notification Data onMessageOpenedApp =${message.data}');
-      print('🔔 Notification tapped. Type: $type');
+      debugPrint('🔔 Notification Data onMessageOpenedApp =${message.data}');
+      debugPrint('🔔 Notification tapped. Type: $type');
 
       UserDataAPI remoteUser = UserDataAPI();
       final normalized = Map<String, dynamic>.from(message.data);

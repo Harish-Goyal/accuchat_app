@@ -7,6 +7,7 @@ import 'package:get/get.dart';
 import '../../../../Constants/colors.dart';
 import '../../../../utils/common_textfield.dart';
 import '../Controller/create_new_folder_dialog_controller.dart';
+import 'genre_view.dart';
 
 Future<String?> showCreateFolderDialog({
   required Future<void> Function(String name) onCreate,
@@ -21,8 +22,7 @@ Future<String?> showCreateFolderDialog({
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
         backgroundColor: Colors.white,
         child: Container(
-          height: 300,
-          width: 400,
+          width: 420,
           child: LayoutBuilder(
             builder: (context, constraints) {
               final maxW = constraints.maxWidth;
@@ -70,7 +70,9 @@ Future<String?> showCreateFolderDialog({
                           return value?.isEmptyField(messageTitle: "Folder name");
                         },
                       ),
-
+                      vGap(12),
+                      GenreInputGetX(),
+                      vGap(12),
                       // Inline error (simple)
                       if (c.error.value.isNotEmpty) ...[
                         const SizedBox(height: 8),

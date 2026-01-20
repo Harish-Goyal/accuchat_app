@@ -222,6 +222,7 @@ class SocketController extends GetxController with WidgetsBindingObserver {
             broadcastUserId: receivedMessageDataModal.broadcastUserId,
             replyToId: receivedMessageDataModal.replyToId,
             replyToText: receivedMessageDataModal.replyToText,
+            replyToMedia: receivedMessageDataModal.replyToMedia,
             replyToTime: receivedMessageDataModal.replyToTime,
             replyToName: receivedMessageDataModal.replyToName,
             media: receivedMessageDataModal.media,
@@ -445,6 +446,7 @@ class SocketController extends GetxController with WidgetsBindingObserver {
             old.replyToId = updated.replyToId ?? old.replyToId;
             old.replyToText = updated.replyToText ?? old.replyToText;
             old.replyToTime = updated.replyToTime ?? old.replyToTime;
+            old.replyToMedia = updated.replyToMedia ?? old.replyToMedia;
             old.replyToName = updated.replyToName ?? old.replyToName;
             old.media = (updated.media?.isNotEmpty ?? false)
                 ? updated.media

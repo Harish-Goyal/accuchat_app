@@ -144,7 +144,7 @@ class ReplyMessageWidget extends StatelessWidget {
              mainAxisAlignment: MainAxisAlignment.start,
              // mainAxisSize: MainAxisSize.min,
              children: [
-               Icon(iconForFile(message??''), size: 20, color: Colors.indigo),
+               Icon(iconForFile(orignalMsg??''), size: 20, color: Colors.indigo),
                const SizedBox(width: 5),
                Expanded(
                  child: Text(

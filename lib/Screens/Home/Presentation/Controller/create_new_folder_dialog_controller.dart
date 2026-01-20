@@ -37,7 +37,7 @@ class CreateFolderDialogController extends GetxController {
 
   @override
   void onClose() {
-    nameController.dispose();
+    // nameController.dispose();
     super.onClose();
   }
 }

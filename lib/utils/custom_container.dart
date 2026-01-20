@@ -23,7 +23,7 @@ class CustomContainer extends StatelessWidget {
     borderRadius: BorderRadius.circular(radius??12),
     color:color?? whiteColor,
       boxShadow: [
-        BoxShadow(color: Colors.grey.shade300,blurRadius:elevation?? 10)
+        BoxShadow(color:color?? whiteColor,blurRadius:elevation?? 10)
       ],
       border: Border.all(color:brcolor??Colors.transparent)
 

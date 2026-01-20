@@ -21,7 +21,6 @@ class BroadcastCreateDialog extends GetView<CreateBroadcastsController> {
         builder: (context, constraints) {
           final w = constraints.maxWidth;
 
-          // Responsive max width for the dialog
           double maxW;
           EdgeInsets inset;
           if (w >= 1400) {

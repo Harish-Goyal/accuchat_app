@@ -9,9 +9,7 @@ import 'package:AccuChat/Screens/Chat/screens/chat_tasks/Presentation/Views/add_
 import 'package:AccuChat/Screens/Chat/screens/chat_tasks/Presentation/Views/add_group_members_screens.dart';
 import 'package:AccuChat/Screens/Chat/screens/chat_tasks/Presentation/Views/all_users_screen.dart';
 import 'package:AccuChat/Screens/Chat/screens/chat_tasks/Presentation/Views/chat_home_screen.dart';
-import 'package:AccuChat/Screens/Chat/screens/chat_tasks/Presentation/Views/chat_screen.dart';
 import 'package:AccuChat/Screens/Chat/screens/chat_tasks/Presentation/Views/taskThreadScreenWEb.dart';
-import 'package:AccuChat/Screens/Chat/screens/chat_tasks/Presentation/Views/task_chat_screen.dart';
 import 'package:AccuChat/Screens/Chat/screens/chat_tasks/Presentation/Views/task_treads_screen.dart';
 import 'package:AccuChat/Screens/Chat/screens/chat_tasks/Presentation/Views/view_profile_screen.dart';
 import 'package:AccuChat/Screens/Home/Presentation/View/companies_screen.dart';
@@ -29,9 +27,7 @@ import 'package:get/get.dart';
 import '../Screens/Chat/screens/auth/Presentation/Views/landing_screen.dart';
 import '../Screens/Chat/screens/chat_tasks/Bindings/bindings.dart';
 import '../Screens/Chat/screens/chat_tasks/Presentation/Controllers/chat_home_controller.dart';
-import '../Screens/Chat/screens/chat_tasks/Presentation/Views/chat_groups.dart';
 import '../Screens/Chat/screens/chat_tasks/Presentation/Views/chat_screen_mobile.dart';
-import '../Screens/Chat/screens/chat_tasks/Presentation/Views/chats_broadcasts.dart';
 import '../Screens/Chat/screens/chat_tasks/Presentation/Views/create_broadcast_dialog_screen.dart';
 import '../Screens/Chat/screens/chat_tasks/Presentation/Views/show_groups_members_screen.dart';
 import '../Screens/Chat/screens/chat_tasks/Presentation/Views/task_chat_screen_mobile.dart';
@@ -42,7 +38,6 @@ import '../Screens/Home/Presentation/View/show_company_members.dart';
 import '../Screens/Settings/Presentation/Views/role_list_screen.dart';
 import '../Screens/splash/binding/binding.dart';
 import '../Screens/splash/presentation/views/splash_screen.dart';
-import '../Services/APIs/local_keys.dart';
 import '../main.dart';
 import '../utils/notification_redirects.dart';
 import 'app_routes.dart';
@@ -141,11 +136,6 @@ class AppPages {
       bindings: [AllUserScreenBinding()],
     ),
     GetPage(
-      name: AppRoutes.GroupChatRoute,
-      page: () => GroupChatScreen(),
-      bindings: [GroupChatBinding()],
-    ),
-    GetPage(
       name: AppRoutes.main_chats_r,
       page: () => ChatsHomeScreen(),
       bindings: [ChatHomeBinding()],
@@ -159,11 +149,6 @@ class AppPages {
       name: AppRoutes.tasks_li_r,
       page: () => TaskScreenMobile(),
       bindings: [TaskScreenBinding()],
-    ),
-    GetPage(
-      name: AppRoutes.chats_broadcasts,
-      page: () => BroadcastChatScreen(),
-      bindings: [ChatBroadcastBinding()],
     ),
     GetPage(
       name: AppRoutes.create_broadcast_dialog,

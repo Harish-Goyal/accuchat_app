@@ -125,6 +125,7 @@ class _ChatUserCardState extends State<ChatUserCard>
                     final chatc = Get.find<ChatScreenController>();
                     // homec.page = 1;
                     // homec.hitAPIToGetRecentChats();
+                    chatc.textController.clear();
                     chatc.replyToMessage=null;
                     homec.selectedChat.value = widget.user;
                     chatc.user =homec.selectedChat.value;

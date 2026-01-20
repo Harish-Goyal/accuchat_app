@@ -1,7 +1,16 @@
+import 'dart:io';
+import 'dart:typed_data';
+
+import 'package:file_picker/file_picker.dart';
 import 'package:flutter/cupertino.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:image_picker/image_picker.dart';
 
+import '../../../../utils/custom_flashbar.dart';
+import '../../../../utils/helper_widget.dart';
+import '../../../Chat/helper/dialogs.dart';
 import '../../../Chat/models/gallery_node.dart';
 
 
@@ -321,6 +330,188 @@ class GalleryController extends GetxController with GetSingleTickerProviderState
     }
     for (final f in _focusNodes.values) {
       f.dispose();
+    }
+  }
+
+
+  Future<List<XFile>> pickWebImages({int maxFiles = 10}) async {
+    final result = await FilePicker.platform.pickFiles(
+      allowMultiple: true,
+      type: FileType.custom,
+      compressionQuality: 75,
+      allowCompression: true,
+      allowedExtensions: const [
+        'jpg',
+        'jpeg',
+        'png',
+        'webp',
+        'JPG',
+        "JPEG",
+        "PNG",
+        "WEBP"
+      ],
+      withData: true,
+      withReadStream: false,
+    );
+
+    if (result == null || result.files.isEmpty) return [];
+
+    final files = result.files.take(maxFiles).where((f) => f.bytes != null);
+    final xfiles = <XFile>[];
+    for (final f in files) {
+      final String name = f.name;
+      final Uint8List bytes = f.bytes!;
+      // best effort mime guess
+      final String mime = _guessImageMime(name);
+      xfiles.add(XFile.fromData(
+        bytes,
+        name: name,
+        mimeType: mime,
+        length: bytes.length,
+      ));
+    }
+    return xfiles;
+  }
+
+  String _guessImageMime(String name) {
+    final lower = name.toLowerCase();
+    if (lower.endsWith('.png')) return 'image/png';
+    if (lower.endsWith('.webp')) return 'image/webp';
+    if (lower.endsWith('.jpg') || lower.endsWith('.jpeg')) return 'image/jpeg';
+    return 'image/*';
+  }
+
+
+
+  int maxBytes = 15 * 1024 * 1024;
+  Future<List<PlatformFile>> pickWebDocs() async {
+    final result = await FilePicker.platform.pickFiles(
+      allowMultiple: false,
+      type: FileType.custom,
+      allowCompression: true,
+      compressionQuality: 75,
+      allowedExtensions: const [
+        'pdf',
+        'doc',
+        'docx',
+        'txt',
+        'xls',
+        'xlsx',
+        'csv',
+        'xml',
+        'json',
+        'ppt',
+        'pptx',
+        'zip',
+        'rar',
+        'PDF',
+        'DOC',
+        'DOCX',
+        'TXT',
+        'XLS',
+        'XLSX',
+        'CSV',
+        'XML',
+        'JSON',
+        'PPT',
+        'PPTX',
+        'ZIP',
+        'RAR',
+      ],
+      withData: true,
+      withReadStream: false,
+    );
+    if (result == null || result.files.isEmpty) return [];
+
+    final f = result.files.single;
+
+    // ✅ Scenario 1: path missing
+    if (f.path == null) {
+      errorDialog("❌ File path not found");
+      return [];
+    }
+    if (f.size > maxBytes) {
+      Dialogs.showSnackbar(Get.context!, "❌ File must be less than 15 MB");
+      return [];
+    }
+
+    return result.files;
+  }
+
+  Future<void> pickDocument() async {
+    final permission = await requestStoragePermission();
+    if (!permission) {
+      errorDialog("❌ Storage permission denied");
+      return;
+    }
+
+    // isUploading = true;
+    // update();
+
+    final result = await FilePicker.platform.pickFiles(
+      allowMultiple: false,
+      type: FileType.custom,
+      allowCompression: true,
+      compressionQuality: 75,
+      withData: kIsWeb,
+      allowedExtensions: [
+        'pdf',
+        'doc',
+        'docx',
+        'txt',
+        'xls',
+        'xlsx',
+        'csv',
+        'xml',
+        'json',
+        'ppt',
+        'pptx',
+        'zip',
+        'rar',
+        'PDF',
+        'DOC',
+        'DOCX',
+        'TXT',
+        'XLS',
+        'XLSX',
+        'CSV',
+        'XML',
+        'JSON',
+        'PPT',
+        'PPTX',
+        'ZIP',
+        'RAR',
+      ],
+    );
+    if (result == null || result.files.isEmpty) return;
+
+    final f = result.files.single;
+
+    // ✅ Scenario 1: path missing
+    if (f.path == null) {
+      errorDialog("❌ File path not found");
+      return;
+    }
+    final actualBytes = await File(f.path!).length(); // reliable on mobile
+    if (actualBytes > maxBytes) {
+      Dialogs.showSnackbar(Get.context!, "❌ File must be less than 15 MB");
+      return;
+    }
+
+    if (result != null && result.files.single.path != null) {
+      File file = File(result.files.single.path!);
+      var ext = file.path.split('.').last;
+      final fileName =
+          'DOC_${DateTime.now().millisecondsSinceEpoch}_${result.files.single.name}';
+      // uploadDocumentsApiCall(
+      //   files: result.files,
+      //   onProgress: (sent, total) {
+      //     setUploadProgress(sent, total);
+      //   },
+      // );
+      //
+      // isUploading = false;
+      update();
     }
   }
 

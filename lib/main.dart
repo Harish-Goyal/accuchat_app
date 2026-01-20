@@ -228,7 +228,7 @@ _initializeFirebase() async {
       options: DefaultFirebaseOptions.currentPlatform,
     );
   } on FirebaseException catch (e) {
-    print('Firebase error: ${e.message}');
+    debugPrint('Firebase error: ${e.message}');
   }
 }
 
@@ -240,10 +240,9 @@ Future<void> firebaseMessagingBackgroundHandler(
     options: DefaultFirebaseOptions.currentPlatform,
   );
 
-  print('📩 Background message received: ${message}');
-  print('📩 Background message received: ${message.data}');
-  print('📩 Background message received: ${message.messageType}');
-  print('📩 Background message received: ${message.notification}');
+  debugPrint('📩 Background message received: ${message}');
+  debugPrint('📩 Background message received: ${message.data}');
+
 }
 
 class MyApp extends StatelessWidget {

@@ -81,6 +81,7 @@ class ChatHisList {
   String? replyToText;
   String? replyToTime;
   String? replyToName;
+  String? replyToMedia;
   List<MediaList>? media;
 
   ChatHisList({this.chatId,this.replyToId,
@@ -89,6 +90,7 @@ class ChatHisList {
     this.readOn,
     this.pendingCount,
     this.replyToTime,
+    this.replyToMedia,
     this.replyToName,
     this.media,this.isGroupChat,this.broadcastUserId,this.isActivity, this.fromUser, this.toUser, this.message, this.sentOn});
 
@@ -98,6 +100,7 @@ class ChatHisList {
     isForwarded = json['is_forwarded'];
     pendingCount = json['pending-count'];
     replyToText = json['reply_to_text'];
+    replyToMedia = json['reply_to_media'];
     replyToName = json['reply_to_name'];
     readOn=json['read_on'];
     replyToTime = json['reply_to_time'];
@@ -142,6 +145,7 @@ class ChatHisList {
     data['reply_to_id'] = this.replyToId;
     data['reply_to_text'] = this.replyToText;
     data['reply_to_time'] = this.replyToTime;
+    data['reply_to_media'] = this.replyToMedia;
     data['broadcast_user_id'] = this.broadcastUserId;
     if (this.fromUser != null) {
       data['from_user'] = this.fromUser!.toJson();

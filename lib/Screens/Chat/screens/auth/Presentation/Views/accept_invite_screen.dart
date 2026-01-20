@@ -28,6 +28,7 @@ class AcceptInvitationScreen extends GetView<AcceptInviteController> {
 
               child: SizedBox(
                   height: Get.height*.6,
+                  width:  Get.width * 0.8,
                   child: DataNotFoundText())):
           ListView.builder(
             shrinkWrap: true,
@@ -35,60 +36,57 @@ class AcceptInvitationScreen extends GetView<AcceptInviteController> {
             itemBuilder: (context, i) {
               final invites = controller.pendingInvitesList[i];
 
-              return SizedBox(
-                // height: MediaQuery.of(context).size.height * 0.8,
-                child: CustomContainer(
-                  color: Colors.white,
-                  vPadding: 15,
-                  childWidget: Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      SizedBox(
-                          width:50,
-                          child:
+              return CustomContainer(
+                color: Colors.white,
+                vPadding: 15,
+                childWidget: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    SizedBox(
+                        width:50,
+                        child:
 
-                          CustomCacheNetworkImage(
-                            "${ApiEnd.baseUrlMedia}${invites.company?.logo ?? ''}",
-                            height: 50,
-                            width: 50,
+                        CustomCacheNetworkImage(
+                          "${ApiEnd.baseUrlMedia}${invites.company?.logo ?? ''}",
+                          height: 50,
+                          width: 50,
 
-                            boxFit: BoxFit.cover,
-                            radiusAll: 100,
-                            borderColor: greyText,
-                          )),
-                      hGap(10),
-                      Expanded(
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text(
-                              "Invited via, ",
-                              style: BalooStyles.balooregularTextStyle(),
-                            ),
-                            vGap(4),
-                            Text(
-                              (invites.company?.companyName ?? ''),
-                              maxLines: 1,
-                              overflow: TextOverflow.ellipsis,
-                              style: BalooStyles.baloosemiBoldTextStyle(),
-                            ),
-                          ],
-                        ),
+                          boxFit: BoxFit.cover,
+                          radiusAll: 100,
+                          borderColor: greyText,
+                        )),
+                    hGap(10),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            "Invited via, ",
+                            style: BalooStyles.balooregularTextStyle(),
+                          ),
+                          vGap(4),
+                          Text(
+                            (invites.company?.companyName ?? ''),
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                            style: BalooStyles.baloosemiBoldTextStyle(),
+                          ),
+                        ],
                       ),
-                      dynamicButton(
-                        btnColor: appColorGreen,
-                        onTap: () async=>  controller.hitAPIToAcceptInvite(invites.inviteId,invites.company?.companyId),
-                        gradient: buttonGradient,
-                        vPad: 8,
-                        name: "Accept",
-                        isShowText: true,
-                        isShowIconText: false,
-                        leanIcon: null,
-                      ).paddingSymmetric(vertical: 8)
-                    ],
-                  ),
-                ).paddingSymmetric(horizontal: 15, vertical: 12),
-              );
+                    ),
+                    dynamicButton(
+                      btnColor: appColorGreen,
+                      onTap: () async=>  controller.hitAPIToAcceptInvite(invites.inviteId,invites.company?.companyId),
+                      gradient: buttonGradient,
+                      vPad: 8,
+                      name: "Accept",
+                      isShowText: true,
+                      isShowIconText: false,
+                      leanIcon: null,
+                    ).paddingSymmetric(vertical: 8)
+                  ],
+                ),
+              ).paddingSymmetric(horizontal: 15, vertical: 12);
             },
           );
         }

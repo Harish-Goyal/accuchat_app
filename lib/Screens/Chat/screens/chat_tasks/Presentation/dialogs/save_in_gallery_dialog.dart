@@ -10,6 +10,7 @@ import '../../../../../../utils/custom_dialogue.dart';
 import '../../../../../../utils/gradient_button.dart';
 import '../../../../../../utils/helper_widget.dart';
 import '../../../../../../utils/text_style.dart';
+import '../../../../../Home/Presentation/View/create_folder_dialog.dart';
 import '../Controllers/save_in_accuchat_gallery_controller.dart';
 
 class SaveToCustomFolderDialog extends StatelessWidget {
@@ -105,7 +106,24 @@ class SaveToCustomFolderDialog extends StatelessWidget {
 
                   vGap(12),
 
-                  _createFolder(),
+                  IconButton(
+
+                    onPressed: () async {
+                      final name = await showCreateFolderDialog(
+                        onCreate: (folderName) async {
+                          // TODO: your API or local create
+                          // hit get api;
+                        },
+                      );
+
+                      if (name != null) {
+                        // success
+                        // Get.snackbar("Created", name);
+                      }
+                    },
+                    icon:    Text('Create a new folder'),
+
+                  ),
 
                   vGap(12),
 

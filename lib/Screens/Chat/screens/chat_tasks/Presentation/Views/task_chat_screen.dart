@@ -127,139 +127,62 @@ class TaskScreen extends GetView<TaskController> {
             onTap: () => FocusScope.of(context).unfocus(),
             child: SafeArea(
               child: WillPopScope(
-                //if emojis are shown & back button is pressed then hide emojis
-                //or else simple close current screen on back button click
                 onWillPop: () {
                   Get.find<TaskHomeController>().hitAPIToGetRecentTasksUser();
                   return Future.value(true);
                 },
                 child: SafeArea(
                   child: Scaffold(
-                    //app bar
-                    appBar: AppBar(
-                      backgroundColor: Colors.white, // white color
-                      elevation: 1, // remove shadow
-                      scrolledUnderElevation:
-                          0, // ✨ prevents color change on scroll
-                      surfaceTintColor: Colors.white,
-                      automaticallyImplyLeading: false,
-                      flexibleSpace: MediaQuery(
-                        // ✅ clamp text scale for web
-                        data: MediaQuery.of(context).copyWith(
-                            textScaleFactor: _textScaleClamp(context)),
-                        child: _appBar(),
-                      ),
-                    ),
-
+                    appBar:_appBarWidget(),
                     backgroundColor: const Color.fromARGB(255, 234, 248, 255),
-
-                    //body
-                    body: ScrollConfiguration(
-                      // ✅ nicer scrolling on web + no glow
-                      behavior: const _NoGlowScrollBehavior(),
-                      child: Center(
-                        // ✅ center content on wide screens
-                        child: ConstrainedBox(
-                          constraints:
-                              BoxConstraints(maxWidth: _maxChatWidth(context)),
-                          child: Padding(
-                            padding: _shellHPadding(context),
-                            child: Column(
-                              children: [
-                                Expanded(
-                                    child: RepaintBoundary(
-                                        child: chatMessageBuilder())),
-
-                                //TODO
-                                if (controller.replyToMessage != null)
-                                  Container(
-                                    padding: const EdgeInsets.all(8),
-                                    margin: const EdgeInsets.only(
-                                        bottom: 4, left: 8, right: 8),
-                                    decoration: BoxDecoration(
-                                      color: Colors.white54,
-                                      border: Border.all(
-                                          color: appColorGreen, width: .4),
-                                      borderRadius: BorderRadius.circular(8),
-                                    ),
-                                    child: Row(
-                                      children: [
-                                        Icon(Icons.reply, color: appColorGreen),
-                                        const SizedBox(width: 8),
-                                        Expanded(
-                                          child: Text(
-                                            "${controller.replyToMessage?.fromUser?.userId == APIs.me?.userId ? 'You' : controller.user?.userCompany?.displayName ?? ''}: ${controller.replyToMessage?.message ?? ''}",
-                                            maxLines: 1,
-                                            overflow: TextOverflow.ellipsis,
-                                            style: themeData.textTheme.bodySmall
-                                                ?.copyWith(color: greyText),
-                                          ) /*:SizedBox()*/,
-                                        ),
-                                        IconButton(
-                                            icon: const Icon(
-                                              Icons.close,
-                                              color: blueColor,
-                                            ),
-                                            onPressed: () {
-                                              controller.replyToMessage = null;
-                                              controller.update();
-                                            }),
-                                      ],
-                                    ),
-                                  ),
-                                if (controller.isUploading)
-                                  const Align(
-                                      alignment: Alignment.centerRight,
-                                      child: Padding(
-                                          padding: EdgeInsets.symmetric(
-                                              vertical: 8, horizontal: 20),
-                                          child: CircularProgressIndicator(
-                                              strokeWidth: 2))),
-
-                                (controller.uploadProgress > 0 &&
-                                        controller.uploadProgress < 100)
-                                    ? Column(
-                                        children: [
-                                          LinearProgressIndicator(
-                                            value: controller.uploadProgress /
-                                                100, // 0.0 → 1.0
-                                            backgroundColor: Colors.grey[300],
-                                            color: Colors.blue,
-                                            minHeight: 6,
-                                          ),
-                                          const SizedBox(height: 4),
-                                          Text(
-                                              "${controller.uploadProgress.toStringAsFixed(0)}%"),
-                                        ],
-                                      )
-                                    : const SizedBox.shrink(),
-
-                                _chatInput(),
-                                //show emojis on keyboard emoji button click & vice versa
-                                // if (_showEmoji)
-                                // SizedBox(
-                                //   height: mq.height * .35,
-                                //   child: EmojiPicker(
-                                //     textEditingController: _textController,
-                                //     config: Config(
-                                //       bgColor: const Color.fromARGB(255, 234, 248, 255),
-                                //       columns: 8,
-                                //       emojiSizeMax: 32 * (Platform.isIOS ? 1.30 : 1.0),
-                                //     ),
-                                //   ),
-                                // )
-                              ],
-                            ),
-                          ),
-                        ),
-                      ),
-                    ),
+                    body: _mainBody(),
                   ),
                 ),
               ),
             ),
           );
         });
+  }
+
+  AppBar _appBarWidget(){
+    return  AppBar(
+      backgroundColor: Colors.white,
+      elevation: 1,
+      scrolledUnderElevation:
+      0,
+      surfaceTintColor: Colors.white,
+      automaticallyImplyLeading: false,
+      flexibleSpace: MediaQuery(
+        data: MediaQuery.of(Get.context!).copyWith(
+            textScaleFactor: _textScaleClamp(Get.context!)),
+        child: _appBar(),
+      ),
+    );
+  }
+
+  Widget _mainBody(){
+    return ScrollConfiguration(
+      behavior: const _NoGlowScrollBehavior(),
+      child: Center(
+        child: ConstrainedBox(
+          constraints:
+          BoxConstraints(maxWidth: _maxChatWidth(Get.context!)),
+          child: Padding(
+            padding: _shellHPadding(Get.context!),
+            child: Column(
+              children: [
+                Expanded(
+                    child: RepaintBoundary(
+                        child: chatMessageBuilder())),
+
+                _chatInput(),
+
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
   }
 
   Widget chatMessageBuilder() {
@@ -1248,7 +1171,7 @@ class TaskScreen extends GetView<TaskController> {
     return Container(
       // height: Get.height*.4,
       padding: EdgeInsets.symmetric(
-          vertical: mq.height * .01, horizontal: mq.width * .025),
+          vertical: 8, horizontal: 12),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.end,
         children: [
@@ -1272,7 +1195,7 @@ class TaskScreen extends GetView<TaskController> {
                       children: [
                         ConstrainedBox(
                           constraints: BoxConstraints(
-                              maxHeight: Get.height * .4, minHeight: 40),
+                              maxHeight: 48, minHeight: 48),
                           child: Container(
                             // color: Colors.red,
                             decoration: BoxDecoration(
@@ -1328,7 +1251,7 @@ class TaskScreen extends GetView<TaskController> {
                                       hintText:
                                           'Tap here to show task dialog...',
                                       hintStyle: themeData.textTheme.bodySmall,
-                                      contentPadding: const EdgeInsets.all(8),
+                                      contentPadding: const EdgeInsets.all(5),
                                       border: InputBorder.none,
                                       enabledBorder: InputBorder.none,
                                       disabledBorder: InputBorder.none,
@@ -1541,7 +1464,6 @@ class TaskScreen extends GetView<TaskController> {
                       controller.update();
                     }
                   } catch (e) {
-                    print(e.toString());
                     setStateInside(() {
                       controller.isUploadingTaskDoc = true;
                     });
@@ -1585,7 +1507,6 @@ class TaskScreen extends GetView<TaskController> {
                       });
                     }
                   } catch (e) {
-                    print(e.toString());
                     setStateInside(() {
                       controller.isUploadingTaskDoc = true;
                     });
@@ -1773,7 +1694,6 @@ class TaskScreen extends GetView<TaskController> {
                         spacing: 8,
                         runSpacing: 8,
                         children: controller.attachedFiles.map((file) {
-                          print(controller.attachedFiles.map((v) => v));
                           final String type = file['type'];
                           final String name = file['name'];
                           final url = file['file'];
@@ -2266,7 +2186,6 @@ class TaskScreen extends GetView<TaskController> {
             path.endsWith('.JPEG') ||
             path.endsWith('.webp');
         path.endsWith('.WEBP');
-        print(att.fileName);
 
         _editAttachedFiles.add({
           'type': isImage ? 'image' : 'doc',
