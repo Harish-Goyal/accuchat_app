@@ -47,9 +47,9 @@ class ChatScreenController extends GetxController {
   List<ChatHisResModel> msgList = [];
   final textController = TextEditingController();
   final FocusNode focusNode = FocusNode();
-  FocusNode messageParentFocus = FocusNode(); // for keyboard events only
-  FocusNode messageInputFocus = FocusNode();
+  late FocusNode messageParentFocus;
   ChatHisList? replyToMessage;
+  late FocusNode messageInputFocus;
   String? replyToImage;
   bool showEmoji = false, isUploading = false, isUploadingTaskDoc = false;
   File? file;
@@ -247,6 +247,8 @@ class ChatScreenController extends GetxController {
   @override
   void onInit() {
     super.onInit();
+    messageParentFocus = FocusNode();
+    messageInputFocus = FocusNode();
     _getCompany();
     scrollListener();
     if(Get.isRegistered<ChatHomeController>()){
@@ -419,7 +421,7 @@ class ChatScreenController extends GetxController {
     Future.delayed(const Duration(milliseconds: 500), () {
       resetPaginationForNewChat();
       hitAPIToGetChatHistory();
-      messageInputFocus.requestFocus();
+      // messageInputFocus.requestFocus();
       if (user?.userCompany?.isGroup == 1 ||
           user?.userCompany?.isBroadcast == 1) {
         hitAPIToGetMembers(user);

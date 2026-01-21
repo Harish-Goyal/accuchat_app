@@ -1,7 +1,14 @@
 import 'dart:math';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:get/get.dart';
+import '../../../../../../Services/APIs/post/post_api_service_impl.dart';
+import '../../../../../../main.dart';
+import '../../../../../../utils/custom_flashbar.dart';
+import '../../../../../Home/Models/get_folder_res_model.dart';
+import '../../../../../Home/Presentation/Controller/company_service.dart';
 import '../../../../models/gallery_create.dart';
+import '../../../../models/get_company_res_model.dart';
 import '../Widgets/create_custom_folder.dart';
 
 
@@ -13,28 +20,42 @@ class SaveToGalleryController extends GetxController {
   final TextEditingController newFolderCtrl = TextEditingController();
   final FocusNode newFolderFocus = FocusNode();
 
-  String? currentParentId;            // null = Root
-  List<GalleryFolder> breadcrumb = []; // Root -> ...
-  List<GalleryFolder> currentFolders = []; // UI ye list show kare
+  int? currentParentId;            // null = Root
+  // List<FolderData> currentFolders = []; // UI ye list show kare
+
+  GetFolderResModel getFolderRes =GetFolderResModel();
+
+  List<FolderData>? folderList = [];
+
+  bool isLoading =false;
+
+  hitApiToGetFolder() async {
+    SystemChannels.textInput.invokeMethod('TextInput.hide');
+    isLoading=true;
+    update();
+    Get.find<PostApiServiceImpl>()
+        .getFolderApiCall(myCompany?.userCompanies?.userCompanyId)
+        .then((value) {
+      isLoading=false;
+      update();
+      getFolderRes = value;
+      folderList = getFolderRes.data?.rows??[];
+      toast(value.message??'');
+      update();
+    }).onError((error, stackTrace) {
+      isLoading=false;
+      update();
+      customLoader.hide();
+      errorDialog(error.toString());
+    }).whenComplete(() {});
+  }
 
 
-  // Gallery
-  final List<GalleryFolder> folders = [
-    GalleryFolder(id: 'fld_1', name: 'Invoices', parentId: null, createdAt: DateTime.now()),
-    GalleryFolder(id: 'fld_2', name: 'Design Assets', parentId: null, createdAt: DateTime.now()),
-    GalleryFolder(id: 'fld_3', name: 'Client Docs', parentId: null, createdAt: DateTime.now()),
-
-    // children of Invoices
-    GalleryFolder(id: 'fld_11', name: '2025', parentId: 'fld_1', createdAt: DateTime.now()),
-    GalleryFolder(id: 'fld_12', name: '2024', parentId: 'fld_1', createdAt: DateTime.now()),
-  ];
-
-
-  String? selectedFolderId;
+  int? selectedFolderId;
   bool showCreateNew = false;
   String? validationError;
 
-  void selectFolder(String? id) {
+  void selectFolder(int? id) {
     selectedFolderId = id;
     update();
   }
@@ -50,8 +71,8 @@ class SaveToGalleryController extends GetxController {
   }
 
   bool _isUniqueName(String name) {
-    return !folders
-        .any((f) => f.name.toLowerCase() == name.trim().toLowerCase());
+    return !(folderList??[])
+        .any((f) => (f.folderName??'').toLowerCase() == name.trim().toLowerCase());
   }
 
   /// Validator used by CustomTextField
@@ -76,59 +97,39 @@ class SaveToGalleryController extends GetxController {
     return null;
   }
 
-  GalleryFolder? createFolder() {
-    // Run validators
-    final valid = formKeyDoc.currentState?.validate() ?? false;
-    if (!valid) return null;
 
-    final name = newFolderCtrl.text.trim();
-    final id = 'fld_${Random().nextInt(999999)}';
-    final folder = GalleryFolder(id: id, name: name, createdAt: DateTime.now(),parentId: Random().nextInt(222).toString());
-    folders.insert(0, folder);
-
-    // Auto-select the newly created folder
-    selectedFolderId = folder.id;
-
-    // Reset create-new UI
-    showCreateNew = false;
-    newFolderCtrl.clear();
-    update();
-    return folder;
-  }
-
-  GalleryFolder? get selectedFolder {
+  FolderData? get selectedFolder {
     if (selectedFolderId == null) return null;
-    return folders.firstWhereOrNull((f) => f.id == selectedFolderId);
+    return (folderList??[]).firstWhereOrNull((f) => f.userGalleryId == selectedFolderId);
   }
 
   void onTapSaveToFolder(BuildContext context, user) async {
      Get.back();
-
-      Get.snackbar('Saved', 'Item saved w2',
-          snackPosition: SnackPosition.BOTTOM,
-          backgroundColor: Colors.white,
-          colorText: Colors.black87,duration: Duration(seconds: 6));
+     Get.snackbar('Saved', 'Item saved w2',
+         snackPosition: SnackPosition.BOTTOM,
+         backgroundColor: Colors.white,
+         colorText: Colors.black87,duration: Duration(seconds: 6));
   }
 
-  void loadFolders({String? parentId}) {
+  void loadFolders({int? parentId}) {
     currentParentId = parentId;
-    currentFolders = folders.where((f) => f.parentId == parentId).toList();
+    // currentFolders =  (folderList??[]).where((f) => f.userGalleryId == parentId).toList();
     update();
   }
 
   void openFolder(GalleryFolder folder) {
     // ✅ Guard: same folder already open, don't push again
-    if (currentParentId == folder.id) return;
+    // if (currentParentId == folder.id) return;
 
     // ✅ Guard: if last breadcrumb same, don't duplicate
-    if (breadcrumb.isNotEmpty && breadcrumb.last.id == folder.id) return;
-
-    breadcrumb.add(folder);
-    loadFolders(parentId: folder.id);
+    // if (breadcrumb.isNotEmpty && breadcrumb.last.id == folder.id) return;
+    //
+    // breadcrumb.add(folder);
+    // loadFolders(parentId: folder.id);
   }
 
   void goRoot() {
-    breadcrumb.clear();
+    // breadcrumb.clear();
     loadFolders(parentId: null);
   }
 
@@ -137,64 +138,27 @@ class SaveToGalleryController extends GetxController {
       goRoot();
       return;
     }
-    final target = breadcrumb[index];
-    breadcrumb = breadcrumb.take(index + 1).toList();
-    loadFolders(parentId: target.id);
+    // final target = breadcrumb[index];
+    // breadcrumb = breadcrumb.take(index + 1).toList();
+    // loadFolders(parentId: target.id);
   }
-
-
-  void createFolderInline() {
-    final name = newFolderCtrl.text.trim();
-
-    if (name.isEmpty) {
-      validationError = "Folder name can't be empty";
-      update();
-      return;
-    }
-
-    // unique check (optional)
-    final exists = folders.any((f) =>
-    f.parentId == currentParentId &&
-        f.name.toLowerCase() == name.toLowerCase());
-    if (exists) {
-      validationError = "Folder already exists";
-      update();
-      return;
-    }
-
-    final id = 'fld_${Random().nextInt(999999)}';
-    final folder = GalleryFolder(
-      id: id,
-      name: name,
-      parentId: currentParentId, // ✅ create in current level
-      createdAt: DateTime.now(),
-    );
-
-    folders.insert(0, folder);
-
-    // refresh list
-    loadFolders(parentId: currentParentId);
-
-    // auto select created folder
-    selectedFolderId = folder.id;
-
-    // close create UI
-    newFolderCtrl.clear();
-    showCreateNew = false;
-    validationError = null;
-    update();
-  }
-
-
 
 
   @override
   void onInit() {
     super.onInit();
+    getCompany();
+    hitApiToGetFolder();
     loadFolders(parentId: null);
   }
 
+  CompanyData? myCompany = CompanyData();
 
+  getCompany(){
+    final svc = CompanyService.to;
+    myCompany = svc.selected;
+    update();
+  }
 
   @override
   void dispose() {

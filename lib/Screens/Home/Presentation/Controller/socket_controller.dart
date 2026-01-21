@@ -570,7 +570,6 @@ class SocketController extends GetxController with WidgetsBindingObserver {
 
         // Unique key for recent row (use whatever is unique in your app)
         final key = updated.userCompany?.userCompanyId;
-
         final index =
             list.indexWhere((e) => e.userCompany?.userCompanyId == key);
 

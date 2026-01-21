@@ -1,4 +1,5 @@
 import 'package:AccuChat/Extension/text_field_extenstion.dart';
+import 'package:AccuChat/Screens/Home/Presentation/Controller/gallery_controller.dart';
 import 'package:AccuChat/utils/helper_widget.dart';
 import 'package:AccuChat/utils/text_style.dart';
 import 'package:flutter/material.dart';
@@ -9,14 +10,12 @@ import '../../../../utils/common_textfield.dart';
 import '../Controller/create_new_folder_dialog_controller.dart';
 import 'genre_view.dart';
 
-Future<String?> showCreateFolderDialog({
-  required Future<void> Function(String name) onCreate,
-}) async {
-  final c = Get.put(CreateFolderDialogController(), tag: "create-folder-dialog");
-
+Future<String?> showCreateFolderDialog() async {
+  final controller = Get.put(GalleryController());
+  final _folderKey = GlobalKey<FormState>();
   final res = await Get.dialog<String>(
     WillPopScope(
-      onWillPop: () async => !c.isSaving.value,
+      onWillPop: () async => !controller.isSaving.value,
       child: Dialog(
         insetPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 24),
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
@@ -31,96 +30,94 @@ Future<String?> showCreateFolderDialog({
               return ConstrainedBox(
                 constraints: BoxConstraints(maxWidth: dialogWidth),
                 child: Obx(() {
-                  return Column(
-                    mainAxisSize: MainAxisSize.min,
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      // Title
-                      Row(
-                        children: [
-                          Icon(Icons.create_new_folder_outlined,color: Colors.black87,),
-                          const SizedBox(width: 10),
-                           Expanded(
-                            child: Text(
-                              "Create Folder",
-                              style: BalooStyles.baloosemiBoldTextStyle(),
+                  return Form(
+                    key: _folderKey,
+                    child: Column(
+                      mainAxisSize: MainAxisSize.min,
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        // Title
+                        Row(
+                          children: [
+                            Icon(Icons.create_new_folder_outlined,color: Colors.black87,),
+                            const SizedBox(width: 10),
+                             Expanded(
+                              child: Text(
+                                "Create Folder",
+                                style: BalooStyles.baloosemiBoldTextStyle(),
+                              ),
                             ),
-                          ),
-                          IconButton(
-                            onPressed: c.isSaving.value ? null : () => Get.back(),
-                            icon: const Icon(Icons.close,color: Colors.black87,),
-                            splashRadius: 18,
-                          ),
-                        ],
-                      ),
+                            IconButton(
+                              onPressed: controller.isSaving.value ? null : () => Get.back(),
+                              icon: const Icon(Icons.close,color: Colors.black87,),
+                              splashRadius: 18,
+                            ),
+                          ],
+                        ),
 
-                      vGap(30),
+                        vGap(30),
 
-                      // Your custom field
-                      CustomTextField(
-                        hintText: "Enter folder name",
-                        labletext: "Folder Name",
-                        controller: c.nameController,
-                        prefix: Icon(Icons.folder, color: appColorPerple),
-                        onChangee: (v) {
-                          c.clearError();
-                        },
-                        validator: (value) {
-                          // keep your existing validator style if you want
-                          return value?.isEmptyField(messageTitle: "Folder name");
-                        },
-                      ),
-                      vGap(12),
-                      GenreInputGetX(),
-                      vGap(12),
-                      // Inline error (simple)
-                      if (c.error.value.isNotEmpty) ...[
-                        const SizedBox(height: 8),
-                        Text(
-                          c.error.value,
-                          style: const TextStyle(color: Colors.red, fontSize: 12),
+                        // Your custom field
+                        CustomTextField(
+                          hintText: "Enter folder name",
+                          labletext: "Folder Name",
+                          controller: controller.nameController,
+                          prefix: Icon(Icons.folder, color: appColorPerple),
+                          onChangee: (v) {
+                            controller.clearError();
+                          },
+                          validator: (value) {
+                            // keep your existing validator style if you want
+                            return value?.isEmptyField(messageTitle: "Folder name");
+                          },
+                        ),
+                        vGap(12),
+                        GenreInputGetX(),
+                        vGap(12),
+
+                       Spacer(),
+
+                        // Buttons
+                        Row(
+                          children: [
+                            Expanded(
+                              child: OutlinedButton(
+                                style: ButtonStyle(
+                                  backgroundColor: WidgetStateProperty.all(Colors.white),
+                                  foregroundColor: WidgetStateProperty.all(Colors.white),
+                                  overlayColor: WidgetStateProperty.all(Colors.white),
+                                ),
+                                onPressed: controller.isSaving.value ? null : () => Get.back(),
+                                child:  Text("Cancel",style: BalooStyles.baloonormalTextStyle(),),
+                              ),
+                            ),
+                            const SizedBox(width: 10),
+                            Expanded(
+                              child: ElevatedButton(
+                                onPressed: controller.isSaving.value
+                                    ? null
+                                    : (){
+                                  if(_folderKey.currentState!.validate()){
+                                    controller.hitApiToCreateFolder();
+                                  }
+                                },
+                                child: controller.isSaving.value
+                                    ? const SizedBox(
+                                  height: 18,
+                                  width: 18,
+                                  child: CircularProgressIndicator(strokeWidth: 2),
+                                )
+                                    : const Text("Create"),
+                              ),
+                            ),
+                          ],
                         ),
                       ],
-
-                     Spacer(),
-
-                      // Buttons
-                      Row(
-                        children: [
-                          Expanded(
-                            child: OutlinedButton(
-                              style: ButtonStyle(
-                                backgroundColor: WidgetStateProperty.all(Colors.white),
-                                foregroundColor: WidgetStateProperty.all(Colors.white),
-                                overlayColor: WidgetStateProperty.all(Colors.white),
-                              ),
-                          
-                              onPressed: c.isSaving.value ? null : () => Get.back(),
-                              child:  Text("Cancel",style: BalooStyles.baloonormalTextStyle(),),
-                            ),
-                          ),
-                          const SizedBox(width: 10),
-                          Expanded(
-                            child: ElevatedButton(
-                              onPressed: c.isSaving.value
-                                  ? null
-                                  : () => c.submit(onCreate: onCreate),
-                              child: c.isSaving.value
-                                  ? const SizedBox(
-                                height: 18,
-                                width: 18,
-                                child: CircularProgressIndicator(strokeWidth: 2),
-                              )
-                                  : const Text("Create"),
-                            ),
-                          ),
-                        ],
-                      ),
-                    ],
-                  ).paddingOnly(left: 16,
-                      right: 16,
-                      top: 16,
-                      bottom: 16);
+                    ).paddingOnly(left: 16,
+                        right: 16,
+                        top: 16,
+                        bottom: 16),
+                  );
                 }),
               );
             },
@@ -131,6 +128,5 @@ Future<String?> showCreateFolderDialog({
     barrierDismissible: true,
   );
 
-  Get.delete<CreateFolderDialogController>(tag: "create-folder-dialog", force: true);
   return res;
 }

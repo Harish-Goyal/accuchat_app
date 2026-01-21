@@ -23,6 +23,8 @@ import '../../../Screens/Chat/models/task_attachment_res_model.dart';
 import '../../../Screens/Chat/models/task_commets_res_model.dart';
 import '../../../Screens/Home/Models/all_member_res_model.dart';
 import '../../../Screens/Home/Models/company_mem_res_model.dart';
+import '../../../Screens/Home/Models/create_folder_res_model.dart';
+import '../../../Screens/Home/Models/get_folder_res_model.dart';
 import '../../../Screens/Home/Models/get_pending_sent_invites_res_model.dart';
 import '../../../Screens/Home/Models/push_register_res_model.dart';
 import '../../../Screens/Settings/Model/get_company_roles_res_moel.dart';
@@ -409,6 +411,34 @@ class PostApiServiceImpl extends GetxService implements PostApiService {
       return Future.error(NetworkExceptions.getDioException(e));
     }
   }
+
+  @override
+  Future<GetFolderResModel> getFolderApiCall(ucId) async{
+    try {
+      final response = await dioClient!
+          .get(ApiEnd.getFolderEnd, skipAuth: false,
+      queryParameters: {
+        "user_company_id": ucId
+      });
+    return GetFolderResModel.fromJson(response);
+    } catch (e) {
+      return Future.error(NetworkExceptions.getDioException(e));
+    }
+  }
+
+    @override
+  Future<CreateFolderResModel> createFolderApiCall({required Map<String, dynamic> dataBody}) async{
+    try {
+      final response = await dioClient!
+          .post(ApiEnd.createFolderEnd, skipAuth: false,
+     data:dataBody);
+    return CreateFolderResModel.fromJson(response);
+    } catch (e) {
+      return Future.error(NetworkExceptions.getDioException(e));
+    }
+  }
+
+
   @override
   Future<SuccessResponseModel> addMemberToGrBrApiCall({Map<String, dynamic>? dataBody}) async{
     try {

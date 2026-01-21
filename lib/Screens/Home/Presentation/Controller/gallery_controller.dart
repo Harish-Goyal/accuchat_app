@@ -5,13 +5,19 @@ import 'package:file_picker/file_picker.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:get/get.dart';
 import 'package:image_picker/image_picker.dart';
 
+import '../../../../Services/APIs/post/post_api_service_impl.dart';
+import '../../../../main.dart';
 import '../../../../utils/custom_flashbar.dart';
 import '../../../../utils/helper_widget.dart';
 import '../../../Chat/helper/dialogs.dart';
 import '../../../Chat/models/gallery_node.dart';
+import '../../../Chat/models/get_company_res_model.dart';
+import '../../Models/get_folder_res_model.dart';
+import 'company_service.dart';
 
 
 class IndexedNode {
@@ -58,184 +64,43 @@ class GalleryController extends GetxController with GetSingleTickerProviderState
   }) async {
     final c = _textCtrls[id];
     final newName = (c?.text ?? '').trim();
-
     if (newName.isEmpty || newName == oldName) {
       renamingId.value = '';
       return;
     }
-
     await onRename(newName);
     renamingId.value = '';
   }
 
   Future<void> renameFolder(String id, String name) async {
-    // await api.renameFolder(id, name);
-    // update in list
-    final idx = items.indexWhere((e) => e.id == id);
-    if (idx != -1) {
-      items[idx].name = name;
-       // if folders is RxList
-    }
+    // // await api.renameFolder(id, name);
+    // // update in list
+    // final idx = items.indexWhere((e) => e.id == id);
+    // if (idx != -1) {
+    //   items[idx].name = name;
+    //    // if folders is RxList
+    // }
   }
 
   void cancelRename() {
     renamingId.value = '';
   }
 
-  // Dummy tree
-  final List<GalleryNode> root = [
-    GalleryNode(
-      id: 'fld_01',
-      name: 'Design Assets',
-      type: NodeType.folder,
-      children: [
-        GalleryNode(
-          id: 'img_101',
-          name: 'logo_v1.png',
-          type: NodeType.image,
-          thumbnail: 'https://picsum.photos/seed/logo_v1/300/300',
-        ),
-        GalleryNode(id: 'doc_201', name: 'brand_guidelines.pdf', type: NodeType.doc),
-        GalleryNode(
-          id: 'fld_011',
-          name: 'Mockups',
-          type: NodeType.folder,
-          children: [
-            GalleryNode(
-              id: 'img_102',
-              name: 'pack_front.png',
-              type: NodeType.image,
-              thumbnail: 'https://picsum.photos/seed/pack_front/300/300',
-            ),
-            GalleryNode(
-              id: 'img_103',
-              name: 'pack_back.png',
-              type: NodeType.image,
-              thumbnail: 'https://picsum.photos/seed/pack_back/300/300',
-            ),
-          ],
-        ),
-      ],
-    ),
-     GalleryNode(
-      id: 'fld_02',
-      name: 'Client Docs',
-      type: NodeType.folder,
-      children: [
-        GalleryNode(id: 'doc_202', name: 'invoice_0925.pdf', type: NodeType.doc),
-        GalleryNode(id: 'doc_203', name: 'proposal_v3.docx', type: NodeType.doc),
-      ],
-    ), GalleryNode(
-      id: 'fld_03',
-      name: 'My Docs',
-      type: NodeType.folder,
-      children: [
-        GalleryNode(id: 'doc_202', name: 'invoice_0925.pdf', type: NodeType.doc),
-        GalleryNode(id: 'doc_203', name: 'proposal_v3.docx', type: NodeType.doc),
-      ],
-    ), GalleryNode(
-      id: 'fld_04',
-      name: 'Company Docs',
-      type: NodeType.folder,
-      children: [
-        GalleryNode(id: 'doc_202', name: 'invoice_0925.pdf', type: NodeType.doc),
-        GalleryNode(id: 'doc_203', name: 'proposal_v3.docx', type: NodeType.doc),
-      ],
-    ), GalleryNode(
-      id: 'fld_05',
-      name: 'AccuTech Docs',
-      type: NodeType.folder,
-      children: [
-        GalleryNode(id: 'doc_202', name: 'invoice_0925.pdf', type: NodeType.doc),
-        GalleryNode(id: 'doc_203', name: 'proposal_v3.docx', type: NodeType.doc),
-      ],
-    ),GalleryNode(
-      id: 'fld_06',
-      name: 'Rachana Docs',
-      type: NodeType.folder,
-      children: [
-        GalleryNode(id: 'doc_202', name: 'invoice_0925.pdf', type: NodeType.doc),
-        GalleryNode(id: 'doc_203', name: 'proposal_v3.docx', type: NodeType.doc),
-      ],
-    ),GalleryNode(
-      id: 'fld_07',
-      name: 'Muskan Docs',
-      type: NodeType.folder,
-      children: [
-        GalleryNode(id: 'doc_202', name: 'invoice_0925.pdf', type: NodeType.doc),
-        GalleryNode(id: 'doc_203', name: 'proposal_v3.docx', type: NodeType.doc),
-      ],
-    ),GalleryNode(
-      id: 'fld_08',
-      name: 'Sales Docs',
-      type: NodeType.folder,
-      children: [
-        GalleryNode(id: 'doc_202', name: 'invoice_0925.pdf', type: NodeType.doc),
-        GalleryNode(id: 'doc_203', name: 'proposal_v3.docx', type: NodeType.doc),
-      ],
-    ),
-     GalleryNode(
-      id: 'img_105',
-      name: 'bdaygirl.png',
-      type: NodeType.image,
-      thumbnail: 'https://picsum.photos/seed/hero_banner/300/300',
-    ),GalleryNode(
-      id: 'fld_09',
-      name: 'Sales Docs',
-      type: NodeType.folder,
-      children: [
-        GalleryNode(id: 'doc_202', name: 'invoice_0925.pdf', type: NodeType.doc),
-        GalleryNode(id: 'doc_203', name: 'proposal_v3.docx', type: NodeType.doc),
-      ],
-    ),
-     GalleryNode(
-      id: 'img_106',
-      name: 'bdaygirl.png',
-      type: NodeType.image,
-      thumbnail: 'https://fastly.picsum.photos/id/786/200/300.jpg?hmac=ukrca61AOMxrxsEnCf7j49AnyoIwIsyIikReiUhm6zQ',
-    ),GalleryNode(
-      id: 'fld_010',
-      name: 'Sales Docs',
-      type: NodeType.folder,
-      children: [
-        GalleryNode(id: 'doc_202', name: 'invoice_0925.pdf', type: NodeType.doc),
-        GalleryNode(id: 'doc_203', name: 'proposal_v3.docx', type: NodeType.doc),
-      ],
-    ),
-     GalleryNode(
-      id: 'img_107',
-      name: 'bdaygirl.png',
-      type: NodeType.image,
-      thumbnail: 'https://picsum.photos/id/237/200/300',
-    ),     GalleryNode(
-      id: 'img_108',
-      name: 'bdaygirl.png',
-      type: NodeType.image,
-      thumbnail: 'https://picsum.photos/200/300',
-    ),     GalleryNode(
-      id: 'img_109',
-      name: 'bdaygirl.png',
-      type: NodeType.image,
-      thumbnail: 'https://picsum.photos/seed/picsum/200/300',
-    ),
-  ];
-
   // Stack of opened folders (root == empty)
-  final List<GalleryNode> _stack = [];
 
-  List<GalleryNode> get items => _stack.isEmpty ? root : _stack.last.children;
-  bool get isRoot => _stack.isEmpty;
-  List<GalleryNode> get breadcrumbs => List.unmodifiable(_stack);
+  // List<GalleryNode> get items => _stack.isEmpty ? root : _stack.last.children;
+  bool get isRoot => true;
+  List<FolderData> get breadcrumbs => List.unmodifiable([]);
 
-  void openFolder(GalleryNode folder) {
-    if (!folder.isFolder) return;
-    _stack.add(folder);
+  void openFolder(FolderData folder) {
+    if ((folder.folderName!=null ||folder.folderName!='' )) return;
+    (folderList??[]).add(folder);
     update();
   }
 
   bool goUp() {
-    if (_stack.isNotEmpty) {
-      _stack.removeLast();
+    if ((folderList??[]).isNotEmpty) {
+      (folderList??[]).removeLast();
       update();
       return true;
     }
@@ -243,16 +108,16 @@ class GalleryController extends GetxController with GetSingleTickerProviderState
   }
 
   void goToRoot() {
-    if (_stack.isNotEmpty) {
-      _stack.clear();
+    if ((folderList??[]).isNotEmpty) {
+      (folderList??[]).clear();
       update();
     }
   }
 
   void goToCrumb(int index) {
     // index inclusive within stack (0..last)
-    if (index < 0 || index >= _stack.length) return;
-    _stack.removeRange(index + 1, _stack.length);
+    if (index < 0 || index >= (folderList??[]).length) return;
+    (folderList??[]).removeRange(index + 1, (folderList??[]).length);
     update();
   }
 
@@ -268,21 +133,20 @@ class GalleryController extends GetxController with GetSingleTickerProviderState
   // Build a flat index for global search
   void _buildIndex() {
     index.clear();
-    void walk(List<GalleryNode> nodes, List<GalleryNode> path) {
-      for (final n in nodes) {
-        index.add(IndexedNode(node: n, path: List.unmodifiable(path)));
-        if (n.isFolder) {
-          walk(n.children, [...path, n]);
-        }
-      }
+    void walk(List<FolderData> nodes, List<FolderData> path) {
+      // for (final n in nodes) {
+      //   index.add(IndexedNode(node: n, path: List.unmodifiable(path)));
+      //   if (n.isFolder) {
+      //     walk(n.children, [...path, n]);
+      //   }
+      // }
     }
-    walk(root, const []);
+    walk((folderList??[]), const []);
   }
 
   List<IndexedNode> get searchResults {
     final q = query.trim().toLowerCase();
     if (q.isEmpty) return const [];
-    // name contains, any type
     return index.where((e) => (e.node.name??'').toLowerCase().contains(q)).toList();
   }
 
@@ -296,29 +160,130 @@ class GalleryController extends GetxController with GetSingleTickerProviderState
   // Navigate to a found node's location
   void openSearchResult(IndexedNode hit) {
     // Move to the folder that contains the node (if any)
-    _stack
-      ..clear()
-      ..addAll(hit.path.where((p) => p.isFolder));
-    update();
-    final node = hit.node;
-    if (node.isFolder) {
-      // If result is a folder, open into it
-      openFolder(node);
-    } else {
-      // If result is a file, keep current folder (its parent) and open the leaf
-      openLeaf(node);
-    }
+    // (folderList??[])
+    //   ..clear()
+    //   ..addAll(hit.path.where((p) => p.isFolder));
+    // update();
+    // final node = hit.node;
+    // if (node.isFolder) {
+    //   // If result is a folder, open into it
+    //   openFolder(node);
+    // } else {
+    //   // If result is a file, keep current folder (its parent) and open the leaf
+    //   openLeaf(node);
+    // }
   }
 
   // Override lifecycle to wire search + build index
   @override
   void onInit() {
     super.onInit();
+    getCompany();
+    hitApiToGetFolder();
     tabController = TabController(length: 2, vsync: this);
     _buildIndex();
 
     searchCtrl.addListener(() => onSearchChanged(searchCtrl.text));
   }
+
+  CompanyData? myCompany = CompanyData();
+  getCompany(){
+    final svc = CompanyService.to;
+    myCompany = svc.selected;
+    update();
+  }
+//Create folder
+
+  final TextEditingController nameController = TextEditingController();
+
+  final RxBool isSaving = false.obs;
+  final RxString error = ''.obs;
+
+  void clearError() => error.value = '';
+
+  Future<void> submit({
+    required Future<void> Function(String name) onCreate,
+  }) async {
+    final name = nameController.text.trim();
+
+    if (name.isEmpty) {
+      error.value = "Folder name is required";
+      return;
+    }
+    if (name.length < 2) {
+      error.value = "Minimum 2 characters";
+      return;
+    }
+
+    isSaving.value = true;
+    error.value = '';
+    try {
+      await onCreate(name);
+      Get.back(result: name);
+    } catch (e) {
+      error.value = "Failed to create folder";
+    } finally {
+      isSaving.value = false;
+    }
+  }
+
+  hitApiToCreateFolder() async {
+    SystemChannels.textInput.invokeMethod('TextInput.hide');
+    customLoader.show();
+    var reqData = {
+      "name":nameController.text.trim(),
+      "user_company_id": myCompany?.userCompanies?.userCompanyId,
+    };
+    Get.find<PostApiServiceImpl>()
+        .createFolderApiCall(dataBody: reqData)
+        .then((value) {
+      Get.back();
+      customLoader.hide();
+      hitApiToGetFolder();
+
+      toast(value.message??'');
+      update();
+    }).onError((error, stackTrace) {
+      update();
+      Get.back();
+      customLoader.hide();
+      errorDialog(error.toString());
+    }).whenComplete(() {});
+  }
+
+  GetFolderResModel getFolderRes =GetFolderResModel();
+
+  List<FolderData>? folderList = [];
+
+  bool isLoading =false;
+
+  hitApiToGetFolder() async {
+    SystemChannels.textInput.invokeMethod('TextInput.hide');
+    isLoading=true;
+    update();
+    Get.find<PostApiServiceImpl>()
+        .getFolderApiCall(myCompany?.userCompanies?.userCompanyId)
+        .then((value) {
+      isLoading=false;
+      update();
+      getFolderRes = value;
+      folderList = getFolderRes.data?.rows??[];
+      toast(value.message??'');
+      update();
+    }).onError((error, stackTrace) {
+      isLoading=false;
+      update();
+      customLoader.hide();
+      errorDialog(error.toString());
+    }).whenComplete(() {});
+  }
+
+//Create folder
+
+
+
+
+
 
   @override
   void onClose() {

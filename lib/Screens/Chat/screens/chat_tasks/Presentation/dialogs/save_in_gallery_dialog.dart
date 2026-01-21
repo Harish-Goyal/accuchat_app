@@ -1,5 +1,7 @@
 import 'package:AccuChat/Extension/text_field_extenstion.dart';
+import 'package:AccuChat/Screens/Chat/helper/dialogs.dart';
 import 'package:AccuChat/Screens/Chat/screens/auth/models/get_uesr_Res_model.dart';
+import 'package:AccuChat/utils/loading_indicator.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
@@ -26,7 +28,7 @@ class SaveToCustomFolderDialog extends StatelessWidget {
   }
 
 
-  _mainBody(fKey,controller){
+  _mainBody(fKey,SaveToGalleryController controller){
     return CustomDialogue(
       title: "Save In Accuchat's Smart Gallery",
       isShowAppIcon: true,
@@ -72,53 +74,16 @@ class SaveToCustomFolderDialog extends StatelessWidget {
                         value?.isEmptyField(messageTitle: "Document Name"),
                   ),
 
-                  vGap(15),
-
-                  /// ===================== BREADCRUMB =====================
-                  GetBuilder<SaveToGalleryController>(
-                    builder: (c) {
-                      return SingleChildScrollView(
-                        scrollDirection: Axis.horizontal,
-                        child: Row(
-                          children: [
-                            InkWell(
-                              onTap: c.goRoot,
-                              child:  Text(
-                                "Root"
-                                ,style: BalooStyles.baloomediumTextStyle(),
-                              ),
-                            ),
-                            for (int i = 0; i < c.breadcrumb.length; i++) ...[
-                              const Text("  /  "),
-                              InkWell(
-                                onTap: () => c.goToCrumb(i),
-                                child: Text(
-                                  c.breadcrumb[i].name
-                                  ,style: BalooStyles.baloomediumTextStyle(),
-                                ),
-                              ),
-                            ]
-                          ],
-                        ),
-                      );
-                    },
-                  ),
-
                   vGap(12),
 
                   IconButton(
-
                     onPressed: () async {
-                      final name = await showCreateFolderDialog(
-                        onCreate: (folderName) async {
-                          // TODO: your API or local create
-                          // hit get api;
-                        },
-                      );
+                      final name = await showCreateFolderDialog();
 
                       if (name != null) {
+                        controller.hitApiToGetFolder();
                         // success
-                        // Get.snackbar("Created", name);
+                        Dialogs.showSnackbar(Get.context!,"Created  $name");
                       }
                     },
                     icon:    Text('Create a new folder'),
@@ -147,40 +112,39 @@ class SaveToCustomFolderDialog extends StatelessWidget {
   _folderListView(){
     return GetBuilder<SaveToGalleryController>(
       builder: (c) {
-        if (c.currentFolders.isEmpty) {
+        if ((c.folderList??[]).isEmpty) {
           return  Padding(
             padding: const EdgeInsets.symmetric(vertical: 20),
             child: Text("No folders found",style: BalooStyles.baloonormalTextStyle()),
           );
         }
 
-        return SizedBox(
+        return c.isLoading?IndicatorLoading(): SizedBox(
           height: Get.height * .35,
           child: ListView.separated(
             shrinkWrap: true,
-            physics: const NeverScrollableScrollPhysics(),
-            itemCount: c.currentFolders.length,
+            physics: const BouncingScrollPhysics(),
+            itemCount: (c.folderList??[]).length,
             separatorBuilder: (_, __) => divider().paddingSymmetric(horizontal: 10),
             itemBuilder: (context, index) {
-              final folder = c.currentFolders[index];
-
+              final folder = (c.folderList??[])[index];
               return ListTile(
                 leading:
                 Icon(Icons.folder_outlined,size: 18,color: appColorYellow,),
-                title: Text(folder.name,style: BalooStyles.baloonormalTextStyle(),),
+                title: Text(folder.folderName??'',style: BalooStyles.baloonormalTextStyle(),),
                 /// RADIO → select folder
                 trailing: Radio<String>(
-                  value: folder.id,
+                  value: "${folder.userGalleryId}",
                   activeColor: appColorGreen,
 
-                  groupValue: c.selectedFolderId,
+                  groupValue: "${c.selectedFolderId}",
                   onChanged: (val) {
-                    c.selectFolder(val);
+                    c.selectFolder(int.parse(val??''));
                   },
                 ),
                 /// TAP TILE → navigate inside folder
                 onTap: () {
-                  c.openFolder(folder);
+                  // c.openFolder(folder);
                 },
               );
             },
@@ -189,64 +153,6 @@ class SaveToCustomFolderDialog extends StatelessWidget {
       },
     );
 
-  }
-
-
-  _createFolder(){
-    return /// ===================== CREATE NEW FOLDER =====================
-      GetBuilder<SaveToGalleryController>(
-        builder: (c) {
-          return Column(
-            // crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              InkWell(
-                borderRadius: BorderRadius.circular(15),
-                onTap: (){
-                  c.toggleCreateNew(!c.showCreateNew);
-                  if (!c.showCreateNew) {
-                    // if just opened
-                    Future.delayed(Duration(milliseconds: 100), () {
-                      FocusScope.of(Get.context!).requestFocus(c.newFolderFocus);
-                    });
-                  }
-                },
-                child: Row(
-                  mainAxisSize: MainAxisSize.min,
-                  crossAxisAlignment: CrossAxisAlignment.center,
-                  children: [
-
-                    Icon(Icons.create_new_folder_outlined,size: 18,color: Colors.black87,),
-                    hGap(5),
-                    Text(c.showCreateNew ? "Cancel new folder" : "New folder",style: BalooStyles.baloosemiBoldTextStyle(color: Colors.black87,),)
-                  ],
-                ).paddingSymmetric(vertical: 6, horizontal: 8),
-              ),
-
-              if (c.showCreateNew) ...[
-                const SizedBox(height: 10),
-                TextFormField(
-                  controller: c.newFolderCtrl,
-                  focusNode: c.newFolderFocus,
-                  decoration: InputDecoration(
-                    hintText: "Folder name",
-                    border: const OutlineInputBorder(),
-                    errorText: c.validationError,
-                  ),
-                  onFieldSubmitted: (_) => c.createFolderInline(),
-                ),
-                const SizedBox(height: 10),
-                Align(
-                  alignment: Alignment.centerRight,
-                  child: ElevatedButton(
-                    onPressed: c.createFolderInline,
-                    child: const Text("Create"),
-                  ),
-                ),
-              ],
-            ],
-          );
-        },
-      );
   }
 
 

@@ -1413,11 +1413,9 @@ class ChatScreen extends GetView<ChatScreenController> {
 
                         Focus(
                           focusNode: controller.messageParentFocus,
-                          canRequestFocus: false,   // important
-                          skipTraversal: true,
+                          autofocus: true,
                           onKeyEvent: (node, event) {
                             if (!kIsWeb) return KeyEventResult.ignored;
-
                             if (event is KeyDownEvent &&
                                 event.logicalKey == LogicalKeyboardKey.enter) {
                               final bool shiftPressed =

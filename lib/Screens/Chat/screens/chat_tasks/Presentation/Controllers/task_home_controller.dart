@@ -69,8 +69,6 @@ class TaskHomeController extends GetxController{
     final svc = CompanyService.to;
     myCompany = svc.selected;
     update();
-
-
   }
 
   int page =1;

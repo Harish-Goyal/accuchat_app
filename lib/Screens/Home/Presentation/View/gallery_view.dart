@@ -3,6 +3,7 @@ import 'package:AccuChat/Constants/colors.dart';
 import 'package:AccuChat/Screens/Home/Presentation/View/create_folder_dialog.dart';
 import 'package:AccuChat/utils/custom_container.dart';
 import 'package:AccuChat/utils/helper_widget.dart';
+import 'package:AccuChat/utils/loading_indicator.dart';
 import 'package:AccuChat/utils/text_style.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/foundation.dart';
@@ -11,9 +12,11 @@ import 'package:get/get.dart';
 import 'package:image_picker/image_picker.dart';
 
 import '../../../../utils/confirmation_dialog.dart';
+import '../../../Chat/helper/dialogs.dart';
 import '../../../Chat/models/gallery_node.dart';
 import '../../../Chat/screens/auth/models/get_uesr_Res_model.dart';
 import '../../../Chat/screens/chat_tasks/Presentation/dialogs/save_in_gallery_dialog.dart';
+import '../../Models/get_folder_res_model.dart';
 import '../Controller/gallery_controller.dart';
 import 'home_screen.dart';
 
@@ -24,89 +27,82 @@ class GalleryTab extends GetView<GalleryController> {
   @override
   Widget build(BuildContext context) {
     return SafeArea(
-      child: GetBuilder<GalleryController>(
-        builder: (controller) {
-          return Scaffold(
-            appBar: _searchBarWidget(),
-            floatingActionButton:FloatingActionButton.extended(
-              backgroundColor: Colors.white,
-              elevation: 1,
-              onPressed: () async {
-                final name = await showCreateFolderDialog(
-                  onCreate: (folderName) async {
-                    // TODO: your API or local create
-                    // await controller.createFolder(folderName);
-                  },
-                );
+      child: GetBuilder<GalleryController>(builder: (controller) {
+        return Scaffold(
+          appBar: _searchBarWidget(),
+          floatingActionButton: FloatingActionButton.extended(
+            backgroundColor: Colors.white,
+            elevation: 1,
+            onPressed: () async {
+              final name = await showCreateFolderDialog();
 
-                if (name != null) {
-                  // success
-                  // Get.snackbar("Created", name);
-                }
-              },
-              icon: const Icon(Icons.create_new_folder_outlined),
-              label: Text('New Folder', style: BalooStyles.baloosemiBoldTextStyle()),
-            ),
-            body: TabBarView(
-              controller: controller.tabController,
-              children: [
+              if (name != null) {
+                // success
+                Dialogs.showSnackbar(Get.context!, "Created  $name");
+              }
+            },
+            icon: const Icon(Icons.create_new_folder_outlined),
+            label:
+                Text('New Folder', style: BalooStyles.baloosemiBoldTextStyle()),
+          ),
+          body: TabBarView(
+            controller: controller.tabController,
+            children: [
+              /// ================= TAB 1 : FOLDERS =================
+              GetBuilder<GalleryController>(
+                builder: (c) {
+                  return WillPopScope(
+                    onWillPop: () async {
+                      final consumed = c.goUp();
+                      return !consumed;
+                    },
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.stretch,
+                      children: [
+                        // _searchBar(),
 
-                /// ================= TAB 1 : FOLDERS =================
-                GetBuilder<GalleryController>(
-                  builder: (c) {
-                    return WillPopScope(
-                      onWillPop: () async {
-                        final consumed = c.goUp();
-                        return !consumed;
-                      },
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.stretch,
-                        children: [
-                          // _searchBar(),
-
-                          if (!c.isSearching)
-                            Row(
-                              children: [
-                                Expanded(
-                                  child: _GalleryHeader(
-                                    isRoot: c.isRoot,
-                                    breadcrumbs: c.breadcrumbs,
-                                    onBack: c.goUp,
-                                    onRootTap: c.goToRoot,
-                                    onCrumbTap: c.goToCrumb,
-                                  ),
+                        if (!c.isSearching)
+                          Row(
+                            children: [
+                              Expanded(
+                                child: _GalleryHeader(
+                                  isRoot: c.isRoot,
+                                  breadcrumbs: c.breadcrumbs,
+                                  onBack: c.goUp,
+                                  onRootTap: c.goToRoot,
+                                  onCrumbTap: c.goToCrumb,
                                 ),
+                              ),
+                              IconButton(
+                                  onPressed: () {
+                                    showUploadOptions(context);
+                                  },
+                                  icon: CustomContainer(
+                                      color: appColorGreen.withOpacity(.1),
+                                      brcolor: appColorGreen,
+                                      vPadding: 8,
+                                      hPadding: 8,
+                                      childWidget: Icon(Icons.upload_outlined,
+                                          color: appColorGreen)))
+                            ],
+                          ),
 
-                                IconButton(onPressed: (){
-                                  showUploadOptions(context);
-                                }, icon: CustomContainer(
-                                  color: appColorGreen.withOpacity(.1),
-                                    brcolor:appColorGreen,
-                                    vPadding:8 ,
-                                    hPadding:8 ,
+                        vGap(8),
+                        Expanded(child: _listView()),
+                      ],
+                    ),
+                  );
+                },
+              ),
 
-                                    childWidget:Icon(Icons.upload_outlined,color: appColorGreen)))
-                              ],
-                            ),
-
-                          vGap(8),
-                          Expanded(child: _listView()),
-
-                        ],
-                      ),
-                    );
-                  },
-                ),
-
-                /// ================= TAB 2 : MEDIA =================
-                const Center(
-                  child: Text('Shared is Empty'),
-                ),
-              ],
-            ),
-          );
-        }
-      ),
+              /// ================= TAB 2 : MEDIA =================
+              const Center(
+                child: Text('Shared is Empty'),
+              ),
+            ],
+          ),
+        );
+      }),
     );
   }
 
@@ -124,7 +120,7 @@ class GalleryTab extends GetView<GalleryController> {
       builder: (_) => SafeArea(
         child: Padding(
           padding:
-          const EdgeInsets.only(top: 16, left: 15, right: 15, bottom: 60),
+              const EdgeInsets.only(top: 16, left: 15, right: 15, bottom: 60),
           child: Wrap(
             children: [
               ListTile(
@@ -167,7 +163,7 @@ class GalleryTab extends GetView<GalleryController> {
 
                   // Picking multiple images
                   final List<XFile> images =
-                  await picker.pickMultiImage(imageQuality: 40, limit: 10);
+                      await picker.pickMultiImage(imageQuality: 40, limit: 10);
 
                   // uploading & sending image one by one
                   // controller.images.addAll(images);
@@ -208,7 +204,7 @@ class GalleryTab extends GetView<GalleryController> {
           children: [
             Text(
               'On web, use your computer’s picker to select images or documents.\n'
-                  'You can choose max 10 images at once.',
+              'You can choose max 10 images at once.',
               style: TextStyle(fontSize: 13),
             ),
           ],
@@ -222,11 +218,12 @@ class GalleryTab extends GetView<GalleryController> {
                 Navigator.of(ctx).pop();
                 showDialog(
                     context: Get.context!,
-                    builder: (_) => SaveToCustomFolderDialog(user: UserDataAPI(),));
+                    builder: (_) => SaveToCustomFolderDialog(
+                          user: UserDataAPI(),
+                        ));
                 // controller.images.addAll(images);
                 // controller.uploadMediaApiCall(type: ChatMediaType.IMAGE.name);
               }
-
             },
             child: const Row(
               mainAxisSize: MainAxisSize.min,
@@ -245,7 +242,9 @@ class GalleryTab extends GetView<GalleryController> {
                 Navigator.of(ctx).pop();
                 showDialog(
                     context: Get.context!,
-                    builder: (_) => SaveToCustomFolderDialog(user: UserDataAPI(),));
+                    builder: (_) => SaveToCustomFolderDialog(
+                          user: UserDataAPI(),
+                        ));
                 // see helper you’ll paste into your controller below
                 // await controller.receivePickedDocuments(docs);
               }
@@ -268,44 +267,42 @@ class GalleryTab extends GetView<GalleryController> {
     );
   }
 
-
-
-  AppBar _searchBarWidget(){
+  AppBar _searchBarWidget() {
     return AppBar(
-      title:
-      controller.isSearchingIcon
+      title: controller.isSearchingIcon
           ? TextField(
-            controller: controller.searchCtrl,
-            cursorColor: appColorGreen,
-            decoration: const InputDecoration(
-                border: InputBorder.none,
-                hintText: 'Search User, Group & Collection ...',
-                contentPadding:
-                EdgeInsets.symmetric(vertical: 0, horizontal: 10),
-                constraints: BoxConstraints(maxHeight: 45)),
-            autofocus: true,
-            style: const TextStyle(fontSize: 13, letterSpacing: 0.5),
-            onChanged: (val) {
-              controller.query = val;
-              controller.onSearchChanged(val);
-            },
-          ).marginSymmetric(vertical: 10):
-      const SectionHeader(
-        title: 'Your Smart Gallery',
-        icon: galleryIcon,
-      ),
-      bottom:PreferredSize(
-          preferredSize: const Size.fromHeight(64),
-          child: _beautifiedTabBar()),
-      actions: [  IconButton(
-          onPressed: () {
-            controller.isSearchingIcon = !controller.isSearchingIcon;
-            controller.update();
-          },
-          icon:  controller.isSearchingIcon?  const Icon(
-              CupertinoIcons.clear_circled_solid)
-              : Image.asset(searchPng,height:25,width:25)
-      ).paddingOnly(top: 0, right: 10),],
+              controller: controller.searchCtrl,
+              cursorColor: appColorGreen,
+              decoration: const InputDecoration(
+                  border: InputBorder.none,
+                  hintText: 'Search User, Group & Collection ...',
+                  contentPadding:
+                      EdgeInsets.symmetric(vertical: 0, horizontal: 10),
+                  constraints: BoxConstraints(maxHeight: 45)),
+              autofocus: true,
+              style: const TextStyle(fontSize: 13, letterSpacing: 0.5),
+              onChanged: (val) {
+                controller.query = val;
+                controller.onSearchChanged(val);
+              },
+            ).marginSymmetric(vertical: 10)
+          : const SectionHeader(
+              title: 'Your Smart Gallery',
+              icon: galleryIcon,
+            ),
+      bottom: PreferredSize(
+          preferredSize: const Size.fromHeight(64), child: _beautifiedTabBar()),
+      actions: [
+        IconButton(
+                onPressed: () {
+                  controller.isSearchingIcon = !controller.isSearchingIcon;
+                  controller.update();
+                },
+                icon: controller.isSearchingIcon
+                    ? const Icon(CupertinoIcons.clear_circled_solid)
+                    : Image.asset(searchPng, height: 25, width: 25))
+            .paddingOnly(top: 0, right: 10),
+      ],
     );
   }
 
@@ -322,21 +319,19 @@ class GalleryTab extends GetView<GalleryController> {
         controller: controller.tabController,
         isScrollable: true,
         dividerColor: Colors.transparent,
-        labelPadding: const EdgeInsets.symmetric(horizontal: 14,vertical: 5),
+        labelPadding: const EdgeInsets.symmetric(horizontal: 14, vertical: 5),
         splashFactory: NoSplash.splashFactory,
         overlayColor: MaterialStateProperty.all(Colors.transparent),
-
         labelColor: Theme.of(Get.context!).colorScheme.primary,
         unselectedLabelColor: Colors.grey.shade600,
-
         labelStyle: BalooStyles.baloosemiBoldTextStyle(),
         unselectedLabelStyle: BalooStyles.balooregularTextStyle(),
         indicator: BoxDecoration(
-          color: Theme.of(Get.context!).colorScheme.primary.withOpacity(.1),
-          borderRadius: BorderRadius.circular(20),
-          border: Border.all(color: Theme.of(Get.context!).colorScheme.primary)
-        ),
-        tabs:  [
+            color: Theme.of(Get.context!).colorScheme.primary.withOpacity(.1),
+            borderRadius: BorderRadius.circular(20),
+            border:
+                Border.all(color: Theme.of(Get.context!).colorScheme.primary)),
+        tabs: [
           const Row(
             mainAxisSize: MainAxisSize.min,
             children: [
@@ -344,7 +339,7 @@ class GalleryTab extends GetView<GalleryController> {
               SizedBox(width: 6),
               Text('Folders'),
             ],
-          ).paddingSymmetric(horizontal: 15,vertical: 3),
+          ).paddingSymmetric(horizontal: 15, vertical: 3),
           const Row(
             mainAxisSize: MainAxisSize.min,
             children: [
@@ -352,76 +347,71 @@ class GalleryTab extends GetView<GalleryController> {
               SizedBox(width: 6),
               Text('Shared'),
             ],
-          ).paddingSymmetric(horizontal: 15,vertical: 3),
+          ).paddingSymmetric(horizontal: 15, vertical: 3),
         ],
       ),
     );
   }
 
-
-  _searchBar(){
+  _searchBar() {
     return Row(
       children: [
         controller.isSearchingIcon
             ? Expanded(
-          child: TextField(
-            controller: controller.searchCtrl,
-            cursorColor: appColorGreen,
-            decoration: const InputDecoration(
-                border: InputBorder.none,
-                hintText: 'Search User, Group & Collection ...',
-                contentPadding:
-                EdgeInsets.symmetric(vertical: 0, horizontal: 10),
-                constraints: BoxConstraints(maxHeight: 45)),
-            autofocus: true,
-            style: const TextStyle(fontSize: 13, letterSpacing: 0.5),
-            onChanged: (val) {
-              controller.query = val;
-              controller.onSearchChanged(val);
-            },
-          ).marginSymmetric(vertical: 10),
-        ):
-        const Flexible(
-          child: SectionHeader(
-            title: 'Your Smart Gallery',
-            icon: galleryIcon,
-          ),
-        ),
-
+                child: TextField(
+                  controller: controller.searchCtrl,
+                  cursorColor: appColorGreen,
+                  decoration: const InputDecoration(
+                      border: InputBorder.none,
+                      hintText: 'Search User, Group & Collection ...',
+                      contentPadding:
+                          EdgeInsets.symmetric(vertical: 0, horizontal: 10),
+                      constraints: BoxConstraints(maxHeight: 45)),
+                  autofocus: true,
+                  style: const TextStyle(fontSize: 13, letterSpacing: 0.5),
+                  onChanged: (val) {
+                    controller.query = val;
+                    controller.onSearchChanged(val);
+                  },
+                ).marginSymmetric(vertical: 10),
+              )
+            : const Flexible(
+                child: SectionHeader(
+                  title: 'Your Smart Gallery',
+                  icon: galleryIcon,
+                ),
+              ),
         IconButton(
-            onPressed: () {
-              controller.isSearchingIcon = !controller.isSearchingIcon;
-              controller.update();
-            },
-            icon:  controller.isSearchingIcon?  const Icon(
-                CupertinoIcons.clear_circled_solid)
-                : Image.asset(searchPng,height:25,width:25)
-        ).paddingOnly(top: 0, right: 10),
+                onPressed: () {
+                  controller.isSearchingIcon = !controller.isSearchingIcon;
+                  controller.update();
+                },
+                icon: controller.isSearchingIcon
+                    ? const Icon(CupertinoIcons.clear_circled_solid)
+                    : Image.asset(searchPng, height: 25, width: 25))
+            .paddingOnly(top: 0, right: 10),
       ],
-    ).paddingSymmetric(horizontal: 15,vertical: 10);
-
+    ).paddingSymmetric(horizontal: 15, vertical: 10);
   }
 
-
-  _listView(){
-   return Expanded(
+  _listView() {
+    return Expanded(
       child: Container(
-        padding: const EdgeInsets.only(right: 12,left: 12,bottom: 80),
-        child:controller.isSearching
+        padding: const EdgeInsets.only(right: 12, left: 12, bottom: 80),
+        child: controller.isSearching
             ? _SearchResultsList(
-          results: controller.searchResults,
-          onTap: controller.openSearchResult,
-        )
-            : _GalleryGrid(
-          items: controller.items,
-          onFolderTap: controller.openFolder,
-          onLeafTap: controller.openLeaf,
-        ),
+                results: controller.searchResults,
+                onTap: controller.openSearchResult,
+              )
+            : controller.isLoading?IndicatorLoading(): _GalleryGrid(
+                items: controller.folderList ?? [], // Folder items
+                onFolderTap: (v) {},
+                onLeafTap: (v) {},
+              ),
       ),
     );
   }
 }
-
 
 class _SearchResultsList extends StatelessWidget {
   final List<IndexedNode> results;
@@ -462,8 +452,12 @@ class _SearchResultsList extends StatelessWidget {
           onTap: () => onTap(r),
           dense: true,
           leading: Icon(icon),
-          title: _HighlightedText(full: n.name??'', query: Get.find<GalleryController>().searchCtrl.text),
-          subtitle: pathText.isEmpty ? null : Text(pathText, maxLines: 1, overflow: TextOverflow.ellipsis),
+          title: _HighlightedText(
+              full: n.name ?? '',
+              query: Get.find<GalleryController>().searchCtrl.text),
+          subtitle: pathText.isEmpty
+              ? null
+              : Text(pathText, maxLines: 1, overflow: TextOverflow.ellipsis),
           trailing: const Icon(Icons.chevron_right),
         );
       },
@@ -480,7 +474,8 @@ class _HighlightedText extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    if (query.trim().isEmpty) return Text(full, maxLines: 1, overflow: TextOverflow.ellipsis);
+    if (query.trim().isEmpty)
+      return Text(full, maxLines: 1, overflow: TextOverflow.ellipsis);
 
     final lower = full.toLowerCase();
     final q = query.trim().toLowerCase();
@@ -504,7 +499,8 @@ class _HighlightedText extends StatelessWidget {
     }
 
     return RichText(
-      text: TextSpan(style: DefaultTextStyle.of(context).style, children: spans),
+      text:
+          TextSpan(style: DefaultTextStyle.of(context).style, children: spans),
       maxLines: 1,
       overflow: TextOverflow.ellipsis,
     );
@@ -513,7 +509,7 @@ class _HighlightedText extends StatelessWidget {
 
 class _GalleryHeader extends StatelessWidget {
   final bool isRoot;
-  final List<GalleryNode> breadcrumbs;
+  final List<FolderData> breadcrumbs;
   final bool Function() onBack;
   final VoidCallback onRootTap;
   final void Function(int index) onCrumbTap;
@@ -537,12 +533,15 @@ class _GalleryHeader extends StatelessWidget {
             IconButton(
               visualDensity: VisualDensity.compact,
               onPressed: onBack,
-              icon: const Icon(Icons.arrow_back_ios_new_rounded, size: 18,color: Colors.black,),
+              icon: const Icon(
+                Icons.arrow_back_ios_new_rounded,
+                size: 18,
+                color: Colors.black,
+              ),
               tooltip: 'Back',
             )
           else
             const SizedBox(width: 12),
-
           Expanded(
             child: SingleChildScrollView(
               scrollDirection: Axis.horizontal,
@@ -554,38 +553,49 @@ class _GalleryHeader extends StatelessWidget {
                     borderRadius: BorderRadius.circular(16),
                     onTap: onRootTap,
                     child: Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 10, vertical: 6),
                       decoration: BoxDecoration(
                         color: (breadcrumbs.isEmpty
-                            ?appColorPerple.withOpacity(0.12)
-                            :appColorPerple.withOpacity(0.6)),
+                            ? appColorPerple.withOpacity(0.12)
+                            : appColorPerple.withOpacity(0.6)),
                         borderRadius: BorderRadius.circular(16),
                       ),
                       child: Text(
                         'Root',
                         style: theme.textTheme.bodySmall?.copyWith(
-                          fontWeight: breadcrumbs.isEmpty ? FontWeight.w600 : FontWeight.w400,
+                          fontWeight: breadcrumbs.isEmpty
+                              ? FontWeight.w600
+                              : FontWeight.w400,
                         ),
                       ),
                     ),
                   ),
                   for (int i = 0; i < breadcrumbs.length; i++) ...[
-                    const Icon(Icons.chevron_right, size: 18,color: Colors.black87,),
+                    const Icon(
+                      Icons.chevron_right,
+                      size: 18,
+                      color: Colors.black87,
+                    ),
                     InkWell(
                       borderRadius: BorderRadius.circular(16),
                       onTap: () => onCrumbTap(i),
                       child: Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                        padding: const EdgeInsets.symmetric(
+                            horizontal: 10, vertical: 6),
                         decoration: BoxDecoration(
                           color: (i == breadcrumbs.length - 1
                               ? appColorPerple.withOpacity(0.12)
-                              : theme.colorScheme.surfaceVariant.withOpacity(0.6)),
+                              : theme.colorScheme.surfaceVariant
+                                  .withOpacity(0.6)),
                           borderRadius: BorderRadius.circular(16),
                         ),
                         child: Text(
-                          breadcrumbs[i].name??'',
+                          breadcrumbs[i].folderName ?? '',
                           style: theme.textTheme.bodySmall?.copyWith(
-                            fontWeight: (i == breadcrumbs.length - 1) ? FontWeight.w600 : FontWeight.w400,
+                            fontWeight: (i == breadcrumbs.length - 1)
+                                ? FontWeight.w600
+                                : FontWeight.w400,
                           ),
                         ),
                       ),
@@ -600,8 +610,9 @@ class _GalleryHeader extends StatelessWidget {
     );
   }
 }
+
 class _GalleryGrid extends StatelessWidget {
-  final List<GalleryNode> items;
+  final List<FolderData> items;
   final void Function(GalleryNode folder) onFolderTap;
   final void Function(GalleryNode node) onLeafTap;
 
@@ -629,13 +640,14 @@ class _GalleryGrid extends StatelessWidget {
           itemBuilder: (_, i) {
             final node = items[i];
             return _GalleryTile(
-              node: node,
+              // node: node,
+              folder: items[i],
               onTap: () {
-                if (node.isFolder) {
-                  onFolderTap(node);
-                } else {
-                  onLeafTap(node);
-                }
+                // if (node.isFolder) {
+                //   onFolderTap(node);
+                // } else {
+                //   onLeafTap(node);
+                // }
               },
             );
           },
@@ -644,21 +656,23 @@ class _GalleryGrid extends StatelessWidget {
     );
   }
 }
+
 enum FolderMenuAction { rename, share, delete }
 
 class _GalleryTile extends StatelessWidget {
-  final GalleryNode node;
+  // final GalleryNode node;
+  final FolderData folder;
   final VoidCallback onTap;
 
-  const _GalleryTile({required this.node, required this.onTap});
+  const _GalleryTile({required this.folder, required this.onTap});
 
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    final controller  = Get.find<GalleryController>();
+    final controller = Get.find<GalleryController>();
 
     Widget preview;
-    if (node.type == NodeType.image && node.thumbnail != null) {
+    /*  if (node.type == NodeType.image && node.thumbnail != null) {
       preview = ClipRRect(
         borderRadius: BorderRadius.circular(12),
         child: AspectRatio(
@@ -668,9 +682,10 @@ class _GalleryTile extends StatelessWidget {
       );
     } else if (node.type == NodeType.doc) {
       preview = _IconPreview(icon: Icons.description_rounded, color: theme.colorScheme.tertiary);
-    } else {
-      preview = _IconPreview(icon: Icons.folder_rounded, color: theme.colorScheme.primary);
-    }
+    } else {*/
+    preview = _IconPreview(
+        icon: Icons.folder_rounded, color: theme.colorScheme.primary);
+    // }
 
     return InkWell(
       onTap: onTap, // open folder / preview
@@ -679,7 +694,8 @@ class _GalleryTile extends StatelessWidget {
         decoration: BoxDecoration(
           borderRadius: BorderRadius.circular(12),
           color: Colors.white,
-          border: Border.all(color: theme.colorScheme.outlineVariant, width: .5),
+          border:
+              Border.all(color: theme.colorScheme.outlineVariant, width: .5),
           boxShadow: [
             BoxShadow(
               blurRadius: 10,
@@ -696,23 +712,23 @@ class _GalleryTile extends StatelessWidget {
               child: Column(
                 children: [
                   Expanded(child: preview),
-                  const SizedBox(height: 5),
-                  Obx(() {
-                    final isRenaming = controller.renamingId.value == node.id; // ✅ node must have unique id
-                    if (!isRenaming) {
-                      return Text(
-                        node.name??'',
-                        maxLines: 21,
-                        overflow: TextOverflow.ellipsis,
-                        textAlign: TextAlign.center,
-                        style: BalooStyles.balooregularTextStyle(),
-                      );
-                    }
+                  vGap(5),
+                  // Obx(() {
+                  // final isRenaming = controller.renamingId.value == node.id; // ✅ node must have unique id
+                  // if (!isRenaming) {
+                  /* return */
+                  Text(
+                    folder.folderName ?? '',
+                    maxLines: 21,
+                    overflow: TextOverflow.ellipsis,
+                    textAlign: TextAlign.center,
+                    style: BalooStyles.balooregularTextStyle(),
+                  )
 
-                    final ctrl = controller.textCtrlFor(node.id??'', node.name??'');
-                    final focus = controller.focusNodeFor(node.id??'');
+                  /*         final ctrl = controller.textCtrlFor(node.id??'', node.name??'');
+                    final focus = controller.focusNodeFor(node.id??'');*/
 
-                    return Focus(
+                  /* return Focus(
                       onFocusChange: (hasFocus) {
                         if (!hasFocus) {
                           controller.submitRename(
@@ -747,9 +763,9 @@ class _GalleryTile extends StatelessWidget {
                           contentPadding: EdgeInsets.symmetric(horizontal: 6, vertical: 6),
                         ),
                       ),
-                    );
-                  }),
-                  if (node.isFolder) ...[
+                    );*/
+                  // }),
+                  /*if (node.isFolder) ...[
                     const SizedBox(height: 4),
                     Text(
                       '${node.children.length} items',
@@ -757,84 +773,81 @@ class _GalleryTile extends StatelessWidget {
                         color: theme.colorScheme.onSurface.withOpacity(0.6),
                       ),
                     ),
-                  ],
+                  ],*/
                 ],
               ),
             ),
 
             // Top-right menu (only for folder)
             // if (node.isFolder)
-              Positioned(
-                top: 4,
-                right: 4,
-                child: Material(
-                  color: Colors.transparent,
-                  child: PopupMenuButton<FolderMenuAction>(
-                    tooltip: "More",
-                    padding: EdgeInsets.zero,
-                    position: PopupMenuPosition.under,
-                    borderRadius: BorderRadius.circular(12),
-                    color: Colors.white,
-                    onSelected: (action) {
-                      switch (action) {
-                        case FolderMenuAction.rename:
-                          controller.startRename(id: node.id??'', currentName: node.name??'');
-                          break;
-                        case FolderMenuAction.delete:
-                          showResponsiveConfirmationDialog(onConfirm:  () async {
-                            Get.back();
-                          },title: "Delete ${node.name} Folder(Permanently Deleted)");
-                          break;
-                        case FolderMenuAction.share:
-                          // onShare?.call(node);
-                          break;
-                      }
-                    },
-                    itemBuilder: (context) => const [
-                      PopupMenuItem(
-                        value: FolderMenuAction.rename,
-                        child: Text("Rename"),
-                      ),
-                      PopupMenuItem(
-                        value: FolderMenuAction.share,
-                        child: Text("Share"),
-                      ),
-                      PopupMenuDivider(),
-                      PopupMenuItem(
-                        value: FolderMenuAction.delete,
-                        child: Text("Delete"),
-                      ),
-                    ],
-                    child: InkWell(
-                      // important: tap on menu should NOT open folder
-                      onTap: null,
-                      borderRadius: BorderRadius.circular(100),
-                      child: Container(
+            Positioned(
+              top: 4,
+              right: 4,
+              child: Material(
+                color: Colors.transparent,
+                child: PopupMenuButton<FolderMenuAction>(
+                  tooltip: "More",
+                  padding: EdgeInsets.zero,
+                  position: PopupMenuPosition.under,
+                  borderRadius: BorderRadius.circular(12),
+                  color: Colors.white,
+                  onSelected: (action) {
+                    switch (action) {
+                      case FolderMenuAction.rename:
+                        // controller.startRename(id: node.id??'', currentName: node.name??'');
+                        break;
+                      case FolderMenuAction.delete:
+                        // showResponsiveConfirmationDialog(onConfirm:  () async {
+                        //   Get.back();
+                        // },title: "Delete ${node.name} Folder(Permanently Deleted)");
+                        break;
+                      case FolderMenuAction.share:
+                        // onShare?.call(node);
+                        break;
+                    }
+                  },
+                  itemBuilder: (context) => const [
+                    PopupMenuItem(
+                      value: FolderMenuAction.rename,
+                      child: Text("Rename"),
+                    ),
+                    PopupMenuItem(
+                      value: FolderMenuAction.share,
+                      child: Text("Share"),
+                    ),
+                    PopupMenuDivider(),
+                    PopupMenuItem(
+                      value: FolderMenuAction.delete,
+                      child: Text("Delete"),
+                    ),
+                  ],
+                  child: InkWell(
+                    // important: tap on menu should NOT open folder
+                    onTap: null,
+                    borderRadius: BorderRadius.circular(100),
+                    child: Container(
                         padding: const EdgeInsets.all(4),
                         margin: const EdgeInsets.all(4),
                         decoration: BoxDecoration(
                             color: Colors.white,
-                        shape: BoxShape.circle,
-                          boxShadow: [BoxShadow(
-                            color: Colors.grey.shade200,
-                            blurRadius: 10
-                          )]
-                        ),
+                            shape: BoxShape.circle,
+                            boxShadow: [
+                              BoxShadow(
+                                  color: Colors.grey.shade200, blurRadius: 10)
+                            ]),
                         child: const Icon(
                           Icons.more_vert,
                           size: 18,
                           color: Colors.black87,
-                        )
-                      ),
-                    ),
+                        )),
                   ),
                 ),
               ),
+            ),
           ],
         ),
       ),
     );
-
   }
 }
 

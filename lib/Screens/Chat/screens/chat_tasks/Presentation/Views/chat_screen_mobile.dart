@@ -1351,8 +1351,7 @@ class ChatScreenMobile extends GetView<ChatScreenController> {
 
                         Focus(
                           focusNode: controller.messageParentFocus,
-                          canRequestFocus: false,
-                          skipTraversal: true,
+                          autofocus: true,
                           onKeyEvent: (node, event) {
                             if (!kIsWeb) return KeyEventResult.ignored;
 
@@ -1539,8 +1538,7 @@ class ChatScreenMobile extends GetView<ChatScreenController> {
                       children: [
                         Focus(
                           focusNode: controller.messageParentFocus,
-                          canRequestFocus: false,   // important
-                          skipTraversal: true,
+                          autofocus: true,
                           onKeyEvent: (node, event) {
                             if (!kIsWeb) return KeyEventResult.ignored;
 

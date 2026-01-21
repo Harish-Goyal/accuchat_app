@@ -1,3 +1,4 @@
+import 'package:AccuChat/Constants/colors.dart';
 import 'package:AccuChat/utils/text_style.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
@@ -9,7 +10,7 @@ class Dialogs {
     //     backgroundColor: Colors.white,
     //     behavior: SnackBarBehavior.floating));
 
-    Get.snackbar("Alert", msg, backgroundColor: Colors.white,colorText: Colors.black,duration: Duration(seconds: 6));
+    Get.snackbar("Alert", msg, backgroundColor: appColorGreen,colorText: Colors.white,duration: Duration(seconds: 6));
   }
 
   static void showProgressBar(BuildContext context) {

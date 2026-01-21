@@ -1,6 +1,6 @@
 class ApiEnd {
-  // static const String baseUrl = "http://192.168.1.111:3001/";
-  // static const String baseUrlMedia = "http://192.168.1.111:3001";
+  // static const String baseUrl = "http://192.168.1.88:3001/";
+  // static const String baseUrlMedia = "http://192.168.1.88:3001";
   static const String baseUrl = "https://api.accuchat.in/";
   static const String baseUrlMedia = "https://api.accuchat.in";
   // static const String baseUrl = "http://www.api.accuchat.in:3001/";
@@ -36,6 +36,8 @@ class ApiEnd {
   static const String taskStatusEnd = "api/all-task-status";
   static const String uploadTaskMediaEnd = "api/upload-task-media";
   static const String getTaskEnd = "api/tasks";
+  static const String createFolderEnd = "api/gallery/folder/create";
+  static const String getFolderEnd = "api/gallery/folders";
 }
 
 const String tripOngoing ='ongoing';

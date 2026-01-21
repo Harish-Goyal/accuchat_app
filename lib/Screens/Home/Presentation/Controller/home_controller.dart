@@ -4,6 +4,7 @@ import 'package:AccuChat/Screens/Chat/models/get_company_res_model.dart';
 import 'package:AccuChat/Screens/Chat/screens/chat_tasks/Presentation/Controllers/chat_home_controller.dart';
 import 'package:AccuChat/Screens/Chat/screens/chat_tasks/Presentation/Controllers/task_home_controller.dart';
 import 'package:AccuChat/Screens/Home/Presentation/Controller/compnaies_controller.dart';
+import 'package:AccuChat/Screens/Home/Presentation/Controller/gallery_controller.dart';
 import 'package:AccuChat/Screens/Home/Presentation/Controller/socket_controller.dart';
 import 'package:AccuChat/utils/loading_indicator.dart';
 import 'package:AccuChat/utils/text_style.dart';
@@ -94,6 +95,7 @@ class DashboardController extends GetxController with WidgetsBindingObserver {
     try { Get.lazyPut(() => DashboardController(), fenix: true); } catch (_) {}
     try { Get.lazyPut(() =>ChatHomeController(), fenix: true); } catch (_) {}
     try { Get.lazyPut(() => TaskHomeController(), fenix: true); } catch (_) {}
+    try { Get.lazyPut(() => GalleryController(), fenix: true); } catch (_) {}
     try { Get.lazyPut(() => CompaniesController(), fenix: true); } catch (_) {}
 
     callNetworkCheck();
