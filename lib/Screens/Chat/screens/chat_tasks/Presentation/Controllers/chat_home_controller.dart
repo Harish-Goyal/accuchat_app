@@ -156,9 +156,7 @@ class ChatHomeController extends GetxController{
     } else {
       scrollController.addListener(() {
         if (!scrollController.hasClients) return;
-
         final position = scrollController.position;
-
         if (position.maxScrollExtent >0) {
           if (!isPageLoading && hasMore) {
             hitAPIToGetRecentChats(page: localPage);

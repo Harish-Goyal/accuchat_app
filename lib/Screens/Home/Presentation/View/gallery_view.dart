@@ -18,11 +18,12 @@ import '../../../Chat/screens/auth/models/get_uesr_Res_model.dart';
 import '../../../Chat/screens/chat_tasks/Presentation/dialogs/save_in_gallery_dialog.dart';
 import '../../Models/get_folder_res_model.dart';
 import '../Controller/gallery_controller.dart';
+import 'folder_items_view.dart';
 import 'home_screen.dart';
 
 class GalleryTab extends GetView<GalleryController> {
   GalleryTab({super.key});
-  GalleryController galleryController = Get.put(GalleryController());
+  GalleryController galleryController = Get.put<GalleryController>(GalleryController());
 
   @override
   Widget build(BuildContext context) {
@@ -67,7 +68,7 @@ class GalleryTab extends GetView<GalleryController> {
                               Expanded(
                                 child: _GalleryHeader(
                                   isRoot: c.isRoot,
-                                  breadcrumbs: c.breadcrumbs,
+                                  breadcrumbs: c.breadcrumbs??[],
                                   onBack: c.goUp,
                                   onRootTap: c.goToRoot,
                                   onCrumbTap: c.goToCrumb,
@@ -403,11 +404,15 @@ class GalleryTab extends GetView<GalleryController> {
                 results: controller.searchResults,
                 onTap: controller.openSearchResult,
               )
-            : controller.isLoading?IndicatorLoading(): _GalleryGrid(
-                items: controller.folderList ?? [], // Folder items
-                onFolderTap: (v) {},
-                onLeafTap: (v) {},
-              ),
+            :
+            Obx(()=>
+            controller.isLoading.value?IndicatorLoading(): _GalleryGrid(
+              items: controller.folderList ?? [], // Folder items
+              onFolderTap: (v) {},
+              onLeafTap: (v) {},
+              controller: controller,
+            ))
+       ,
       ),
     );
   }
@@ -616,10 +621,13 @@ class _GalleryGrid extends StatelessWidget {
   final void Function(GalleryNode folder) onFolderTap;
   final void Function(GalleryNode node) onLeafTap;
 
+  final GalleryController controller;
+
   const _GalleryGrid({
     required this.items,
     required this.onFolderTap,
     required this.onLeafTap,
+    required this.controller,
   });
 
   @override
@@ -627,30 +635,29 @@ class _GalleryGrid extends StatelessWidget {
     return LayoutBuilder(
       builder: (context, constraints) {
         final cross = (constraints.maxWidth ~/ 120).clamp(2, 7);
-        return GridView.builder(
-          // padding: const EdgeInsets.only(bottom: 12, top: 4),
-          physics: const AlwaysScrollableScrollPhysics(),
-          gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-            crossAxisCount: cross,
-            crossAxisSpacing: 10,
-            mainAxisSpacing: 10,
-            childAspectRatio: 0.83,
+        return Obx(()=>
+         GridView.builder(
+            // padding: const EdgeInsets.only(bottom: 12, top: 4),
+            controller: controller.scrollController,
+            physics: const AlwaysScrollableScrollPhysics(),
+            gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+              crossAxisCount: cross,
+              crossAxisSpacing: 10,
+              mainAxisSpacing: 10,
+              childAspectRatio: 0.83,
+            ),
+            itemCount: items.length + (controller.hasMore.value ? 1 : 0),
+            itemBuilder: (_, i) {
+              if (i == items.length) {
+                return const IndicatorLoading();
+              }
+              final node = items[i];
+              return _GalleryTile(
+                folder: node,
+                onTap: () => controller.hitApiToGetFolderItems(node.folderName ?? ''),
+              );
+            },
           ),
-          itemCount: items.length,
-          itemBuilder: (_, i) {
-            final node = items[i];
-            return _GalleryTile(
-              // node: node,
-              folder: items[i],
-              onTap: () {
-                // if (node.isFolder) {
-                //   onFolderTap(node);
-                // } else {
-                //   onLeafTap(node);
-                // }
-              },
-            );
-          },
         );
       },
     );
@@ -800,6 +807,10 @@ class _GalleryTile extends StatelessWidget {
                         // showResponsiveConfirmationDialog(onConfirm:  () async {
                         //   Get.back();
                         // },title: "Delete ${node.name} Folder(Permanently Deleted)");
+                      showResponsiveConfirmationDialog(onConfirm: (){
+                        controller.hitApiToDeleteFolder(folder.userGalleryId);
+                      },title: "Confirm Delete Folder (Permanently Deleted)")
+                      ;
                         break;
                       case FolderMenuAction.share:
                         // onShare?.call(node);

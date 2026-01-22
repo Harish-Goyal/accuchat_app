@@ -1212,21 +1212,7 @@ class TaskScreen extends GetView<TaskController> {
                                     maxLines: null,
                                     readOnly: true,
                                     onChanged: (text) {
-                                      // if (text.isNotEmpty) {
-                                      //   list[0].isTyping = true;
-                                      //   APIs.updateTypingStatus(true);
-                                      //   if(isVisibleUpload){
-                                      //     isVisibleUpload = false;
-                                      //     controller.update();
-                                      //   }
-                                      // } else {
-                                      //   list[0].isTyping = false;
-                                      //   APIs.updateTypingStatus(false);
-                                      //   if(!isVisibleUpload){
-                                      //     isVisibleUpload = true;
-                                      //     controller.update();
-                                      //   }
-                                      // }
+
                                     },
                                     onTap: () {
                                       // if (_showEmoji)

@@ -24,6 +24,7 @@ import '../../../Screens/Chat/models/task_commets_res_model.dart';
 import '../../../Screens/Home/Models/all_member_res_model.dart';
 import '../../../Screens/Home/Models/company_mem_res_model.dart';
 import '../../../Screens/Home/Models/create_folder_res_model.dart';
+import '../../../Screens/Home/Models/get_folder_items_res_model.dart';
 import '../../../Screens/Home/Models/get_folder_res_model.dart';
 import '../../../Screens/Home/Models/get_pending_sent_invites_res_model.dart';
 import '../../../Screens/Home/Models/push_register_res_model.dart';
@@ -413,14 +414,33 @@ class PostApiServiceImpl extends GetxService implements PostApiService {
   }
 
   @override
-  Future<GetFolderResModel> getFolderApiCall(ucId) async{
+  Future<GetFolderResModel> getFolderApiCall({ucId,page}) async{
     try {
       final response = await dioClient!
           .get(ApiEnd.getFolderEnd, skipAuth: false,
       queryParameters: {
-        "user_company_id": ucId
+        "user_company_id": ucId,
+        "page": page,
+        "limit":15
       });
     return GetFolderResModel.fromJson(response);
+    } catch (e) {
+      return Future.error(NetworkExceptions.getDioException(e));
+    }
+  }
+
+  @override
+  Future<FolderItemsResModel> getFolderItemsApiCall({page,ucID,folderName}) async{
+    try {
+      final response = await dioClient!
+          .get(ApiEnd.getFolderItemsEnd, skipAuth: false,
+      queryParameters: {
+          "page": page,
+          "limit":20,
+          "user_company_id": ucID,
+          "folder_name":folderName
+      });
+    return FolderItemsResModel.fromJson(response);
     } catch (e) {
       return Future.error(NetworkExceptions.getDioException(e));
     }
@@ -431,6 +451,18 @@ class PostApiServiceImpl extends GetxService implements PostApiService {
     try {
       final response = await dioClient!
           .post(ApiEnd.createFolderEnd, skipAuth: false,
+     data:dataBody);
+    return CreateFolderResModel.fromJson(response);
+    } catch (e) {
+      return Future.error(NetworkExceptions.getDioException(e));
+    }
+  }
+
+  @override
+  Future<CreateFolderResModel> deleteFolderApiCall({required Map<String, dynamic> dataBody}) async{
+    try {
+      final response = await dioClient!
+          .post(ApiEnd.deleteFolderEnd, skipAuth: false,
      data:dataBody);
     return CreateFolderResModel.fromJson(response);
     } catch (e) {

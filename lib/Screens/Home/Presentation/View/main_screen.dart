@@ -4,6 +4,7 @@ import 'package:AccuChat/Screens/Chat/screens/chat_tasks/Presentation/Controller
 import 'package:AccuChat/Screens/Chat/screens/chat_tasks/Presentation/Controllers/chat_screen_controller.dart';
 import 'package:AccuChat/Screens/Chat/screens/chat_tasks/Presentation/Controllers/task_controller.dart';
 import 'package:AccuChat/Screens/Chat/screens/chat_tasks/Presentation/Controllers/task_home_controller.dart';
+import 'package:AccuChat/Screens/Home/Presentation/Controller/gallery_controller.dart';
 import 'package:AccuChat/Screens/Home/Presentation/Controller/home_controller.dart';
 import 'package:AccuChat/utils/text_style.dart';
 import 'package:flutter/foundation.dart';
@@ -378,6 +379,13 @@ Widget buildSideNav(DashboardController controller) {
               // homec.page = 1;
               // homec.hitAPIToGetRecentChats();
 
+            }
+
+            if(index==3){
+              final homec = Get.find<GalleryController>();
+              homec.resetPagination();
+              homec.hitApiToGetFolder(reset: true);
+              homec.update();
             }
             controller.updateIndex(index);
             controller.update();

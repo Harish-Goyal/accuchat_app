@@ -26,13 +26,17 @@ class TaskThreadController extends GetxController {
   var threadId;
 
   bool isUploading = false;
-
+  final showUpload = true.obs;
 
 
   @override
   void onInit() {
     super.onInit();
     scrollController = ScrollController();
+
+    msgController.addListener(() {
+      showUpload.value = msgController.text.trim().isEmpty;
+    });
     _getCompany();
     getArguments();
 

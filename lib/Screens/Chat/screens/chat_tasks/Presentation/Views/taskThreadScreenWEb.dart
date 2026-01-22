@@ -17,13 +17,16 @@ import 'package:open_filex/open_filex.dart';
 import 'package:swipe_to/swipe_to.dart';
 import 'package:url_launcher/url_launcher.dart';
 import '../../../../../../Constants/app_theme.dart';
+import '../../../../../../Constants/assets.dart';
 import '../../../../../../Constants/colors.dart';
 import '../../../../../../Constants/themes.dart';
 import '../../../../../../main.dart';
 import '../../../../../../utils/custom_flashbar.dart';
+import '../../../../../../utils/emogi_picker_web.dart';
 import '../../../../../../utils/helper_widget.dart';
 import '../../../../../../utils/product_shimmer_widget.dart';
 import '../../../../../Home/Presentation/Controller/socket_controller.dart';
+import '../../../../../voice_to_texx/speach_web_controller.dart';
 import '../../../../models/chat_history_response_model.dart';
 import '../../../../api/apis.dart';
 import '../Widgets/staggered_view.dart';
@@ -33,6 +36,7 @@ class TaskThreadScreenWeb extends GetView<TaskThreadController> {
     super.key,
   });
   final controller = Get.put<TaskThreadController>(TaskThreadController());
+  final speechC = Get.put(SpeechControllerImpl());
   @override
   Widget build(BuildContext context) {
     return GetBuilder<TaskThreadController>(builder: (controller) {
@@ -590,6 +594,22 @@ class TaskThreadScreenWeb extends GetView<TaskThreadController> {
   }
 
   Widget _chatInput() {
+    final speechC = Get.put(SpeechControllerImpl(), permanent: true);
+    void _appendSpeechToInput() {
+      final text = speechC.getCombinedText();
+      if (text.isEmpty) return;
+
+      final old = controller.msgController.text.trim();
+      controller.msgController.text = old.isEmpty ? text : '$old $text';
+
+      controller.msgController.selection = TextSelection.fromPosition(
+        TextPosition(offset: controller.msgController.text.length),
+      );
+
+      // reset cached result so next time fresh start
+      speechC.finalText.value = '';
+      speechC.interimText.value = '';
+    }
     return Container(
       padding: EdgeInsets.symmetric(
           vertical: mq.height * .01, horizontal: mq.width * .025),
@@ -601,7 +621,99 @@ class TaskThreadScreenWeb extends GetView<TaskThreadController> {
             child: SingleChildScrollView(
               child: Column(
                 children: [
-                  Focus(
+                  Shortcuts(
+                    shortcuts: <ShortcutActivator, Intent>{
+                      const SingleActivator(LogicalKeyboardKey.enter): const ActivateIntent(),
+                    },
+                    child: Actions(
+                      actions: <Type, Action<Intent>>{
+                        ActivateIntent: CallbackAction<Intent>(
+                          onInvoke: (intent) {
+                            if (!kIsWeb) return null;
+
+                            // If shift is pressed, let TextField handle newline naturally
+                            final keys = HardwareKeyboard.instance.logicalKeysPressed;
+                            final shiftPressed = keys.contains(LogicalKeyboardKey.shiftLeft) ||
+                                keys.contains(LogicalKeyboardKey.shiftRight);
+                            if (shiftPressed) return null;
+
+                            _sendThreadMessage();
+                            controller.messageParentFocus.requestFocus(); // keep focus after send
+                            return null;
+                          },
+                        ),
+                      },
+                      child: ConstrainedBox(
+                        constraints: BoxConstraints(maxHeight: Get.height * .3, minHeight: 30),
+                        child: Container(
+                          margin: const EdgeInsets.symmetric(vertical: 4),
+                          decoration: BoxDecoration(
+                            borderRadius: BorderRadius.circular(8),
+                            border: Border.all(color: AppTheme.appColor.withOpacity(.2)),
+                          ),
+                          child: Row(
+                            children: [
+                              Expanded(
+                                child: TextFormField(
+                                  controller: controller.msgController,
+                                  focusNode: controller.messageParentFocus,
+                                  autofocus: true,
+                                  keyboardType: TextInputType.multiline,
+                                  textInputAction: TextInputAction.newline,
+                                  maxLines: null,
+                                  minLines: 1,
+                                  decoration: InputDecoration(
+                                    isDense: true,
+                                    hintText: 'Type Something...',
+                                    hintStyle: BalooStyles.baloonormalTextStyle(),
+                                    hintMaxLines: 1,
+                                    contentPadding: const EdgeInsets.all(8),
+                                    border: InputBorder.none,
+                                    enabledBorder: InputBorder.none,
+                                    disabledBorder: InputBorder.none,
+                                    errorBorder: InputBorder.none,
+                                    focusedBorder: InputBorder.none,
+                                  ),
+
+                                ),
+                              ),
+
+                              if (kIsWeb) _micButton(_appendSpeechToInput),
+
+                              if (!isTaskMode)
+                                Obx(() => Visibility(
+                                  visible: controller.showUpload.value,
+                                  child:InkWell(
+                                    onTap: () => showUploadOptions(Get.context!),
+                                    child: IconButtonWidget(Icons.upload_outlined,isIcon:true),
+
+                                  ),
+                                )),
+
+                              if (!isTaskMode)
+                                Obx(() => Visibility(
+                                  visible: controller.showUpload.value,
+                                  child: InkWell(
+                                    onTap: () {
+                                      openWhatsAppEmojiPicker(
+                                          context: Get.context!, // prefer widget context, not Get.context!
+                                          textController: controller.msgController,
+                                          onSend: () => Get.back(),
+                                          isMobile: false
+                                      );
+                                    },
+                                    child: IconButtonWidget(emojiPng),
+                                  ),
+                                )),
+                            ],
+                          ),
+                        ),
+                      ),
+                    ),
+                  ),
+
+
+                 /* Focus(
                     focusNode: controller.messageParentFocus,
                     autofocus: true,
                     onKeyEvent: (node, event) {
@@ -687,7 +799,7 @@ class TaskThreadScreenWeb extends GetView<TaskThreadController> {
                         ),
                       ),
                     ),
-                  )
+                  )*/
                 ],
               ),
             ),
@@ -710,6 +822,90 @@ class TaskThreadScreenWeb extends GetView<TaskThreadController> {
         ],
       ),
     );
+
+  }
+
+  _micButton(Function() appendSpeechToInput){
+    return  Obx(() {
+      final listening = speechC.isListening.value;
+
+      return Builder(
+        builder: (micContext) {
+          return InkWell(
+            onTap: () {
+              if (!speechC.isSupported) {
+                Get.snackbar('Not supported', 'Voice-to-text is not supported in this browser.');
+                return;
+              }
+
+              speechC.setLanguage(langCode: speechC.selectedLang);
+
+              if (listening) {
+                speechC.stop();
+                appendSpeechToInput();
+              } else {
+                speechC.start();
+              }
+            },
+
+            onLongPress: () async {
+              if (speechC.isListening.value) speechC.stop();
+
+              final RenderBox button = micContext.findRenderObject() as RenderBox;
+              final RenderBox overlay =
+              Overlay.of(micContext).context.findRenderObject() as RenderBox;
+
+              final RelativeRect position = RelativeRect.fromRect(
+                Rect.fromPoints(
+                  button.localToGlobal(Offset.zero, ancestor: overlay),
+                  button.localToGlobal(button.size.bottomRight(Offset.zero),
+                      ancestor: overlay),
+                ),
+                Offset.zero & overlay.size,
+              );
+
+              final selected = await showMenu<String>(
+                context: micContext,
+                position: position,
+                color: Colors.white,
+                items:  [
+                  PopupMenuItem(value: 'en-IN', child: Text('English',style: BalooStyles.baloonormalTextStyle(),)),
+                  PopupMenuItem(value: 'hi-IN', child: Text('Hindi',style: BalooStyles.baloonormalTextStyle())),
+                ],
+              );
+
+              if (selected != null) {
+                speechC.updateSelectedLang(selected);
+              }
+            },
+
+            borderRadius: BorderRadius.circular(8),
+            child: Container(
+              padding: const EdgeInsets.all(5),
+              margin: const EdgeInsets.all(5),
+              decoration: BoxDecoration(
+                borderRadius: BorderRadius.circular(8),
+                border: Border.all(
+                  color: listening
+                      ? Colors.red.withOpacity(.35)
+                      : AppTheme.appColor.withOpacity(.3),
+                ),
+                color: listening
+                    ? Colors.red.withOpacity(.08)
+                    : AppTheme.appColor.withOpacity(.05),
+              ),
+              child: Image.asset(
+                listening ? pausePng : micPng,
+                color: listening ? Colors.red : AppTheme.appColor,
+                height: 20,
+              ),
+            ),
+          );
+        },
+      );
+    })
+    ;
+
   }
 
   void showUploadOptions(BuildContext context) {

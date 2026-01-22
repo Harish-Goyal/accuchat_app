@@ -20,6 +20,7 @@ import '../../../Screens/Chat/screens/auth/models/pending_invites_res_model.dart
 import '../../../Screens/Home/Models/all_member_res_model.dart';
 import '../../../Screens/Home/Models/company_mem_res_model.dart';
 import '../../../Screens/Home/Models/create_folder_res_model.dart';
+import '../../../Screens/Home/Models/get_folder_items_res_model.dart';
 import '../../../Screens/Home/Models/get_folder_res_model.dart';
 import '../../../Screens/Home/Models/get_pending_sent_invites_res_model.dart';
 import '../../../Screens/Home/Models/push_register_res_model.dart';
@@ -86,6 +87,8 @@ abstract class PostApiService {
 
   Future<AllMediaResModel> getAllMediaAPI({int? page,int? userCId,int? comId,String? mediaType,String? source});
 
-  Future<GetFolderResModel> getFolderApiCall(ucId);
+  Future<GetFolderResModel> getFolderApiCall({ucId,page});
   Future<CreateFolderResModel> createFolderApiCall({required Map<String, dynamic> dataBody});
+  Future<CreateFolderResModel> deleteFolderApiCall({required Map<String, dynamic> dataBody});
+  Future<FolderItemsResModel> getFolderItemsApiCall({page,ucID,folderName});
 }

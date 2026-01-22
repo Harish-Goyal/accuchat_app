@@ -501,6 +501,25 @@ bool isImageVideo(String orignalMsg) {
 
 
 
+Widget IconButtonWidget(image,{bool isIcon =false}){
+  return Container(
+    padding: const EdgeInsets.all(5),
+    margin: const EdgeInsets.all(5),
+    decoration: BoxDecoration(
+      borderRadius: BorderRadius.circular(8),
+      border: Border.all(color:appColorGreen.withOpacity(.3),),
+      color: appColorGreen.withOpacity(.1),
+    ),
+    child:!isIcon? Image.asset(
+      image,
+      height: 20,
+      color: appColorGreen,
+    ):Icon(image,size: 20,color: appColorGreen,),
+  );
+}
+
+
+
 
 
 

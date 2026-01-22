@@ -28,7 +28,6 @@ import '../../../../../../utils/helper.dart';
 import '../../../../../Home/Presentation/Controller/company_service.dart';
 import '../../../../../Home/Presentation/Controller/socket_controller.dart';
 import '../../../../../Settings/Model/get_nav_permission_res_model.dart';
-import '../../../../models/message.dart';
 import '../../../../models/get_company_res_model.dart';
 import '../../../../models/task_status_res_model.dart';
 import '../../../auth/models/get_uesr_Res_model.dart';
@@ -36,15 +35,11 @@ import 'package:dio/dio.dart' as multi;
 import 'package:path/path.dart' as p;
 import '../../Bindings/bindings.dart';
 import '../Views/task_chat_screen.dart';
-import '../Views/task_treads_screen.dart';
 import '../Widgets/all_users_dialog.dart';
-import 'chat_home_controller.dart';
-import 'chat_screen_controller.dart';
 
 class TaskController extends GetxController {
   TaskController({this.user});
   UserDataAPI? user;
-  // Message? forwardMessage;
   String? selectedChatId;
   String validString = '';
   List<Map<String, String>> uploadedAttachments = [];
@@ -63,15 +58,7 @@ class TaskController extends GetxController {
   var userIDReceiver;
   var refIdis;
 
-  // Helper: get absolute path from your map
-  String _pathOf(Map<String, dynamic> item) {
-    final url = item['url'];
-    if (url is File) return url.path;
-    if (url is String) return url; // in case you ever store a string path/uri
-    throw Exception('Invalid file entry: url is neither File nor String');
-  }
-
-// Helper: safe MediaType (or null if unknown)
+ // Helper: safe MediaType (or null if unknown)
   MediaType? _mediaTypeForPath(String path) {
     final mime = lookupMimeType(path);
     if (mime == null) return null;
@@ -194,15 +181,12 @@ class TaskController extends GetxController {
     if(kIsWeb){
       Get.toNamed("${AppRoutes.task_threads_web}?currentUserId=${user?.userId.toString()}&taskMsgId=${element.taskMsg.taskId.toString()}"
       );
-
     }else{
       Get.toNamed(AppRoutes.task_threads,
           arguments: {
             'taskMsg':  element.taskMsg, 'currentUser': user!
           });
     }
-
-
   }
 
 

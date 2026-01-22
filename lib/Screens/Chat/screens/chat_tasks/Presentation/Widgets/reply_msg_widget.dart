@@ -159,7 +159,7 @@ class ReplyMessageWidget extends StatelessWidget {
                :  Container(
               // width: Get.width * .78,
                 child: Text(
-                  orignalMsg?? '',
+                  message?? '',
                   style: BalooStyles.baloonormalTextStyle(color: greyText ,size: 15),
                   overflow: TextOverflow.ellipsis,
                   maxLines: 1,

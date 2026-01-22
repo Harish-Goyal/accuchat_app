@@ -47,9 +47,9 @@ class ChatScreenController extends GetxController {
   List<ChatHisResModel> msgList = [];
   final textController = TextEditingController();
   final FocusNode focusNode = FocusNode();
-  late FocusNode messageParentFocus;
+  FocusNode messageParentFocus=FocusNode();
+  FocusNode messageInputFocus=FocusNode();
   ChatHisList? replyToMessage;
-  late FocusNode messageInputFocus;
   String? replyToImage;
   bool showEmoji = false, isUploading = false, isUploadingTaskDoc = false;
   File? file;
@@ -116,6 +116,7 @@ class ChatScreenController extends GetxController {
     });
 
   }
+  final showUpload = true.obs;
 
 
   Timer? _pageDebounce;
@@ -247,8 +248,9 @@ class ChatScreenController extends GetxController {
   @override
   void onInit() {
     super.onInit();
-    messageParentFocus = FocusNode();
-    messageInputFocus = FocusNode();
+    textController.addListener(() {
+      showUpload.value = textController.text.trim().isEmpty;
+    });
     _getCompany();
     scrollListener();
     if(Get.isRegistered<ChatHomeController>()){
@@ -371,8 +373,17 @@ class ChatScreenController extends GetxController {
     if (ChatPresence.activeChatId == user?.userCompany?.userCompanyId) {
       ChatPresence.activeChatId = null;
     }
+
     super.onClose();
 
+  }
+
+  @override
+  void dispose() {
+    textController.dispose();
+    messageParentFocus.dispose();
+    focusNode.dispose();
+    super.dispose();
   }
 
   getArguments() {

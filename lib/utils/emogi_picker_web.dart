@@ -107,7 +107,6 @@ void openWhatsAppEmojiPicker({
                             iconColorSelected: Colors.blue,
                             indicatorColor: Colors.blue,
                           ),
-
                           bottomActionBarConfig: BottomActionBarConfig(enabled: false),
                           searchViewConfig: SearchViewConfig(),
                         ),

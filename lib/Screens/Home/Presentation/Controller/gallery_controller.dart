@@ -16,16 +16,19 @@ import '../../../../utils/helper_widget.dart';
 import '../../../Chat/helper/dialogs.dart';
 import '../../../Chat/models/gallery_node.dart';
 import '../../../Chat/models/get_company_res_model.dart';
+import '../../Models/get_folder_items_res_model.dart';
 import '../../Models/get_folder_res_model.dart';
+import '../View/folder_items_view.dart';
 import 'company_service.dart';
-
 
 class IndexedNode {
   final GalleryNode node;
   final List<GalleryNode> path; // ancestors from root to parent
   IndexedNode({required this.node, required this.path});
 }
-class GalleryController extends GetxController with GetSingleTickerProviderStateMixin {
+
+class GalleryController extends GetxController
+    with GetSingleTickerProviderStateMixin {
   late TabController tabController;
   //folder tile
   final RxString renamingId = ''.obs;
@@ -35,7 +38,8 @@ class GalleryController extends GetxController with GetSingleTickerProviderState
   final Map<String, FocusNode> _focusNodes = {};
 
   TextEditingController textCtrlFor(String id, String initial) {
-    return _textCtrls.putIfAbsent(id, () => TextEditingController(text: initial));
+    return _textCtrls.putIfAbsent(
+        id, () => TextEditingController(text: initial));
   }
 
   FocusNode focusNodeFor(String id) {
@@ -55,7 +59,6 @@ class GalleryController extends GetxController with GetSingleTickerProviderState
       c.selection = TextSelection(baseOffset: 0, extentOffset: c.text.length);
     });
   }
-
 
   Future<void> submitRename({
     required String id,
@@ -93,14 +96,14 @@ class GalleryController extends GetxController with GetSingleTickerProviderState
   List<FolderData> get breadcrumbs => List.unmodifiable([]);
 
   void openFolder(FolderData folder) {
-    if ((folder.folderName!=null ||folder.folderName!='' )) return;
-    (folderList??[]).add(folder);
+    if ((folder.folderName != null || folder.folderName != '')) return;
+    (folderList ?? []).add(folder);
     update();
   }
 
   bool goUp() {
-    if ((folderList??[]).isNotEmpty) {
-      (folderList??[]).removeLast();
+    if ((folderList ?? []).isNotEmpty) {
+      (folderList ?? []).removeLast();
       update();
       return true;
     }
@@ -108,22 +111,23 @@ class GalleryController extends GetxController with GetSingleTickerProviderState
   }
 
   void goToRoot() {
-    if ((folderList??[]).isNotEmpty) {
-      (folderList??[]).clear();
+    if ((folderList ?? []).isNotEmpty) {
+      (folderList ?? []).clear();
       update();
     }
   }
 
   void goToCrumb(int index) {
     // index inclusive within stack (0..last)
-    if (index < 0 || index >= (folderList??[]).length) return;
-    (folderList??[]).removeRange(index + 1, (folderList??[]).length);
+    if (index < 0 || index >= (folderList ?? []).length) return;
+    (folderList ?? []).removeRange(index + 1, (folderList ?? []).length);
     update();
   }
 
   // Replace with your preview/viewer
   void openLeaf(GalleryNode node) {
-    Get.snackbar('Open', node.name??'', snackPosition: SnackPosition.BOTTOM,duration: Duration(seconds: 6));
+    Get.snackbar('Open', node.name ?? '',
+        snackPosition: SnackPosition.BOTTOM, duration: Duration(seconds: 6));
   }
 
   final TextEditingController searchCtrl = TextEditingController();
@@ -141,13 +145,15 @@ class GalleryController extends GetxController with GetSingleTickerProviderState
       //   }
       // }
     }
-    walk((folderList??[]), const []);
+    walk((folderList ?? []), const []);
   }
 
   List<IndexedNode> get searchResults {
     final q = query.trim().toLowerCase();
     if (q.isEmpty) return const [];
-    return index.where((e) => (e.node.name??'').toLowerCase().contains(q)).toList();
+    return index
+        .where((e) => (e.node.name ?? '').toLowerCase().contains(q))
+        .toList();
   }
 
   bool get isSearching => query.trim().isNotEmpty;
@@ -178,16 +184,22 @@ class GalleryController extends GetxController with GetSingleTickerProviderState
   @override
   void onInit() {
     super.onInit();
-    getCompany();
-    hitApiToGetFolder();
-    tabController = TabController(length: 2, vsync: this);
-    _buildIndex();
+    _init();
+  }
 
+  _init() {
+    tabController = TabController(length: 2, vsync: this);
+    scrollController = ScrollController();
+    getCompany();
+    resetPagination();
+    hitApiToGetFolder(reset: true);
+    scrollListener();
+    _buildIndex();
     searchCtrl.addListener(() => onSearchChanged(searchCtrl.text));
   }
 
   CompanyData? myCompany = CompanyData();
-  getCompany(){
+  getCompany() {
     final svc = CompanyService.to;
     myCompany = svc.selected;
     update();
@@ -201,37 +213,11 @@ class GalleryController extends GetxController with GetSingleTickerProviderState
 
   void clearError() => error.value = '';
 
-  Future<void> submit({
-    required Future<void> Function(String name) onCreate,
-  }) async {
-    final name = nameController.text.trim();
-
-    if (name.isEmpty) {
-      error.value = "Folder name is required";
-      return;
-    }
-    if (name.length < 2) {
-      error.value = "Minimum 2 characters";
-      return;
-    }
-
-    isSaving.value = true;
-    error.value = '';
-    try {
-      await onCreate(name);
-      Get.back(result: name);
-    } catch (e) {
-      error.value = "Failed to create folder";
-    } finally {
-      isSaving.value = false;
-    }
-  }
-
   hitApiToCreateFolder() async {
     SystemChannels.textInput.invokeMethod('TextInput.hide');
     customLoader.show();
     var reqData = {
-      "name":nameController.text.trim(),
+      "name": nameController.text.trim(),
       "user_company_id": myCompany?.userCompanies?.userCompanyId,
     };
     Get.find<PostApiServiceImpl>()
@@ -239,9 +225,10 @@ class GalleryController extends GetxController with GetSingleTickerProviderState
         .then((value) {
       Get.back();
       customLoader.hide();
+      resetPagination();
       hitApiToGetFolder();
 
-      toast(value.message??'');
+      toast(value.message ?? '');
       update();
     }).onError((error, stackTrace) {
       update();
@@ -251,45 +238,207 @@ class GalleryController extends GetxController with GetSingleTickerProviderState
     }).whenComplete(() {});
   }
 
-  GetFolderResModel getFolderRes =GetFolderResModel();
-
-  List<FolderData>? folderList = [];
-
-  bool isLoading =false;
-
-  hitApiToGetFolder() async {
-    SystemChannels.textInput.invokeMethod('TextInput.hide');
-    isLoading=true;
-    update();
+  hitApiToDeleteFolder(id) async {
+    customLoader.show();
+    var reqData = {
+      "user_company_id": myCompany?.userCompanies?.userCompanyId,
+      "user_gallery_id": id,
+    };
     Get.find<PostApiServiceImpl>()
-        .getFolderApiCall(myCompany?.userCompanies?.userCompanyId)
+        .deleteFolderApiCall(dataBody: reqData)
         .then((value) {
-      isLoading=false;
-      update();
-      getFolderRes = value;
-      folderList = getFolderRes.data?.rows??[];
-      toast(value.message??'');
+      Get.back();
+      customLoader.hide();
+      hitApiToGetFolder();
+      toast(value.message ?? '');
       update();
     }).onError((error, stackTrace) {
-      isLoading=false;
+      update();
+      Get.back();
+      customLoader.hide();
+      errorDialog(error.toString());
+    }).whenComplete(() {});
+  }
+
+  GetFolderResModel getFolderRes = GetFolderResModel();
+
+  void resetPagination() {
+    page.value = 1;
+    hasMore.value = true;
+    folderList.clear();
+    isLoading.value = true;
+  }
+
+  // List<FolderData>? folderList = [];
+  var folderList = <FolderData>[].obs;
+
+  RxBool isLoading = false.obs;
+  RxBool hasMore = false.obs;
+  RxBool isPageLoading = false.obs;
+  RxInt page = 1.obs;
+  late ScrollController scrollController;
+
+  void scrollListener() {
+    scrollController.addListener(() {
+      if (!scrollController.hasClients) return;
+
+      final pos = scrollController.position;
+
+      // ✅ If not scrollable yet, don't paginate
+      if (pos.maxScrollExtent <= 0) return;
+
+      // ✅ Trigger when user is near bottom
+      const threshold = 200.0;
+      final nearBottom = pos.extentAfter < threshold;
+
+      if (nearBottom && !isPageLoading.value && hasMore.value) {
+        hitApiToGetFolder();
+      }
+    });
+  }
+
+
+  Future<void> hitApiToGetFolder({bool reset = false}) async {
+    if (isPageLoading.value) return;
+
+    if (reset) {
+      page.value = 1;
+      hasMore.value = true;
+      isLoading.value = true;
+      folderList.clear();
+    }
+
+    if (!hasMore.value) return;
+
+    isPageLoading.value = true;
+    if (page.value == 1) isLoading.value = true;
+
+    try {
+      final res = await Get.find<PostApiServiceImpl>().getFolderApiCall(
+        ucId: myCompany?.userCompanies?.userCompanyId,
+        page: page,
+      );
+
+      isLoading.value = false;
+
+      final rows = res.data?.rows ?? [];
+
+      if (rows.isNotEmpty) {
+        folderList.addAll(rows);
+        page.value++;
+        const pageSize = 15; // match backend
+        hasMore.value = rows.length == pageSize;
+      } else {
+        hasMore.value = false;
+      }
+      _ensureScrollableAndPrefetch();
+    } catch (e) {
+      isLoading.value = false;
+    } finally {
+      isPageLoading.value = false;
+    }
+  }
+
+/*  hitApiToGetFolder() async {
+    SystemChannels.textInput.invokeMethod('TextInput.hide');
+    if (page.value == 1) {
+      isLoading.value = true;
+      folderList?.clear();
+    }
+    isPageLoading.value = true;
+    Get.find<PostApiServiceImpl>()
+        .getFolderApiCall(
+            ucId: myCompany?.userCompanies?.userCompanyId, page: page)
+        .then((value) async {
+      isLoading.value = false;
+      getFolderRes = value;
+      if (value.data?.rows != null && (value.data?.rows ?? []).isNotEmpty) {
+        if (page.value == 1) {
+          folderList.assignAll(getFolderRes.data?.rows ?? []);
+        } else {
+          folderList.addAll(getFolderRes.data?.rows ?? []);
+        }
+
+        page++; // next page
+      } else {
+        hasMore.value = false;
+        isPageLoading.value = false;
+      }
+      isLoading.value = false;
+      isPageLoading.value = false;
+    }).onError((error, stackTrace) {
+      isLoading.value = false;
+      isPageLoading.value = false;
+    });
+  }*/
+
+//Create folder
+
+// Folder Items
+  FolderItemsResModel folderItemsRes = FolderItemsResModel();
+
+  List<FolderData>? folderItems = [];
+
+  RxBool isLoadingItems = false.obs;
+
+  hitApiToGetFolderItems(folderName) async {
+    isLoadingItems.value = true;
+    Get.find<PostApiServiceImpl>()
+        .getFolderItemsApiCall(
+            page: 1,
+            ucID: myCompany?.userCompanies?.userCompanyId,
+            folderName: folderName)
+        .then((value) {
+      isLoadingItems.value = false;
+      update();
+      folderItemsRes = value;
+      folderItems = folderItemsRes.data?.rows ?? [];
+      Get.to(
+        () => FolderItemsScreen(
+          folderName: folderName,
+        ),
+      );
+      update();
+    }).onError((error, stackTrace) {
+      isLoadingItems.value = false;
       update();
       customLoader.hide();
       errorDialog(error.toString());
     }).whenComplete(() {});
   }
 
-//Create folder
+  final RxString openedFolder = "".obs;
 
+  Future<void> onFolderTap(String folderName) async {
+    // toggle close
+    if (openedFolder.value == folderName) {
+      openedFolder.value = "";
+      return;
+    }
 
+    openedFolder.value = folderName;
+    await hitApiToGetFolderItems(folderName);
+  }
 
+  //Folder Items
+  void _ensureScrollableAndPrefetch() {
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!scrollController.hasClients) return;
+      final pos = scrollController.position;
 
-
+      // still not scrollable, but more data exists => prefetch next page
+      if (pos.maxScrollExtent <= 0 && hasMore.value && !isPageLoading.value) {
+        hitApiToGetFolder();
+      }
+    });
+  }
 
   @override
   void onClose() {
     super.onClose();
     searchCtrl.dispose();
     tabController.dispose();
+    scrollController.dispose();
     for (final c in _textCtrls.values) {
       c.dispose();
     }
@@ -297,7 +446,6 @@ class GalleryController extends GetxController with GetSingleTickerProviderState
       f.dispose();
     }
   }
-
 
   Future<List<XFile>> pickWebImages({int maxFiles = 10}) async {
     final result = await FilePicker.platform.pickFiles(
@@ -345,8 +493,6 @@ class GalleryController extends GetxController with GetSingleTickerProviderState
     if (lower.endsWith('.jpg') || lower.endsWith('.jpeg')) return 'image/jpeg';
     return 'image/*';
   }
-
-
 
   int maxBytes = 15 * 1024 * 1024;
   Future<List<PlatformFile>> pickWebDocs() async {
@@ -479,5 +625,4 @@ class GalleryController extends GetxController with GetSingleTickerProviderState
       update();
     }
   }
-
 }

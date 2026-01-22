@@ -38,6 +38,8 @@ class ApiEnd {
   static const String getTaskEnd = "api/tasks";
   static const String createFolderEnd = "api/gallery/folder/create";
   static const String getFolderEnd = "api/gallery/folders";
+  static const String deleteFolderEnd = "api/gallery/folder/delete";
+  static const String getFolderItemsEnd = "api/gallery/folder/items";
 }
 
 const String tripOngoing ='ongoing';

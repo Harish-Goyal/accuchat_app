@@ -34,13 +34,12 @@ class SaveToGalleryController extends GetxController {
     isLoading=true;
     update();
     Get.find<PostApiServiceImpl>()
-        .getFolderApiCall(myCompany?.userCompanies?.userCompanyId)
+        .getFolderApiCall(ucId:myCompany?.userCompanies?.userCompanyId)
         .then((value) {
       isLoading=false;
       update();
       getFolderRes = value;
       folderList = getFolderRes.data?.rows??[];
-      toast(value.message??'');
       update();
     }).onError((error, stackTrace) {
       isLoading=false;
