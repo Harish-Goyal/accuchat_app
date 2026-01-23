@@ -297,10 +297,13 @@ class GroupMembersScreen extends GetView<GrBrMembersController> {
                     isGroup: controller.groupOrBr?.userCompany?.isGroup == 1
                         ? true
                         : false,
+                    
                   );
                 },title: controller.groupOrBr?.userCompany?.isGroup == 1
                     ? 'Delete Group'
-                    : "Delete Broadcast");
+                    : "Delete Broadcast", subtitle: controller.groupOrBr?.userCompany?.isGroup == 1
+                    ? 'Delete Group ${controller.groupOrBr?.userName}'
+                    : "Delete Broadcast ${controller.groupOrBr?.userName}");
 
               } else if (value == 'add') {
                 if (kIsWeb) {

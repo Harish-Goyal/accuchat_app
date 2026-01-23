@@ -112,8 +112,9 @@ double _textScaleClamp(BuildContext context) {
 class ChatScreenMobile extends GetView<ChatScreenController> {
   ChatScreenMobile({super.key});
   final speechC = Get.put(SpeechControllerImpl());
+  SaveToGalleryController galleryController= Get.put(SaveToGalleryController());
 
-  SaveToGalleryController saveGellController =Get.put(SaveToGalleryController());
+  // SaveToGalleryController saveGellController =Get.put(SaveToGalleryController());
   @override
   Widget build(BuildContext context) {
     return GetBuilder<ChatScreenController>(builder: (controller) {
@@ -414,7 +415,7 @@ class ChatScreenMobile extends GetView<ChatScreenController> {
                     controller.userIDReceiver = element.chatMessageItems.toUser?.userId;
                     controller.replyToMessage = element.chatMessageItems;
                     controller.update();
-                    controller.messageInputFocus.requestFocus();
+                    controller.messageParentFocus.requestFocus();
                   } else {
                     if (media.length == 1) {
                       final firstMedia = media.first;
@@ -448,7 +449,7 @@ class ChatScreenMobile extends GetView<ChatScreenController> {
                       );
 
                       controller.update();
-                      controller.messageInputFocus.requestFocus();
+                      controller.messageParentFocus.requestFocus();
                     }
                     else {
                       toast("Tap to enter details and than can reply over image");
@@ -2184,7 +2185,7 @@ class ChatScreenMobile extends GetView<ChatScreenController> {
                       controller.userIDReceiver = data.toUser?.userId;
                       controller.replyToMessage = data;
                       controller.update();
-                      controller.messageInputFocus.requestFocus();
+                      controller.messageParentFocus.requestFocus();
                     } else {
                       final firstMedia = media.first;
                       controller.refIdis = data.chatId;
@@ -2208,7 +2209,7 @@ class ChatScreenMobile extends GetView<ChatScreenController> {
                       );
 
                       controller.update();
-                      controller.messageInputFocus.requestFocus();
+                      controller.messageParentFocus.requestFocus();
                     }
                   })
                   : const SizedBox(),
@@ -2219,11 +2220,17 @@ class ChatScreenMobile extends GetView<ChatScreenController> {
                   name: 'Save to Smart Gallery',
                   onTap: () async {
                     try {
+                      final mediachat  = data.media?.first;
                       Get.back();
-                      // openSaveToGallerySheet(fileId: "12", sourceType: "chat", sourceId: "09",defaultName: "chat_0998782377");
+                      final saveC = Get.isRegistered<SaveToGalleryController>()
+                          ? Get.find<SaveToGalleryController>()
+                          : Get.put(SaveToGalleryController());
+
+                      await saveC.hitApiToGetFolder();
                       showDialog(
                           context: Get.context!,
-                          builder: (_) => SaveToCustomFolderDialog(user: controller.user,));
+                          builder: (_) => SaveToCustomFolderDialog(user: controller.user,filesImages: data.media,isImage: true, isFromChat: true,
+                            chatId: mediachat?.chatMediaId,));
                     } catch (e) {
                       toast('Something went wrong!');
                     }
@@ -2373,6 +2380,8 @@ class ChatScreenMobile extends GetView<ChatScreenController> {
           // Keep height comfortable and scroll if needed
           final double maxDialogHeight = screenH * 0.9;
 
+          final saveGcon = Get.find<SaveToGalleryController>();
+
           return Center(
             child: ConstrainedBox(
               constraints: BoxConstraints(
@@ -2403,7 +2412,7 @@ class ChatScreenMobile extends GetView<ChatScreenController> {
 
                         CustomTextField(
                           hintText: "Document Name",
-                          controller: saveGellController.docNameController,
+                          controller: saveGcon.docNameController,
                           focusNode: FocusNode(),
                           onFieldSubmitted: (String? value) {
                             FocusScope.of(Get.context!).unfocus();
@@ -2423,7 +2432,7 @@ class ChatScreenMobile extends GetView<ChatScreenController> {
                                 vPadding: 6,
                                 onTap: () async {
                                   if (_formKeyDoc.currentState!.validate()) {
-                                    saveGellController.onTapSaveToFolder(Get.context!,controller.user);
+                                    saveGcon.onTapSaveToFolder(Get.context!,controller.user);
                                   }
                                   // logoutLocal();
                                 },

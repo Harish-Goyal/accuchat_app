@@ -1,6 +1,9 @@
 import 'dart:io';
 import 'dart:typed_data';
-
+import 'package:AccuChat/Screens/Chat/screens/chat_tasks/Presentation/Controllers/save_in_accuchat_gallery_controller.dart';
+import 'package:AccuChat/Screens/Home/Presentation/Controller/genere_controller.dart';
+import 'package:dio/dio.dart' as multi;
+import 'package:path/path.dart' as p;
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/foundation.dart';
@@ -12,6 +15,7 @@ import 'package:image_picker/image_picker.dart';
 import '../../../../Services/APIs/post/post_api_service_impl.dart';
 import '../../../../main.dart';
 import '../../../../utils/custom_flashbar.dart';
+import '../../../../utils/helper.dart';
 import '../../../../utils/helper_widget.dart';
 import '../../../Chat/helper/dialogs.dart';
 import '../../../Chat/models/gallery_node.dart';
@@ -31,22 +35,22 @@ class GalleryController extends GetxController
     with GetSingleTickerProviderStateMixin {
   late TabController tabController;
   //folder tile
-  final RxString renamingId = ''.obs;
+  final RxInt renamingId = 0.obs;
 
   // controllers & focus per node
   final Map<String, TextEditingController> _textCtrls = {};
   final Map<String, FocusNode> _focusNodes = {};
 
-  TextEditingController textCtrlFor(String id, String initial) {
+  TextEditingController textCtrlFor(int id, String initial) {
     return _textCtrls.putIfAbsent(
-        id, () => TextEditingController(text: initial));
+        id.toString(), () => TextEditingController(text: initial));
   }
 
-  FocusNode focusNodeFor(String id) {
-    return _focusNodes.putIfAbsent(id, () => FocusNode());
+  FocusNode focusNodeFor(int id) {
+    return _focusNodes.putIfAbsent(id.toString(), () => FocusNode());
   }
 
-  void startRename({required String id, required String currentName}) {
+  void startRename({required int id, required String currentName}) {
     renamingId.value = id;
 
     final c = textCtrlFor(id, currentName);
@@ -68,11 +72,11 @@ class GalleryController extends GetxController
     final c = _textCtrls[id];
     final newName = (c?.text ?? '').trim();
     if (newName.isEmpty || newName == oldName) {
-      renamingId.value = '';
+      renamingId.value = 0;
       return;
     }
     await onRename(newName);
-    renamingId.value = '';
+    renamingId.value = 0;
   }
 
   Future<void> renameFolder(String id, String name) async {
@@ -86,7 +90,7 @@ class GalleryController extends GetxController
   }
 
   void cancelRename() {
-    renamingId.value = '';
+    renamingId.value = 0;
   }
 
   // Stack of opened folders (root == empty)
@@ -223,11 +227,44 @@ class GalleryController extends GetxController
     Get.find<PostApiServiceImpl>()
         .createFolderApiCall(dataBody: reqData)
         .then((value) {
-      Get.back();
+      nameController.clear();
+      Get.back(result: nameController.text.trim());
       customLoader.hide();
       resetPagination();
       hitApiToGetFolder();
 
+      toast(value.message ?? '');
+      update();
+    }).onError((error, stackTrace) {
+      update();
+      Get.back();
+      customLoader.hide();
+      errorDialog(error.toString());
+    }).whenComplete(() {});
+  }
+
+  hitApiToUploadFolderMedia(FolderData folder) async {
+    SystemChannels.textInput.invokeMethod('TextInput.hide');
+    customLoader.show();
+    var reqData = multi.FormData.fromMap({
+      "folder_name":nameController.text.trim(),
+      "title":nameController.text.trim(),
+      "file_path":  myCompany?.userCompanies?.userCompanyId,
+      "key_words":  myCompany?.userCompanies?.userCompanyId,
+    });
+
+    Get.find<PostApiServiceImpl>()
+        .uploadFolderMediaApiCall(dataBody: reqData)
+        .then((value) {
+      Get.back();
+      customLoader.hide();
+      resetPagination();
+      hitApiToGetFolder();
+      Get.to(
+            () => FolderItemsScreen(
+          folderData: folder,
+        ),
+      );
       toast(value.message ?? '');
       update();
     }).onError((error, stackTrace) {
@@ -251,6 +288,74 @@ class GalleryController extends GetxController
       customLoader.hide();
       hitApiToGetFolder();
       toast(value.message ?? '');
+      update();
+    }).onError((error, stackTrace) {
+      update();
+      Get.back();
+      customLoader.hide();
+      errorDialog(error.toString());
+    }).whenComplete(() {});
+  }
+
+  hitApiToEditFolder(folderName,newFolderName) async {
+    customLoader.show();
+    var reqData = {
+      "user_company_id": myCompany?.userCompanies?.userCompanyId,
+      "old_name": folderName,
+      "new_name": newFolderName,
+    };
+    Get.find<PostApiServiceImpl>()
+        .editFolderApiCall(dataBody: reqData)
+        .then((value) {
+      customLoader.hide();
+      hitApiToGetFolder();
+      // toast(value.message ?? '');
+      update();
+    }).onError((error, stackTrace) {
+      update();
+      Get.back();
+      customLoader.hide();
+      errorDialog(error.toString());
+    }).whenComplete(() {});
+  }
+
+  hitApiToEditFolderItems(FolderData folder,id,newFolderName) async {
+    customLoader.show();
+    var reqData = {
+      "user_company_id": myCompany?.userCompanies?.userCompanyId,
+      "user_gallery_id":id,
+      "title": newFolderName,
+      // "new_name": newFolderName,
+    };
+    Get.find<PostApiServiceImpl>()
+        .editFolderItemsApiCall(dataBody: reqData)
+        .then((value) {
+      customLoader.hide();
+      hitApiToGetFolderItems(folder);
+      // toast(value.message ?? '');
+      update();
+    }).onError((error, stackTrace) {
+      update();
+      Get.back();
+      customLoader.hide();
+      errorDialog(error.toString());
+    }).whenComplete(() {});
+  }
+
+  hitApiToDeleteFolderItems(FolderData folder,id) async {
+    customLoader.show();
+    var reqData = {
+      "user_company_id": myCompany?.userCompanies?.userCompanyId,
+      "user_gallery_id":id,
+      // "new_name": newFolderName,
+    };
+    Get.find<PostApiServiceImpl>()
+        .deleteFolderItemsApiCall(dataBody: reqData)
+        .then((value) {
+          Get.back();
+      customLoader.hide();
+      hitApiToGetFolderItems(folder);
+      // toast(value.message ?? '');
       update();
     }).onError((error, stackTrace) {
       update();
@@ -381,13 +486,13 @@ class GalleryController extends GetxController
 
   RxBool isLoadingItems = false.obs;
 
-  hitApiToGetFolderItems(folderName) async {
+  hitApiToGetFolderItems(FolderData folder) async {
     isLoadingItems.value = true;
     Get.find<PostApiServiceImpl>()
         .getFolderItemsApiCall(
             page: 1,
             ucID: myCompany?.userCompanies?.userCompanyId,
-            folderName: folderName)
+            folderName: folder.folderName)
         .then((value) {
       isLoadingItems.value = false;
       update();
@@ -395,7 +500,7 @@ class GalleryController extends GetxController
       folderItems = folderItemsRes.data?.rows ?? [];
       Get.to(
         () => FolderItemsScreen(
-          folderName: folderName,
+          folderData: folder,
         ),
       );
       update();
@@ -409,15 +514,15 @@ class GalleryController extends GetxController
 
   final RxString openedFolder = "".obs;
 
-  Future<void> onFolderTap(String folderName) async {
+  Future<void> onFolderTap(FolderData folder) async {
     // toggle close
-    if (openedFolder.value == folderName) {
+    if (openedFolder.value == folder.folderName) {
       openedFolder.value = "";
       return;
     }
 
-    openedFolder.value = folderName;
-    await hitApiToGetFolderItems(folderName);
+    openedFolder.value = folder.folderName??'';
+    await hitApiToGetFolderItems(folder);
   }
 
   //Folder Items
@@ -432,6 +537,182 @@ class GalleryController extends GetxController
       }
     });
   }
+
+
+  RxBool isUploading = false.obs;
+  List<Map<String, dynamic>> attachedFiles = [];
+  List<XFile> images = [];
+  final List<PlatformFile> webDocs = [];
+  //Upload media
+  Future<void> uploadDocumentsApiCall({required List<PlatformFile> files, void Function(int sent, int total)? onProgress, folderName, keywords, mediaTitle,FolderData? folder}) async {
+
+    if (files.isEmpty) {
+      toast('Please select at least one document');
+      return;
+    }
+    try {
+      isUploading.value = true;
+      final docParts = <multi.MultipartFile>[];
+      for (final f in files) {
+        final name = safeName(f.name);
+        final extis = ext(name);
+        if (kIsWeb) {
+          final bytes = f.bytes;
+          if (bytes == null) continue;
+          docParts.add(
+            multi.MultipartFile.fromBytes(
+              bytes,
+              filename: name,
+              contentType: mediaTypeForExt(extis),
+            ),
+          );
+        } else {
+          final path = f.path;
+          if (path == null) continue;
+          docParts.add(
+            await multi.MultipartFile.fromFile(
+              path,
+              filename: name,
+              contentType: mediaTypeForExt(extis),
+            ),
+          );
+        }
+      }
+
+      if (docParts.isEmpty) {
+        isUploading.value  = false;
+        update();
+        toast('No readable documents selected');
+        return;
+      }
+      multi.FormData? formData;
+        formData = multi.FormData.fromMap({
+          "folder_name":folderName,
+          "title":nameController.text.trim(),
+          "user_company_id":  myCompany?.userCompanies?.userCompanyId,
+          "key_words":  keywords,
+          'file_path': docParts, // array of docs
+        });
+
+      Get.find<PostApiServiceImpl>()
+          .uploadFolderMediaApiCall(dataBody: formData)
+          .then((value) {
+        Get.back();
+        isUploading.value  = false;
+        customLoader.hide();
+        resetPagination();
+        hitApiToGetFolder();
+        Get.to(
+              () => FolderItemsScreen(
+            folderData: folder,
+          ),
+        );
+        toast(value.message ?? '');
+      }).onError((error, stackTrace) {
+        isUploading.value  = false;
+        Get.back();
+        customLoader.hide();
+        errorDialog(error.toString());
+      }).whenComplete(() {});
+
+    } catch (e) {
+      isUploading.value = false;
+      errorDialog(e.toString());
+    }
+  }
+
+
+  Future<void> uploadMediaApiCall({
+    void Function(int sent, int total)? onProgress,
+    title,
+    folderName,
+    keywords,
+    FolderData? folder
+  }) async {
+    // Hide keyboard
+    SystemChannels.textInput.invokeMethod('TextInput.hide');
+
+    if (images.isEmpty) {
+      toast('Please select at least one image');
+      return;
+    }
+
+    try {
+      isUploading.value = true;
+      // Build Multipart for each XFile (supports web+mobile)
+      final mediaFiles = <multi.MultipartFile>[];
+      for (final x in images) {
+        multi.MultipartFile mf;
+        if (!kIsWeb && x.path.isNotEmpty) {
+          final path = x.path;
+          final extis = ext(path);
+          mf = await multi.MultipartFile.fromFile(
+            path,
+            filename: safeName(p.basename(path)),
+            contentType: mediaTypeForExt(extis),
+          );
+        } else {
+          // WEB: path may be empty; use bytes
+          final Uint8List bytes = await x.readAsBytes();
+          final nameGuess = x.name.isNotEmpty
+              ? x.name
+              : 'image_${DateTime.now().millisecondsSinceEpoch}.jpg';
+          final extis = ext(nameGuess);
+          mf = multi.MultipartFile.fromBytes(
+            bytes,
+            filename: safeName(nameGuess),
+            contentType: mediaTypeForExt(extis),
+          );
+        }
+
+        mediaFiles.add(mf);
+      }
+      final Map<String, dynamic> fields;
+      fields ={
+        "folder_name":folderName,
+        "title":title,
+        "user_company_id":  myCompany?.userCompanies?.userCompanyId,
+        "key_words":  keywords,
+        'file_path': mediaFiles, // array of docs
+      };
+
+      // // If you later need reply fields:
+      // if (replyToId != null) fields['reply_to_id'] = replyToId;
+      // if (replyText?.trim().isNotEmpty == true) fields['reply_to_text'] = replyText!.trim();
+
+      final formData = multi.FormData.fromMap(fields);
+
+      Get.find<PostApiServiceImpl>()
+          .uploadFolderMediaApiCall(dataBody: formData)
+          .then((value) {
+        Get.back();
+        isUploading.value  = false;
+        customLoader.hide();
+        resetPagination();
+        hitApiToGetFolder();
+        Get.to(
+              () => FolderItemsScreen(
+            folderData: folder,
+          ),
+        );
+        toast(value.message ?? '');
+      }).onError((error, stackTrace) {
+        isUploading.value  = false;
+        Get.back();
+        customLoader.hide();
+        errorDialog(error.toString());
+      }).whenComplete(() {});
+
+    } catch (e) {
+      isUploading.value = false;
+      errorDialog(e.toString());
+    }
+  }
+
+  // Upload Media
+
+
+
 
   @override
   void onClose() {
@@ -556,9 +837,6 @@ class GalleryController extends GetxController
       return;
     }
 
-    // isUploading = true;
-    // update();
-
     final result = await FilePicker.platform.pickFiles(
       allowMultiple: false,
       type: FileType.custom,
@@ -614,15 +892,35 @@ class GalleryController extends GetxController
       var ext = file.path.split('.').last;
       final fileName =
           'DOC_${DateTime.now().millisecondsSinceEpoch}_${result.files.single.name}';
-      // uploadDocumentsApiCall(
-      //   files: result.files,
-      //   onProgress: (sent, total) {
-      //     setUploadProgress(sent, total);
-      //   },
-      // );
-      //
-      // isUploading = false;
-      update();
+
+     final saveToGallControlller = Get.find<SaveToGalleryController>();
+     final genre = Get.find<GenreController>();
+      uploadDocumentsApiCall(
+        files: result.files,
+        onProgress: (sent, total) {
+          setUploadProgress(sent, total);
+        },
+        folderName: saveToGallControlller.selectedFolder?.folderName??'',
+        mediaTitle: saveToGallControlller.docNameController.text.trim(),
+        keywords: genre.genresString.value,
+        folder:saveToGallControlller.selectedFolder,
+
+      );
+
+      isUploading.value = false;
     }
+  }
+
+  double uploadProgress = 0.0; // 0 → 100
+
+  void setUploadProgress(int sent, int total) {
+    if (total <= 0) return;
+    uploadProgress = (sent / total) * 100;
+    update(); // rebuild widgets using this controller
+  }
+
+  void resetUploadProgress() {
+    uploadProgress = 0.0;
+    update();
   }
 }

@@ -117,8 +117,7 @@ final FocusNode _focusNode = FocusNode();
 class ChatScreen extends GetView<ChatScreenController> {
   final UserDataAPI? user;
   bool showBack = true;
-
-  SaveToGalleryController galleryController = Get.put(SaveToGalleryController());
+  // SaveToGalleryController galleryController = Get.put(SaveToGalleryController());
 
 
 
@@ -530,7 +529,7 @@ class ChatScreen extends GetView<ChatScreenController> {
                                 controller.userIDReceiver = element.chatMessageItems.toUser?.userId;
                                 controller.replyToMessage = element.chatMessageItems;
                                 controller.update();
-                                controller.messageInputFocus.requestFocus();
+                                controller.messageParentFocus.requestFocus();
                                 Get.back();
                               } else {
                                 final firstMedia = media.first;
@@ -558,7 +557,7 @@ class ChatScreen extends GetView<ChatScreenController> {
                                 );
 
                                 controller.update();
-                                controller.messageInputFocus.requestFocus();
+                                controller.messageParentFocus.requestFocus();
                                 Get.back();
                               }
 
@@ -2352,7 +2351,7 @@ class ChatScreen extends GetView<ChatScreenController> {
                           controller.userIDReceiver = data.toUser?.userId;
                           controller.replyToMessage = data;
                           controller.update();
-                          controller.messageInputFocus.requestFocus();
+                          controller.messageParentFocus.requestFocus();
                           Get.back();
                         } else {
                           final firstMedia = media.first;
@@ -2380,7 +2379,7 @@ class ChatScreen extends GetView<ChatScreenController> {
                           );
 
                           controller.update();
-                          controller.messageInputFocus.requestFocus();
+                          controller.messageParentFocus.requestFocus();
                           Get.back();
                         }
                       })
@@ -2392,12 +2391,26 @@ class ChatScreen extends GetView<ChatScreenController> {
                         color: appColorYellow, size: 16),
                     name: 'Save to Smart Gallery',
                     onTap: () async {
+                      final mediachat  = data.media?.first;
                       try {
                         Get.back();
+                        final saveC = Get.isRegistered<SaveToGalleryController>()
+                            ? Get.find<SaveToGalleryController>()
+                            : Get.put(SaveToGalleryController());
+
+                        await saveC.hitApiToGetFolder();
                         // openSaveToGallerySheet(fileId: "12", sourceType: "chat", sourceId: "09",defaultName: "chat_0998782377");
-                        showDialog(
-                            context: Get.context!,
-                            builder: (_) => SaveToCustomFolderDialog(user: user,));
+                        Get.dialog(
+                          SaveToCustomFolderDialog(
+                            user: user,
+                            filesImages: data.media,
+                            isImage: true,
+                            isFromChat: true,
+                            chatId: mediachat?.chatMediaId,
+                          ),
+                          barrierDismissible: false,
+                        );
+
                       } catch (e) {
                         toast('Something went wrong!');
                       }

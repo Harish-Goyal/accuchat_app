@@ -71,11 +71,11 @@ Future<String?> showCreateFolderDialog() async {
                             return value?.isEmptyField(messageTitle: "Folder name");
                           },
                         ),
-                        vGap(12),
+                /*        vGap(12),
                         GenreInputGetX(),
-                        vGap(12),
-
-                       Spacer(),
+                        vGap(12),*/
+                        vGap(40),
+                       // Spacer(),
 
                         // Buttons
                         Row(

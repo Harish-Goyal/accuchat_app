@@ -28,6 +28,7 @@ import '../../../Screens/Home/Models/get_folder_items_res_model.dart';
 import '../../../Screens/Home/Models/get_folder_res_model.dart';
 import '../../../Screens/Home/Models/get_pending_sent_invites_res_model.dart';
 import '../../../Screens/Home/Models/push_register_res_model.dart';
+import '../../../Screens/Home/Models/upload_folder_media_res_model.dart';
 import '../../../Screens/Settings/Model/get_company_roles_res_moel.dart';
 import '../../../Screens/Settings/Model/get_nav_permission_res_model.dart';
 import '../../../main.dart';
@@ -459,10 +460,69 @@ class PostApiServiceImpl extends GetxService implements PostApiService {
   }
 
   @override
+  Future<CreateFolderResModel> saveMediaFromChatApiCall({required Map<String, dynamic> dataBody}) async{
+    try {
+      final response = await dioClient!
+          .post(ApiEnd.saveFromChatEnd, skipAuth: false,
+     data:dataBody);
+    return CreateFolderResModel.fromJson(response);
+    } catch (e) {
+      return Future.error(NetworkExceptions.getDioException(e));
+    }
+  }
+
+  @override
+  Future<UploadFolderMediaResModel> uploadFolderMediaApiCall({required httpdio.FormData? dataBody}) async{
+    try {
+      final response = await dioClient!
+          .post(ApiEnd.uploadFolderItemsEnd, skipAuth: false,
+     data:dataBody);
+    return UploadFolderMediaResModel.fromJson(response);
+    } catch (e) {
+      return Future.error(NetworkExceptions.getDioException(e));
+    }
+  }
+
+  @override
   Future<CreateFolderResModel> deleteFolderApiCall({required Map<String, dynamic> dataBody}) async{
     try {
       final response = await dioClient!
           .post(ApiEnd.deleteFolderEnd, skipAuth: false,
+     data:dataBody);
+    return CreateFolderResModel.fromJson(response);
+    } catch (e) {
+      return Future.error(NetworkExceptions.getDioException(e));
+    }
+  }
+
+  @override
+  Future<CreateFolderResModel> editFolderApiCall({required Map<String, dynamic> dataBody}) async{
+    try {
+      final response = await dioClient!
+          .post(ApiEnd.folderRenameEnd, skipAuth: false,
+     data:dataBody);
+    return CreateFolderResModel.fromJson(response);
+    } catch (e) {
+      return Future.error(NetworkExceptions.getDioException(e));
+    }
+  }
+  @override
+  Future<CreateFolderResModel> deleteFolderItemsApiCall({required Map<String, dynamic> dataBody}) async{
+    try {
+      final response = await dioClient!
+          .post(ApiEnd.deleteFolderItemEnd, skipAuth: false,
+     data:dataBody);
+    return CreateFolderResModel.fromJson(response);
+    } catch (e) {
+      return Future.error(NetworkExceptions.getDioException(e));
+    }
+  }
+
+  @override
+  Future<CreateFolderResModel> editFolderItemsApiCall({required Map<String, dynamic> dataBody}) async{
+    try {
+      final response = await dioClient!
+          .post(ApiEnd.folderItemRenameEnd, skipAuth: false,
      data:dataBody);
     return CreateFolderResModel.fromJson(response);
     } catch (e) {

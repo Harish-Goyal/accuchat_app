@@ -1,23 +1,36 @@
+import 'package:AccuChat/Screens/Home/Models/get_folder_res_model.dart';
 import 'package:AccuChat/Services/APIs/api_ends.dart';
+import 'package:AccuChat/utils/common_textfield.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:AccuChat/Screens/Home/Presentation/Controller/gallery_controller.dart';
 
-class FolderItemsScreen extends StatelessWidget {
-  final String folderName;
+import '../../../../Constants/assets.dart';
+import '../../../../Constants/colors.dart';
+import '../../../../utils/confirmation_dialog.dart';
+import '../../../../utils/networl_shimmer_image.dart';
+import 'gallery_view.dart';
 
-  FolderItemsScreen({super.key, required this.folderName});
+class FolderItemsScreen extends StatelessWidget {
+  // final String folderName;
+  final FolderData? folderData;
+  FolderItemsScreen({super.key, required this.folderData});
 
   final GalleryController c = Get.put(GalleryController());
 
   @override
   Widget build(BuildContext context) {
+    // ⚠️ IMPORTANT: build() me bar-bar api call hoti hai (Obx rebuild).
+    // Better: controller me "load once" guard laga do (shown below).
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      c.hitApiToGetFolderItems(folderName);
+      c.hitApiToGetFolderItems(folderData!); // ✅ use this guarded method
     });
 
     return Scaffold(
-      appBar: AppBar(title: Text(folderName)),
+      appBar: AppBar(
+        title: Text(folderData?.folderName??''),
+        leading: BackButton(),
+      ),
       body: Obx(() {
         final isLoading = c.isLoadingItems.value;
         final items = c.folderItems ?? [];
@@ -29,38 +42,39 @@ class FolderItemsScreen extends StatelessWidget {
           builder: (context, constraints) {
             final w = constraints.maxWidth;
 
-            // ✅ Responsive columns
             final crossAxisCount = _crossAxisCountForWidth(w);
-
-            // ✅ Responsive preview height
             final thumbHeight = _thumbHeightForWidth(w);
+
+            // ✅ Tile height = thumb + text area (fixed) -> no overflow
+            final tileHeight = thumbHeight + (w < 520 ? 108 : 116);
 
             return GridView.builder(
               padding: EdgeInsets.symmetric(
-                horizontal: w >= 900 ? 20 : 12,
+                horizontal: w >= 900 ? 14 : 10,
                 vertical: 12,
               ),
               gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
                 crossAxisCount: crossAxisCount,
-                crossAxisSpacing: 12,
-                mainAxisSpacing: 12,
-                // more stable for different widths
-                childAspectRatio: w >= 900 ? 1.15 : 0.86,
+                crossAxisSpacing: 14,
+                mainAxisSpacing: 14,
+                mainAxisExtent: tileHeight, // ✅ overflow FIX
               ),
               itemCount: items.length,
               itemBuilder: (_, i) {
                 final it = items[i];
 
                 final fileName = (it.fileName ?? "").trim();
-                final title = (it.title ?? fileName).trim();
+                final title = ((it.title ?? "").trim().isEmpty)
+                    ? fileName
+                    : (it.title ?? "").trim();
                 final kw = (it.keyWords ?? "").trim();
-                final thumbUrl = "${ApiEnd.baseUrlMedia}${it.filePath}";
 
+                final thumbUrl = "${ApiEnd.baseUrlMedia}${it.filePath}";
                 final isImage = _isImage(it.mediaTypeId ?? 0, fileName);
 
                 return _MediaCard(
                   thumbHeight: thumbHeight,
-                  title: title.isEmpty ? fileName : title,
+                  title: title,
                   keywords: kw,
                   thumbUrl: thumbUrl,
                   isImage: isImage,
@@ -94,25 +108,23 @@ class FolderItemsScreen extends StatelessWidget {
   }
 
   double _thumbHeightForWidth(double w) {
-    if (w < 520) return 120;
-    if (w < 760) return 130;
-    if (w < 1024) return 140;
-    return 150;
+    if (w < 520) return 110;
+    if (w < 760) return 120;
+    if (w < 1024) return 130;
+    return 140;
   }
 
-  // ---------- Dialogs ----------
+  // ---------- Dialogs (same as yours) ----------
   void _openRenameDialog(BuildContext context, dynamic it) {
     final ctrl = TextEditingController(text: (it.title ?? "").toString().trim());
 
     Get.dialog(
       AlertDialog(
+        backgroundColor: Colors.white,
         title: const Text("Rename media"),
-        content: TextField(
+        content:CustomTextField(
           controller: ctrl,
-          decoration: const InputDecoration(
-            hintText: "Enter media name",
-            border: OutlineInputBorder(),
-          ),
+          hintText:"Enter media name",
         ),
         actions: [
           TextButton(onPressed: () => Get.back(), child: const Text("Cancel")),
@@ -120,13 +132,8 @@ class FolderItemsScreen extends StatelessWidget {
             onPressed: () {
               final newName = ctrl.text.trim();
               if (newName.isEmpty) return;
-
-              // ✅ API call
-              // c.renameMedia(it.userGalleryId, newName);
-
-              it.title = newName; // optimistic UI
-              // c.folderItems?.refresh();
-
+              // it.title = newName; // optimistic UI
+              c.hitApiToEditFolderItems(folderData!,it.userGalleryId, newName);
               Get.back();
             },
             child: const Text("Save"),
@@ -137,28 +144,11 @@ class FolderItemsScreen extends StatelessWidget {
   }
 
   void _openDeleteConfirm(BuildContext context, dynamic it) {
-    Get.dialog(
-      AlertDialog(
-        title: const Text("Delete media?"),
-        content: const Text("This will remove the file from the folder."),
-        actions: [
-          TextButton(onPressed: () => Get.back(), child: const Text("Cancel")),
-          ElevatedButton(
-            style: ElevatedButton.styleFrom(backgroundColor: Colors.red),
-            onPressed: () {
-              // ✅ API call
-              // c.deleteMedia(it.userGalleryId);
+    showResponsiveConfirmationDialog(onConfirm: (){
+      c.hitApiToDeleteFolderItems(folderData!,it.userGalleryId);
+    },title: "Confirm Delete",subtitle:"Delete ${it.title}. (Permanently Deleted)" )
+    ;
 
-              c.folderItems?.remove(it);
-              // c.folderItems?.refresh();
-
-              Get.back();
-            },
-            child: const Text("Delete"),
-          ),
-        ],
-      ),
-    );
   }
 
   // ---------- File helpers ----------
@@ -196,6 +186,7 @@ class FolderItemsScreen extends StatelessWidget {
   }
 }
 
+
 /// ✅ Responsive Media Card (works for web + mobile)
 class _MediaCard extends StatelessWidget {
   final double thumbHeight;
@@ -229,115 +220,183 @@ class _MediaCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Material(
-      color: Colors.white,
-      borderRadius: BorderRadius.circular(16),
-      elevation: 1.2,
-      child: InkWell(
-        borderRadius: BorderRadius.circular(16),
-        onTap: onTap,
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            ClipRRect(
-              borderRadius: const BorderRadius.vertical(top: Radius.circular(16)),
-              child: Container(
-                height: thumbHeight,
-                width: double.infinity,
-                color: Colors.black12,
-                child: isImage
-                    ? Image.network(
-                  thumbUrl,
-                  fit: BoxFit.cover,
-                  errorBuilder: (_, __, ___) => _docPreview(),
-                  loadingBuilder: (_, child, p) {
-                    if (p == null) return child;
-                    return const Center(
-                      child: SizedBox(
-                        height: 18,
-                        width: 18,
-                        child: CircularProgressIndicator(strokeWidth: 2),
+    return MouseRegion(
+      cursor: SystemMouseCursors.click, // ✅ web
+      child: Material(
+        color: Colors.white,
+        elevation: 2.5,
+        shadowColor: Colors.black12,
+        borderRadius: BorderRadius.circular(14),
+        child: InkWell(
+          borderRadius: BorderRadius.circular(14),
+          onTap: onTap,
+          child: Padding(
+            padding: const EdgeInsets.all(10),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                // ✅ Full-width preview
+                ClipRRect(
+                  borderRadius: BorderRadius.circular(12),
+                  child: SizedBox(
+                    height: thumbHeight,
+                    width: double.infinity,
+                    child: isImage
+                        ? CustomCacheNetworkImage(
+                      thumbUrl,
+                      height: thumbHeight,
+                      width: double.infinity,
+                      radiusAll: 0,
+                      boxFit: BoxFit.cover,
+                      defaultImage: defaultGallery,
+                      borderColor: Colors.transparent,
+                    )
+                        : _docPreview(),
+                  ),
+                ),
+
+                const SizedBox(height: 10),
+
+                // Title + menu
+                Row(
+                  children: [
+                    Expanded(
+                      child: Text(
+                        title,
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: const TextStyle(
+                          fontSize: 14,
+                          fontWeight: FontWeight.w700,
+                        ),
                       ),
-                    );
-                  },
-                )
-                    : _docPreview(),
-              ),
-            ),
-
-            Padding(
-              padding: const EdgeInsets.fromLTRB(12, 10, 8, 0),
-              child: Row(
-                children: [
-                  Expanded(
-                    child: Text(
-                      title,
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                      style: const TextStyle(fontSize: 13.5, fontWeight: FontWeight.w700),
                     ),
+                   /* PopupMenuButton<String>(
+                      tooltip: "Actions",
+                      onSelected: (v) {
+                        if (v == "rename") onRename();
+                        if (v == "share") onShare();
+                        if (v == "delete") onDelete();
+                      },
+                      itemBuilder: (_) => const [
+                        PopupMenuItem(value: "rename", child: Text("Rename")),
+                        PopupMenuItem(value: "share", child: Text("Share")),
+                        PopupMenuItem(value: "delete", child: Text("Delete")),
+                      ],
+                      child: const Padding(
+                        padding: EdgeInsets.all(6),
+                        child: Icon(Icons.more_vert, size: 18),
+                      ),
+                    ),*/
+
+                    PopupMenuButton<FolderMenuAction>(
+                      tooltip: "More",
+                      padding: EdgeInsets.zero,
+                      position: PopupMenuPosition.under,
+                      borderRadius: BorderRadius.circular(12),
+                      color: Colors.white,
+                      onSelected: (action) {
+                     /* if (action == "rename") onRename();
+                        if (action == "share") onShare();
+                        if (action == "delete") onDelete();*/
+                        switch (action) {
+                          case FolderMenuAction.rename:
+                            onRename();
+                          // controller.startRename(id: node.id??'', currentName: node.name??'');
+                            break;
+                          case FolderMenuAction.delete:
+                          // showResponsiveConfirmationDialog(onConfirm:  () async {
+                          //   Get.back();
+                          // },title: "Delete ${node.name} Folder(Permanently Deleted)");
+                           onDelete();
+                            break;
+                          case FolderMenuAction.share:
+                          // onShare?.call(node);
+                            break;
+                        }
+                      },
+                      itemBuilder: (context) => const [
+                        PopupMenuItem(
+                          value: FolderMenuAction.rename,
+                          child: Text("Rename"),
+                        ),
+                        PopupMenuItem(
+                          value: FolderMenuAction.share,
+                          child: Text("Share"),
+                        ),
+                        PopupMenuDivider(),
+                        PopupMenuItem(
+                          value: FolderMenuAction.delete,
+                          child: Text("Delete"),
+                        ),
+                      ],
+                      child: InkWell(
+                        // important: tap on menu should NOT open folder
+                        onTap: null,
+                        borderRadius: BorderRadius.circular(100),
+                        child: Container(
+                            padding: const EdgeInsets.all(4),
+                            margin: const EdgeInsets.all(4),
+                            decoration: BoxDecoration(
+                                color: Colors.white,
+                                shape: BoxShape.circle,
+                                boxShadow: [
+                                  BoxShadow(
+                                      color: Colors.grey.shade200, blurRadius: 10)
+                                ]),
+                            child: const Icon(
+                              Icons.more_vert,
+                              size: 18,
+                              color: Colors.black87,
+                            )),
+                      ),
+                    )
+                  ],
+                ),
+
+                const SizedBox(height: 6),
+
+                if (keywords.isNotEmpty)
+                  Text(
+                    keywords,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: const TextStyle(fontSize: 12, color: Colors.black54),
                   ),
-                  PopupMenuButton<String>(
-                    tooltip: "Actions",
-                    onSelected: (v) {
-                      if (v == "rename") onRename();
-                      if (v == "share") onShare();
-                      if (v == "delete") onDelete();
-                    },
-                    itemBuilder: (_) => const [
-                      PopupMenuItem(value: "rename", child: Text("Rename")),
-                      PopupMenuItem(value: "share", child: Text("Share")),
-                      PopupMenuItem(value: "delete", child: Text("Delete")),
-                    ],
-                    child: const Padding(
-                      padding: EdgeInsets.all(6.0),
-                      child: Icon(Icons.more_vert, size: 18),
-                    ),
-                  )
-                ],
-              ),
-            ),
 
-            Padding(
-              padding: const EdgeInsets.fromLTRB(12, 4, 12, 0),
-              child: Text(
-                keywords.isEmpty ? fileName : keywords,
-                maxLines: 1,
-                overflow: TextOverflow.ellipsis,
-                style: const TextStyle(fontSize: 12, color: Colors.black54),
-              ),
-            ),
+                const Spacer(), // ✅ pushes date row to bottom (no overflow)
 
-            Padding(
-              padding: const EdgeInsets.fromLTRB(12, 6, 12, 10),
-              child: Row(
-                children: [
-                  const Icon(Icons.access_time, size: 14, color: Colors.black45),
-                  const SizedBox(width: 6),
-                  Expanded(
-                    child: Text(
-                      createdOnText,
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                      style: const TextStyle(fontSize: 11.5, color: Colors.black45),
+                Row(
+                  children: [
+                    const Icon(Icons.access_time, size: 14, color: Colors.black45),
+                    const SizedBox(width: 6),
+                    Expanded(
+                      child: Text(
+                        createdOnText,
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: const TextStyle(fontSize: 11.5, color: Colors.black45),
+                      ),
                     ),
-                  ),
-                ],
-              ),
+                  ],
+                ),
+              ],
             ),
-          ],
+          ),
         ),
       ),
     );
   }
 
   Widget _docPreview() {
-    return Center(
+    return Container(
+      color: Colors.grey.shade100,
+      alignment: Alignment.center,
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          Icon(docIcon, size: 46, color: Colors.black54),
-          const SizedBox(height: 6),
+          Icon(docIcon, size: 48, color: Colors.black54),
+          const SizedBox(height: 8),
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 10),
             child: Text(
@@ -353,3 +412,4 @@ class _MediaCard extends StatelessWidget {
     );
   }
 }
+

@@ -48,7 +48,7 @@ class ChatScreenController extends GetxController {
   final textController = TextEditingController();
   final FocusNode focusNode = FocusNode();
   FocusNode messageParentFocus=FocusNode();
-  FocusNode messageInputFocus=FocusNode();
+  // FocusNode messageInputFocus=FocusNode();
   ChatHisList? replyToMessage;
   String? replyToImage;
   bool showEmoji = false, isUploading = false, isUploadingTaskDoc = false;
@@ -270,7 +270,7 @@ class ChatScreenController extends GetxController {
 
 
     if (kIsWeb) {
-      messageInputFocus.requestFocus();
+      messageParentFocus.requestFocus();
       registerImage((XFile image) {
         _handlePastedImage(image);
       });
@@ -526,13 +526,11 @@ class ChatScreenController extends GetxController {
   }
 
   hitAPIToGetChatHistory({String? searchQuery}) async {
-
     if (page == 1) {
       showPostShimmer = true;
       chatHisList?.clear();
       chatCatygory.clear();
     }
-
     isPageLoading = true;
     update();
     Get.find<PostApiServiceImpl>()

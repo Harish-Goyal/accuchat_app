@@ -20,8 +20,7 @@ class SaveToGalleryController extends GetxController {
   final TextEditingController newFolderCtrl = TextEditingController();
   final FocusNode newFolderFocus = FocusNode();
 
-  int? currentParentId;            // null = Root
-  // List<FolderData> currentFolders = []; // UI ye list show kare
+  int? currentParentId;
 
   GetFolderResModel getFolderRes =GetFolderResModel();
 
@@ -29,21 +28,109 @@ class SaveToGalleryController extends GetxController {
 
   bool isLoading =false;
 
-  hitApiToGetFolder() async {
-    SystemChannels.textInput.invokeMethod('TextInput.hide');
-    isLoading=true;
-    update();
-    Get.find<PostApiServiceImpl>()
-        .getFolderApiCall(ucId:myCompany?.userCompanies?.userCompanyId)
-        .then((value) {
-      isLoading=false;
+  bool hasMore = false;
+  bool isPageLoading = false;
+  int page = 1;
+  late ScrollController scrollController;
+
+  void scrollListener() {
+    scrollController.addListener(() {
+      if (!scrollController.hasClients) return;
+
+      final pos = scrollController.position;
+
+      // ✅ If not scrollable yet, don't paginate
+      if (pos.maxScrollExtent <= 0) return;
+
+      // ✅ Trigger when user is near bottom
+      const threshold = 200.0;
+      final nearBottom = pos.extentAfter < threshold;
+
+      if (nearBottom && !isPageLoading && hasMore) {
+        hitApiToGetFolder();
+      }
+    });
+  }
+
+
+  Future<void> hitApiToGetFolder({bool reset = false}) async {
+    if (isPageLoading) return;
+
+    if (reset) {
+      page = 1;
+      hasMore = true;
+      isLoading = true;
+      folderList?.clear();
       update();
-      getFolderRes = value;
-      folderList = getFolderRes.data?.rows??[];
+    }
+
+    if (!hasMore) return;
+
+    isPageLoading = true;
+    if (page == 1) isLoading = true;
+    update();
+    try {
+      final res = await Get.find<PostApiServiceImpl>().getFolderApiCall(
+        ucId: myCompany?.userCompanies?.userCompanyId,
+        page: page,
+      );
+
+      isLoading = false;
+
+      final rows = res.data?.rows ?? [];
+
+      if (rows.isNotEmpty) {
+        folderList?.addAll(rows);
+        page++;
+        const pageSize = 15;
+        hasMore = rows.length == pageSize;
+      } else {
+        hasMore = false;
+      }
+      update();
+      _ensureScrollableAndPrefetch();
+    } catch (e) {
+      isLoading = false;
+      update();
+    } finally {
+      isPageLoading = false;
+      update();
+    }
+  }
+
+  //Folder Items
+  void _ensureScrollableAndPrefetch() {
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!scrollController.hasClients) return;
+      final pos = scrollController.position;
+
+      // still not scrollable, but more data exists => prefetch next page
+      if (pos.maxScrollExtent <= 0 && hasMore && !isPageLoading) {
+        hitApiToGetFolder();
+      }
+    });
+  }
+
+  hitApiToSaveMediaFromChatApiCall({chatId, folderName,keywords}) async {
+    SystemChannels.textInput.invokeMethod('TextInput.hide');
+    customLoader.show();
+    var reqData = {
+      "user_company_id": myCompany?.userCompanies?.userCompanyId,
+      "chat_media_id": chatId,
+      "folder_name": folderName,
+      "title":docNameController.text.trim(),
+      "key_words":keywords
+    };
+    Get.find<PostApiServiceImpl>()
+        .saveMediaFromChatApiCall(dataBody: reqData)
+        .then((value) {
+      Get.back();
+      customLoader.hide();
+      toast(value.message ?? '');
       update();
     }).onError((error, stackTrace) {
-      isLoading=false;
       update();
+      Get.back();
       customLoader.hide();
       errorDialog(error.toString());
     }).whenComplete(() {});
@@ -146,9 +233,22 @@ class SaveToGalleryController extends GetxController {
   @override
   void onInit() {
     super.onInit();
+    _init();
+  }
+
+  _init(){
     getCompany();
-    hitApiToGetFolder();
+    scrollController = ScrollController();
+    resetPagination();
+    hitApiToGetFolder(reset: true);
+    scrollListener();
     loadFolders(parentId: null);
+  }
+  void resetPagination() {
+    page= 1;
+    hasMore= true;
+    folderList?.clear();
+    isLoading= true;
   }
 
   CompanyData? myCompany = CompanyData();

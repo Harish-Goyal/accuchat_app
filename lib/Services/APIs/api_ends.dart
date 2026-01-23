@@ -40,6 +40,13 @@ class ApiEnd {
   static const String getFolderEnd = "api/gallery/folders";
   static const String deleteFolderEnd = "api/gallery/folder/delete";
   static const String getFolderItemsEnd = "api/gallery/folder/items";
+  static const String uploadFolderItemsEnd = "api/gallery/upload";
+  static const String saveFromChatEnd = "api/gallery/save-from-chat";
+  static const String deleteFolderItemEnd = "api/gallery/folder/item/delete";
+  static const String folderRenameEnd = "api/gallery/folder/rename";
+  static const String folderItemRenameEnd = "api/gallery/folder/item/rename";
+  static const String globalSearchEnd = "api/gallery/global-search";
+
 }
 
 const String tripOngoing ='ongoing';

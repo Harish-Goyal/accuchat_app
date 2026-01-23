@@ -15,14 +15,15 @@ import '../../../../../../utils/save_image.dart';
 import '../../../../../../utils/share_helper.dart';
 import '../../../../models/chat_history_response_model.dart';
 import '../Controllers/gallery_view_controller.dart';
+import '../Controllers/save_in_accuchat_gallery_controller.dart';
 import '../dialogs/save_in_gallery_dialog.dart';
 
 class GalleryViewerPage extends GetView<GalleryViewerController> {
-  GalleryViewerPage({super.key,required this.onReply,this.isChat=false});
+  GalleryViewerPage({super.key, required this.onReply, this.isChat = false});
   Function() onReply;
   bool isChat;
   final PageController _pageController =
-  PageController(initialPage: Get.find<GalleryViewerController>().index);
+      PageController(initialPage: Get.find<GalleryViewerController>().index);
 
   @override
   Widget build(BuildContext context) {
@@ -38,107 +39,126 @@ class GalleryViewerPage extends GetView<GalleryViewerController> {
             actions: [
               IconButton(
                 tooltip: 'Save image',
-                onPressed: c.saving ? null :() async {
-                  await saveImage(c.urls[c.index]);},
+                onPressed: c.saving
+                    ? null
+                    : () async {
+                        await saveImage(c.urls[c.index]);
+                      },
                 icon: const Icon(Icons.download),
               ),
               PopupMenuButton<String>(
-                color: Colors.grey.shade900,
-                iconColor: Colors.black87,
-                onSelected: (v) async {
-                  if (v == 'save_all'){
-                    for(String url in c.urls ){
-                      await saveImage(url);
-                    }
-                  }
-
-                  if(v == 'share_this'){
-                    if(kIsWeb){
-                      ShareHelper.shareOnWhatsApp(c.urls[c.index]);
-                    }else{
-                      await ShareHelper.shareNetworkFile(
-                        "${ApiEnd.baseUrlMedia}${c.urls[c.index]}",
-                        text: "From AccuChat",
-                      );
-                      // ShareHelper.shareNetworkImage(c.urls[c.index]);
+                  color: Colors.grey.shade900,
+                  iconColor: Colors.black87,
+                  onSelected: (v) async {
+                    if (v == 'save_all') {
+                      for (String url in c.urls) {
+                        await saveImage(url);
+                      }
                     }
 
-                  }
-                  if (v == 'save_one') {
-                    await saveImage(c.urls[c.index]);}
-
-                  if(v=="reply"){
-                    final chatC = Get.find<ChatScreenController>();
-                    chatC.refIdis = c.chathis.chatId;
-                    chatC.userIDSender =
-                        c.chathis.fromUser?.userId;
-                    chatC.userNameReceiver =
-                        c.chathis.toUser?.userCompany?.displayName ?? '';
-                    chatC.userNameSender =
-                        c.chathis.fromUser?.userCompany?.displayName ?? '';
-                    chatC.userIDReceiver =
-                        c.chathis.toUser?.userId;
-
-                    chatC.replyToMessage=
-                        ChatHisList(
-                            chatId:c.chathis.chatId,
-                            fromUser:c.chathis.fromUser,
-                            toUser:c.chathis.toUser,
-                            message:c.urls[c.index],
-                            // message:getFileNameFromUrl(c.urls[c.index]),
-                            replyToId:c.chathis.chatId,
-                            replyToText:c.urls[c.index],
-                          replyToMedia: c.urls[c.index],
-                            // replyToT0ext:getFileNameFromUrl(c.urls[c.index]),
+                    if (v == 'share_this') {
+                      if (kIsWeb) {
+                        ShareHelper.shareOnWhatsApp(c.urls[c.index]);
+                      } else {
+                        await ShareHelper.shareNetworkFile(
+                          "${ApiEnd.baseUrlMedia}${c.urls[c.index]}",
+                          text: "From AccuChat",
                         );
+                        // ShareHelper.shareNetworkImage(c.urls[c.index]);
+                      }
+                    }
+                    if (v == 'save_one') {
+                      await saveImage(c.urls[c.index]);
+                    }
 
-                    chatC.update();
-                    c.update();
-                    Get.back();
-                  }
+                    if (v == "reply") {
+                      final chatC = Get.find<ChatScreenController>();
+                      chatC.refIdis = c.chathis.chatId;
+                      chatC.userIDSender = c.chathis.fromUser?.userId;
+                      chatC.userNameReceiver =
+                          c.chathis.toUser?.userCompany?.displayName ?? '';
+                      chatC.userNameSender =
+                          c.chathis.fromUser?.userCompany?.displayName ?? '';
+                      chatC.userIDReceiver = c.chathis.toUser?.userId;
 
+                      chatC.replyToMessage = ChatHisList(
+                        chatId: c.chathis.chatId,
+                        fromUser: c.chathis.fromUser,
+                        toUser: c.chathis.toUser,
+                        message: c.urls[c.index],
+                        // message:getFileNameFromUrl(c.urls[c.index]),
+                        replyToId: c.chathis.chatId,
+                        replyToText: c.urls[c.index],
+                        replyToMedia: c.urls[c.index],
+                        // replyToT0ext:getFileNameFromUrl(c.urls[c.index]),
+                      );
 
-                  if(v== "save_accuchat_this"){
-                    showDialog(
-                        context: Get.context!,
-                        builder: (_) => SaveToCustomFolderDialog(user: UserDataAPI(),));
-                  }
-                },
-                itemBuilder: (ctx) {
+                      chatC.update();
+                      c.update();
+                      Get.back();
+                    }
 
-                  final List<PopupMenuEntry<String>> items = [];
+                    if (v == "save_accuchat_this") {
+                      final saveC = Get.isRegistered<SaveToGalleryController>()
+                          ? Get.find<SaveToGalleryController>()
+                          : Get.put(SaveToGalleryController());
 
-                  if(isChat){
-                    items.add(const PopupMenuItem(
-                      value: 'save_one',
-                      child: Text('Save', style: TextStyle(color: Colors.white)),
-                    ));
-                  }else{
-                    items.add( PopupMenuItem(
-                      value: 'save_one',
-                      child: Text('Save', style:  BalooStyles.baloonormalTextStyle(color: Colors.white)),
-                    )); items.add( PopupMenuItem(
-                      value: 'save_all',
-                      child: Text('Save all', style: BalooStyles.baloonormalTextStyle(color: Colors.white)),
-                    )); items.add( PopupMenuItem(
-                      value: 'reply',
-                      child: Text('Reply', style:  BalooStyles.baloonormalTextStyle(color: Colors.white)),
-                    ));
+                      await saveC.hitApiToGetFolder();
+                      showDialog(
+                          context: Get.context!,
+                          builder: (_) => SaveToCustomFolderDialog(
+                                user: UserDataAPI(),
+                                filesImages: c.urls[c.index],
+                            isImage: true,
+                            isFromChat: true,
+                            chatId: c.chathis.chatId,
+                              ));
+                    }
+                  },
+                  itemBuilder: (ctx) {
+                    final List<PopupMenuEntry<String>> items = [];
+                    if (isChat) {
+                      items.add(const PopupMenuItem(
+                        value: 'save_one',
+                        child:
+                            Text('Save', style: TextStyle(color: Colors.white)),
+                      ));
+                    } else {
+                      items.add(PopupMenuItem(
+                        value: 'save_one',
+                        child: Text('Save',
+                            style: BalooStyles.baloonormalTextStyle(
+                                color: Colors.white)),
+                      ));
+                      items.add(PopupMenuItem(
+                        value: 'save_all',
+                        child: Text('Save all',
+                            style: BalooStyles.baloonormalTextStyle(
+                                color: Colors.white)),
+                      ));
+                      items.add(PopupMenuItem(
+                        value: 'reply',
+                        child: Text('Reply',
+                            style: BalooStyles.baloonormalTextStyle(
+                                color: Colors.white)),
+                      ));
 
-                     items.add( PopupMenuItem(
-                      value: 'share_this',
-                      child: Text('Share on WhatsApp', style:  BalooStyles.baloonormalTextStyle(color: Colors.white)),
-                    )); items.add( PopupMenuItem(
-                      value: 'save_accuchat_this',
-                      child: Text('Save to Smart Gallery', style:  BalooStyles.baloonormalTextStyle(color: Colors.white)),
-                    ));
-                  }
+                      items.add(PopupMenuItem(
+                        value: 'share_this',
+                        child: Text('Share on WhatsApp',
+                            style: BalooStyles.baloonormalTextStyle(
+                                color: Colors.white)),
+                      ));
+                      items.add(PopupMenuItem(
+                        value: 'save_accuchat_this',
+                        child: Text('Save to Smart Gallery',
+                            style: BalooStyles.baloonormalTextStyle(
+                                color: Colors.white)),
+                      ));
+                    }
 
-                  return items;
-
-
-                  }
-              ),
+                    return items;
+                  }),
               vGap(4),
             ],
           ),
@@ -148,8 +168,7 @@ class GalleryViewerPage extends GetView<GalleryViewerController> {
     );
   }
 
-
-  _mainBody(){
+  _mainBody() {
     return Stack(
       children: [
         PhotoViewGallery.builder(
@@ -182,7 +201,8 @@ class GalleryViewerPage extends GetView<GalleryViewerController> {
             bottom: 24,
             child: Center(
               child: Container(
-                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
                 decoration: BoxDecoration(
                   color: Colors.black.withOpacity(0.7),
                   borderRadius: BorderRadius.circular(8),

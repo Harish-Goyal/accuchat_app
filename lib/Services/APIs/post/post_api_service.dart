@@ -24,6 +24,7 @@ import '../../../Screens/Home/Models/get_folder_items_res_model.dart';
 import '../../../Screens/Home/Models/get_folder_res_model.dart';
 import '../../../Screens/Home/Models/get_pending_sent_invites_res_model.dart';
 import '../../../Screens/Home/Models/push_register_res_model.dart';
+import '../../../Screens/Home/Models/upload_folder_media_res_model.dart';
 import '../../../Screens/Settings/Model/get_company_roles_res_moel.dart';
 import '../../../Screens/Settings/Model/get_nav_permission_res_model.dart';
 import '../success_res_model.dart';
@@ -91,4 +92,10 @@ abstract class PostApiService {
   Future<CreateFolderResModel> createFolderApiCall({required Map<String, dynamic> dataBody});
   Future<CreateFolderResModel> deleteFolderApiCall({required Map<String, dynamic> dataBody});
   Future<FolderItemsResModel> getFolderItemsApiCall({page,ucID,folderName});
+  Future<UploadFolderMediaResModel> uploadFolderMediaApiCall({required FormData dataBody});
+  Future<CreateFolderResModel> saveMediaFromChatApiCall({required Map<String, dynamic> dataBody});
+
+  Future<CreateFolderResModel> editFolderApiCall({required Map<String, dynamic> dataBody});
+  Future<CreateFolderResModel> editFolderItemsApiCall({required Map<String, dynamic> dataBody});
+  Future<CreateFolderResModel> deleteFolderItemsApiCall({required Map<String, dynamic> dataBody});
 }

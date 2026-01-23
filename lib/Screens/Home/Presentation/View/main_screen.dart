@@ -304,8 +304,6 @@ Widget buildSideNav(DashboardController controller) {
             isTaskMode = index == 1;
             if(index == 0){
               final homec = Get.find<ChatHomeController>();
-
-
               if(Get.isRegistered<ChatScreenController>()){
                 final chatc = Get.find<ChatScreenController>();
                 chatc.replyToMessage=null;
@@ -381,11 +379,14 @@ Widget buildSideNav(DashboardController controller) {
 
             }
 
-            if(index==3){
-              final homec = Get.find<GalleryController>();
-              homec.resetPagination();
-              homec.hitApiToGetFolder(reset: true);
-              homec.update();
+            if(index==2){
+              if(Get.isRegistered<GalleryController>()){
+                final homec = Get.find<GalleryController>();
+                homec.getCompany();
+                homec.resetPagination();
+                homec.hitApiToGetFolder(reset: true);
+                homec.update();
+              }
             }
             controller.updateIndex(index);
             controller.update();

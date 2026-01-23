@@ -12,6 +12,7 @@ import '../Presentation/Controllers/add_broadcard_mem_controller.dart';
 import '../Presentation/Controllers/add_group_mem_controller.dart';
 import '../Presentation/Controllers/chat_home_controller.dart';
 import '../Presentation/Controllers/members_gr_br_controller.dart';
+import '../Presentation/Controllers/save_in_accuchat_gallery_controller.dart';
 import '../Presentation/Controllers/task_home_controller.dart';
 
 class AddBroadcastsMemBinding extends Bindings {
@@ -66,6 +67,7 @@ class ChatScreenBinding extends Bindings {
   @override
   void dependencies() {
     Get.put<ChatScreenController>(ChatScreenController());
+
   }
 }
 

@@ -15,9 +15,11 @@ import '../../../../utils/confirmation_dialog.dart';
 import '../../../Chat/helper/dialogs.dart';
 import '../../../Chat/models/gallery_node.dart';
 import '../../../Chat/screens/auth/models/get_uesr_Res_model.dart';
+import '../../../Chat/screens/chat_tasks/Presentation/Controllers/save_in_accuchat_gallery_controller.dart';
 import '../../../Chat/screens/chat_tasks/Presentation/dialogs/save_in_gallery_dialog.dart';
 import '../../Models/get_folder_res_model.dart';
 import '../Controller/gallery_controller.dart';
+import '../Controller/genere_controller.dart';
 import 'folder_items_view.dart';
 import 'home_screen.dart';
 
@@ -142,10 +144,7 @@ class GalleryTab extends GetView<GalleryController> {
                     imageQuality: 40,
                   );
                   if (image != null) {
-                    // controller.images.add(image);
-                    // controller.update();
-                    // controller.uploadMediaApiCall(
-                    //     type: ChatMediaType.IMAGE.name);
+
                   }
                 },
               ),
@@ -216,11 +215,21 @@ class GalleryTab extends GetView<GalleryController> {
               //IMAGES (multiple)
               final images = await controller.pickWebImages(maxFiles: 10);
               if (images.isNotEmpty) {
+                final saveC = Get.isRegistered<SaveToGalleryController>()
+                    ? Get.find<SaveToGalleryController>()
+                    : Get.put(SaveToGalleryController());
+
+                await saveC.hitApiToGetFolder();
                 Navigator.of(ctx).pop();
+                controller.images.addAll(images);
                 showDialog(
                     context: Get.context!,
                     builder: (_) => SaveToCustomFolderDialog(
                           user: UserDataAPI(),
+                      filesImages: images,
+                      isImage: true,
+                      isFromChat: false,
+
                         ));
                 // controller.images.addAll(images);
                 // controller.uploadMediaApiCall(type: ChatMediaType.IMAGE.name);
@@ -239,12 +248,20 @@ class GalleryTab extends GetView<GalleryController> {
             onPressed: () async {
               // DOCUMENTS (pdf/office/etc.)
               final docs = await controller.pickWebDocs();
+              final saveC = Get.isRegistered<SaveToGalleryController>()
+                  ? Get.find<SaveToGalleryController>()
+                  : Get.put(SaveToGalleryController());
+
+              await saveC.hitApiToGetFolder();
               if (docs.isNotEmpty) {
                 Navigator.of(ctx).pop();
                 showDialog(
                     context: Get.context!,
                     builder: (_) => SaveToCustomFolderDialog(
                           user: UserDataAPI(),
+                      filesImages: docs,
+                      isImage: false,
+                      isFromChat: false,
                         ));
                 // see helper you’ll paste into your controller below
                 // await controller.receivePickedDocuments(docs);
@@ -396,24 +413,22 @@ class GalleryTab extends GetView<GalleryController> {
   }
 
   _listView() {
-    return Expanded(
-      child: Container(
-        padding: const EdgeInsets.only(right: 12, left: 12, bottom: 80),
-        child: controller.isSearching
-            ? _SearchResultsList(
-                results: controller.searchResults,
-                onTap: controller.openSearchResult,
-              )
-            :
-            Obx(()=>
-            controller.isLoading.value?IndicatorLoading(): _GalleryGrid(
-              items: controller.folderList ?? [], // Folder items
-              onFolderTap: (v) {},
-              onLeafTap: (v) {},
-              controller: controller,
-            ))
-       ,
-      ),
+    return Container(
+      padding: const EdgeInsets.only(right: 12, left: 12, bottom: 80),
+      child: controller.isSearching
+          ? _SearchResultsList(
+              results: controller.searchResults,
+              onTap: controller.openSearchResult,
+            )
+          :
+          Obx(()=>
+          controller.isLoading.value?IndicatorLoading(): _GalleryGrid(
+            items: controller.folderList ?? [], // Folder items
+            onFolderTap: (v) {},
+            onLeafTap: (v) {},
+            controller: controller,
+          ))
+     ,
     );
   }
 }
@@ -654,7 +669,7 @@ class _GalleryGrid extends StatelessWidget {
               final node = items[i];
               return _GalleryTile(
                 folder: node,
-                onTap: () => controller.hitApiToGetFolderItems(node.folderName ?? ''),
+                onTap: () => controller.hitApiToGetFolderItems(node),
               );
             },
           ),
@@ -801,7 +816,7 @@ class _GalleryTile extends StatelessWidget {
                   onSelected: (action) {
                     switch (action) {
                       case FolderMenuAction.rename:
-                        // controller.startRename(id: node.id??'', currentName: node.name??'');
+                        // controller.startRename(id: folder.userGalleryId??0, currentName: folder.folderName??'');
                         break;
                       case FolderMenuAction.delete:
                         // showResponsiveConfirmationDialog(onConfirm:  () async {
@@ -809,7 +824,9 @@ class _GalleryTile extends StatelessWidget {
                         // },title: "Delete ${node.name} Folder(Permanently Deleted)");
                       showResponsiveConfirmationDialog(onConfirm: (){
                         controller.hitApiToDeleteFolder(folder.userGalleryId);
-                      },title: "Confirm Delete Folder (Permanently Deleted)")
+                      },title: "Confirm Delete",
+                        subtitle: "Delete ${folder.folderName} (Permanently Deleted)"
+                      )
                       ;
                         break;
                       case FolderMenuAction.share:

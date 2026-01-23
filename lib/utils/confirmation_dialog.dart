@@ -8,7 +8,7 @@ import 'custom_dialogue.dart';
 import 'gradient_button.dart';
 import 'helper_widget.dart';
 
-void showResponsiveConfirmationDialog({required Function() onConfirm, title}) {
+void showResponsiveConfirmationDialog({required Function() onConfirm, title,required subtitle}) {
   final ctx = Get.context!;
   final size = MediaQuery.of(ctx).size;
 
@@ -53,7 +53,7 @@ void showResponsiveConfirmationDialog({required Function() onConfirm, title}) {
                     children: [
                       vGap(20),
                       Text(
-                        "Do you really want to ${title}",
+                        "Do you really want to ${subtitle}",
                         style: BalooStyles.baloonormalTextStyle(),
                         textAlign: TextAlign.center,
                       ),
