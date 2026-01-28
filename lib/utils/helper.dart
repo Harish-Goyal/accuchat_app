@@ -10,6 +10,46 @@ import 'package:mime/mime.dart' as mime;
 import 'package:path/path.dart' as p;
 import '../Constants/themes.dart';
 import 'helper_widget.dart';
+import 'package:flutter/material.dart';
+
+String fileExt(String name) {
+  final lower = name.toLowerCase();
+  final dot = lower.lastIndexOf('.');
+  if (dot == -1) return '';
+  return lower.substring(dot + 1);
+}
+
+bool isDocumentName(String name) {
+  const docExts = {
+    'pdf','doc','docx','txt','xls','xlsx','csv','ppt','pptx',
+    'zip','rar','html','php','js','jsx','css','json','xml'
+  };
+  return docExts.contains(fileExt(name));
+}
+
+IconData docIconByExt(String name) {
+  switch (fileExt(name)) {
+    case 'pdf': return Icons.picture_as_pdf;
+    case 'doc':
+    case 'docx': return Icons.description;
+    case 'xls':
+    case 'xlsx':
+    case 'csv': return Icons.grid_on;
+    case 'ppt':
+    case 'pptx': return Icons.slideshow;
+    case 'zip':
+    case 'rar': return Icons.folder_zip;
+    case 'txt': return Icons.note;
+    case 'json':
+    case 'xml': return Icons.data_object;
+    case 'html':
+    case 'css':
+    case 'js':
+    case 'jsx':
+    case 'php': return Icons.code;
+    default: return Icons.insert_drive_file;
+  }
+}
 
 /*
 abstract class Helper {

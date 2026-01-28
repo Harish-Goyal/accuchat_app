@@ -21,6 +21,7 @@ const String ticketPng = "assets/images/ticket.png";
 const String ICON_profile = "assets/images/user.png";
 const String connectedAppIcon = "assets/icons/connectApp.png";
 const String galleryIcon = "assets/icons/gallery.png";
+const String openfolderPng = "assets/icons/open-file.png";
 const String addUserIcon = "assets/icons/add-user.png";
 const String micPng = "assets/icons/mic.png";
 const String emojiPng = "assets/icons/happy.png";

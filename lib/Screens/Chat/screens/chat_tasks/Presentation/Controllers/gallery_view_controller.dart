@@ -15,12 +15,12 @@ import '../../../../models/chat_history_response_model.dart';
 
 class GalleryViewerController extends GetxController {
   final List<String> urls;
-  final ChatHisList chathis;
+  ChatHisList? chathis;
   int index;
   bool saving = false;
   String? toast;
 
-  GalleryViewerController({required this.urls,required this.chathis,required this.index});
+  GalleryViewerController({required this.urls, this.chathis,required this.index});
 
   void setIndex(int i) {
     index = i;

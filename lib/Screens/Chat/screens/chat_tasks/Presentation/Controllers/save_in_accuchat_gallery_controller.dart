@@ -1,4 +1,5 @@
 import 'dart:math';
+import 'package:AccuChat/Screens/Home/Presentation/Controller/gallery_controller.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:get/get.dart';
@@ -6,6 +7,7 @@ import '../../../../../../Services/APIs/post/post_api_service_impl.dart';
 import '../../../../../../main.dart';
 import '../../../../../../utils/custom_flashbar.dart';
 import '../../../../../Home/Models/get_folder_res_model.dart';
+import '../../../../../Home/Models/pickes_file_item.dart';
 import '../../../../../Home/Presentation/Controller/company_service.dart';
 import '../../../../models/gallery_create.dart';
 import '../../../../models/get_company_res_model.dart';
@@ -15,6 +17,13 @@ import '../Widgets/create_custom_folder.dart';
 class SaveToGalleryController extends GetxController {
 
   final formKeyDoc = GlobalKey<FormState>();
+  final RxList<SavePreviewItem> items = <SavePreviewItem>[].obs;
+
+  void setItems(List<SavePreviewItem> v) => items.assignAll(v);
+
+  void removeAt(int i) {
+    if (i >= 0 && i < items.length) items.removeAt(i);
+  }
 
   TextEditingController docNameController = TextEditingController();
   final TextEditingController newFolderCtrl = TextEditingController();
@@ -127,6 +136,8 @@ class SaveToGalleryController extends GetxController {
       Get.back();
       customLoader.hide();
       toast(value.message ?? '');
+
+
       update();
     }).onError((error, stackTrace) {
       update();
@@ -143,6 +154,10 @@ class SaveToGalleryController extends GetxController {
 
   void selectFolder(int? id) {
     selectedFolderId = id;
+    update();
+  }
+  void removeSelectFolder() {
+    selectedFolderId = null;
     update();
   }
 

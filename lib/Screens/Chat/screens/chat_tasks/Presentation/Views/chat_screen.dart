@@ -41,6 +41,7 @@ import '../../../../../../utils/product_shimmer_widget.dart';
 import '../../../../../../utils/share_helper.dart';
 
 import '../../../../../../utils/text_style.dart';
+import '../../../../../Home/Models/pickes_file_item.dart';
 import '../Controllers/save_in_accuchat_gallery_controller.dart';
 import '../../../../../Home/Presentation/Controller/socket_controller.dart';
 import '../../../../helper/dialogs.dart';
@@ -148,7 +149,7 @@ class ChatScreen extends GetView<ChatScreenController> {
                   child: Scaffold(
                     appBar: _appBarWidget(),
                     backgroundColor: const Color.fromARGB(255, 234, 248, 255),
-                    body: _mainBody(),
+                    body: _mainBody(context),
                   ),
                 ),
               ),
@@ -174,7 +175,7 @@ class ChatScreen extends GetView<ChatScreenController> {
     );
   }
 
-  Widget _mainBody(){
+  Widget _mainBody(context){
     return ScrollConfiguration(
       behavior: const _NoGlowScrollBehavior(),
       child: Center(
@@ -218,7 +219,7 @@ class ChatScreen extends GetView<ChatScreenController> {
                 )
                     : const SizedBox.shrink(),
 
-                _chatInput(),
+                _chatInput(context),
 
               ],
             ),
@@ -1343,7 +1344,7 @@ class ChatScreen extends GetView<ChatScreenController> {
   bool isVisibleUpload = true;
 
   // bottom chat input field
-  Widget _chatInput() {
+  Widget _chatInput(context) {
     final speechC = Get.put(SpeechControllerImpl());
     void _appendSpeechToInput() {
       final text = speechC.getCombinedText();
@@ -1486,30 +1487,24 @@ class ChatScreen extends GetView<ChatScreenController> {
                   if (kIsWeb) _micButton(_appendSpeechToInput),
 
                   if (!isTaskMode)
-                    Obx(() => Visibility(
-                      visible: controller.showUpload.value,
-                      child:InkWell(
-                        onTap: () => showUploadOptions(Get.context!),
-                        child: IconButtonWidget(Icons.upload_outlined,isIcon:true),
+                  InkWell(
+                    onTap: () => showUploadOptions(Get.context!),
+                    child: IconButtonWidget(Icons.upload_outlined,isIcon:true),
 
-                      ),
-                    )),
+                  ),
 
                   if (!isTaskMode)
-                    Obx(() => Visibility(
-                      visible: controller.showUpload.value,
-                      child: InkWell(
-                        onTap: () {
-                          openWhatsAppEmojiPicker(
-                              context: Get.context!, // prefer widget context, not Get.context!
-                              textController: controller.textController,
-                              onSend: () => Get.back(),
-                              isMobile: false
-                          );
-                        },
-                        child: IconButtonWidget(emojiPng),
-                      ),
-                    )),
+                   InkWell(
+                     onTap: () {
+                       openWhatsAppEmojiPicker(
+                           context: context, // prefer widget context, not Get.context!
+                           textController: controller.textController,
+                           onSend: () => Get.back(),
+                           isMobile: false
+                       );
+                     },
+                     child: IconButtonWidget(emojiPng),
+                   ),
                 ],
               ),
             ),
@@ -2222,7 +2217,7 @@ class ChatScreen extends GetView<ChatScreenController> {
       type: FileType.custom,
       allowCompression: true,
       compressionQuality: 75,
-      allowedExtensions: const [
+      allowedExtensions: [
         'pdf',
         'doc',
         'docx',
@@ -2235,9 +2230,19 @@ class ChatScreen extends GetView<ChatScreenController> {
         'ppt',
         'pptx',
         'zip',
+        'html',
+        'php',
+        'js',
+        'jsx',
+        'css',
         'rar',
         'PDF',
         'DOC',
+        'HTML',
+        'PHP',
+        'JS',
+        'JSX',
+        'CSS',
         'DOCX',
         'TXT',
         'XLS',
@@ -2385,7 +2390,7 @@ class ChatScreen extends GetView<ChatScreenController> {
                       })
                   : const SizedBox(),
 
-              ((data.media ?? []).isNotEmpty || data.media?.length == 1)?
+              ((data.media ?? []).isNotEmpty && data.media?.length == 1)?
               _OptionItem(
                     icon:  Icon(Icons.document_scanner,
                         color: appColorYellow, size: 16),
@@ -2400,13 +2405,22 @@ class ChatScreen extends GetView<ChatScreenController> {
 
                         await saveC.hitApiToGetFolder();
                         // openSaveToGallerySheet(fileId: "12", sourceType: "chat", sourceId: "09",defaultName: "chat_0998782377");
+                        final picked=  [PickedFileItem(
+                          name: mediachat?.orgFileName??'',
+                          // byte: image.bytes,         // web always, mobile if withData true
+                          path: "${ApiEnd.baseUrlMedia}${mediachat?.fileName}",          // mobile path
+                          kind: PickedKind.image,
+                          url: "${ApiEnd.baseUrlMedia}${mediachat?.fileName}",
+                        )];
+
                         Get.dialog(
                           SaveToCustomFolderDialog(
                             user: user,
-                            filesImages: data.media,
+                            filesImages: picked,
                             isImage: true,
                             isFromChat: true,
                             chatId: mediachat?.chatMediaId,
+                            isDirect: true, folderData: null,
                           ),
                           barrierDismissible: false,
                         );

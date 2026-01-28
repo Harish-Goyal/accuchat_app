@@ -248,9 +248,9 @@ class ChatScreenController extends GetxController {
   @override
   void onInit() {
     super.onInit();
-    textController.addListener(() {
-      showUpload.value = textController.text.trim().isEmpty;
-    });
+    // textController.addListener(() {
+    //   showUpload.value = textController.text.trim().isEmpty;
+    // });
     _getCompany();
     scrollListener();
     if(Get.isRegistered<ChatHomeController>()){
@@ -1042,9 +1042,19 @@ class ChatScreenController extends GetxController {
         'ppt',
         'pptx',
         'zip',
+        'html',
+        'php',
+        'js',
+        'jsx',
+        'css',
         'rar',
         'PDF',
         'DOC',
+        'HTML',
+        'PHP',
+        'JS',
+        'JSX',
+        'CSS',
         'DOCX',
         'TXT',
         'XLS',

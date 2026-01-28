@@ -19,8 +19,8 @@ class GenreInputGetX extends GetView<GenreController> {
       children: [
         vGap(10),
         CustomTextField(
-          hintText: "Type genre and press Enter",
-          labletext: "Folder name",
+          hintText: "Type keywords and press Enter (help for search)",
+          labletext: "Keywords",
           controller: c.textController,
           focusNode: c.focusNode,
           onFieldSubmitted: (_) => c.addGenre(),

@@ -46,7 +46,6 @@ class ApiEnd {
   static const String folderRenameEnd = "api/gallery/folder/rename";
   static const String folderItemRenameEnd = "api/gallery/folder/item/rename";
   static const String globalSearchEnd = "api/gallery/global-search";
-
 }
 
 const String tripOngoing ='ongoing';

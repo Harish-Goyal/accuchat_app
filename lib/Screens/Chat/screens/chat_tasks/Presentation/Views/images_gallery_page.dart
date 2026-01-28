@@ -13,14 +13,15 @@ import 'package:photo_view/photo_view_gallery.dart';
 import '../../../../../../Services/APIs/api_ends.dart';
 import '../../../../../../utils/save_image.dart';
 import '../../../../../../utils/share_helper.dart';
+import '../../../../../Home/Models/pickes_file_item.dart';
 import '../../../../models/chat_history_response_model.dart';
 import '../Controllers/gallery_view_controller.dart';
 import '../Controllers/save_in_accuchat_gallery_controller.dart';
 import '../dialogs/save_in_gallery_dialog.dart';
 
 class GalleryViewerPage extends GetView<GalleryViewerController> {
-  GalleryViewerPage({super.key, required this.onReply, this.isChat = false});
-  Function() onReply;
+  GalleryViewerPage({super.key, this.onReply, this.isChat = false});
+  Function()? onReply;
   bool isChat;
   final PageController _pageController =
       PageController(initialPage: Get.find<GalleryViewerController>().index);
@@ -37,15 +38,6 @@ class GalleryViewerPage extends GetView<GalleryViewerController> {
             elevation: 0,
             title: Text('${c.index + 1}/${c.urls.length}'),
             actions: [
-              IconButton(
-                tooltip: 'Save image',
-                onPressed: c.saving
-                    ? null
-                    : () async {
-                        await saveImage(c.urls[c.index]);
-                      },
-                icon: const Icon(Icons.download),
-              ),
               PopupMenuButton<String>(
                   color: Colors.grey.shade900,
                   iconColor: Colors.black87,
@@ -73,21 +65,21 @@ class GalleryViewerPage extends GetView<GalleryViewerController> {
 
                     if (v == "reply") {
                       final chatC = Get.find<ChatScreenController>();
-                      chatC.refIdis = c.chathis.chatId;
-                      chatC.userIDSender = c.chathis.fromUser?.userId;
+                      chatC.refIdis = c.chathis?.chatId;
+                      chatC.userIDSender = c.chathis?.fromUser?.userId;
                       chatC.userNameReceiver =
-                          c.chathis.toUser?.userCompany?.displayName ?? '';
+                          c.chathis?.toUser?.userCompany?.displayName ?? '';
                       chatC.userNameSender =
-                          c.chathis.fromUser?.userCompany?.displayName ?? '';
-                      chatC.userIDReceiver = c.chathis.toUser?.userId;
+                          c.chathis?.fromUser?.userCompany?.displayName ?? '';
+                      chatC.userIDReceiver = c.chathis?.toUser?.userId;
 
                       chatC.replyToMessage = ChatHisList(
-                        chatId: c.chathis.chatId,
-                        fromUser: c.chathis.fromUser,
-                        toUser: c.chathis.toUser,
+                        chatId: c.chathis?.chatId,
+                        fromUser: c.chathis?.fromUser,
+                        toUser: c.chathis?.toUser,
                         message: c.urls[c.index],
                         // message:getFileNameFromUrl(c.urls[c.index]),
-                        replyToId: c.chathis.chatId,
+                        replyToId: c.chathis?.chatId,
                         replyToText: c.urls[c.index],
                         replyToMedia: c.urls[c.index],
                         // replyToT0ext:getFileNameFromUrl(c.urls[c.index]),
@@ -102,16 +94,28 @@ class GalleryViewerPage extends GetView<GalleryViewerController> {
                       final saveC = Get.isRegistered<SaveToGalleryController>()
                           ? Get.find<SaveToGalleryController>()
                           : Get.put(SaveToGalleryController());
+                      final chatMedia = c.chathis?.media;
 
                       await saveC.hitApiToGetFolder();
+                      final picked = [
+                        PickedFileItem(
+                          name: chatMedia?[c.index].orgFileName ?? '',
+                          // byte: image.bytes,         // web always, mobile if withData true
+                          path: c.urls[c.index], // mobile path
+                          kind: PickedKind.image,
+                          url: c.urls[c.index],
+                        )
+                      ];
                       showDialog(
                           context: Get.context!,
                           builder: (_) => SaveToCustomFolderDialog(
                                 user: UserDataAPI(),
-                                filesImages: c.urls[c.index],
-                            isImage: true,
-                            isFromChat: true,
-                            chatId: c.chathis.chatId,
+                                filesImages: picked,
+                                isImage: true,
+                                isDirect: true,
+                                isFromChat: true,
+                                chatId: chatMedia?[c.index].chatMediaId,
+                                folderData: null,
                               ));
                     }
                   },
@@ -136,12 +140,14 @@ class GalleryViewerPage extends GetView<GalleryViewerController> {
                             style: BalooStyles.baloonormalTextStyle(
                                 color: Colors.white)),
                       ));
-                      items.add(PopupMenuItem(
-                        value: 'reply',
-                        child: Text('Reply',
-                            style: BalooStyles.baloonormalTextStyle(
-                                color: Colors.white)),
-                      ));
+                      if (c.chathis != null) {
+                        items.add(PopupMenuItem(
+                          value: 'reply',
+                          child: Text('Reply',
+                              style: BalooStyles.baloonormalTextStyle(
+                                  color: Colors.white)),
+                        ));
+                      }
 
                       items.add(PopupMenuItem(
                         value: 'share_this',
@@ -149,12 +155,14 @@ class GalleryViewerPage extends GetView<GalleryViewerController> {
                             style: BalooStyles.baloonormalTextStyle(
                                 color: Colors.white)),
                       ));
-                      items.add(PopupMenuItem(
-                        value: 'save_accuchat_this',
-                        child: Text('Save to Smart Gallery',
-                            style: BalooStyles.baloonormalTextStyle(
-                                color: Colors.white)),
-                      ));
+                      if (c.chathis != null) {
+                        items.add(PopupMenuItem(
+                          value: 'save_accuchat_this',
+                          child: Text('Save to Smart Gallery',
+                              style: BalooStyles.baloonormalTextStyle(
+                                  color: Colors.white)),
+                        ));
+                      }
                     }
 
                     return items;

@@ -85,16 +85,14 @@ abstract class PostApiService {
   Future<SuccessResponseModel> unregisterPushTokenApiCall(
       {Map<String, dynamic>? dataBody});
   Future<AllMemberResModel> getAllMembersApiCall({comid});
-
   Future<AllMediaResModel> getAllMediaAPI({int? page,int? userCId,int? comId,String? mediaType,String? source});
-
   Future<GetFolderResModel> getFolderApiCall({ucId,page});
   Future<CreateFolderResModel> createFolderApiCall({required Map<String, dynamic> dataBody});
   Future<CreateFolderResModel> deleteFolderApiCall({required Map<String, dynamic> dataBody});
-  Future<FolderItemsResModel> getFolderItemsApiCall({page,ucID,folderName});
+  Future<FolderItemsResModel> getFolderItemsApiCall({page,ucID,folderName,searchText});
   Future<UploadFolderMediaResModel> uploadFolderMediaApiCall({required FormData dataBody});
   Future<CreateFolderResModel> saveMediaFromChatApiCall({required Map<String, dynamic> dataBody});
-
+  Future<FolderItemsResModel> getGalleryGlobalSearchApiCall({ucId,search});
   Future<CreateFolderResModel> editFolderApiCall({required Map<String, dynamic> dataBody});
   Future<CreateFolderResModel> editFolderItemsApiCall({required Map<String, dynamic> dataBody});
   Future<CreateFolderResModel> deleteFolderItemsApiCall({required Map<String, dynamic> dataBody});

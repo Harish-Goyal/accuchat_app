@@ -90,6 +90,8 @@ class FolderData {
         this.chatMediaId,
         this.createdOn});
 
+  bool get isFolder => filePath == null || filePath!.isEmpty;
+
   FolderData.fromJson(Map<String, dynamic> json) {
     userGalleryId = json['user_gallery_id'];
     userCompanyId = json['user_company_id'];

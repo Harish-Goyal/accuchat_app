@@ -431,15 +431,31 @@ class PostApiServiceImpl extends GetxService implements PostApiService {
   }
 
   @override
-  Future<FolderItemsResModel> getFolderItemsApiCall({page,ucID,folderName}) async{
+  Future<FolderItemsResModel> getFolderItemsApiCall({page,ucID,folderName,searchText}) async{
     try {
       final response = await dioClient!
           .get(ApiEnd.getFolderItemsEnd, skipAuth: false,
       queryParameters: {
           "page": page,
-          "limit":20,
+          "limit":15,
           "user_company_id": ucID,
-          "folder_name":folderName
+          "folder_name":folderName,
+          "search":searchText,
+      });
+    return FolderItemsResModel.fromJson(response);
+    } catch (e) {
+      return Future.error(NetworkExceptions.getDioException(e));
+    }
+  }
+
+  @override
+  Future<FolderItemsResModel> getGalleryGlobalSearchApiCall({ucId,search}) async{
+    try {
+      final response = await dioClient!
+          .get(ApiEnd.globalSearchEnd, skipAuth: false,
+      queryParameters: {
+          "user_company_id": ucId,
+          "q":search
       });
     return FolderItemsResModel.fromJson(response);
     } catch (e) {

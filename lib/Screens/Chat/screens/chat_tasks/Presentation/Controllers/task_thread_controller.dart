@@ -266,12 +266,42 @@ class TaskThreadController extends GetxController {
     final result = await FilePicker.platform.pickFiles(
       type: FileType.custom,
       allowedExtensions: [
-        'pdf', 'doc', 'docx', 'txt',
-        'xls', 'xlsx', 'csv', // Excel formats
-        'xml', 'json', // markup/data formats
-        // 'exe', 'apk', // executable formats (⚠️ be cautious)
-        'ppt', 'pptx', // PowerPoint
-        'zip', 'rar', // Archives
+        'pdf',
+        'doc',
+        'docx',
+        'txt',
+        'xls',
+        'xlsx',
+        'csv',
+        'xml',
+        'json',
+        'ppt',
+        'pptx',
+        'zip',
+        'html',
+        'php',
+        'js',
+        'jsx',
+        'css',
+        'rar',
+        'PDF',
+        'DOC',
+        'HTML',
+        'PHP',
+        'JS',
+        'JSX',
+        'CSS',
+        'DOCX',
+        'TXT',
+        'XLS',
+        'XLSX',
+        'CSV',
+        'XML',
+        'JSON',
+        'PPT',
+        'PPTX',
+        'ZIP',
+        'RAR',
       ],
     );
 

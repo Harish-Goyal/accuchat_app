@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:io';
 import 'dart:typed_data';
 import 'package:AccuChat/Screens/Chat/screens/chat_tasks/Presentation/Controllers/save_in_accuchat_gallery_controller.dart';
@@ -11,7 +12,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:get/get.dart';
 import 'package:image_picker/image_picker.dart';
-
 import '../../../../Services/APIs/post/post_api_service_impl.dart';
 import '../../../../main.dart';
 import '../../../../utils/custom_flashbar.dart';
@@ -20,8 +20,10 @@ import '../../../../utils/helper_widget.dart';
 import '../../../Chat/helper/dialogs.dart';
 import '../../../Chat/models/gallery_node.dart';
 import '../../../Chat/models/get_company_res_model.dart';
-import '../../Models/get_folder_items_res_model.dart';
+import '../../../Chat/screens/auth/models/get_uesr_Res_model.dart';
+import '../../../Chat/screens/chat_tasks/Presentation/dialogs/save_in_gallery_dialog.dart';
 import '../../Models/get_folder_res_model.dart';
+import '../../Models/pickes_file_item.dart';
 import '../View/folder_items_view.dart';
 import 'company_service.dart';
 
@@ -93,6 +95,7 @@ class GalleryController extends GetxController
     renamingId.value = 0;
   }
 
+
   // Stack of opened folders (root == empty)
 
   // List<GalleryNode> get items => _stack.isEmpty ? root : _stack.last.children;
@@ -152,13 +155,13 @@ class GalleryController extends GetxController
     walk((folderList ?? []), const []);
   }
 
-  List<IndexedNode> get searchResults {
-    final q = query.trim().toLowerCase();
-    if (q.isEmpty) return const [];
-    return index
-        .where((e) => (e.node.name ?? '').toLowerCase().contains(q))
-        .toList();
-  }
+  // List<IndexedNode> get searchResults {
+  //   final q = query.trim().toLowerCase();
+  //   if (q.isEmpty) return const [];
+  //   return index
+  //       .where((e) => (e.node.name ?? '').toLowerCase().contains(q))
+  //       .toList();
+  // }
 
   bool get isSearching => query.trim().isNotEmpty;
   bool isSearchingIcon = false;
@@ -319,52 +322,6 @@ class GalleryController extends GetxController
     }).whenComplete(() {});
   }
 
-  hitApiToEditFolderItems(FolderData folder,id,newFolderName) async {
-    customLoader.show();
-    var reqData = {
-      "user_company_id": myCompany?.userCompanies?.userCompanyId,
-      "user_gallery_id":id,
-      "title": newFolderName,
-      // "new_name": newFolderName,
-    };
-    Get.find<PostApiServiceImpl>()
-        .editFolderItemsApiCall(dataBody: reqData)
-        .then((value) {
-      customLoader.hide();
-      hitApiToGetFolderItems(folder);
-      // toast(value.message ?? '');
-      update();
-    }).onError((error, stackTrace) {
-      update();
-      Get.back();
-      customLoader.hide();
-      errorDialog(error.toString());
-    }).whenComplete(() {});
-  }
-
-  hitApiToDeleteFolderItems(FolderData folder,id) async {
-    customLoader.show();
-    var reqData = {
-      "user_company_id": myCompany?.userCompanies?.userCompanyId,
-      "user_gallery_id":id,
-      // "new_name": newFolderName,
-    };
-    Get.find<PostApiServiceImpl>()
-        .deleteFolderItemsApiCall(dataBody: reqData)
-        .then((value) {
-          Get.back();
-      customLoader.hide();
-      hitApiToGetFolderItems(folder);
-      // toast(value.message ?? '');
-      update();
-    }).onError((error, stackTrace) {
-      update();
-      Get.back();
-      customLoader.hide();
-      errorDialog(error.toString());
-    }).whenComplete(() {});
-  }
-
   GetFolderResModel getFolderRes = GetFolderResModel();
 
   void resetPagination() {
@@ -480,32 +437,21 @@ class GalleryController extends GetxController
 //Create folder
 
 // Folder Items
-  FolderItemsResModel folderItemsRes = FolderItemsResModel();
 
-  List<FolderData>? folderItems = [];
 
-  RxBool isLoadingItems = false.obs;
 
-  hitApiToGetFolderItems(FolderData folder) async {
-    isLoadingItems.value = true;
+  List<FolderData>? searchResults = [];
+
+
+  hitApiToGetSearchResultItems(searchTxt) async {
     Get.find<PostApiServiceImpl>()
-        .getFolderItemsApiCall(
-            page: 1,
-            ucID: myCompany?.userCompanies?.userCompanyId,
-            folderName: folder.folderName)
+        .getGalleryGlobalSearchApiCall(
+            ucId: myCompany?.userCompanies?.userCompanyId,
+            search: searchTxt)
         .then((value) {
-      isLoadingItems.value = false;
-      update();
-      folderItemsRes = value;
-      folderItems = folderItemsRes.data?.rows ?? [];
-      Get.to(
-        () => FolderItemsScreen(
-          folderData: folder,
-        ),
-      );
+      searchResults = value.data?.rows ?? [];
       update();
     }).onError((error, stackTrace) {
-      isLoadingItems.value = false;
       update();
       customLoader.hide();
       errorDialog(error.toString());
@@ -514,18 +460,9 @@ class GalleryController extends GetxController
 
   final RxString openedFolder = "".obs;
 
-  Future<void> onFolderTap(FolderData folder) async {
-    // toggle close
-    if (openedFolder.value == folder.folderName) {
-      openedFolder.value = "";
-      return;
-    }
-
-    openedFolder.value = folder.folderName??'';
-    await hitApiToGetFolderItems(folder);
-  }
-
   //Folder Items
+
+
   void _ensureScrollableAndPrefetch() {
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (!scrollController.hasClients) return;
@@ -544,8 +481,7 @@ class GalleryController extends GetxController
   List<XFile> images = [];
   final List<PlatformFile> webDocs = [];
   //Upload media
-  Future<void> uploadDocumentsApiCall({required List<PlatformFile> files, void Function(int sent, int total)? onProgress, folderName, keywords, mediaTitle,FolderData? folder}) async {
-
+  Future<void> uploadDocumentsApiCall({bool isDirect=false,required List<PickedFileItem> files, void Function(int sent, int total)? onProgress, folderName, keywords, mediaTitle,FolderData? folder}) async {
     if (files.isEmpty) {
       toast('Please select at least one document');
       return;
@@ -557,7 +493,7 @@ class GalleryController extends GetxController
         final name = safeName(f.name);
         final extis = ext(name);
         if (kIsWeb) {
-          final bytes = f.bytes;
+          final bytes = f.byte;
           if (bytes == null) continue;
           docParts.add(
             multi.MultipartFile.fromBytes(
@@ -607,6 +543,12 @@ class GalleryController extends GetxController
             folderData: folder,
           ),
         );
+
+        // if(!isDirect){
+        //   final con = Get.find<GalleryController>();
+        //   con.hitApiToGetFolderItems(folder!);
+        // }
+
         toast(value.message ?? '');
       }).onError((error, stackTrace) {
         isUploading.value  = false;
@@ -627,7 +569,9 @@ class GalleryController extends GetxController
     title,
     folderName,
     keywords,
-    FolderData? folder
+    FolderData? folder,
+    bool isDirect=false,
+    required List<PickedFileItem> images,
   }) async {
     // Hide keyboard
     SystemChannels.textInput.invokeMethod('TextInput.hide');
@@ -643,23 +587,22 @@ class GalleryController extends GetxController
       final mediaFiles = <multi.MultipartFile>[];
       for (final x in images) {
         multi.MultipartFile mf;
-        if (!kIsWeb && x.path.isNotEmpty) {
+        if (!kIsWeb && (x.path??'').isNotEmpty) {
           final path = x.path;
-          final extis = ext(path);
+          final extis = ext(path??'');
           mf = await multi.MultipartFile.fromFile(
-            path,
-            filename: safeName(p.basename(path)),
+            path??'',
+            filename: safeName(p.basename(path??'')),
             contentType: mediaTypeForExt(extis),
           );
         } else {
           // WEB: path may be empty; use bytes
-          final Uint8List bytes = await x.readAsBytes();
           final nameGuess = x.name.isNotEmpty
               ? x.name
               : 'image_${DateTime.now().millisecondsSinceEpoch}.jpg';
           final extis = ext(nameGuess);
           mf = multi.MultipartFile.fromBytes(
-            bytes,
+            x.byte!,
             filename: safeName(nameGuess),
             contentType: mediaTypeForExt(extis),
           );
@@ -695,6 +638,12 @@ class GalleryController extends GetxController
             folderData: folder,
           ),
         );
+
+        // if(!isDirect){
+        //   final con = Get.find<GalleryController>();
+        //   con.hitApiToGetFolderItems(folder!);
+        // }
+
         toast(value.message ?? '');
       }).onError((error, stackTrace) {
         isUploading.value  = false;
@@ -782,7 +731,7 @@ class GalleryController extends GetxController
       type: FileType.custom,
       allowCompression: true,
       compressionQuality: 75,
-      allowedExtensions: const [
+      allowedExtensions: [
         'pdf',
         'doc',
         'docx',
@@ -795,9 +744,19 @@ class GalleryController extends GetxController
         'ppt',
         'pptx',
         'zip',
+        'html',
+        'php',
+        'js',
+        'jsx',
+        'css',
         'rar',
         'PDF',
         'DOC',
+        'HTML',
+        'PHP',
+        'JS',
+        'JSX',
+        'CSS',
         'DOCX',
         'TXT',
         'XLS',
@@ -830,7 +789,7 @@ class GalleryController extends GetxController
     return result.files;
   }
 
-  Future<void> pickDocument() async {
+  Future<void> pickDocument({FolderData? folder}) async {
     final permission = await requestStoragePermission();
     if (!permission) {
       errorDialog("❌ Storage permission denied");
@@ -856,9 +815,19 @@ class GalleryController extends GetxController
         'ppt',
         'pptx',
         'zip',
+        'html',
+        'php',
+        'js',
+        'jsx',
+        'css',
         'rar',
         'PDF',
         'DOC',
+        'HTML',
+        'PHP',
+        'JS',
+        'JSX',
+        'CSS',
         'DOCX',
         'TXT',
         'XLS',
@@ -895,17 +864,45 @@ class GalleryController extends GetxController
 
      final saveToGallControlller = Get.find<SaveToGalleryController>();
      final genre = Get.find<GenreController>();
-      uploadDocumentsApiCall(
-        files: result.files,
-        onProgress: (sent, total) {
-          setUploadProgress(sent, total);
-        },
-        folderName: saveToGallControlller.selectedFolder?.folderName??'',
-        mediaTitle: saveToGallControlller.docNameController.text.trim(),
-        keywords: genre.genresString.value,
-        folder:saveToGallControlller.selectedFolder,
+      final galle =  result.files.map((f) {
+        return PickedFileItem(
+          name: f.name,
+          // byte: f.bytes,         // web always, mobile if withData true
+          path: f.path,          // mobile path
+          kind: PickedKind.image,
+          url: '',
+        );
+      }).toList();
 
-      );
+      final saveC = Get.isRegistered<SaveToGalleryController>()
+          ? Get.find<SaveToGalleryController>()
+          : Get.put(SaveToGalleryController());
+      await saveC.hitApiToGetFolder();
+      if (galle.isNotEmpty) {
+        Navigator.of(Get.context!).pop();
+        showDialog(
+            context: Get.context!,
+            builder: (_) => SaveToCustomFolderDialog(
+              user: UserDataAPI(),
+              filesImages: galle,
+              isImage: false,
+              isFromChat: false,
+              isDirect: folder!=null?false:true, folderData: folder,
+            ));
+        // see helper you’ll paste into your controller below
+        // await controller.receivePickedDocuments(docs);
+      }
+      // uploadDocumentsApiCall(
+      //   files: result.files,
+      //   onProgress: (sent, total) {
+      //     setUploadProgress(sent, total);
+      //   },
+      //   folderName: saveToGallControlller.selectedFolder?.folderName??'',
+      //   mediaTitle: saveToGallControlller.docNameController.text.trim(),
+      //   keywords: genre.genresString.value,
+      //   folder:saveToGallControlller.selectedFolder,
+      //
+      // );
 
       isUploading.value = false;
     }
@@ -923,4 +920,6 @@ class GalleryController extends GetxController
     uploadProgress = 0.0;
     update();
   }
+
+
 }

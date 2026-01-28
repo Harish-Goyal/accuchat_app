@@ -11,21 +11,27 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:image_picker/image_picker.dart';
 
+import '../../../../Services/APIs/api_ends.dart';
 import '../../../../utils/confirmation_dialog.dart';
+import '../../../../utils/share_helper.dart';
+import '../../../../utils/show_upload_option_galeery.dart';
 import '../../../Chat/helper/dialogs.dart';
 import '../../../Chat/models/gallery_node.dart';
 import '../../../Chat/screens/auth/models/get_uesr_Res_model.dart';
 import '../../../Chat/screens/chat_tasks/Presentation/Controllers/save_in_accuchat_gallery_controller.dart';
 import '../../../Chat/screens/chat_tasks/Presentation/dialogs/save_in_gallery_dialog.dart';
 import '../../Models/get_folder_res_model.dart';
+import '../../Models/pickes_file_item.dart';
 import '../Controller/gallery_controller.dart';
 import '../Controller/genere_controller.dart';
 import 'folder_items_view.dart';
+import 'gallery_search_result_widget.dart';
 import 'home_screen.dart';
 
 class GalleryTab extends GetView<GalleryController> {
   GalleryTab({super.key});
-  GalleryController galleryController = Get.put<GalleryController>(GalleryController());
+  GalleryController galleryController =
+      Get.put<GalleryController>(GalleryController());
 
   @override
   Widget build(BuildContext context) {
@@ -70,7 +76,7 @@ class GalleryTab extends GetView<GalleryController> {
                               Expanded(
                                 child: _GalleryHeader(
                                   isRoot: c.isRoot,
-                                  breadcrumbs: c.breadcrumbs??[],
+                                  breadcrumbs: c.breadcrumbs ?? [],
                                   onBack: c.goUp,
                                   onRootTap: c.goToRoot,
                                   onCrumbTap: c.goToCrumb,
@@ -109,182 +115,6 @@ class GalleryTab extends GetView<GalleryController> {
     );
   }
 
-  void showUploadOptions(BuildContext context) {
-    if (kIsWeb) {
-      showUploadOptionsWeb(context);
-      return;
-    }
-    showModalBottomSheet(
-      context: context,
-      shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
-      ),
-      backgroundColor: Colors.white,
-      builder: (_) => SafeArea(
-        child: Padding(
-          padding:
-              const EdgeInsets.only(top: 16, left: 15, right: 15, bottom: 60),
-          child: Wrap(
-            children: [
-              ListTile(
-                leading: const Icon(
-                  Icons.camera_alt_outlined,
-                  size: 20,
-                ),
-                title: Text(
-                  "Camera",
-                  style: BalooStyles.baloomediumTextStyle(),
-                ),
-                onTap: () async {
-                  Get.back();
-                  final ImagePicker picker = ImagePicker();
-                  // Pick an image
-                  final XFile? image = await picker.pickImage(
-                    source: ImageSource.camera,
-                    imageQuality: 40,
-                  );
-                  if (image != null) {
-
-                  }
-                },
-              ),
-              ListTile(
-                leading: const Icon(
-                  Icons.photo_library_outlined,
-                  size: 20,
-                ),
-                title: Text(
-                  "Gallery",
-                  style: BalooStyles.baloomediumTextStyle(),
-                ),
-                onTap: () async {
-                  Get.back();
-                  final ImagePicker picker = ImagePicker();
-
-                  // Picking multiple images
-                  final List<XFile> images =
-                      await picker.pickMultiImage(imageQuality: 40, limit: 10);
-
-                  // uploading & sending image one by one
-                  // controller.images.addAll(images);
-                  // controller.update();
-                  // controller.uploadMediaApiCall(type: ChatMediaType.IMAGE.name);
-                },
-              ),
-              ListTile(
-                leading: const Icon(
-                  Icons.picture_as_pdf_outlined,
-                  size: 20,
-                ),
-                title: Text(
-                  "Document",
-                  style: BalooStyles.baloomediumTextStyle(),
-                ),
-                onTap: () {
-                  Get.back();
-                  controller.pickDocument();
-                },
-              ),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
-
-  void showUploadOptionsWeb(BuildContext context) {
-    showDialog(
-      context: context,
-      builder: (ctx) => AlertDialog(
-        backgroundColor: Colors.white,
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-        title: const Text('Upload files'),
-        content: const Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Text(
-              'On web, use your computer’s picker to select images or documents.\n'
-              'You can choose max 10 images at once.',
-              style: TextStyle(fontSize: 13),
-            ),
-          ],
-        ),
-        actions: [
-          TextButton(
-            onPressed: () async {
-              //IMAGES (multiple)
-              final images = await controller.pickWebImages(maxFiles: 10);
-              if (images.isNotEmpty) {
-                final saveC = Get.isRegistered<SaveToGalleryController>()
-                    ? Get.find<SaveToGalleryController>()
-                    : Get.put(SaveToGalleryController());
-
-                await saveC.hitApiToGetFolder();
-                Navigator.of(ctx).pop();
-                controller.images.addAll(images);
-                showDialog(
-                    context: Get.context!,
-                    builder: (_) => SaveToCustomFolderDialog(
-                          user: UserDataAPI(),
-                      filesImages: images,
-                      isImage: true,
-                      isFromChat: false,
-
-                        ));
-                // controller.images.addAll(images);
-                // controller.uploadMediaApiCall(type: ChatMediaType.IMAGE.name);
-              }
-            },
-            child: const Row(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Icon(Icons.photo),
-                SizedBox(width: 8),
-                Text('Select Images')
-              ],
-            ),
-          ),
-          TextButton(
-            onPressed: () async {
-              // DOCUMENTS (pdf/office/etc.)
-              final docs = await controller.pickWebDocs();
-              final saveC = Get.isRegistered<SaveToGalleryController>()
-                  ? Get.find<SaveToGalleryController>()
-                  : Get.put(SaveToGalleryController());
-
-              await saveC.hitApiToGetFolder();
-              if (docs.isNotEmpty) {
-                Navigator.of(ctx).pop();
-                showDialog(
-                    context: Get.context!,
-                    builder: (_) => SaveToCustomFolderDialog(
-                          user: UserDataAPI(),
-                      filesImages: docs,
-                      isImage: false,
-                      isFromChat: false,
-                        ));
-                // see helper you’ll paste into your controller below
-                // await controller.receivePickedDocuments(docs);
-              }
-            },
-            child: const Row(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Icon(Icons.picture_as_pdf),
-                SizedBox(width: 8),
-                Text('Select Documents')
-              ],
-            ),
-          ),
-          TextButton(
-            onPressed: () => Navigator.of(ctx).pop(),
-            child: const Text('Cancel'),
-          ),
-        ],
-      ),
-    );
-  }
-
   AppBar _searchBarWidget() {
     return AppBar(
       title: controller.isSearchingIcon
@@ -293,7 +123,7 @@ class GalleryTab extends GetView<GalleryController> {
               cursorColor: appColorGreen,
               decoration: const InputDecoration(
                   border: InputBorder.none,
-                  hintText: 'Search User, Group & Collection ...',
+                  hintText: 'Search folders, media by name ,keywords or user ...',
                   contentPadding:
                       EdgeInsets.symmetric(vertical: 0, horizontal: 10),
                   constraints: BoxConstraints(maxHeight: 45)),
@@ -302,6 +132,8 @@ class GalleryTab extends GetView<GalleryController> {
               onChanged: (val) {
                 controller.query = val;
                 controller.onSearchChanged(val);
+                controller
+                    .hitApiToGetSearchResultItems(controller.query.trim());
               },
             ).marginSymmetric(vertical: 10)
           : const SectionHeader(
@@ -314,6 +146,8 @@ class GalleryTab extends GetView<GalleryController> {
         IconButton(
                 onPressed: () {
                   controller.isSearchingIcon = !controller.isSearchingIcon;
+                  controller.searchCtrl.clear();
+                  controller.searchResults?.clear();
                   controller.update();
                 },
                 icon: controller.isSearchingIcon
@@ -371,64 +205,36 @@ class GalleryTab extends GetView<GalleryController> {
     );
   }
 
-  _searchBar() {
-    return Row(
-      children: [
-        controller.isSearchingIcon
-            ? Expanded(
-                child: TextField(
-                  controller: controller.searchCtrl,
-                  cursorColor: appColorGreen,
-                  decoration: const InputDecoration(
-                      border: InputBorder.none,
-                      hintText: 'Search User, Group & Collection ...',
-                      contentPadding:
-                          EdgeInsets.symmetric(vertical: 0, horizontal: 10),
-                      constraints: BoxConstraints(maxHeight: 45)),
-                  autofocus: true,
-                  style: const TextStyle(fontSize: 13, letterSpacing: 0.5),
-                  onChanged: (val) {
-                    controller.query = val;
-                    controller.onSearchChanged(val);
-                  },
-                ).marginSymmetric(vertical: 10),
-              )
-            : const Flexible(
-                child: SectionHeader(
-                  title: 'Your Smart Gallery',
-                  icon: galleryIcon,
-                ),
-              ),
-        IconButton(
-                onPressed: () {
-                  controller.isSearchingIcon = !controller.isSearchingIcon;
-                  controller.update();
-                },
-                icon: controller.isSearchingIcon
-                    ? const Icon(CupertinoIcons.clear_circled_solid)
-                    : Image.asset(searchPng, height: 25, width: 25))
-            .paddingOnly(top: 0, right: 10),
-      ],
-    ).paddingSymmetric(horizontal: 15, vertical: 10);
-  }
-
   _listView() {
     return Container(
       padding: const EdgeInsets.only(right: 12, left: 12, bottom: 80),
       child: controller.isSearching
-          ? _SearchResultsList(
-              results: controller.searchResults,
-              onTap: controller.openSearchResult,
-            )
-          :
-          Obx(()=>
-          controller.isLoading.value?IndicatorLoading(): _GalleryGrid(
-            items: controller.folderList ?? [], // Folder items
-            onFolderTap: (v) {},
-            onLeafTap: (v) {},
-            controller: controller,
-          ))
-     ,
+          ? Obx(() {
+              final items = controller.searchResults; // List<GlobalSearchItem>
+              return GalleryGlobalSearchResults(
+                items: items ?? [],
+                buildFileUrl: buildFileUrl,
+                onOpenFolder: (folderName) {
+                  // open FolderItemsScreen(folderName: folderName)
+                  controller.isSearchingIcon = false;
+                  controller.searchCtrl.clear();
+                  controller.searchResults?.clear();
+                  Get.back();
+                },
+                onOpenMedia: (media) {
+                  // open preview screen
+                  Get.to(() => FolderItemsScreen(folderData: media));
+                },
+              );
+            })
+          : Obx(() => controller.isLoading.value
+              ? IndicatorLoading()
+              : _GalleryGrid(
+                  items: controller.folderList ?? [], // Folder items
+                  onFolderTap: (v) {},
+                  onLeafTap: (v) {},
+                  controller: controller,
+                )),
     );
   }
 }
@@ -649,9 +455,9 @@ class _GalleryGrid extends StatelessWidget {
   Widget build(BuildContext context) {
     return LayoutBuilder(
       builder: (context, constraints) {
-        final cross = (constraints.maxWidth ~/ 120).clamp(2, 7);
-        return Obx(()=>
-         GridView.builder(
+        final cross = (constraints.maxWidth ~/ 90).clamp(2, 8);
+        return Obx(
+          () => GridView.builder(
             // padding: const EdgeInsets.only(bottom: 12, top: 4),
             controller: controller.scrollController,
             physics: const AlwaysScrollableScrollPhysics(),
@@ -659,7 +465,7 @@ class _GalleryGrid extends StatelessWidget {
               crossAxisCount: cross,
               crossAxisSpacing: 10,
               mainAxisSpacing: 10,
-              childAspectRatio: 0.83,
+              childAspectRatio: .9,
             ),
             itemCount: items.length + (controller.hasMore.value ? 1 : 0),
             itemBuilder: (_, i) {
@@ -669,7 +475,7 @@ class _GalleryGrid extends StatelessWidget {
               final node = items[i];
               return _GalleryTile(
                 folder: node,
-                onTap: () => controller.hitApiToGetFolderItems(node),
+                onTap: () => Get.to(()=>FolderItemsScreen(folderData: node)),
               );
             },
           ),
@@ -822,12 +628,14 @@ class _GalleryTile extends StatelessWidget {
                         // showResponsiveConfirmationDialog(onConfirm:  () async {
                         //   Get.back();
                         // },title: "Delete ${node.name} Folder(Permanently Deleted)");
-                      showResponsiveConfirmationDialog(onConfirm: (){
-                        controller.hitApiToDeleteFolder(folder.userGalleryId);
-                      },title: "Confirm Delete",
-                        subtitle: "Delete ${folder.folderName} (Permanently Deleted)"
-                      )
-                      ;
+                        showResponsiveConfirmationDialog(
+                            onConfirm: () {
+                              controller
+                                  .hitApiToDeleteFolder(folder.userGalleryId);
+                            },
+                            title: "Confirm Delete",
+                            subtitle:
+                                "Delete ${folder.folderName} (Permanently Deleted)");
                         break;
                       case FolderMenuAction.share:
                         // onShare?.call(node);

@@ -499,6 +499,11 @@ bool isImageVideo(String orignalMsg) {
       ext.endsWith('.mov') || ext.endsWith('.m4v') || ext.endsWith('.avi');
 }
 
+String buildFileUrl(String path) {
+  const baseUrl = "https://api.accuchat.in"; // or from config
+  if (path.startsWith("http")) return path;
+  return "$baseUrl$path";
+}
 
 
 Widget IconButtonWidget(image,{bool isIcon =false}){
