@@ -40,6 +40,7 @@ import '../../../../../../utils/emogi_picker_web.dart';
 import '../../../../../../utils/product_shimmer_widget.dart';
 import '../../../../../../utils/share_helper.dart';
 
+import '../../../../../../utils/show_upload_option_galeery.dart';
 import '../../../../../../utils/text_style.dart';
 import '../../../../../Home/Models/pickes_file_item.dart';
 import '../Controllers/save_in_accuchat_gallery_controller.dart';
@@ -1344,8 +1345,12 @@ class ChatScreen extends GetView<ChatScreenController> {
   bool isVisibleUpload = true;
 
   // bottom chat input field
-  Widget _chatInput(context) {
-    final speechC = Get.put(SpeechControllerImpl());
+  Widget _chatInput(BuildContext context) {
+    // ✅ don't put controller every rebuild
+    final speechC = Get.isRegistered<SpeechControllerImpl>()
+        ? Get.find<SpeechControllerImpl>()
+        : Get.put(SpeechControllerImpl(), permanent: true);
+
     void _appendSpeechToInput() {
       final text = speechC.getCombinedText();
       if (text.isEmpty) return;
@@ -1357,311 +1362,204 @@ class ChatScreen extends GetView<ChatScreenController> {
         TextPosition(offset: controller.textController.text.length),
       );
 
-      // reset cached result so next time fresh start
       speechC.finalText.value = '';
       speechC.interimText.value = '';
+    }
+
+    void _hardFocusBack() {
+      FocusManager.instance.primaryFocus?.unfocus();
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (controller.messageParentFocus.canRequestFocus) {
+          controller.messageParentFocus.requestFocus();
+        }
+      });
+    }
+
+    void _send() {
+      if (kIsWeb && speechC.isListening.value) {
+        speechC.stop();
+        _appendSpeechToInput();
+      }
+      _sendMessage();
+      _hardFocusBack();
     }
 
     return Container(
       padding: const EdgeInsets.symmetric(vertical: 0, horizontal: 5),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.center,
-        mainAxisAlignment: MainAxisAlignment.start,
         children: [
           _changeLanguage(),
           hGap(10),
+
           Expanded(
-            child: Row(
-              crossAxisAlignment: CrossAxisAlignment.end,
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
               children: [
-                Expanded(
-                  child: Column(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      // ✅ Listening strip (premium feel)
-                      Obx(() {
-                        if (!kIsWeb) return const SizedBox.shrink();
-                        if (!speechC.isListening.value) return const SizedBox.shrink();
+                // ✅ Listening strip
+                Obx(() {
+                  if (!kIsWeb || !speechC.isListening.value) {
+                    return const SizedBox.shrink();
+                  }
 
-                        final live = speechC.getCombinedText();
-                        return Container(
-                          width: double.infinity,
-                          margin: const EdgeInsets.only(bottom: 6),
-                          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
-                          decoration: BoxDecoration(
-                            borderRadius: BorderRadius.circular(8),
-                            border: Border.all(color: AppTheme.appColor.withOpacity(.15)),
-                            color: AppTheme.appColor.withOpacity(.04),
-                          ),
-                          child: Row(
-                            children: [
-                              const Icon(Icons.graphic_eq, size: 18),
-                              const SizedBox(width: 8),
-                              Expanded(
-                                child: Text(
-                                  live.isEmpty ? 'Listening...' : live,
-                                  maxLines: 2,
-                                  overflow: TextOverflow.ellipsis,
-                                  style: themeData.textTheme.bodySmall,
-                                ),
-                              ),
-                              const SizedBox(width: 8),
-                              InkWell(
-                                onTap: () {
-                                  speechC.stop();
-                                  _appendSpeechToInput();
-                                  speechC.update();
-                                },
-                                child: Container(
-                                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
-                                  decoration: BoxDecoration(
-                                    borderRadius: BorderRadius.circular(8),
-                                    color: Colors.red.withOpacity(.10),
-                                    border: Border.all(color: Colors.red.withOpacity(.25)),
-                                  ),
-                                  child: const Text('Stop', style: TextStyle(color: Colors.red)),
-                                ),
-                              )
-                            ],
-                          ),
-                        );
-                      }),
-
-      Shortcuts(
-        shortcuts: <ShortcutActivator, Intent>{
-          const SingleActivator(LogicalKeyboardKey.enter): const ActivateIntent(),
-        },
-        child: Actions(
-          actions: <Type, Action<Intent>>{
-            ActivateIntent: CallbackAction<Intent>(
-              onInvoke: (intent) {
-                if (!kIsWeb) return null;
-
-                // If shift is pressed, let TextField handle newline naturally
-                final keys = HardwareKeyboard.instance.logicalKeysPressed;
-                final shiftPressed = keys.contains(LogicalKeyboardKey.shiftLeft) ||
-                    keys.contains(LogicalKeyboardKey.shiftRight);
-                if (shiftPressed) return null;
-
-                _sendMessage();
-                controller.messageParentFocus.requestFocus(); // keep focus after send
-                return null;
-              },
-            ),
-          },
-          child: ConstrainedBox(
-            constraints: BoxConstraints(maxHeight: Get.height * .3, minHeight: 30),
-            child: Container(
-              margin: const EdgeInsets.symmetric(vertical: 4),
-              decoration: BoxDecoration(
-                borderRadius: BorderRadius.circular(8),
-                border: Border.all(color: AppTheme.appColor.withOpacity(.2)),
-              ),
-              child: Row(
-                children: [
-                  Expanded(
-                    child: TextFormField(
-                      controller: controller.textController,
-                      focusNode: controller.messageParentFocus,
-                      autofocus: true,
-                      keyboardType: TextInputType.multiline,
-                      textInputAction: TextInputAction.newline,
-                      maxLines: null,
-                      minLines: 1,
-                      decoration: InputDecoration(
-                        isDense: true,
-                        hintText: 'Type Something...',
-                        hintStyle: BalooStyles.baloonormalTextStyle(),
-                        hintMaxLines: 1,
-                        contentPadding: const EdgeInsets.all(8),
-                        border: InputBorder.none,
-                        enabledBorder: InputBorder.none,
-                        disabledBorder: InputBorder.none,
-                        errorBorder: InputBorder.none,
-                        focusedBorder: InputBorder.none,
-                      ),
-
+                  final live = speechC.getCombinedText();
+                  return Container(
+                    width: double.infinity,
+                    margin: const EdgeInsets.only(bottom: 6),
+                    padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+                    decoration: BoxDecoration(
+                      borderRadius: BorderRadius.circular(8),
+                      border: Border.all(color: AppTheme.appColor.withOpacity(.15)),
+                      color: AppTheme.appColor.withOpacity(.04),
                     ),
-                  ),
-
-                  if (kIsWeb) _micButton(_appendSpeechToInput),
-
-                  if (!isTaskMode)
-                  InkWell(
-                    onTap: () => showUploadOptions(Get.context!),
-                    child: IconButtonWidget(Icons.upload_outlined,isIcon:true),
-
-                  ),
-
-                  if (!isTaskMode)
-                   InkWell(
-                     onTap: () {
-                       openWhatsAppEmojiPicker(
-                           context: context, // prefer widget context, not Get.context!
-                           textController: controller.textController,
-                           onSend: () => Get.back(),
-                           isMobile: false
-                       );
-                     },
-                     child: IconButtonWidget(emojiPng),
-                   ),
-                ],
-              ),
-            ),
-          ),
-        ),
-      ),
-
-
-      /*Focus(
-                        focusNode: controller.messageParentFocus,
-                        autofocus: true,
-                        onKeyEvent: (node, event) {
-                          if (!kIsWeb) return KeyEventResult.ignored;
-                          if (event is KeyDownEvent &&
-                              event.logicalKey == LogicalKeyboardKey.enter) {
-                            final bool shiftPressed =
-                                HardwareKeyboard.instance.logicalKeysPressed
-                                    .contains(LogicalKeyboardKey.shiftLeft) ||
-                                    HardwareKeyboard.instance.logicalKeysPressed
-                                        .contains(LogicalKeyboardKey.shiftRight);
-
-                            if (shiftPressed) {
-                              return KeyEventResult.ignored; // SHIFT+ENTER new line
-                            } else {
-                              _sendMessage();
-                              return KeyEventResult.handled;
-                            }
-                          }
-                          return KeyEventResult.ignored;
-                        },
-                        child: ConstrainedBox(
-                          constraints: BoxConstraints(
-                            maxHeight: Get.height * .3,
-                            minHeight: 30,
-                          ),
-                          child: Container(
-                            margin: const EdgeInsets.symmetric(vertical: 4),
-                            decoration: BoxDecoration(
-                              borderRadius: BorderRadius.circular(8),
-                              border: Border.all(
-                                color: AppTheme.appColor.withOpacity(.2),
-                              ),
-                            ),
-                            child: Row(
-                              children: [
-                                Expanded(
-                                  child: TextFormField(
-                                    controller: controller.textController,
-                                    keyboardType: TextInputType.multiline,
-                                    focusNode: controller.messageInputFocus,
-                                    textInputAction: TextInputAction.newline,
-                                    maxLines: null,
-                                    minLines: 1,
-                                    autofocus: true,
-                                    onTap: () {
-                                      controller.messageInputFocus.requestFocus();
-                                    },
-                                    onChanged: (v){
-                                      if(controller.textController.text!=''){
-                                        isVisibleUpload = false;
-                                      }else{
-                                        isVisibleUpload = true;
-                                      }
-                                      controller.update();
-                                    },
-                                    decoration: InputDecoration(
-                                      isDense: true,
-                                      hintText: 'Type Something...',
-                                      hintStyle: BalooStyles.baloonormalTextStyle(),
-                                      hintMaxLines: 1,
-                                      contentPadding: const EdgeInsets.all(8),
-                                      border: InputBorder.none,
-                                      enabledBorder: InputBorder.none,
-                                      disabledBorder: InputBorder.none,
-                                      errorBorder: InputBorder.none,
-                                      focusedBorder: InputBorder.none,
-                                    ),
-                                    inputFormatters: [
-                                      FilteringTextInputFormatter.allow(RegExp(r'[\s\S]')),
-                                    ],
-                                  ),
-                                ),
-                                // ✅ MIC button (Web only) — upload ke paas
-                                if (kIsWeb)
-                                 _micButton(_appendSpeechToInput),
-
-                                if (!isTaskMode)
-                                  Visibility(
-                                    visible: isVisibleUpload,
-                                    child: InkWell(
-                                      onTap: () => showUploadOptions(Get.context!),
-                                      child: Container(
-                                        padding: const EdgeInsets.all(5),
-                                        margin: const EdgeInsets.all(5),
-                                        decoration: BoxDecoration(
-                                          borderRadius: BorderRadius.circular(8),
-                                          border: Border.all(color: appColorGreen.withOpacity(.3),),
-                                          color: appColorGreen.withOpacity(.1),
-                                        ),
-                                        child: Icon(
-                                          Icons.upload_outlined,
-                                          color: appColorGreen,
-                                          size: 20,
-                                        ),
-                                      ),
-                                    ),
-                                  ),
-
-                                if (!isTaskMode)
-                                  Visibility(
-                                    visible: isVisibleUpload,
-                                    child: InkWell(
-                                      onTap: () {
-                                        openWhatsAppEmojiPicker(
-                                          context: Get.context!, // prefer widget context, not Get.context!
-                                          textController: controller.textController,
-                                          onSend: () => Get.back(),
-                                          isMobile: false
-                                        );
-                                      },
-                                      child: Container(
-                                        padding: const EdgeInsets.all(5),
-                                        margin: const EdgeInsets.all(5),
-                                        decoration: BoxDecoration(
-                                          borderRadius: BorderRadius.circular(8),
-                                          border: Border.all(color:appColorGreen.withOpacity(.3),),
-                                          color: appColorGreen.withOpacity(.1),
-                                        ),
-                                        child: Image.asset(
-                                          emojiPng,
-                                          height: 20,
-                                          color: appColorGreen,
-                                        ),
-                                      ),
-                                    ),
-                                  ),
-                              ],
-                            ),
+                    child: Row(
+                      children: [
+                        const Icon(Icons.graphic_eq, size: 18),
+                        const SizedBox(width: 8),
+                        Expanded(
+                          child: Text(
+                            live.isEmpty ? 'Listening...' : live,
+                            maxLines: 2,
+                            overflow: TextOverflow.ellipsis,
+                            style: themeData.textTheme.bodySmall,
                           ),
                         ),
-                      ),*/
-                    ],
-                  ),
+                        const SizedBox(width: 8),
+                        InkWell(
+                          onTap: () {
+                            speechC.stop();
+                            _appendSpeechToInput();
+                            _hardFocusBack();
+                          },
+                          child: Container(
+                            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                            decoration: BoxDecoration(
+                              borderRadius: BorderRadius.circular(8),
+                              color: Colors.red.withOpacity(.10),
+                              border: Border.all(color: Colors.red.withOpacity(.25)),
+                            ),
+                            child: const Text('Stop', style: TextStyle(color: Colors.red)),
+                          ),
+                        )
+                      ],
+                    ),
+                  );
+                }),
+
+                // ✅ Input Row (field + icons)
+                GestureDetector(
+                  behavior: HitTestBehavior.translucent,
+                  onTap: _hardFocusBack, // web reattach fix
+                  child: ConstrainedBox(
+                    constraints: BoxConstraints(maxHeight: Get.height * .3, minHeight: 30),
+                    child: Container(
+                      margin: const EdgeInsets.symmetric(vertical: 4),
+                      decoration: BoxDecoration(
+                        borderRadius: BorderRadius.circular(8),
+                        border: Border.all(color: AppTheme.appColor.withOpacity(.2)),
+                      ),
+                      child: Row(
+                        children: [
+                          Expanded(
+                            // ✅ Focus wrapper WITHOUT focusNode (prevents cycle)
+                            child: Focus(
+                              skipTraversal: true,
+                              onKeyEvent: (node, event) {
+                                if (!kIsWeb) return KeyEventResult.ignored;
+                                if (event is! KeyDownEvent) return KeyEventResult.ignored;
+
+                                if (event.logicalKey == LogicalKeyboardKey.enter) {
+                                  final keys = HardwareKeyboard.instance.logicalKeysPressed;
+                                  final shiftPressed =
+                                      keys.contains(LogicalKeyboardKey.shiftLeft) ||
+                                          keys.contains(LogicalKeyboardKey.shiftRight);
+
+                                  if (shiftPressed) return KeyEventResult.ignored; // newline
+
+                                  _sendMessage();
+
+                                  // ✅ hard reattach focus (web)
+                                  FocusManager.instance.primaryFocus?.unfocus();
+                                  WidgetsBinding.instance.addPostFrameCallback((_) {
+                                    controller.messageParentFocus.requestFocus();
+                                  });
+
+                                  return KeyEventResult.handled;
+                                }
+
+                                return KeyEventResult.ignored;
+                              },
+                              child: TextFormField(
+                                controller: controller.textController,
+                                focusNode: controller.messageParentFocus, // ✅ only here
+                                autofocus: !kIsWeb, // web me autofocus glitch karta hai
+                                keyboardType: TextInputType.multiline,
+                                textInputAction: TextInputAction.newline,
+                                maxLines: null,
+                                minLines: 1,
+                                onTap: () {
+                                  // web reattach
+                                  WidgetsBinding.instance.addPostFrameCallback((_) {
+                                    controller.messageParentFocus.requestFocus();
+                                  });
+                                },
+                                decoration: InputDecoration(
+                                  isDense: true,
+                                  hintText: 'Type Something...',
+                                  hintStyle: BalooStyles.baloonormalTextStyle(),
+                                  contentPadding: const EdgeInsets.symmetric(horizontal: 8),
+                                  border: InputBorder.none,
+                                  focusedBorder: InputBorder.none,
+                                  enabledBorder: InputBorder.none,
+                                  errorBorder: InputBorder.none,
+
+                                ),
+                              ),
+                            ),
+                          ),
+
+                          if (kIsWeb) _micButton(_appendSpeechToInput),
+
+                          if (!isTaskMode)
+                            InkWell(
+                              onTap: () async {
+                                 showUploadOptions(context);
+                                WidgetsBinding.instance.addPostFrameCallback((_) {
+                                  controller.messageParentFocus.requestFocus();
+                                });
+                              },
+                              child: IconButtonWidget(Icons.upload_outlined, isIcon: true),
+                            ),
+
+                          if (!isTaskMode)
+                            InkWell(
+                              onTap: () async {
+                                openWhatsAppEmojiPicker(
+                                  context: context,
+                                  textController: controller.textController,
+                                  onSend: () => Get.back(),
+                                  isMobile: false,
+                                );
+                                WidgetsBinding.instance.addPostFrameCallback((_) {
+                                  controller.messageParentFocus.requestFocus();
+                                });
+                              },
+                              child: IconButtonWidget(emojiPng),
+                            ),
+                        ],
+                      ),
+                    ),
+                  )
+                  ,
                 ),
               ],
             ),
           ),
+
           hGap(6),
+
           InkWell(
-            onTap: () async {
-              // if mic listening, stop & append before sending (optional)
-              if (kIsWeb && speechC.isListening.value) {
-                speechC.stop();
-                _appendSpeechToInput();
-              }
-              _sendMessage();
-            },
+            onTap: _send,
             child: Container(
               padding: const EdgeInsets.all(12),
               decoration: BoxDecoration(
@@ -1670,11 +1568,12 @@ class ChatScreen extends GetView<ChatScreenController> {
               ),
               child: const Icon(Icons.send, color: Colors.white),
             ),
-          ).marginOnly(bottom: 4,top: 4),
+          ).marginOnly(bottom: 4, top: 4),
         ],
       ),
     );
   }
+
 
   //No Voice to text
 /*  Widget _chatInput() {
@@ -2050,160 +1949,6 @@ class ChatScreen extends GetView<ChatScreenController> {
       controller.update();
       // APIs.updateTypingStatus(false);
     }
-  }
-
-
-
-
-  void showUploadOptions(BuildContext context) {
-    if (kIsWeb) {
-      showUploadOptionsWeb(context);
-      return;
-    }
-    showModalBottomSheet(
-      context: context,
-      shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
-      ),
-      backgroundColor: Colors.white,
-      builder: (_) => SafeArea(
-        child: Padding(
-          padding:
-              const EdgeInsets.only(top: 16, left: 15, right: 15, bottom: 60),
-          child: Wrap(
-            children: [
-              ListTile(
-                leading: const Icon(
-                  Icons.camera_alt_outlined,
-                  size: 20,
-                ),
-                title: Text(
-                  "Camera",
-                  style: BalooStyles.baloomediumTextStyle(),
-                ),
-                onTap: () async {
-                  Get.back();
-                  final ImagePicker picker = ImagePicker();
-                  // Pick an image
-                  final XFile? image = await picker.pickImage(
-                    source: ImageSource.camera,
-                    imageQuality: 40,
-                  );
-                  if (image != null) {
-                    controller.images.add(image);
-                    controller.update();
-                    controller.uploadMediaApiCall(
-                        type: ChatMediaType.IMAGE.name);
-                  }
-                },
-              ),
-              ListTile(
-                leading: const Icon(
-                  Icons.photo_library_outlined,
-                  size: 20,
-                ),
-                title: Text(
-                  "Gallery",
-                  style: BalooStyles.baloomediumTextStyle(),
-                ),
-                onTap: () async {
-                  Get.back();
-                  final ImagePicker picker = ImagePicker();
-
-                  // Picking multiple images
-                  final List<XFile> images =
-                      await picker.pickMultiImage(imageQuality: 40, limit: 10);
-
-                  // uploading & sending image one by one
-                  controller.images.addAll(images);
-                  controller.update();
-                  controller.uploadMediaApiCall(type: ChatMediaType.IMAGE.name);
-                },
-              ),
-              ListTile(
-                leading: const Icon(
-                  Icons.picture_as_pdf_outlined,
-                  size: 20,
-                ),
-                title: Text(
-                  "Document",
-                  style: BalooStyles.baloomediumTextStyle(),
-                ),
-                onTap: () {
-                  Get.back();
-                  controller.pickDocument();
-                },
-              ),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
-
-  void showUploadOptionsWeb(BuildContext context) {
-    showDialog(
-      context: context,
-      builder: (ctx) => AlertDialog(
-        backgroundColor: Colors.white,
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-        title: const Text('Upload files'),
-        content: const Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Text(
-              'On web, use your computer’s picker to select images or documents.\n'
-              'You can choose max 10 images at once.',
-              style: TextStyle(fontSize: 13),
-            ),
-          ],
-        ),
-        actions: [
-          TextButton(
-            onPressed: () async {
-              //IMAGES (multiple)
-              final images = await controller.pickWebImages(maxFiles: 10);
-              if (images.isNotEmpty) {
-                controller.images.addAll(images);
-                controller.uploadMediaApiCall(type: ChatMediaType.IMAGE.name);
-              }
-              Navigator.of(ctx).pop();
-            },
-            child: const Row(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Icon(Icons.photo),
-                SizedBox(width: 8),
-                Text('Select Images')
-              ],
-            ),
-          ),
-          TextButton(
-            onPressed: () async {
-              // DOCUMENTS (pdf/office/etc.)
-              final docs = await _pickWebDocs();
-              if (docs.isNotEmpty) {
-                // see helper you’ll paste into your controller below
-                await controller.receivePickedDocuments(docs);
-              }
-              Navigator.of(ctx).pop();
-            },
-            child: const Row(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Icon(Icons.picture_as_pdf),
-                SizedBox(width: 8),
-                Text('Select Documents')
-              ],
-            ),
-          ),
-          TextButton(
-            onPressed: () => Navigator.of(ctx).pop(),
-            child: const Text('Cancel'),
-          ),
-        ],
-      ),
-    );
   }
 
   /// ====== HELPERS (WEB) ======

@@ -1306,7 +1306,235 @@ class ChatScreenMobile extends GetView<ChatScreenController> {
   bool isVisibleUpload = true;
 
   // bottom chat input field
-  Widget _chatInput(context) {
+  Widget _chatInput(BuildContext context) {
+    // ✅ don't put controller every rebuild
+    final speechC = Get.isRegistered<SpeechControllerImpl>()
+        ? Get.find<SpeechControllerImpl>()
+        : Get.put(SpeechControllerImpl(), permanent: true);
+
+    void _appendSpeechToInput() {
+      final text = speechC.getCombinedText();
+      if (text.isEmpty) return;
+
+      final old = controller.textController.text.trim();
+      controller.textController.text = old.isEmpty ? text : '$old $text';
+
+      controller.textController.selection = TextSelection.fromPosition(
+        TextPosition(offset: controller.textController.text.length),
+      );
+
+      speechC.finalText.value = '';
+      speechC.interimText.value = '';
+    }
+
+    void _hardFocusBack() {
+      FocusManager.instance.primaryFocus?.unfocus();
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (controller.messageParentFocus.canRequestFocus) {
+          controller.messageParentFocus.requestFocus();
+        }
+      });
+    }
+
+    void _send() {
+      if (kIsWeb && speechC.isListening.value) {
+        speechC.stop();
+        _appendSpeechToInput();
+      }
+      _sendMessage();
+      _hardFocusBack();
+    }
+
+    return Container(
+      padding: const EdgeInsets.symmetric(vertical: 0, horizontal: 5),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.center,
+        children: [
+          _changeLanguage(),
+          hGap(10),
+
+          Expanded(
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                // ✅ Listening strip
+                Obx(() {
+                  if (!kIsWeb || !speechC.isListening.value) {
+                    return const SizedBox.shrink();
+                  }
+
+                  final live = speechC.getCombinedText();
+                  return Container(
+                    width: double.infinity,
+                    margin: const EdgeInsets.only(bottom: 6),
+                    padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+                    decoration: BoxDecoration(
+                      borderRadius: BorderRadius.circular(8),
+                      border: Border.all(color: AppTheme.appColor.withOpacity(.15)),
+                      color: AppTheme.appColor.withOpacity(.04),
+                    ),
+                    child: Row(
+                      children: [
+                        const Icon(Icons.graphic_eq, size: 18),
+                        const SizedBox(width: 8),
+                        Expanded(
+                          child: Text(
+                            live.isEmpty ? 'Listening...' : live,
+                            maxLines: 2,
+                            overflow: TextOverflow.ellipsis,
+                            style: themeData.textTheme.bodySmall,
+                          ),
+                        ),
+                        const SizedBox(width: 8),
+                        InkWell(
+                          onTap: () {
+                            speechC.stop();
+                            _appendSpeechToInput();
+                            _hardFocusBack();
+                          },
+                          child: Container(
+                            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                            decoration: BoxDecoration(
+                              borderRadius: BorderRadius.circular(8),
+                              color: Colors.red.withOpacity(.10),
+                              border: Border.all(color: Colors.red.withOpacity(.25)),
+                            ),
+                            child: const Text('Stop', style: TextStyle(color: Colors.red)),
+                          ),
+                        )
+                      ],
+                    ),
+                  );
+                }),
+
+                // ✅ Input Row (field + icons)
+                GestureDetector(
+                  behavior: HitTestBehavior.translucent,
+                  onTap: _hardFocusBack, // web reattach fix
+                  child: ConstrainedBox(
+                    constraints: BoxConstraints(maxHeight: Get.height * .3, minHeight: 30),
+                    child: Container(
+                      margin: const EdgeInsets.symmetric(vertical: 4),
+                      decoration: BoxDecoration(
+                        borderRadius: BorderRadius.circular(8),
+                        border: Border.all(color: AppTheme.appColor.withOpacity(.2)),
+                      ),
+                      child: Row(
+                        children: [
+                          Expanded(
+                            // ✅ Focus wrapper WITHOUT focusNode (prevents cycle)
+                            child: Focus(
+                              skipTraversal: true,
+                              onKeyEvent: (node, event) {
+                                if (!kIsWeb) return KeyEventResult.ignored;
+                                if (event is! KeyDownEvent) return KeyEventResult.ignored;
+
+                                if (event.logicalKey == LogicalKeyboardKey.enter) {
+                                  final keys = HardwareKeyboard.instance.logicalKeysPressed;
+                                  final shiftPressed =
+                                      keys.contains(LogicalKeyboardKey.shiftLeft) ||
+                                          keys.contains(LogicalKeyboardKey.shiftRight);
+
+                                  if (shiftPressed) return KeyEventResult.ignored; // newline
+
+                                  _sendMessage();
+
+                                  // ✅ hard reattach focus (web)
+                                  FocusManager.instance.primaryFocus?.unfocus();
+                                  WidgetsBinding.instance.addPostFrameCallback((_) {
+                                    controller.messageParentFocus.requestFocus();
+                                  });
+
+                                  return KeyEventResult.handled;
+                                }
+
+                                return KeyEventResult.ignored;
+                              },
+                              child: TextFormField(
+                                controller: controller.textController,
+                                focusNode: controller.messageParentFocus, // ✅ only here
+                                autofocus: !kIsWeb, // web me autofocus glitch karta hai
+                                keyboardType: TextInputType.multiline,
+                                textInputAction: TextInputAction.newline,
+                                maxLines: null,
+                                minLines: 1,
+                                onTap: () {
+                                  // web reattach
+                                  WidgetsBinding.instance.addPostFrameCallback((_) {
+                                    controller.messageParentFocus.requestFocus();
+                                  });
+                                },
+                                decoration: InputDecoration(
+                                  isDense: true,
+                                  hintText: 'Type Something...',
+                                  hintStyle: BalooStyles.baloonormalTextStyle(),
+                                  contentPadding: const EdgeInsets.symmetric(horizontal: 8),
+                                  border: InputBorder.none,
+                                  focusedBorder: InputBorder.none,
+                                  enabledBorder: InputBorder.none,
+                                  errorBorder: InputBorder.none,
+
+                                ),
+                              ),
+                            ),
+                          ),
+
+                          if (kIsWeb) _micButton(_appendSpeechToInput),
+
+                          if (!isTaskMode)
+                            InkWell(
+                              onTap: () async {
+                                showUploadOptions(context);
+                                WidgetsBinding.instance.addPostFrameCallback((_) {
+                                  controller.messageParentFocus.requestFocus();
+                                });
+                              },
+                              child: IconButtonWidget(Icons.upload_outlined, isIcon: true),
+                            ),
+
+                          if (!isTaskMode)
+                            InkWell(
+                              onTap: () async {
+                                openWhatsAppEmojiPicker(
+                                  context: context,
+                                  textController: controller.textController,
+                                  onSend: () => Get.back(),
+                                  isMobile: false,
+                                );
+                                WidgetsBinding.instance.addPostFrameCallback((_) {
+                                  controller.messageParentFocus.requestFocus();
+                                });
+                              },
+                              child: IconButtonWidget(emojiPng),
+                            ),
+                        ],
+                      ),
+                    ),
+                  )
+                  ,
+                ),
+              ],
+            ),
+          ),
+
+          hGap(6),
+
+          InkWell(
+            onTap: _send,
+            child: Container(
+              padding: const EdgeInsets.all(12),
+              decoration: BoxDecoration(
+                borderRadius: BorderRadius.circular(8),
+                color: appColorGreen,
+              ),
+              child: const Icon(Icons.send, color: Colors.white),
+            ),
+          ).marginOnly(bottom: 4, top: 4),
+        ],
+      ),
+    );
+  }
+/*  Widget _chatInput(context) {
     final speechC = Get.put(SpeechControllerImpl(), permanent: true);
     void _appendSpeechToInput() {
       final text = speechC.getCombinedText();
@@ -1389,7 +1617,7 @@ class ChatScreenMobile extends GetView<ChatScreenController> {
                           );
                         }),
 
-                       /* Focus(
+                       *//* Focus(
                           focusNode: controller.messageParentFocus,
                           autofocus: true,
                           onKeyEvent: (node, event) {
@@ -1524,7 +1752,7 @@ class ChatScreenMobile extends GetView<ChatScreenController> {
                               ),
                             ),
                           ),
-                        ),*/
+                        ),*//*
                         Shortcuts(
                           shortcuts: <ShortcutActivator, Intent>{
                             const SingleActivator(LogicalKeyboardKey.enter): const ActivateIntent(),
@@ -1642,7 +1870,7 @@ class ChatScreenMobile extends GetView<ChatScreenController> {
         ],
       ),
     );
-  }
+  }*/
 
   Widget _chatInputMobile() {
     return Container(
@@ -1778,7 +2006,6 @@ class ChatScreenMobile extends GetView<ChatScreenController> {
                               ActivateIntent: CallbackAction<Intent>(
                                 onInvoke: (intent) {
                                   if (!kIsWeb) return null;
-
                                   // If shift is pressed, let TextField handle newline naturally
                                   final keys = HardwareKeyboard.instance.logicalKeysPressed;
                                   final shiftPressed = keys.contains(LogicalKeyboardKey.shiftLeft) ||

@@ -206,7 +206,7 @@ class GalleryItemController extends GetxController{
         .editFolderItemsApiCall(dataBody: reqData)
         .then((value) {
       customLoader.hide();
-      hitApiToGetFolderItems();
+      hitApiToGetFolderItems(reset: true);
       // toast(value.message ?? '');
       update();
     }).onError((error, stackTrace) {
@@ -229,7 +229,7 @@ class GalleryItemController extends GetxController{
         .then((value) {
       Get.back();
       customLoader.hide();
-      hitApiToGetFolderItems();
+      hitApiToGetFolderItems(reset: true);
       // toast(value.message ?? '');
       update();
     }).onError((error, stackTrace) {

@@ -282,8 +282,14 @@ class _SaveToCustomFolderDialogState extends State<SaveToCustomFolderDialog> {
 
   _onSave(controller){
     final genController = Get.find<GenreController>();
-    final gallCon = Get.find<GalleryController>();
-    final itemCon = Get.find<GalleryItemController>();
+    var gallCon;
+    var itemCon;
+    if(widget.folderData!=null){
+      itemCon = Get.find<GalleryItemController>();
+    }else{
+      gallCon = Get.find<GalleryController>();
+    }
+
     final genre = Get.find<GenreController>();
 
     if(!widget.isFromChat) {

@@ -234,7 +234,7 @@ class GalleryController extends GetxController
       Get.back(result: nameController.text.trim());
       customLoader.hide();
       resetPagination();
-      hitApiToGetFolder();
+      hitApiToGetFolder(reset: true);
 
       toast(value.message ?? '');
       update();
@@ -262,7 +262,7 @@ class GalleryController extends GetxController
       Get.back();
       customLoader.hide();
       resetPagination();
-      hitApiToGetFolder();
+      hitApiToGetFolder(reset: true);
       Get.to(
             () => FolderItemsScreen(
           folderData: folder,
@@ -289,7 +289,7 @@ class GalleryController extends GetxController
         .then((value) {
       Get.back();
       customLoader.hide();
-      hitApiToGetFolder();
+      hitApiToGetFolder(reset: true);
       toast(value.message ?? '');
       update();
     }).onError((error, stackTrace) {
@@ -311,7 +311,7 @@ class GalleryController extends GetxController
         .editFolderApiCall(dataBody: reqData)
         .then((value) {
       customLoader.hide();
-      hitApiToGetFolder();
+      hitApiToGetFolder(reset: true);
       // toast(value.message ?? '');
       update();
     }).onError((error, stackTrace) {
@@ -877,7 +877,7 @@ class GalleryController extends GetxController
       final saveC = Get.isRegistered<SaveToGalleryController>()
           ? Get.find<SaveToGalleryController>()
           : Get.put(SaveToGalleryController());
-      await saveC.hitApiToGetFolder();
+      await saveC.hitApiToGetFolder(reset: true);
       if (galle.isNotEmpty) {
         Navigator.of(Get.context!).pop();
         showDialog(

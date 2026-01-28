@@ -114,7 +114,7 @@ class FolderItemsScreen extends StatelessWidget {
 
                       },
                       onRename: () => _openRenameDialog(context, it,controller),
-                      onDelete: () => _openDeleteConfirm(context, it),
+                      onDelete: () => _openDeleteConfirm(context, it,controller),
                       onShare: () {
                         // c.shareMedia(it);
                       },
@@ -241,10 +241,9 @@ class FolderItemsScreen extends StatelessWidget {
     );
   }
 
-  void _openDeleteConfirm(BuildContext context, dynamic it) {
-    final GalleryItemController c = Get.find<GalleryItemController>();
+  void _openDeleteConfirm(BuildContext context, dynamic it,GalleryItemController controller) {
     showResponsiveConfirmationDialog(onConfirm: (){
-      c.hitApiToDeleteFolderItems(folderData!,it.userGalleryId);
+      controller.hitApiToDeleteFolderItems(folderData!,it.userGalleryId);
     },title: "Confirm Delete",subtitle:"Delete ${it.title}. (Permanently Deleted)" )
     ;
 
@@ -407,10 +406,7 @@ class _MediaCard extends StatelessWidget {
                           // showResponsiveConfirmationDialog(onConfirm:  () async {
                           //   Get.back();
                           // },title: "Delete ${node.name} Folder(Permanently Deleted)");
-                            showResponsiveConfirmationDialog(onConfirm: (){
-                              // controller.hitApiToDeleteFolder(folder.userGalleryId);
-                            },title: "Confirm Delete",subtitle:"Delete $title (Permanently Deleted)" )
-                            ;
+                         onDelete();
                             break;
                           case FolderMenuAction.share:
                           // onShare?.call(node);
