@@ -33,14 +33,8 @@ class TaskThreadController extends GetxController {
   void onInit() {
     super.onInit();
     scrollController = ScrollController();
-
-    msgController.addListener(() {
-      showUpload.value = msgController.text.trim().isEmpty;
-    });
     _getCompany();
     getArguments();
-
-
 
   }
 

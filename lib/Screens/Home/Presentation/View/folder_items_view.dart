@@ -1,5 +1,6 @@
 import 'package:AccuChat/Screens/Chat/models/chat_history_response_model.dart';
 import 'package:AccuChat/Screens/Home/Models/get_folder_res_model.dart';
+import 'package:AccuChat/Screens/Home/Presentation/Controller/home_controller.dart';
 import 'package:AccuChat/Services/APIs/api_ends.dart';
 import 'package:AccuChat/routes/app_routes.dart';
 import 'package:AccuChat/utils/common_textfield.dart';
@@ -22,16 +23,20 @@ import '../Controller/galeery_item_controller.dart';
 import 'gallery_view.dart';
 import 'home_screen.dart';
 
-class FolderItemsScreen extends StatelessWidget {
+class FolderItemsScreen extends GetView<GalleryItemController> {
   // final String folderName;
   final FolderData? folderData;
-  FolderItemsScreen({super.key, required this.folderData});
+  final String tagId;
 
+  FolderItemsScreen({super.key, required this.folderData})
+      : tagId = 'folder_${folderData?.userGalleryId}';
+
+  @override
+  GalleryItemController get controller => Get.find<GalleryItemController>(tag: tagId);
 
 
   @override
   Widget build(BuildContext context) {
-    final GalleryItemController controller = Get.put(GalleryItemController(folderData: folderData));
     return   WillPopScope(
       onWillPop: () async {
         if (Get.key.currentState?.canPop() ?? false) {
@@ -141,6 +146,10 @@ class FolderItemsScreen extends StatelessWidget {
 
   AppBar _searchBarWidget(context,GalleryItemController c) {
     return AppBar(
+      leading: IconButton(onPressed: (){
+        Get.toNamed(AppRoutes.home);
+        Get.find<DashboardController>().updateIndex(2);
+      }, icon: Icon(Icons.arrow_back,color: Colors.black87,)),
       title:
           Obx(()=>
               c.isSearchingIconItem.value?TextField(

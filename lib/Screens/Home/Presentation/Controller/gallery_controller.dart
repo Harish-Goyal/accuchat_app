@@ -26,6 +26,7 @@ import '../../Models/get_folder_res_model.dart';
 import '../../Models/pickes_file_item.dart';
 import '../View/folder_items_view.dart';
 import 'company_service.dart';
+import 'galeery_item_controller.dart';
 
 class IndexedNode {
   final GalleryNode node;
@@ -235,7 +236,6 @@ class GalleryController extends GetxController
       customLoader.hide();
       resetPagination();
       hitApiToGetFolder(reset: true);
-
       toast(value.message ?? '');
       update();
     }).onError((error, stackTrace) {
@@ -263,11 +263,15 @@ class GalleryController extends GetxController
       customLoader.hide();
       resetPagination();
       hitApiToGetFolder(reset: true);
-      Get.to(
-            () => FolderItemsScreen(
-          folderData: folder,
-        ),
-      );
+
+      Get.to(()=>FolderItemsScreen(folderData: folder),
+        binding: BindingsBuilder(() {
+          final tag = 'folder_${folder.userGalleryId}';
+          if (Get.isRegistered<GalleryItemController>(tag: tag)) {
+            Get.delete<GalleryItemController>(tag: tag, force: true);
+          }
+          Get.put(GalleryItemController(folderData: folder), tag: tag);
+        }),);
       toast(value.message ?? '');
       update();
     }).onError((error, stackTrace) {
@@ -535,12 +539,14 @@ class GalleryController extends GetxController
         customLoader.hide();
         resetPagination();
         hitApiToGetFolder();
-        Get.to(
-              () => FolderItemsScreen(
-            folderData: folder,
-          ),
-        );
-
+        Get.to(()=>FolderItemsScreen(folderData: folder),
+          binding: BindingsBuilder(() {
+            final tag = 'folder_${folder?.userGalleryId}';
+            if (Get.isRegistered<GalleryItemController>(tag: tag)) {
+              Get.delete<GalleryItemController>(tag: tag, force: true);
+            }
+            Get.put(GalleryItemController(folderData: folder), tag: tag);
+          }),);
         // if(!isDirect){
         //   final con = Get.find<GalleryController>();
         //   con.hitApiToGetFolderItems(folder!);
@@ -631,12 +637,14 @@ class GalleryController extends GetxController
         customLoader.hide();
         // resetPagination();
         // hitApiToGetFolder();
-        Get.to(
-              () => FolderItemsScreen(
-            folderData: folder,
-          ),
-        );
-
+        Get.to(()=>FolderItemsScreen(folderData: folder),
+          binding: BindingsBuilder(() {
+            final tag = 'folder_${folder?.userGalleryId}';
+            if (Get.isRegistered<GalleryItemController>(tag: tag)) {
+              Get.delete<GalleryItemController>(tag: tag, force: true);
+            }
+            Get.put(GalleryItemController(folderData: folder), tag: tag);
+          }),);
         // if(!isDirect){
         //   final con = Get.find<GalleryController>();
         //   con.hitApiToGetFolderItems(folder!);
@@ -855,13 +863,6 @@ class GalleryController extends GetxController
     }
 
     if (result != null && result.files.single.path != null) {
-      File file = File(result.files.single.path!);
-      var ext = file.path.split('.').last;
-      final fileName =
-          'DOC_${DateTime.now().millisecondsSinceEpoch}_${result.files.single.name}';
-
-     final saveToGallControlller = Get.find<SaveToGalleryController>();
-     final genre = Get.find<GenreController>();
       final galle =  result.files.map((f) {
         return PickedFileItem(
           name: f.name,

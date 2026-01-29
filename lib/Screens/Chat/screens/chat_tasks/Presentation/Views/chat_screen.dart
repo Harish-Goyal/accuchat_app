@@ -2003,11 +2003,9 @@ class ChatScreen extends GetView<ChatScreenController> {
                 onTap: () async {
                   Get.back();
                   final ImagePicker picker = ImagePicker();
-
                   // Picking multiple images
-                  final List<XFile> images =
+                  final images =
                       await picker.pickMultiImage(imageQuality: 40, limit: 10);
-
                   // uploading & sending image one by one
                   controller.images.addAll(images);
                   controller.update();

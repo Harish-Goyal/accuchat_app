@@ -22,6 +22,7 @@ import '../../../Chat/screens/chat_tasks/Presentation/Controllers/save_in_accuch
 import '../../../Chat/screens/chat_tasks/Presentation/dialogs/save_in_gallery_dialog.dart';
 import '../../Models/get_folder_res_model.dart';
 import '../../Models/pickes_file_item.dart';
+import '../Controller/galeery_item_controller.dart';
 import '../Controller/gallery_controller.dart';
 import '../Controller/genere_controller.dart';
 import 'folder_items_view.dart';
@@ -223,7 +224,15 @@ class GalleryTab extends GetView<GalleryController> {
                 },
                 onOpenMedia: (media) {
                   // open preview screen
-                  Get.to(() => FolderItemsScreen(folderData: media));
+                  Get.to(()=>FolderItemsScreen(folderData: media),
+                    binding: BindingsBuilder(() {
+                      final tag = 'folder_${media.userGalleryId}';
+                      if (Get.isRegistered<GalleryItemController>(tag: tag)) {
+                        Get.delete<GalleryItemController>(tag: tag, force: true);
+                      }
+                      Get.put(GalleryItemController(folderData: media), tag: tag);
+                    }),);
+
                 },
               );
             })
@@ -475,7 +484,16 @@ class _GalleryGrid extends StatelessWidget {
               final node = items[i];
               return _GalleryTile(
                 folder: node,
-                onTap: () => Get.to(()=>FolderItemsScreen(folderData: node)),
+                onTap:(){
+                  Get.to(()=>FolderItemsScreen(folderData: node),
+                    binding: BindingsBuilder(() {
+                      final tag = 'folder_${node.userGalleryId}';
+                      if (Get.isRegistered<GalleryItemController>(tag: tag)) {
+                        Get.delete<GalleryItemController>(tag: tag, force: true);
+                      }
+                      Get.put(GalleryItemController(folderData: node), tag: tag);
+                    }),);
+                } ,
               );
             },
           ),

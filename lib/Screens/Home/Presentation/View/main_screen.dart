@@ -299,7 +299,7 @@ Widget buildSideNav(DashboardController controller) {
             if (isSetting) {
               Get.toNamed(AppRoutes.all_settings);
             }
-            Get.toNamed(AppRoutes.home);
+            // Get.toNamed(AppRoutes.home);
 
             isTaskMode = index == 1;
             if(index == 0){
@@ -382,6 +382,13 @@ Widget buildSideNav(DashboardController controller) {
             if(index==2){
               if(Get.isRegistered<GalleryController>()){
                 final homec = Get.find<GalleryController>();
+                homec.getCompany();
+                homec.resetPagination();
+                homec.hitApiToGetFolder(reset: true);
+                homec.update();
+              }
+              else{
+            final homec= Get.put(GalleryController());
                 homec.getCompany();
                 homec.resetPagination();
                 homec.hitApiToGetFolder(reset: true);
