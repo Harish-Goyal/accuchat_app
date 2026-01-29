@@ -32,6 +32,7 @@ class SaveToCustomFolderDialog extends StatefulWidget {
   final bool isFromChat;
   final int? chatId;
   final bool? isDirect;
+  final bool? multi;
   final FolderData? folderData;
 
   const SaveToCustomFolderDialog({
@@ -40,6 +41,7 @@ class SaveToCustomFolderDialog extends StatefulWidget {
     required this.filesImages,
     required this.isImage,
     required this.isFromChat,
+    required this.multi,
     required this.isDirect,
     required this.folderData,
     this.chatId,
@@ -69,6 +71,7 @@ class _SaveToCustomFolderDialogState extends State<SaveToCustomFolderDialog> {
       title: "Save In Accuchat's Smart Gallery",
       isShowAppIcon: true,
       isShowActions: false,
+
       content: SizedBox(
         width: 500,
         child: Material(
@@ -95,13 +98,13 @@ class _SaveToCustomFolderDialogState extends State<SaveToCustomFolderDialog> {
                   ),
                   const SizedBox(height: 20),
 
-                  CustomTextField(
+                 ! (widget.multi!)?   CustomTextField(
                     hintText: "Document Name",
                     controller: c.docNameController,
                     labletext: "Document Name",
                     validator: (value) =>
                         value?.isEmptyField(messageTitle: "Document Name"),
-                  ),
+                  ):SizedBox(),
 
                   const SizedBox(height: 12),
 
@@ -280,12 +283,12 @@ class _SaveToCustomFolderDialogState extends State<SaveToCustomFolderDialog> {
     );
   }
 
-  _onSave(controller){
+  _onSave(SaveToGalleryController controller){
     final genController = Get.find<GenreController>();
-    var gallCon;
-    var itemCon;
+    GalleryController? gallCon;
+    GalleryItemController? itemCon;
     if(widget.folderData!=null){
-      itemCon = Get.find<GalleryItemController>();
+      itemCon = Get.isRegistered<GalleryItemController>()?Get.find<GalleryItemController>():Get.put<GalleryItemController>(GalleryItemController(folderData: widget.folderData));
     }else{
       gallCon = Get.find<GalleryController>();
     }
@@ -295,25 +298,25 @@ class _SaveToCustomFolderDialogState extends State<SaveToCustomFolderDialog> {
     if(!widget.isFromChat) {
       if (widget.isImage) {
         if(widget.folderData!=null){
-          itemCon.uploadMediaApiCall(
+          itemCon?.uploadMediaApiCall(
             onProgress: (sent, total) {
-              itemCon.setUploadProgress(sent, total);
+              itemCon?.setUploadProgress(sent, total);
             },
+            ctx: context,
             images: _items,
             folderName: controller.selectedFolder
                 ?.folderName ?? '',
-            title: controller.docNameController.text
-                .trim(),
+            title: controller.docNameController.text.trim(),
             keywords: genre.genresString.value,
             folder: controller.selectedFolder,
             isDirect: widget.folderData!=null?false:true,
-
           );
         }else{
-          gallCon.uploadMediaApiCall(
+          gallCon?.uploadMediaApiCall(
             onProgress: (sent, total) {
-              gallCon.setUploadProgress(sent, total);
+              gallCon?.setUploadProgress(sent, total);
             },
+            ctx: context,
             images: _items,
             folderName: controller.selectedFolder
                 ?.folderName ?? '',
@@ -328,16 +331,17 @@ class _SaveToCustomFolderDialogState extends State<SaveToCustomFolderDialog> {
 
       } else {
         if(widget.folderData!=null){
-          itemCon.uploadDocumentsApiCall(files: _items,
+          itemCon?.uploadDocumentsApiCall(files: _items,
             folderName: controller.selectedFolder?.folderName ?? '',
             mediaTitle: controller.docNameController.text.trim(),
             folder: controller.selectedFolder,
             keywords:
             genre.genresString.value,
+            ctx: context,
             isDirect: widget.folderData != null ? false : true,
           );
         }else {
-          gallCon.uploadDocumentsApiCall(files: _items,
+          gallCon?.uploadDocumentsApiCall(files: _items,
             folderName: controller.selectedFolder?.folderName ?? '',
             mediaTitle: controller.docNameController.text.trim(),
             folder: controller.selectedFolder,
@@ -355,11 +359,12 @@ class _SaveToCustomFolderDialogState extends State<SaveToCustomFolderDialog> {
       );
     }
 
-    Future.delayed(const Duration(milliseconds: 400),(){
+    Future.delayed(const Duration(milliseconds: 500),(){
       controller.docNameController.clear();
       controller.removeSelectFolder();
       genController.genres.clear();
       genController.genresString.value='';
+      _items.clear();
     });
 
   }

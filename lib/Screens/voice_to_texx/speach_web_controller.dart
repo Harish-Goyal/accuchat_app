@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'dart:html' as html;
 import 'dart:ui';
+import 'package:AccuChat/Screens/voice_to_texx/speach_abstract.dart';
 import 'package:get/get.dart';
 import 'package:js/js.dart';
 
@@ -16,23 +17,29 @@ class _SpeechBridge {
   external void setLang(String lang);
 }
 
-class SpeechControllerImpl extends GetxController {
+class SpeechControllerImpl  extends SpeechController{
+  @override
   final isListening = false.obs;
+  @override
   final interimText = ''.obs;
+  @override
   final finalText = ''.obs;
 
   StreamSubscription<html.Event>? _subResult;
   StreamSubscription<html.Event>? _subError;
   StreamSubscription<html.Event>? _subEnd;
 
+  @override
   bool get isSupported => _speech != null;
 
+  @override
   String selectedLang = 'en-IN';
-
+  @override
   void updateSelectedLang(String v) {
     selectedLang = v;
     update();
   }
+  @override
   VoidCallback? onStopped;
   @override
   void onInit() {
@@ -67,13 +74,14 @@ class SpeechControllerImpl extends GetxController {
 
   }
 
+  @override
   void setLanguage({required String langCode}) {
     if (!isSupported) return;
     _speech!.setLang(langCode);
   }
 
   String combinedText() => (finalText.value + ' ' + interimText.value).trim();
-
+  @override
   void toggle() {
     if (!isSupported) {
       Get.snackbar('Not supported', 'Voice-to-text is not supported in this browser.');
@@ -81,7 +89,7 @@ class SpeechControllerImpl extends GetxController {
     }
     if (isListening.value) stop(); else start();
   }
-
+  @override
   void start() {
     if (!isSupported) return;
     finalText.value = '';
@@ -89,14 +97,14 @@ class SpeechControllerImpl extends GetxController {
     isListening.value = true;
     _speech!.start();
   }
-
+  @override
   void stop() {
     if (!isSupported) return;
     isListening.value = false;
     interimText.value = '';
     _speech!.stop();
   }
-
+  @override
   String getCombinedText() => (finalText.value + ' ' + interimText.value).trim();
 
   @override

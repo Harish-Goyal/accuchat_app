@@ -4,13 +4,10 @@ import 'dart:math' as math;
 import 'package:AccuChat/Screens/Chat/screens/chat_tasks/Presentation/Controllers/task_home_controller.dart';
 import 'package:AccuChat/utils/text_button.dart';
 import 'package:AccuChat/Screens/voice_to_texx/speech_controller_factory.dart';
-import 'package:emoji_picker_flutter/emoji_picker_flutter.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter_linkify/flutter_linkify.dart';
-import 'package:scrollable_positioned_list/scrollable_positioned_list.dart';
 import 'package:share_plus/share_plus.dart';
 import 'package:url_launcher/url_launcher.dart';
-import 'package:AccuChat/Extension/text_field_extenstion.dart';
 import 'package:AccuChat/Screens/Chat/models/chat_history_response_model.dart';
 import 'package:AccuChat/Screens/Chat/screens/chat_tasks/Presentation/Controllers/chat_home_controller.dart';
 import 'package:AccuChat/Screens/Chat/screens/chat_tasks/Presentation/Controllers/chat_screen_controller.dart';
@@ -39,8 +36,6 @@ import '../../../../../../utils/custom_flashbar.dart';
 import '../../../../../../utils/emogi_picker_web.dart';
 import '../../../../../../utils/product_shimmer_widget.dart';
 import '../../../../../../utils/share_helper.dart';
-
-import '../../../../../../utils/show_upload_option_galeery.dart';
 import '../../../../../../utils/text_style.dart';
 import '../../../../../Home/Models/pickes_file_item.dart';
 import '../Controllers/save_in_accuchat_gallery_controller.dart';
@@ -1349,7 +1344,7 @@ class ChatScreen extends GetView<ChatScreenController> {
     // ✅ don't put controller every rebuild
     final speechC = Get.isRegistered<SpeechControllerImpl>()
         ? Get.find<SpeechControllerImpl>()
-        : Get.put(SpeechControllerImpl(), permanent: true);
+        : Get.put(SpeechControllerImpl());
 
     void _appendSpeechToInput() {
       final text = speechC.getCombinedText();
@@ -1951,6 +1946,160 @@ class ChatScreen extends GetView<ChatScreenController> {
     }
   }
 
+
+
+
+  void showUploadOptions(BuildContext context) {
+    if (kIsWeb) {
+      showUploadOptionsWeb(context);
+      return;
+    }
+    showModalBottomSheet(
+      context: context,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
+      ),
+      backgroundColor: Colors.white,
+      builder: (_) => SafeArea(
+        child: Padding(
+          padding:
+              const EdgeInsets.only(top: 16, left: 15, right: 15, bottom: 60),
+          child: Wrap(
+            children: [
+              ListTile(
+                leading: const Icon(
+                  Icons.camera_alt_outlined,
+                  size: 20,
+                ),
+                title: Text(
+                  "Camera",
+                  style: BalooStyles.baloomediumTextStyle(),
+                ),
+                onTap: () async {
+                  Get.back();
+                  final ImagePicker picker = ImagePicker();
+                  // Pick an image
+                  final XFile? image = await picker.pickImage(
+                    source: ImageSource.camera,
+                    imageQuality: 40,
+                  );
+                  if (image != null) {
+                    controller.images.add(image);
+                    controller.update();
+                    controller.uploadMediaApiCall(
+                        type: ChatMediaType.IMAGE.name);
+                  }
+                },
+              ),
+              ListTile(
+                leading: const Icon(
+                  Icons.photo_library_outlined,
+                  size: 20,
+                ),
+                title: Text(
+                  "Gallery",
+                  style: BalooStyles.baloomediumTextStyle(),
+                ),
+                onTap: () async {
+                  Get.back();
+                  final ImagePicker picker = ImagePicker();
+
+                  // Picking multiple images
+                  final List<XFile> images =
+                      await picker.pickMultiImage(imageQuality: 40, limit: 10);
+
+                  // uploading & sending image one by one
+                  controller.images.addAll(images);
+                  controller.update();
+                  controller.uploadMediaApiCall(type: ChatMediaType.IMAGE.name);
+                },
+              ),
+              ListTile(
+                leading: const Icon(
+                  Icons.picture_as_pdf_outlined,
+                  size: 20,
+                ),
+                title: Text(
+                  "Document",
+                  style: BalooStyles.baloomediumTextStyle(),
+                ),
+                onTap: () {
+                  Get.back();
+                  controller.pickDocument();
+                },
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  void showUploadOptionsWeb(BuildContext context) {
+    showDialog(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        backgroundColor: Colors.white,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+        title: const Text('Upload files'),
+        content: const Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Text(
+              'On web, use your computer’s picker to select images or documents.\n'
+              'You can choose max 10 images at once.',
+              style: TextStyle(fontSize: 13),
+            ),
+          ],
+        ),
+        actions: [
+          TextButton(
+            onPressed: () async {
+              //IMAGES (multiple)
+              final images = await controller.pickWebImages(maxFiles: 10);
+              if (images.isNotEmpty) {
+                controller.images.addAll(images);
+                controller.uploadMediaApiCall(type: ChatMediaType.IMAGE.name);
+              }
+              Navigator.of(ctx).pop();
+            },
+            child: const Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Icon(Icons.photo),
+                SizedBox(width: 8),
+                Text('Select Images')
+              ],
+            ),
+          ),
+          TextButton(
+            onPressed: () async {
+              // DOCUMENTS (pdf/office/etc.)
+              final docs = await _pickWebDocs();
+              if (docs.isNotEmpty) {
+                // see helper you’ll paste into your controller below
+                await controller.receivePickedDocuments(docs);
+              }
+              Navigator.of(ctx).pop();
+            },
+            child: const Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Icon(Icons.picture_as_pdf),
+                SizedBox(width: 8),
+                Text('Select Documents')
+              ],
+            ),
+          ),
+          TextButton(
+            onPressed: () => Navigator.of(ctx).pop(),
+            child: const Text('Cancel'),
+          ),
+        ],
+      ),
+    );
+  }
+
   /// ====== HELPERS (WEB) ======
 
 
@@ -2157,6 +2306,7 @@ class ChatScreen extends GetView<ChatScreenController> {
                           kind: PickedKind.image,
                           url: "${ApiEnd.baseUrlMedia}${mediachat?.fileName}",
                         )];
+                        saveC.docNameController.text = mediachat?.orgFileName??'';
 
                         Get.dialog(
                           SaveToCustomFolderDialog(
@@ -2165,6 +2315,7 @@ class ChatScreen extends GetView<ChatScreenController> {
                             isImage: true,
                             isFromChat: true,
                             chatId: mediachat?.chatMediaId,
+                            multi:false,
                             isDirect: true, folderData: null,
                           ),
                           barrierDismissible: false,

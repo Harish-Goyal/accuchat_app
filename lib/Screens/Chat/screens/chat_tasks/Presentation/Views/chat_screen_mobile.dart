@@ -192,8 +192,7 @@ class ChatScreenMobile extends GetView<ChatScreenController> {
                 ],
               )
                   : const SizedBox.shrink(),
-
-              kIsWeb? _chatInput(context):_chatInputMobile(),
+              if (kIsWeb) _chatInput(context) else _chatInputMobile(),
             ],
           ),
         ),
@@ -1310,7 +1309,7 @@ class ChatScreenMobile extends GetView<ChatScreenController> {
     // ✅ don't put controller every rebuild
     final speechC = Get.isRegistered<SpeechControllerImpl>()
         ? Get.find<SpeechControllerImpl>()
-        : Get.put(SpeechControllerImpl(), permanent: true);
+        : Get.put(SpeechControllerImpl());
 
     void _appendSpeechToInput() {
       final text = speechC.getCombinedText();
@@ -2493,12 +2492,12 @@ class ChatScreenMobile extends GetView<ChatScreenController> {
                         kind: PickedKind.image,
                         url: "${ApiEnd.baseUrlMedia}${mediachat?.fileName}",
                       )];
-
-
+                      saveC.docNameController.text = mediachat?.orgFileName??'';
                       showDialog(
                           context: Get.context!,
                           builder: (_) => SaveToCustomFolderDialog(
                             isDirect: true,
+                            multi: false,
                             user: controller.user,filesImages: picked,isImage: true, isFromChat: true,
                             chatId: mediachat?.chatMediaId, folderData: null,));
                     } catch (e) {

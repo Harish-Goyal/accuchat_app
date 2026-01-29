@@ -26,13 +26,11 @@ class CustomDialogue extends StatelessWidget {
     return BackdropFilter(
         filter: ImageFilter.blur(sigmaX: 5, sigmaY: 5),
         child: AlertDialog(
-          contentPadding: EdgeInsets.all(12),
-          insetPadding: EdgeInsets.all(12),
+          contentPadding: const EdgeInsets.all(12),
+          insetPadding: const EdgeInsets.all(12),
           shape:
               RoundedRectangleBorder(borderRadius: BorderRadius.circular(15)),
           backgroundColor: Colors.grey.shade100,
-          // contentPadding: EdgeInsets.all(20),
-
           title: Column(
             mainAxisAlignment: MainAxisAlignment.start,
             mainAxisSize: MainAxisSize.min,
@@ -65,7 +63,7 @@ class CustomDialogue extends StatelessWidget {
                   mainAxisAlignment: MainAxisAlignment.start,
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                    isShowAppIcon!? getAppLogo():SizedBox(),
+                    isShowAppIcon!? getAppLogo():const SizedBox(),
                     isShowAppIcon!?   vGap(10):vGap(0),
                     Text(
                       title,
@@ -110,7 +108,7 @@ class CustomDialogue extends StatelessWidget {
                           btnColor: AppTheme.appColor,
                             onTap:onOkTap, isShowIconText: false, leanIcon: null,)),
                   ],
-                ):SizedBox()
+                ):const SizedBox()
               ],
             ).paddingOnly(bottom: 15),
           ),

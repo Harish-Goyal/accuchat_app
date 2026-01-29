@@ -1,6 +1,7 @@
 import 'package:AccuChat/Screens/Chat/models/chat_history_response_model.dart';
 import 'package:AccuChat/Screens/Home/Models/get_folder_res_model.dart';
 import 'package:AccuChat/Services/APIs/api_ends.dart';
+import 'package:AccuChat/routes/app_routes.dart';
 import 'package:AccuChat/utils/common_textfield.dart';
 import 'package:AccuChat/utils/helper_widget.dart';
 import 'package:flutter/cupertino.dart';
@@ -31,100 +32,110 @@ class FolderItemsScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final GalleryItemController controller = Get.put(GalleryItemController(folderData: folderData));
-    return  Scaffold(
-          appBar:_searchBarWidget(context,controller),
-          body: Obx(() {
-            final isLoading = controller.isLoadingItems.value;
-            final items = controller.filterFolderItems ?? [];
+    return   WillPopScope(
+      onWillPop: () async {
+        if (Get.key.currentState?.canPop() ?? false) {
+          Get.back();
+        } else {
+          Get.offAllNamed(AppRoutes.home); // ya jis screen pe jana ho
+        }
+        return false;
+      },
+      child: Scaffold(
+            appBar:_searchBarWidget(context,controller),
+            body: Obx(() {
+              final isLoading = controller.isLoadingItems.value;
+              final items = controller.filterFolderItems ?? [];
 
-            if (isLoading) return const Center(child: CircularProgressIndicator());
-            if (items.isEmpty) return const Center(child: Text("No items found"));
+              if (isLoading) return const Center(child: CircularProgressIndicator());
+              if (items.isEmpty) return const Center(child: Text("No items found"));
 
-            return LayoutBuilder(
-              builder: (context, constraints) {
-                final w = constraints.maxWidth;
-                final crossAxisCount = _crossAxisCountForWidth(w);
-                final thumbHeight = _thumbHeightForWidth(w);
+              return LayoutBuilder(
+                builder: (context, constraints) {
+                  final w = constraints.maxWidth;
+                  final crossAxisCount = _crossAxisCountForWidth(w);
+                  final thumbHeight = _thumbHeightForWidth(w);
 
-                // ✅ Tile height = thumb + text area (fixed) -> no overflow
-                final tileHeight = thumbHeight + (w < 520 ? 108 : 116);
+                  // ✅ Tile height = thumb + text area (fixed) -> no overflow
+                  final tileHeight = thumbHeight + (w < 520 ? 108 : 116);
 
-                return controller.isLoadingItems.value
-                    ? IndicatorLoading()
-                    :  GridView.builder(
-                controller:   controller.scrollControllerItem,
-                  padding: EdgeInsets.symmetric(
-                    horizontal: w >= 900 ? 14 : 10,
-                    vertical: 12,
-                  ),
-                  gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-                    crossAxisCount: crossAxisCount,
-                    crossAxisSpacing: 14,
-                    mainAxisSpacing: 14,
-                    mainAxisExtent: tileHeight, // ✅ overflow FIX
-                  ),
-                  itemCount: items.length,
-                  itemBuilder: (_, i) {
-                    if (i == items.length) {
-                      return const IndicatorLoading();
-                    }
-                    final it = items[i];
+                  return controller.isLoadingItems.value
+                      ? IndicatorLoading()
+                      :  GridView.builder(
+                  controller:   controller.scrollControllerItem,
+                    padding: EdgeInsets.symmetric(
+                      horizontal: w >= 900 ? 14 : 10,
+                      vertical: 12,
+                    ),
+                    gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+                      crossAxisCount: crossAxisCount,
+                      crossAxisSpacing: 14,
+                      mainAxisSpacing: 14,
+                      mainAxisExtent: tileHeight, // ✅ overflow FIX
+                    ),
+                    itemCount: items.length,
+                    itemBuilder: (_, i) {
+                      if (i == items.length) {
+                        return const IndicatorLoading();
+                      }
+                      final it = items[i];
 
-                    final fileName = (it.fileName ?? "").trim();
-                    final title = ((it.title ?? "").trim().isEmpty)
-                        ? fileName
-                        : (it.title ?? "").trim();
-                    final kw = (it.keyWords ?? "").trim();
+                      final fileName = (it.fileName ?? "").trim();
+                      final title = ((it.title ?? "").trim().isEmpty)
+                          ? fileName
+                          : (it.title ?? "").trim();
+                      final kw = (it.keyWords ?? "").trim();
 
-                    final thumbUrl = "${ApiEnd.baseUrlMedia}${it.filePath}";
-                    final isImage = _isImage(it.mediaTypeId ?? 0, fileName);
-                    final List<String> filePaths =
-                    controller.filterFolderItems
-                        .where((e) => e.filePath != null)
-                        .map((e) => "${ApiEnd.baseUrlMedia}${e.filePath!}")
-                        .toList();
-                    return _MediaCard(
-                      thumbHeight: thumbHeight,
-                      title: title,
-                      keywords: kw,
-                      thumbUrl: thumbUrl,
-                      isImage: isImage,
-                      fileName: fileName,
-                      createdOnText: _prettyDate(it.createdOn),
-                      docIcon: _fileIcon(fileName),
-                      onTap: () {
-                        if(isDocument(it.filePath)){
-                          openDocumentFromUrl("${ApiEnd.baseUrlMedia}${it.filePath!}");
-                        }else{
-                          Get.to(
-                                () => GalleryViewerPage(
-                              onReply: () {},
+                      final thumbUrl = "${ApiEnd.baseUrlMedia}${it.filePath}";
+                      final isImage = _isImage(it.mediaTypeId ?? 0, fileName);
+                      final List<String> filePaths =
+                      controller.filterFolderItems
+                          .where((e) => e.filePath != null)
+                          .map((e) => "${ApiEnd.baseUrlMedia}${e.filePath!}")
+                          .toList();
+                      return _MediaCard(
+                        thumbHeight: thumbHeight,
+                        title: title,
+                        keywords: kw,
+                        thumbUrl: thumbUrl,
+                        isImage: isImage,
+                        fileName: fileName,
+                        createdOnText: _prettyDate(it.createdOn),
+                        docIcon: _fileIcon(fileName),
+                        onTap: () {
+                          if(isDocument(it.filePath)){
+                            openDocumentFromUrl("${ApiEnd.baseUrlMedia}${it.filePath!}");
+                          }else{
+                            Get.to(
+                                  () => GalleryViewerPage(
+                                onReply: () {},
 
-                            ),
-                            binding: BindingsBuilder(() {
-                              Get.put(GalleryViewerController(
-                                  urls: filePaths,
-                                  index: i,
-                                  chathis: null));
-                            }),
-                            fullscreenDialog: true,
-                            transition: Transition.fadeIn,
-                          );
-                        }
+                              ),
+                              binding: BindingsBuilder(() {
+                                Get.put(GalleryViewerController(
+                                    urls: filePaths,
+                                    index: i,
+                                    chathis: null));
+                              }),
+                              fullscreenDialog: true,
+                              transition: Transition.fadeIn,
+                            );
+                          }
 
-                      },
-                      onRename: () => _openRenameDialog(context, it,controller),
-                      onDelete: () => _openDeleteConfirm(context, it,controller),
-                      onShare: () {
-                        // c.shareMedia(it);
-                      },
-                    );
-                  },
-                );
-              },
-            );
-          }),
-        );
+                        },
+                        onRename: () => _openRenameDialog(context, it,controller),
+                        onDelete: () => _openDeleteConfirm(context, it,controller),
+                        onShare: () {
+                          // c.shareMedia(it);
+                        },
+                      );
+                    },
+                  );
+                },
+              );
+            }),
+          ),
+    );
 
   }
 

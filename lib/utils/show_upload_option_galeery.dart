@@ -59,7 +59,8 @@ void showUploadOptions(BuildContext context, {FolderData? folder}) {
                     )
                   ];
 
-                  folder!=null? null:await saveC.hitApiToGetFolder();
+                  folder!=null? null:await saveC.hitApiToGetFolder(reset: true);
+                  saveC.docNameController.text = image.name;
 
                   Navigator.of(context).pop();
                   showDialog(
@@ -67,6 +68,7 @@ void showUploadOptions(BuildContext context, {FolderData? folder}) {
                       builder: (_) => SaveToCustomFolderDialog(
                         user: UserDataAPI(),
                         filesImages: picked,
+                        multi:false,
                         isImage: true,
                         isFromChat: false, isDirect: folder!=null?false:true, folderData: folder,
                       ));
@@ -105,7 +107,7 @@ void showUploadOptions(BuildContext context, {FolderData? folder}) {
                 final saveC = Get.isRegistered<SaveToGalleryController>()
                     ? Get.find<SaveToGalleryController>()
                     : Get.put(SaveToGalleryController());
-                await saveC.hitApiToGetFolder();
+                folder!=null? null:await saveC.hitApiToGetFolder(reset: true);
                 if (galle.isNotEmpty) {
                   Navigator.of(context).pop();
                   showDialog(
@@ -115,6 +117,7 @@ void showUploadOptions(BuildContext context, {FolderData? folder}) {
                         filesImages: galle,
                         isImage: true,
                         isFromChat: false,
+                        multi:true,
                         isDirect: folder!=null?false:true, folderData: folder,
                       ));
                   // see helper you’ll paste into your controller below
@@ -196,6 +199,7 @@ void showUploadOptionsWeb(BuildContext context,FolderData? folderdata) {
                     user: UserDataAPI(),
                     filesImages: picked,
                     isImage: true,
+                    multi:true,
                     isFromChat: false, isDirect: folderdata!=null?false:true, folderData: folderdata,
                   ));
               // controller.images.addAll(images);
@@ -238,6 +242,7 @@ void showUploadOptionsWeb(BuildContext context,FolderData? folderdata) {
                     filesImages: picked,
                     isImage: false,
                     isFromChat: false,
+                    multi:true,
                     isDirect: folderdata!=null?false:true, folderData: folderdata,
                   ));
               // see helper you’ll paste into your controller below

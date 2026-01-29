@@ -245,7 +245,10 @@ class GalleryItemController extends GetxController{
   List<XFile> images = [];
   final List<PlatformFile> webDocs = [];
   //Upload media
-  Future<void> uploadDocumentsApiCall({bool isDirect=false,required List<PickedFileItem> files, void Function(int sent, int total)? onProgress, folderName, keywords, mediaTitle,FolderData? folder}) async {
+  Future<void> uploadDocumentsApiCall({
+    bool isDirect=false,
+    required BuildContext ctx,
+    required List<PickedFileItem> files, void Function(int sent, int total)? onProgress, folderName, keywords, mediaTitle,FolderData? folder}) async {
     if (files.isEmpty) {
       toast('Please select at least one document');
       return;
@@ -297,17 +300,10 @@ class GalleryItemController extends GetxController{
       Get.find<PostApiServiceImpl>()
           .uploadFolderMediaApiCall(dataBody: formData)
           .then((value) {
-        Get.back();
+        Navigator.of(ctx).pop();
         isUploading.value  = false;
         customLoader.hide();
         resetPagination();
-        Get.to(
-              () => FolderItemsScreen(
-            folderData: folder,
-          ),
-        );
-
-
        hitApiToGetFolderItems();
 
 
@@ -332,6 +328,7 @@ class GalleryItemController extends GetxController{
     folderName,
     keywords,
     FolderData? folder,
+    required BuildContext ctx,
     bool isDirect=false,
     required List<PickedFileItem> images,
   }) async {
@@ -381,27 +378,16 @@ class GalleryItemController extends GetxController{
         'file_path': mediaFiles, // array of docs
       };
 
-      // // If you later need reply fields:
-      // if (replyToId != null) fields['reply_to_id'] = replyToId;
-      // if (replyText?.trim().isNotEmpty == true) fields['reply_to_text'] = replyText!.trim();
-
       final formData = multi.FormData.fromMap(fields);
 
       Get.find<PostApiServiceImpl>()
           .uploadFolderMediaApiCall(dataBody: formData)
           .then((value) {
-        Get.back();
-        isUploading.value  = false;
         customLoader.hide();
+        Navigator.of(ctx).pop();
+        isUploading.value  = false;
         resetPagination();
-        Get.to(
-              () => FolderItemsScreen(
-            folderData: folder,
-          ),
-        );
-
         hitApiToGetFolderItems();
-
         toast(value.message ?? '');
       }).onError((error, stackTrace) {
         isUploading.value  = false;

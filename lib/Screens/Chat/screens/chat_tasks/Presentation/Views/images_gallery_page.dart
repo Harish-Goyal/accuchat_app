@@ -53,9 +53,14 @@ class GalleryViewerPage extends GetView<GalleryViewerController> {
                         ShareHelper.shareOnWhatsApp(c.urls[c.index]);
                       } else {
                         await ShareHelper.shareNetworkFile(
-                          "${ApiEnd.baseUrlMedia}${c.urls[c.index]}",
+                         c.urls[c.index],
                           text: "From AccuChat",
+                          fileName: c.urls[c.index], // optional if you store it
                         );
+                        // await ShareHelper.shareNetworkFile(
+                        //   "${ApiEnd.baseUrlMedia}${c.urls[c.index]}",
+                        //   text: "From AccuChat",
+                        // );
                         // ShareHelper.shareNetworkImage(c.urls[c.index]);
                       }
                     }
@@ -106,6 +111,7 @@ class GalleryViewerPage extends GetView<GalleryViewerController> {
                           url: c.urls[c.index],
                         )
                       ];
+                      saveC.docNameController.text = chatMedia?[c.index].orgFileName ?? '';
                       showDialog(
                           context: Get.context!,
                           builder: (_) => SaveToCustomFolderDialog(
@@ -113,6 +119,7 @@ class GalleryViewerPage extends GetView<GalleryViewerController> {
                                 filesImages: picked,
                                 isImage: true,
                                 isDirect: true,
+                                multi: false,
                                 isFromChat: true,
                                 chatId: chatMedia?[c.index].chatMediaId,
                                 folderData: null,

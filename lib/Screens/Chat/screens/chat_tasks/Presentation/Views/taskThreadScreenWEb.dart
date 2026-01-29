@@ -26,10 +26,9 @@ import '../../../../../../utils/emogi_picker_web.dart';
 import '../../../../../../utils/helper_widget.dart';
 import '../../../../../../utils/product_shimmer_widget.dart';
 import '../../../../../Home/Presentation/Controller/socket_controller.dart';
-import '../../../../../voice_to_texx/speach_web_controller.dart';
+import '../../../../../voice_to_texx/speech_controller_factory.dart';
 import '../../../../models/chat_history_response_model.dart';
 import '../../../../api/apis.dart';
-import '../Widgets/staggered_view.dart';
 
 class TaskThreadScreenWeb extends GetView<TaskThreadController> {
   TaskThreadScreenWeb({

@@ -438,10 +438,7 @@ class GalleryController extends GetxController
 
 // Folder Items
 
-
-
   List<FolderData>? searchResults = [];
-
 
   hitApiToGetSearchResultItems(searchTxt) async {
     Get.find<PostApiServiceImpl>()
@@ -570,6 +567,7 @@ class GalleryController extends GetxController
     folderName,
     keywords,
     FolderData? folder,
+    required BuildContext ctx,
     bool isDirect=false,
     required List<PickedFileItem> images,
   }) async {
@@ -628,11 +626,11 @@ class GalleryController extends GetxController
       Get.find<PostApiServiceImpl>()
           .uploadFolderMediaApiCall(dataBody: formData)
           .then((value) {
-        Get.back();
+        Navigator.of(ctx).pop();
         isUploading.value  = false;
         customLoader.hide();
-        resetPagination();
-        hitApiToGetFolder();
+        // resetPagination();
+        // hitApiToGetFolder();
         Get.to(
               () => FolderItemsScreen(
             folderData: folder,
@@ -727,7 +725,7 @@ class GalleryController extends GetxController
   int maxBytes = 15 * 1024 * 1024;
   Future<List<PlatformFile>> pickWebDocs() async {
     final result = await FilePicker.platform.pickFiles(
-      allowMultiple: false,
+      allowMultiple: true,
       type: FileType.custom,
       allowCompression: true,
       compressionQuality: 75,
@@ -797,7 +795,7 @@ class GalleryController extends GetxController
     }
 
     final result = await FilePicker.platform.pickFiles(
-      allowMultiple: false,
+      allowMultiple: true,
       type: FileType.custom,
       allowCompression: true,
       compressionQuality: 75,
@@ -877,7 +875,7 @@ class GalleryController extends GetxController
       final saveC = Get.isRegistered<SaveToGalleryController>()
           ? Get.find<SaveToGalleryController>()
           : Get.put(SaveToGalleryController());
-      await saveC.hitApiToGetFolder(reset: true);
+      folder!=null? null:await saveC.hitApiToGetFolder(reset: true);
       if (galle.isNotEmpty) {
         Navigator.of(Get.context!).pop();
         showDialog(
@@ -887,6 +885,7 @@ class GalleryController extends GetxController
               filesImages: galle,
               isImage: false,
               isFromChat: false,
+              multi: true,
               isDirect: folder!=null?false:true, folderData: folder,
             ));
         // see helper you’ll paste into your controller below

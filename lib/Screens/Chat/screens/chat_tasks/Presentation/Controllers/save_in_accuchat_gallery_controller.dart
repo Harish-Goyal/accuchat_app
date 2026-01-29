@@ -277,19 +277,11 @@ class SaveToGalleryController extends GetxController {
   @override
   void dispose() {
     super.dispose();
-
-    newFolderCtrl.dispose();
-    imageCache.clearLiveImages();
-    imageCache.clear();
-
-  }
-
-  @override
-  void onClose() {
     newFolderCtrl.dispose();
     docNameController.dispose();
     newFolderFocus.dispose();
-    super.onClose();
+    imageCache.clearLiveImages();
+    imageCache.clear();
   }
 
 }
