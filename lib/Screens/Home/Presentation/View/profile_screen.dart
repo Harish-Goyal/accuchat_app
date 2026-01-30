@@ -1,5 +1,4 @@
-import 'dart:io' show File; // keep File import guarded for non-web usage
-
+import 'dart:io' show File;
 import 'package:AccuChat/Constants/assets.dart';
 import 'package:AccuChat/Constants/colors.dart';
 import 'package:AccuChat/Extension/text_field_extenstion.dart';
@@ -13,24 +12,15 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:get/get.dart';
 import 'package:image_picker/image_picker.dart';
-
 import '../../../../Constants/themes.dart';
-import '../../../../Services/APIs/local_keys.dart';
-import '../../../../routes/app_routes.dart';
 import '../../../../utils/common_textfield.dart';
-import '../../../../utils/custom_dialogue.dart';
 import '../../../../utils/helper_widget.dart';
 import '../../../../utils/networl_shimmer_image.dart';
 import '../../../../utils/text_style.dart';
 import '../../../Chat/screens/auth/Presentation/Views/landing_screen.dart';
 import '../Controller/home_controller.dart';
-import 'home_screen.dart';
 import '../../../Settings/Presentation/Views/settings_screen.dart';
-import '../../../Chat/api/apis.dart';
-import '../../../Chat/helper/dialogs.dart';
 import '../../../../main.dart';
-import '../../../Chat/models/chat_user.dart';
-import '../../../Chat/screens/auth/Presentation/Views/login_screen.dart';
 
 // profile screen -- to show signed in user info
 class ProfileScreen extends GetView<HProfileController> {

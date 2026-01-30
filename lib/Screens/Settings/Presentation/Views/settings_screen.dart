@@ -1,15 +1,9 @@
-import 'package:AccuChat/Constants/themes.dart';
-import 'package:AccuChat/Screens/Settings/Presentation/Controllers/settings_controller.dart';
 import 'package:AccuChat/Screens/Settings/Presentation/Views/static_page.dart';
-import 'package:AccuChat/main.dart';
-import 'package:AccuChat/utils/backappbar.dart';
 import 'package:AccuChat/utils/helper_widget.dart';
 import 'package:AccuChat/utils/text_style.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
-import '../../../../utils/custom_flashbar.dart';
-import '../../../Chat/api/apis.dart';
 String pvcContent = '''
 <!DOCTYPE html>
 <html lang="en">

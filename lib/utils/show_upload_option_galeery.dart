@@ -179,7 +179,7 @@ void showUploadOptionsWeb(BuildContext context,FolderData? folderdata) {
                   ? Get.find<SaveToGalleryController>()
                   : Get.put(SaveToGalleryController());
 
-              await saveC.hitApiToGetFolder();
+              folderdata!=null?null: await saveC.hitApiToGetFolder();
               Navigator.of(ctx).pop();
               galle.images.addAll(images);
               final picked = await Future.wait(

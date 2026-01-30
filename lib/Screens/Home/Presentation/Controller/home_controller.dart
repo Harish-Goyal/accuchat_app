@@ -16,6 +16,7 @@ import '../../../../Services/APIs/auth_service/auth_api_services_impl.dart';
 import '../../../../Services/APIs/local_keys.dart';
 import '../../../../Services/APIs/post/post_api_service_impl.dart';
 import '../../../../main.dart';
+import '../../../../utils/budge_controller.dart';
 import '../../../../utils/custom_flashbar.dart';
 import '../../../../utils/shares_pref_web.dart';
 import '../../../Chat/api/apis.dart';
@@ -33,6 +34,10 @@ import 'company_service.dart';
 class DashboardController extends GetxController with WidgetsBindingObserver {
   var currentIndex = 0;
   UserDataAPI? user;
+
+  RxBool newChat =false.obs;
+  RxBool newCompanyChat =false.obs;
+  RxBool newTask =false.obs;
 
   void updateIndex(int index) {
     currentIndex = index;
@@ -213,16 +218,13 @@ class DashboardController extends GetxController with WidgetsBindingObserver {
   }
 
   Future<void> onCompanyChanged(int? companyId) async => refreshChats();
-
   @override
-  void onInit() async {
+  void onInit()  {
     getCompany();
+    // Get.put(AppBadgeController(), permanent: true);
+    // AppBadgeController.to.setCompany(myCompany?.companyId ?? 0);
+
     _ensureFallbackNavIfEmpty();
-
-
-    // getTopSixRecentChats();
-    // futureChats = getTopSixRecentChats();
-    super.onInit();
   }
 
   List<NavigationItem>? userNav = [];
@@ -231,13 +233,8 @@ class DashboardController extends GetxController with WidgetsBindingObserver {
     final svc = CompanyService.to;
     myCompany = svc.selected;
     update();
-    // final svc = Get.put<CompanyService>(CompanyService());
-    // await svc.init();
-    //   myCompany = svc.selected;
-      Future.delayed(const Duration(milliseconds: 500), () {
-        hitAPIToGetUser(myCompany?.companyId);
-      });
 
+       await hitAPIToGetUser(myCompany?.companyId);
 
   }
 
@@ -262,7 +259,6 @@ class DashboardController extends GetxController with WidgetsBindingObserver {
         NavigationItem(navigationItem: 'Task Button', isActive: 1, sortingOrder: 2, navigationPlace: bottom_nav_key),
         NavigationItem(navigationItem: 'Gallery Button', isActive: 1, sortingOrder: 3, navigationPlace: bottom_nav_key),
         NavigationItem(navigationItem: 'Companies Button', isActive: 1, sortingOrder: 4, navigationPlace: bottom_nav_key),
-
       ];
     }
 
@@ -273,15 +269,6 @@ class DashboardController extends GetxController with WidgetsBindingObserver {
         .where((nav) => nav.navigationPlace == bottom_nav_key)
         .toList();
 
-    // print(userNav?.map((v) => v.toJson()));
-    // bottomNavItems = (userNav ?? [])
-    //     .where(
-    //         (nav) => nav.navigationPlace == bottom_nav_key && nav.isActive == 1)
-    //     .toList()
-    //   // sort by your configured order
-    //   ..sort((a, b) => (a.sortingOrder ?? 0).compareTo(b.sortingOrder ?? 0));
-
-    // print(bottomNavItems.map((v) => v.toJson()));
   }
 
   bool isLoadingPer = true;
@@ -357,6 +344,7 @@ class DashboardController extends GetxController with WidgetsBindingObserver {
 
         getUserNavigation();
         initscres();
+
       } else {
         hitAPIToGetNavPermissions();
         Future.delayed(Duration(milliseconds: 500), () {

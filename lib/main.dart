@@ -1,7 +1,6 @@
 import 'package:AccuChat/Screens/Home/Presentation/Controller/home_controller.dart';
 import 'package:AccuChat/routes/app_pages.dart';
 import 'package:AccuChat/routes/app_routes.dart';
-import 'package:AccuChat/utils/network_controller.dart';
 import 'package:AccuChat/utils/no_network.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';

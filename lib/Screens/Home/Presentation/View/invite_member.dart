@@ -1,7 +1,5 @@
 import 'package:AccuChat/Constants/colors.dart';
-import 'package:AccuChat/Extension/text_field_extenstion.dart';
 import 'package:AccuChat/Screens/Home/Presentation/Controller/invite_member_controller.dart';
-import 'package:AccuChat/main.dart';
 import 'package:AccuChat/routes/app_routes.dart';
 import 'package:AccuChat/utils/gradient_button.dart';
 import 'package:AccuChat/utils/helper_widget.dart';

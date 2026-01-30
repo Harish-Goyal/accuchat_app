@@ -1,7 +1,6 @@
-import 'package:AccuChat/utils/loading_indicator.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import 'package:flutter/foundation.dart' show kIsWeb; // added for web checks
+import 'package:flutter/foundation.dart' show kIsWeb;
 import '../../../../utils/common_textfield.dart';
 import '../../../../utils/gradient_button.dart';
 import '../../../../utils/helper_widget.dart';

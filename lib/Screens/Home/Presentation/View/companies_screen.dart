@@ -1,5 +1,4 @@
 import 'package:AccuChat/Constants/themes.dart';
-import 'package:AccuChat/Screens/Chat/screens/chat_tasks/Presentation/Controllers/chat_screen_controller.dart';
 import 'package:AccuChat/Screens/Home/Presentation/Controller/compnaies_controller.dart';
 import 'package:AccuChat/Screens/Home/Presentation/View/pending_invites_animated.dart';
 import 'package:AccuChat/Services/APIs/api_ends.dart';
@@ -17,9 +16,9 @@ import '../../../../Constants/assets.dart';
 import '../../../../Constants/colors.dart';
 import '../../../../Services/subscription/billing_service.dart';
 import '../../../../routes/app_routes.dart';
+import '../../../../utils/budge_controller.dart';
 import '../../../../utils/product_shimmer_widget.dart';
 import '../../../Chat/api/apis.dart';
-import '../../../Chat/screens/chat_tasks/Presentation/Controllers/task_controller.dart';
 import '../Controller/company_service.dart';
 import '../Controller/home_controller.dart';
 import '../Controller/socket_controller.dart';
@@ -200,15 +199,27 @@ class CompaniesScreen extends GetView<CompaniesController> {
                                                           .selCompany?.companyId?Image.asset(pinnedPng,height: 18,width: 15,):SizedBox(),
                                     */
                                                   Expanded(
-                                                    child: Text(
-                                                      (companyData.companyName ??
-                                                              '')
-                                                          ,
-                                                      style: BalooStyles
-                                                          .baloosemiBoldTextStyle(),
-                                                      maxLines: 1,
-                                                      overflow:
-                                                          TextOverflow.ellipsis,
+                                                    child: Row(
+                                                      mainAxisSize: MainAxisSize.min,
+                                                      children: [
+                                                        // Obx(() {
+                                                        //   final b = AppBadgeController.to;
+                                                        //   final cid = companyData.companyId!;
+                                                        //   final total = (b.otherChatByCompany[cid] ?? 0) + (b.otherTaskByCompany[cid] ?? 0);
+                                                        //   return SizedBox(
+                                                        //     width: 25,
+                                                        //     child:total > 0 ? Badge(child:Text("$total") ) : null,
+                                                        //   );
+                                                        // }),
+                                                        Text(
+                                                          (companyData.companyName ??''),
+                                                          style: BalooStyles
+                                                              .baloosemiBoldTextStyle(),
+                                                          maxLines: 1,
+                                                          overflow:
+                                                              TextOverflow.ellipsis,
+                                                        ),
+                                                      ],
                                                     ),
                                                   ),
                                                 ],
@@ -478,6 +489,8 @@ class CompaniesScreen extends GetView<CompaniesController> {
                                                 ],
                                               ),
                                             )*/
+
+
 
                                         Positioned(
                                           top: -18,

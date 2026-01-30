@@ -1,7 +1,6 @@
 import 'package:AccuChat/Screens/Chat/models/all_media_res_model.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-
 import '../../../../../../utils/networl_shimmer_image.dart';
 import '../../../../../../utils/text_style.dart';
 import '../Controllers/view_profile_controller.dart';

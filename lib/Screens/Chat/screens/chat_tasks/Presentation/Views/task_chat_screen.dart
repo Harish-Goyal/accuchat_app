@@ -111,8 +111,6 @@ class TaskScreen extends GetView<TaskController> {
   final UserDataAPI? taskUser;
   bool showBack;
 
-
-
   @override
   Widget build(BuildContext context) {
     final taskController = Get.put(

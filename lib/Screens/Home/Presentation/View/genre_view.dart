@@ -2,7 +2,6 @@ import 'package:AccuChat/Constants/colors.dart';
 import 'package:AccuChat/utils/helper_widget.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-
 import '../../../../utils/common_textfield.dart';
 import '../Controller/genere_controller.dart';
 

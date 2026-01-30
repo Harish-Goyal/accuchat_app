@@ -45,9 +45,8 @@ class ChatScreenController extends GetxController {
   String validString = '';
   List<Map<String, String>> uploadedAttachments = [];
   List<ChatHisResModel> msgList = [];
-  final textController = TextEditingController();
-  final FocusNode focusNode = FocusNode();
-  FocusNode messageParentFocus=FocusNode();
+  late TextEditingController textController;
+  late FocusNode messageParentFocus;
   // FocusNode messageInputFocus=FocusNode();
   ChatHisList? replyToMessage;
   String? replyToImage;
@@ -251,6 +250,8 @@ class ChatScreenController extends GetxController {
     // textController.addListener(() {
     //   showUpload.value = textController.text.trim().isEmpty;
     // });
+    textController = TextEditingController();
+    messageParentFocus=FocusNode();
     _getCompany();
     scrollListener();
     if(Get.isRegistered<ChatHomeController>()){
@@ -382,7 +383,6 @@ class ChatScreenController extends GetxController {
   void dispose() {
     textController.dispose();
     messageParentFocus.dispose();
-    focusNode.dispose();
     super.dispose();
   }
 

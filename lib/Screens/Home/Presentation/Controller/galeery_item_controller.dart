@@ -110,7 +110,55 @@ class GalleryItemController extends GetxController{
       hitApiToGetFolderItems(searchText: itemQuery.value.isEmpty ? null : itemQuery.value,reset: true);
     });
   }
-  Future<void> hitApiToGetFolderItems({bool reset = false,searchText}) async {
+
+  Future<void> hitApiToGetFolderItems({bool reset = false, String? searchText}) async {
+    if (isPageLoadingItems.value) return;
+
+    if (reset) {
+      pageItem.value = 1;
+      hasMoreItems.value = true;
+      filterFolderItems.clear();
+    }
+
+    if (!hasMoreItems.value) return;
+
+    isPageLoadingItems.value = true;
+    if (pageItem.value == 1) isLoadingItems.value = true;
+
+    try {
+      final res = await Get.find<PostApiServiceImpl>().getFolderItemsApiCall(
+        page: pageItem.value,
+        ucID: myCompany?.userCompanies?.userCompanyId,
+        folderName: folderData?.folderName,
+        searchText: searchText,
+      );
+
+      // ✅ Map rows to FolderData if API returns Map/dynamic
+      final rows = (res.data?.rows ?? []);
+
+      if (pageItem.value == 1) {
+        filterFolderItems.assignAll(rows); // ✅ better than addAll for first page
+      } else {
+        filterFolderItems.addAll(rows);
+      }
+
+      if (rows.isNotEmpty) {
+        pageItem.value++;
+        const pageSize = 15;
+        hasMoreItems.value = rows.length == pageSize;
+      } else {
+        hasMoreItems.value = false;
+      }
+
+    } catch (e) {
+      // handle/log
+    } finally {
+      isLoadingItems.value = false;        // ✅ set loading false at the end
+      isPageLoadingItems.value = false;
+    }
+  }
+
+/*  Future<void> hitApiToGetFolderItems({bool reset = false,searchText}) async {
     if (isPageLoadingItems.value) return;
 
     if (reset) {
@@ -152,7 +200,7 @@ class GalleryItemController extends GetxController{
       isPageLoadingItems.value = false;
       update();
     }
-  }
+  }*/
 
   void _ensureScrollableAndPrefetch() {
     WidgetsBinding.instance.addPostFrameCallback((_) {
@@ -206,6 +254,7 @@ class GalleryItemController extends GetxController{
         .editFolderItemsApiCall(dataBody: reqData)
         .then((value) {
       customLoader.hide();
+      resetPagination();
       hitApiToGetFolderItems(reset: true);
       // toast(value.message ?? '');
       update();
@@ -229,6 +278,7 @@ class GalleryItemController extends GetxController{
         .then((value) {
       Get.back();
       customLoader.hide();
+      resetPagination();
       hitApiToGetFolderItems(reset: true);
       // toast(value.message ?? '');
       update();
@@ -304,8 +354,7 @@ class GalleryItemController extends GetxController{
         isUploading.value  = false;
         customLoader.hide();
         resetPagination();
-       hitApiToGetFolderItems();
-
+       hitApiToGetFolderItems(reset: true);
 
         toast(value.message ?? '');
       }).onError((error, stackTrace) {
@@ -387,7 +436,7 @@ class GalleryItemController extends GetxController{
         Navigator.of(ctx).pop();
         isUploading.value  = false;
         resetPagination();
-        hitApiToGetFolderItems();
+        hitApiToGetFolderItems(reset: true);
         toast(value.message ?? '');
       }).onError((error, stackTrace) {
         isUploading.value  = false;

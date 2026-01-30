@@ -22,7 +22,6 @@ import 'package:get/get.dart';
 import 'package:grouped_list/grouped_list.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:intl/intl.dart';
-import 'package:scrollable_positioned_list/scrollable_positioned_list.dart';
 import 'package:swipe_to/swipe_to.dart';
 import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/gestures.dart';
@@ -42,17 +41,11 @@ import '../../../../../Home/Models/pickes_file_item.dart';
 import '../../../../../Home/Presentation/Controller/socket_controller.dart';
 import '../../../../helper/dialogs.dart';
 import '../Controllers/save_in_accuchat_gallery_controller.dart';
-import '../Controllers/task_controller.dart';
-import '../Controllers/task_home_controller.dart';
 import '../Widgets/reply_msg_widget.dart';
-import '../Widgets/staggered_view.dart';
-import '../../../../api/apis.dart';
 import '../Controllers/gallery_view_controller.dart';
 import '../Widgets/media_view.dart';
 import '../dialogs/save_in_gallery_dialog.dart';
 import 'images_gallery_page.dart';
-import 'package:path_provider/path_provider.dart';
-import 'package:intl/intl.dart';
 
 /// -------------------------
 /// Responsive helpers (added)

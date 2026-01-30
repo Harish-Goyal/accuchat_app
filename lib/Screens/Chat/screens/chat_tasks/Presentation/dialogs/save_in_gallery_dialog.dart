@@ -288,7 +288,8 @@ class _SaveToCustomFolderDialogState extends State<SaveToCustomFolderDialog> {
     GalleryController? gallCon;
     GalleryItemController? itemCon;
     if(widget.folderData!=null){
-      itemCon = Get.isRegistered<GalleryItemController>()?Get.find<GalleryItemController>():Get.put<GalleryItemController>(GalleryItemController(folderData: widget.folderData));
+      final tag = 'folder_${widget.folderData?.userGalleryId}';
+      itemCon = Get.isRegistered<GalleryItemController>()?Get.find<GalleryItemController>(tag:'folder_${widget.folderData?.userGalleryId}' ):Get.put<GalleryItemController>(GalleryItemController(folderData: widget.folderData,),tag: tag);
     }else{
       gallCon = Get.find<GalleryController>();
     }

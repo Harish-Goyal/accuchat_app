@@ -9,17 +9,12 @@ import 'package:AccuChat/utils/helper_widget.dart';
 import 'package:AccuChat/utils/text_style.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import 'package:flutter/foundation.dart' show kIsWeb; // added for web checks
-import '../../../../Constants/themes.dart';
-import '../../../../Services/APIs/local_keys.dart';
-import '../../../../utils/custom_dialogue.dart';
-import '../../../../utils/gradient_button.dart';
+import 'package:flutter/foundation.dart' show kIsWeb;
 import '../../../../utils/networl_shimmer_image.dart';
 import '../../../Chat/screens/auth/Presentation/Views/landing_screen.dart';
 import '../Controllers/all_settings_controller.dart';
 
 class AllSettingsScreen extends GetView<AllSettingsController> {
-  // HProfileController profileController = Get.put(HProfileController());
   @override
   Widget build(BuildContext context) {
     final size = MediaQuery.of(context).size;

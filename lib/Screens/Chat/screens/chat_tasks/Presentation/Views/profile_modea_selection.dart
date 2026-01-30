@@ -4,7 +4,6 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-
 import '../../../../../../Services/APIs/api_ends.dart';
 import '../../../../../../utils/helper_widget.dart';
 import '../../../../../../utils/networl_shimmer_image.dart';

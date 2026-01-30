@@ -3,14 +3,12 @@ import 'package:AccuChat/utils/helper_widget.dart';
 import 'package:AccuChat/utils/text_style.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
-import 'package:get/get.dart';
-
 import '../../../../utils/networl_shimmer_image.dart';
 import '../../Models/get_folder_res_model.dart';
 
 class GalleryGlobalSearchResults extends StatelessWidget {
   final List<FolderData> items;
-  final String Function(String path) buildFileUrl; // if you need baseUrl join
+  final String Function(String path) buildFileUrl;
   final void Function(String folderName) onOpenFolder;
   final void Function(FolderData media) onOpenMedia;
 

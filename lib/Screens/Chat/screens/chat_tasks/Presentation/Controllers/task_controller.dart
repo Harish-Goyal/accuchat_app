@@ -87,6 +87,13 @@ class TaskController extends GetxController {
     super.onClose();
   }
 
+  @override
+  void dispose() {
+    textController.dispose();
+    super.dispose();
+  }
+
+
   getArguments() {
     if(kIsWeb){
       _getCompany();

@@ -43,167 +43,169 @@ class AllUserScreenDialog extends GetView<AllUserController> {
                   borderRadius: BorderRadius.circular(12),
                   color: Colors.white,
                 ),
-                child: Column(
-                  children: [
-                   Obx(()=> Row(
-                        mainAxisSize: MainAxisSize.min,
-
-                        children: [
-                          controller.isSearching.value
-                              ? Expanded(
-                                  flex: 4,
-                                  child: TextField(
-                                    controller: controller.searchController,
-                                    cursorColor: appColorGreen,
-                                    decoration: const InputDecoration(
-                                        border: InputBorder.none,
-                                        hintText: 'Search User...',
-                                        contentPadding: EdgeInsets.symmetric(
-                                            vertical: 0, horizontal: 10),
-                                        constraints: BoxConstraints(maxHeight: 45)),
-                                    autofocus: true,
-                                    style: const TextStyle(
-                                        fontSize: 13, letterSpacing: 0.5),
-                                    onChanged: (val) {
-                                      controller.searchText = val;
-                                      controller.onSearch(val);
-                                    },
-                                  ).marginSymmetric(vertical: 10),
-                                )
-                              : Expanded(
-                                  flex: 4,
-                                  child: Text(
-                                    'Forwarded to',
-                                    style: TextStyle(
-                                        color: Colors.black,
-                                        fontWeight: FontWeight.bold,
-                                        fontSize: 18),
-                                  ).paddingOnly(left: 8, top: 10),
-                                ),
-                          Expanded(
-                            child: IconButton(
-                                onPressed: () {
-                                  controller.isSearching.value = !controller.isSearching.value;
-                                  controller.isSearching.refresh();
-
-                                  if(!controller.isSearching.value){
-                                    controller.searchText = '';
-                                    controller.onSearch('');
-                                    controller.searchController.clear();
-                                  }
-                                },
-                                icon: Icon(
-                                  controller.isSearching.value
-                                      ? CupertinoIcons.clear_circled_solid
-                                      : Icons.search,
-                                  color: colorGrey,
-                                ).paddingOnly(top: 10, right: 10)),
-                          ),
-                        ],
-                      ),
-                    ),
-                    SizedBox(
-                      height: MediaQuery.of(context).size.height * 0.8,
-                      child: Obx((){
-                        final selectedIds = users?.map((m) => m.userCompanyId).toSet();
-
-                        // final listToShow = controller.searchQuery.isEmpty
-                        //     ? controller.userList
-                        //     : controller.filteredList;
-
-                        final listToShow =(users??[]).isEmpty?controller.filteredList: controller.filteredList.where(
-                              (u) => !selectedIds!.contains(u.userCompany?.userCompanyId??0),
-                        ).toList();
-                        return NotificationListener<ScrollNotification>(
-                          onNotification: (ScrollNotification n) {
-                            if (n is! ScrollEndNotification) return false; // ✅ avoid spam
-
-                            final m = n.metrics;
-
-                            if (m.extentAfter < 200 &&
-                                !controller.isLoading.value &&
-                                controller.hasMore &&
-                                canFetch()) {
-                              controller.hitAPIToGetMember();
-                            }
-                            return false;
-                          },
-                          child: ListView.builder(
-                            itemCount: listToShow.length,
-                            controller: controller.scrollController,
-                            physics: const AlwaysScrollableScrollPhysics(),
-                            itemBuilder: (_, i) {
-                             final memData = listToShow[i];
-                              return
-                                ListTile(
-                                  leading: SizedBox(
-                                    width: 50,
-                                    child: CustomCacheNetworkImage(
-                                      "${ApiEnd.baseUrlMedia}${listToShow[i]
-                                          .userImage ?? ''}",
-                                      height: 45,
-                                      width: 45,
-                                      radiusAll: 100,
-                                      boxFit: BoxFit.cover,
-                                      borderColor: greyText,
-                                      defaultImage: listToShow[i].userCompany
-                                          ?.isGroup == 1 ? groupIcn :
-                                      listToShow[i].userCompany?.isBroadcast ==
-                                          1 ?
-                                      broadcastIcon
-                                          : userIcon,
-                                    ),
+                child: SingleChildScrollView(
+                  child: Column(
+                    children: [
+                     Obx(()=> Row(
+                          mainAxisSize: MainAxisSize.min,
+                  
+                          children: [
+                            controller.isSearching.value
+                                ? Expanded(
+                                    flex: 4,
+                                    child: TextField(
+                                      controller: controller.searchController,
+                                      cursorColor: appColorGreen,
+                                      decoration: const InputDecoration(
+                                          border: InputBorder.none,
+                                          hintText: 'Search User...',
+                                          contentPadding: EdgeInsets.symmetric(
+                                              vertical: 0, horizontal: 10),
+                                          constraints: BoxConstraints(maxHeight: 45)),
+                                      autofocus: true,
+                                      style: const TextStyle(
+                                          fontSize: 13, letterSpacing: 0.5),
+                                      onChanged: (val) {
+                                        controller.searchText = val;
+                                        controller.onSearch(val);
+                                      },
+                                    ).marginSymmetric(vertical: 10),
+                                  )
+                                : Expanded(
+                                    flex: 4,
+                                    child: Text(
+                                      'Forwarded to',
+                                      style: TextStyle(
+                                          color: Colors.black,
+                                          fontWeight: FontWeight.bold,
+                                          fontSize: 18),
+                                    ).paddingOnly(left: 8, top: 10),
                                   ),
-                                  title:
-                                  Column(
-                                    crossAxisAlignment: CrossAxisAlignment
-                                        .start,
-                                    children: [
-                                      Text(
-                                        memData.userId ==
-                                            controller.me?.userId
-                                            ? "Me":   memData?.userName != null ? memData
-                                            ?.userName ?? '' : memData
-                                            ?.userCompany?.displayName != null
-                                            ? memData?.userCompany
-                                            ?.displayName ?? ''
-                                            : memData?.phone ?? '',
-                                        style: BalooStyles
-                                            .baloosemiBoldTextStyle(),
-                                        maxLines: 1,
-                                        overflow: TextOverflow.ellipsis,
-                                      ),
-
-                                      vGap(4),
-                                      memData?.userName==null && memData?.userCompany?.displayName==null?SizedBox():  Text(
-                                        memData?.phone != null
-                                            ?memData?.phone ?? ''
-                                            : memData?.email ?? '',
-                                        style: BalooStyles.balooregularTextStyle(),
-                                        maxLines: 1,
-                                        overflow: TextOverflow.ellipsis,
-                                      )
-                                    ],
-                                  ),
-                                  onTap: () {
-                                    /* Navigator.push(
-                                      context,
-                                      MaterialPageRoute(
-                                        builder: (_) => ChatScreen(user: listToShow[i]),
-                                      ),
-                                    );
-                                      */
-                                    Navigator.pop(context, listToShow[i]);
+                            Expanded(
+                              child: IconButton(
+                                  onPressed: () {
+                                    controller.isSearching.value = !controller.isSearching.value;
+                                    controller.isSearching.refresh();
+                  
+                                    if(!controller.isSearching.value){
+                                      controller.searchText = '';
+                                      controller.onSearch('');
+                                      controller.searchController.clear();
+                                    }
                                   },
-                                );
-                            }),
-                        );
-              }
-
+                                  icon: Icon(
+                                    controller.isSearching.value
+                                        ? CupertinoIcons.clear_circled_solid
+                                        : Icons.search,
+                                    color: colorGrey,
+                                  ).paddingOnly(top: 10, right: 10)),
+                            ),
+                          ],
+                        ),
                       ),
-                    )
-                  ],
-                ).paddingAll(15),
+                      SizedBox(
+                        height: MediaQuery.of(context).size.height * 0.8,
+                        child: Obx((){
+                          final selectedIds = users?.map((m) => m.userCompanyId).toSet();
+                  
+                          // final listToShow = controller.searchQuery.isEmpty
+                          //     ? controller.userList
+                          //     : controller.filteredList;
+                  
+                          final listToShow =(users??[]).isEmpty?controller.filteredList: controller.filteredList.where(
+                                (u) => !selectedIds!.contains(u.userCompany?.userCompanyId??0),
+                          ).toList();
+                          return NotificationListener<ScrollNotification>(
+                            onNotification: (ScrollNotification n) {
+                              if (n is! ScrollEndNotification) return false; // ✅ avoid spam
+                  
+                              final m = n.metrics;
+                  
+                              if (m.extentAfter < 200 &&
+                                  !controller.isLoading.value &&
+                                  controller.hasMore &&
+                                  canFetch()) {
+                                controller.hitAPIToGetMember();
+                              }
+                              return false;
+                            },
+                            child: ListView.builder(
+                              itemCount: listToShow.length,
+                              controller: controller.scrollController,
+                              physics: const AlwaysScrollableScrollPhysics(),
+                              itemBuilder: (_, i) {
+                               final memData = listToShow[i];
+                                return
+                                  ListTile(
+                                    leading: SizedBox(
+                                      width: 50,
+                                      child: CustomCacheNetworkImage(
+                                        "${ApiEnd.baseUrlMedia}${listToShow[i]
+                                            .userImage ?? ''}",
+                                        height: 45,
+                                        width: 45,
+                                        radiusAll: 100,
+                                        boxFit: BoxFit.cover,
+                                        borderColor: greyText,
+                                        defaultImage: listToShow[i].userCompany
+                                            ?.isGroup == 1 ? groupIcn :
+                                        listToShow[i].userCompany?.isBroadcast ==
+                                            1 ?
+                                        broadcastIcon
+                                            : userIcon,
+                                      ),
+                                    ),
+                                    title:
+                                    Column(
+                                      crossAxisAlignment: CrossAxisAlignment
+                                          .start,
+                                      children: [
+                                        Text(
+                                          memData.userId ==
+                                              controller.me?.userId
+                                              ? "Me":   memData?.userName != null ? memData
+                                              ?.userName ?? '' : memData
+                                              ?.userCompany?.displayName != null
+                                              ? memData?.userCompany
+                                              ?.displayName ?? ''
+                                              : memData?.phone ?? '',
+                                          style: BalooStyles
+                                              .baloosemiBoldTextStyle(),
+                                          maxLines: 1,
+                                          overflow: TextOverflow.ellipsis,
+                                        ),
+                  
+                                        vGap(4),
+                                        memData?.userName==null && memData?.userCompany?.displayName==null?SizedBox():  Text(
+                                          memData?.phone != null
+                                              ?memData?.phone ?? ''
+                                              : memData?.email ?? '',
+                                          style: BalooStyles.balooregularTextStyle(),
+                                          maxLines: 1,
+                                          overflow: TextOverflow.ellipsis,
+                                        )
+                                      ],
+                                    ),
+                                    onTap: () {
+                                      /* Navigator.push(
+                                        context,
+                                        MaterialPageRoute(
+                                          builder: (_) => ChatScreen(user: listToShow[i]),
+                                        ),
+                                      );
+                                        */
+                                      Navigator.pop(context, listToShow[i]);
+                                    },
+                                  );
+                              }),
+                          );
+                                }
+                  
+                        ),
+                      )
+                    ],
+                  ).paddingAll(15),
+                ),
               )
       ),
     );

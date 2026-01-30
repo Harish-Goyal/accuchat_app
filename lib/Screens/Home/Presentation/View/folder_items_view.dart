@@ -1,4 +1,3 @@
-import 'package:AccuChat/Screens/Chat/models/chat_history_response_model.dart';
 import 'package:AccuChat/Screens/Home/Models/get_folder_res_model.dart';
 import 'package:AccuChat/Screens/Home/Presentation/Controller/home_controller.dart';
 import 'package:AccuChat/Services/APIs/api_ends.dart';
@@ -8,8 +7,6 @@ import 'package:AccuChat/utils/helper_widget.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import 'package:AccuChat/Screens/Home/Presentation/Controller/gallery_controller.dart';
-
 import '../../../../Constants/assets.dart';
 import '../../../../Constants/colors.dart';
 import '../../../../utils/confirmation_dialog.dart';
@@ -24,7 +21,6 @@ import 'gallery_view.dart';
 import 'home_screen.dart';
 
 class FolderItemsScreen extends GetView<GalleryItemController> {
-  // final String folderName;
   final FolderData? folderData;
   final String tagId;
 
@@ -32,11 +28,8 @@ class FolderItemsScreen extends GetView<GalleryItemController> {
       : tagId = 'folder_${folderData?.userGalleryId}';
 
   @override
-  GalleryItemController get controller => Get.find<GalleryItemController>(tag: tagId);
-
-
-  @override
   Widget build(BuildContext context) {
+    GalleryItemController controller = Get.find<GalleryItemController>(tag: tagId);
     return   WillPopScope(
       onWillPop: () async {
         if (Get.key.currentState?.canPop() ?? false) {
@@ -50,10 +43,11 @@ class FolderItemsScreen extends GetView<GalleryItemController> {
             appBar:_searchBarWidget(context,controller),
             body: Obx(() {
               final isLoading = controller.isLoadingItems.value;
-              final items = controller.filterFolderItems ?? [];
+              final items = controller.filterFolderItems; // RxList
 
-              if (isLoading) return const Center(child: CircularProgressIndicator());
-              if (items.isEmpty) return const Center(child: Text("No items found"));
+              if (isLoading) return const IndicatorLoading();
+              if (!isLoading && items.isEmpty) return const Center(child: Text("No items found"));
+
 
               return LayoutBuilder(
                 builder: (context, constraints) {
@@ -64,9 +58,7 @@ class FolderItemsScreen extends GetView<GalleryItemController> {
                   // ✅ Tile height = thumb + text area (fixed) -> no overflow
                   final tileHeight = thumbHeight + (w < 520 ? 108 : 116);
 
-                  return controller.isLoadingItems.value
-                      ? IndicatorLoading()
-                      :  GridView.builder(
+                  return GridView.builder(
                   controller:   controller.scrollControllerItem,
                     padding: EdgeInsets.symmetric(
                       horizontal: w >= 900 ? 14 : 10,
@@ -108,7 +100,7 @@ class FolderItemsScreen extends GetView<GalleryItemController> {
                         createdOnText: _prettyDate(it.createdOn),
                         docIcon: _fileIcon(fileName),
                         onTap: () {
-                          if(isDocument(it.filePath)){
+                          if(isDocument(it.filePath??'')){
                             openDocumentFromUrl("${ApiEnd.baseUrlMedia}${it.filePath!}");
                           }else{
                             Get.to(
@@ -149,7 +141,7 @@ class FolderItemsScreen extends GetView<GalleryItemController> {
       leading: IconButton(onPressed: (){
         Get.toNamed(AppRoutes.home);
         Get.find<DashboardController>().updateIndex(2);
-      }, icon: Icon(Icons.arrow_back,color: Colors.black87,)),
+      }, icon: const Icon(Icons.arrow_back,color: Colors.black87,)),
       title:
           Obx(()=>
               c.isSearchingIconItem.value?TextField(
@@ -196,7 +188,7 @@ class FolderItemsScreen extends GetView<GalleryItemController> {
                       ? const Icon(CupertinoIcons.clear_circled_solid)
                       : Image.asset(searchPng, height: 25, width: 25))
                   .paddingOnly(top: 0, right: 10),
-              c.isSearchingIconItem.value?SizedBox():  IconButton(
+              c.isSearchingIconItem.value?const SizedBox():  IconButton(
                   onPressed: () {
                     showUploadOptions(context,folder:folderData );
                   },

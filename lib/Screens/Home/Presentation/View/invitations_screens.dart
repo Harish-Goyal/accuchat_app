@@ -1,9 +1,6 @@
-import 'dart:math';
 
 import 'package:AccuChat/Constants/colors.dart';
-import 'package:AccuChat/Screens/Chat/api/apis.dart';
 import 'package:AccuChat/Screens/Home/Presentation/Controller/invitations_controller.dart';
-import 'package:AccuChat/main.dart';
 import 'package:AccuChat/utils/custom_dialogue.dart';
 import 'package:AccuChat/utils/data_not_found.dart';
 import 'package:AccuChat/utils/text_style.dart';
@@ -11,11 +8,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_slidable/flutter_slidable.dart';
 import 'package:flutter_staggered_animations/flutter_staggered_animations.dart';
 import 'package:get/get.dart';
-import 'package:swipe_to/swipe_to.dart';
-
 import '../../../../utils/helper_widget.dart';
 import '../../../../utils/product_shimmer_widget.dart';
-import '../../../Chat/models/invite_model.dart';
 
 class InvitationsScreen extends GetView<InvitationsController> {
   const InvitationsScreen({super.key});

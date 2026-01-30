@@ -1,7 +1,6 @@
 import 'dart:math' as math;
 import 'package:flutter/material.dart';
 import 'package:flutter/cupertino.dart';
-
 import '../../../../Constants/colors.dart';
 import '../../../../utils/text_style.dart';
 import '../../../../utils/helper_widget.dart';

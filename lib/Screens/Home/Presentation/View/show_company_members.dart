@@ -10,9 +10,8 @@ import 'package:AccuChat/utils/text_style.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import 'package:get_storage/get_storage.dart';
 import 'package:swipe_to/swipe_to.dart';
-import 'package:flutter/foundation.dart' show kIsWeb; // added for web checks
+import 'package:flutter/foundation.dart' show kIsWeb;
 import '../../../../routes/app_routes.dart';
 import '../../../../utils/animated_badge.dart';
 import '../../../../utils/data_not_found.dart';

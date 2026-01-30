@@ -5,6 +5,7 @@ import 'package:AccuChat/Screens/Chat/screens/chat_tasks/Presentation/Controller
 import 'package:AccuChat/Screens/Chat/screens/chat_tasks/Presentation/Controllers/task_controller.dart';
 import 'package:AccuChat/Screens/Chat/screens/chat_tasks/Presentation/Controllers/task_home_controller.dart';
 import 'package:AccuChat/Screens/Chat/screens/chat_tasks/Presentation/Controllers/task_thread_controller.dart';
+import 'package:AccuChat/Screens/Home/Presentation/Controller/home_controller.dart';
 import 'package:AccuChat/utils/custom_flashbar.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/foundation.dart';
@@ -14,6 +15,7 @@ import '../../../../Services/APIs/api_ends.dart';
 import '../../../../Services/APIs/local_keys.dart';
 import '../../../../Services/storage_service.dart';
 import '../../../../main.dart';
+import '../../../../utils/budge_controller.dart';
 import '../../../../utils/chat_presence.dart';
 import '../../../Chat/api/apis.dart';
 import '../../../Chat/helper/notification_service.dart';
@@ -156,11 +158,13 @@ class SocketController extends GetxController with WidgetsBindingObserver {
     socket?.on('send_message_listener', (messages) {
       debugPrint("send_message_listener ${jsonEncode(messages.toString())}");
       try {
-        ChatScreenController chatDetailController =
-            Get.find<ChatScreenController>();
+
+        final chatDetailController = Get.isRegistered<ChatScreenController>()
+            ? Get.find<ChatScreenController>()
+            : null;
         ChatHomeController homeController = Get.find<ChatHomeController>();
         ChatHisList receivedMessageDataModal = ChatHisList.fromJson(messages);
-        final selectedUserId = chatDetailController.user?.userId
+        final selectedUserId = chatDetailController?.user?.userId
             ?.toString(); // 1-1 userId OR group userId
         final meId = APIs.me?.userId?.toString();
 
@@ -172,7 +176,10 @@ class SocketController extends GetxController with WidgetsBindingObserver {
         final msgCompanyId = receivedMessageDataModal.fromUser?.userCompany?.companyId;
         //
         if (activeCompanyId == null || msgCompanyId == null) return;
-        if (activeCompanyId != msgCompanyId) return;
+        if (activeCompanyId != msgCompanyId) {
+          // AppBadgeController.to.markOtherCompany(BadgeType.chat, msgCompanyId);
+          return;
+        }
 // IMPORTANT: groupId nikaalo (jo user object me is_group=1 ho)
         String? incomingGroupId;
         if (incomingIsGroup) {
@@ -195,7 +202,7 @@ class SocketController extends GetxController with WidgetsBindingObserver {
         }
 
         final selectedIsGroup =
-            chatDetailController.user?.userCompany?.isGroup ==
+            chatDetailController?.user?.userCompany?.isGroup ==
                 1; // selected chat is group?
 
         final isMessageForThisChat = incomingIsGroup
@@ -227,13 +234,18 @@ class SocketController extends GetxController with WidgetsBindingObserver {
             replyToName: receivedMessageDataModal.replyToName,
             media: receivedMessageDataModal.media,
           );
-          chatDetailController.chatHisList?.insert(0, chatMessageItems);
-          chatDetailController.chatCatygory
+          chatDetailController?.chatHisList?.insert(0, chatMessageItems);
+          chatDetailController?.chatCatygory
               .insert(0, GroupChatElement(DateTime.now(), chatMessageItems));
-          chatDetailController.rebuildFlatRows();
-          chatDetailController.update();
-        }
+          chatDetailController?.rebuildFlatRows();
 
+
+          chatDetailController?.update();
+        }
+        dashboardController.newChat.value=true;
+        dashboardController.newChat.refresh();
+        print("dashboardController.newChat.value");
+        print(dashboardController.newChat.value);
         // if (meId != msgFrom) {
         //   chatDetailController.markAllVisibleAsReadOnOpen(
         //       receivedMessageDataModal.fromUser?.userCompany?.userCompanyId,
@@ -248,7 +260,7 @@ class SocketController extends GetxController with WidgetsBindingObserver {
             receivedMessageDataModal.fromUser?.userCompany?.userCompanyId;
 
         final selectedUcId =
-            chatDetailController.user?.userCompany?.userCompanyId;
+            chatDetailController?.user?.userCompany?.userCompanyId;
 
         final index = homeController.filteredList.indexWhere(
           (e) => e.userCompany?.userCompanyId == fromUcId,
@@ -334,7 +346,10 @@ class SocketController extends GetxController with WidgetsBindingObserver {
         final msgCompanyId = receivedMessageDataModal.fromUser?.userCompany?.companyId;
 
         if (activeCompanyId == null || msgCompanyId == null) return;
-        if (activeCompanyId != msgCompanyId) return;
+        if (activeCompanyId != msgCompanyId) {
+          // AppBadgeController.to.markOtherCompany(BadgeType.task, msgCompanyId);
+          return;
+        }
 // allow only when the message belongs to CURRENT OPEN CHAT
         final isMessageForThisChat =
             (msgFrom == selectedUserId && msgTo == meId) || // selectedUser → me
@@ -360,6 +375,7 @@ class SocketController extends GetxController with WidgetsBindingObserver {
           taskController.taskCategory
               .insert(0, GroupTaskElement(DateTime.now(), chatMessageItems));
           // }
+          dashboardController.newTask.value=true;
           taskController.update();
         }
         Get.find<TaskHomeController>().hitAPIToGetRecentTasksUser();
@@ -584,6 +600,8 @@ class SocketController extends GetxController with WidgetsBindingObserver {
 
           if (isCurrentlyOpen) {
             existing.pendingCount = 0;
+            dashboardController.newCompanyChat.value=false;
+            dashboardController.newChat.value=false;
           } else {
             // keep server count if available
             existing.pendingCount =
@@ -601,6 +619,10 @@ class SocketController extends GetxController with WidgetsBindingObserver {
         }
 
         list.refresh();
+        final totalUnread = chatController.filteredList
+            .fold<int>(0, (sum, e) => sum + (e.pendingCount ?? 0));
+
+        // AppBadgeController.to.setCurrentCounts(chat: totalUnread);
       } catch (e) {
         debugPrint("recent update error: $e");
       }
@@ -804,6 +826,10 @@ class SocketController extends GetxController with WidgetsBindingObserver {
         }
 
         list.refresh();
+        final totalUnread = chatController.filteredList
+            .fold<int>(0, (sum, e) => sum + (e.pendingCount ?? 0));
+
+        // AppBadgeController.to.setCurrentCounts(chat: totalUnread);
       } catch (e) {
         debugPrint('update_recent error: $e');
       }
@@ -924,6 +950,7 @@ class SocketController extends GetxController with WidgetsBindingObserver {
           // move to top
           list.removeAt(idx);
           list.insert(0, existing);
+          dashboardController.newTask.value=true;
         } else {
           list.insert(0, updated);
         }
@@ -1086,6 +1113,7 @@ class SocketController extends GetxController with WidgetsBindingObserver {
       "from_uc_id": fromUcID,
       "is_group_chat": is_group_chat,
     });
+
     debugPrint(
         "to_uc_id: $toucID,company_id : $companyId,from_uc_id : $fromUcID ,is_group_chat : $is_group_chat");
   }
@@ -1148,6 +1176,8 @@ class SocketController extends GetxController with WidgetsBindingObserver {
 
       if (index != -1) {
         homeController.filteredList[index].pendingCount = 0;
+      dashboardController.newChat.value=false;
+        dashboardController.newCompanyChat.value=false;
       }
 
       // 2️⃣ Update read_on in currently open chat

@@ -1,42 +1,25 @@
 import 'dart:io';
-
-import 'package:AccuChat/Components/custom_loader.dart';
-import 'package:AccuChat/Constants/assets.dart';
 import 'package:AccuChat/Extension/text_field_extenstion.dart';
-import 'package:AccuChat/Screens/Chat/models/company_model.dart';
-import 'package:AccuChat/Screens/Home/Presentation/View/invite_member.dart';
-import 'package:AccuChat/Screens/Home/Presentation/View/upgrade_company_users_banner.dart';
-import 'package:AccuChat/routes/app_routes.dart';
-import 'package:AccuChat/utils/custom_flashbar.dart';
 import 'package:AccuChat/utils/gradient_button.dart';
 import 'package:AccuChat/utils/helper_widget.dart';
 import 'package:AccuChat/utils/networl_shimmer_image.dart';
-import 'package:cached_network_image/cached_network_image.dart';
-import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:get/get.dart';
 import 'package:image_cropper/image_cropper.dart';
 import 'package:image_picker/image_picker.dart';
-
 import '../../../../Constants/colors.dart';
 import '../../../../Constants/themes.dart' show AppTheme;
 import '../../../../Services/APIs/api_ends.dart';
-import '../../../../main.dart';
 import '../../../../utils/common_textfield.dart';
 import '../../../../utils/custom_container.dart';
-import '../../../../utils/custom_dialogue.dart';
 import '../../../../utils/text_style.dart';
 import '../../../../utils/web_file_picekr.dart';
-import '../../../Chat/api/apis.dart';
-import '../../../Chat/screens/auth/Presentation/Views/landing_screen.dart';
 import '../Controller/update_comapny_controller.dart';
-
-import 'dart:io';
 import 'package:flutter/foundation.dart' show kIsWeb;
 
-import 'buy_users_dialog.dart'; // for minor web guards
+
 
 class UpdateCompanyScreen extends GetView<UpdateCompanyController> {
   UpdateCompanyScreen({super.key});

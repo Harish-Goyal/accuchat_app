@@ -9,22 +9,13 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import 'package:image_picker/image_picker.dart';
-
-import '../../../../Services/APIs/api_ends.dart';
 import '../../../../utils/confirmation_dialog.dart';
-import '../../../../utils/share_helper.dart';
 import '../../../../utils/show_upload_option_galeery.dart';
 import '../../../Chat/helper/dialogs.dart';
 import '../../../Chat/models/gallery_node.dart';
-import '../../../Chat/screens/auth/models/get_uesr_Res_model.dart';
-import '../../../Chat/screens/chat_tasks/Presentation/Controllers/save_in_accuchat_gallery_controller.dart';
-import '../../../Chat/screens/chat_tasks/Presentation/dialogs/save_in_gallery_dialog.dart';
 import '../../Models/get_folder_res_model.dart';
-import '../../Models/pickes_file_item.dart';
 import '../Controller/galeery_item_controller.dart';
 import '../Controller/gallery_controller.dart';
-import '../Controller/genere_controller.dart';
 import 'folder_items_view.dart';
 import 'gallery_search_result_widget.dart';
 import 'home_screen.dart';
@@ -45,9 +36,7 @@ class GalleryTab extends GetView<GalleryController> {
             elevation: 1,
             onPressed: () async {
               final name = await showCreateFolderDialog();
-
               if (name != null) {
-                // success
                 Dialogs.showSnackbar(Get.context!, "Created  $name");
               }
             },
@@ -58,7 +47,6 @@ class GalleryTab extends GetView<GalleryController> {
           body: TabBarView(
             controller: controller.tabController,
             children: [
-              /// ================= TAB 1 : FOLDERS =================
               GetBuilder<GalleryController>(
                 builder: (c) {
                   return WillPopScope(
@@ -105,7 +93,6 @@ class GalleryTab extends GetView<GalleryController> {
                 },
               ),
 
-              /// ================= TAB 2 : MEDIA =================
               const Center(
                 child: Text('Shared is Empty'),
               ),
@@ -230,7 +217,7 @@ class GalleryTab extends GetView<GalleryController> {
                       if (Get.isRegistered<GalleryItemController>(tag: tag)) {
                         Get.delete<GalleryItemController>(tag: tag, force: true);
                       }
-                      Get.put(GalleryItemController(folderData: media), tag: tag);
+                      Get.lazyPut<GalleryItemController>(() => GalleryItemController(folderData: media), tag: tag);
                     }),);
 
                 },
@@ -248,107 +235,12 @@ class GalleryTab extends GetView<GalleryController> {
   }
 }
 
-class _SearchResultsList extends StatelessWidget {
-  final List<IndexedNode> results;
-  final void Function(IndexedNode) onTap;
-
-  const _SearchResultsList({
-    required this.results,
-    required this.onTap,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    if (results.isEmpty) {
-      return Center(
-        child: Text('No results', style: theme.textTheme.bodyMedium),
-      );
-    }
-
-    return ListView.separated(
-      itemCount: results.length,
-      separatorBuilder: (_, __) => const Divider(height: 1),
-      itemBuilder: (_, i) {
-        final r = results[i];
-        final n = r.node;
-
-        IconData icon;
-        if (n.type == NodeType.folder) {
-          icon = Icons.folder_rounded;
-        } else if (n.type == NodeType.image) {
-          icon = Icons.image_rounded;
-        } else {
-          icon = Icons.description_rounded;
-        }
-
-        final pathText = r.path.map((p) => p.name).join(' / ');
-        return ListTile(
-          onTap: () => onTap(r),
-          dense: true,
-          leading: Icon(icon),
-          title: _HighlightedText(
-              full: n.name ?? '',
-              query: Get.find<GalleryController>().searchCtrl.text),
-          subtitle: pathText.isEmpty
-              ? null
-              : Text(pathText, maxLines: 1, overflow: TextOverflow.ellipsis),
-          trailing: const Icon(Icons.chevron_right),
-        );
-      },
-    );
-  }
-}
-
-// Highlights occurrences of query in text (case-insensitive)
-class _HighlightedText extends StatelessWidget {
-  final String full;
-  final String query;
-
-  const _HighlightedText({required this.full, required this.query});
-
-  @override
-  Widget build(BuildContext context) {
-    if (query.trim().isEmpty)
-      return Text(full, maxLines: 1, overflow: TextOverflow.ellipsis);
-
-    final lower = full.toLowerCase();
-    final q = query.trim().toLowerCase();
-    final spans = <TextSpan>[];
-
-    int start = 0;
-    while (true) {
-      final idx = lower.indexOf(q, start);
-      if (idx < 0) {
-        spans.add(TextSpan(text: full.substring(start)));
-        break;
-      }
-      if (idx > start) {
-        spans.add(TextSpan(text: full.substring(start, idx)));
-      }
-      spans.add(TextSpan(
-        text: full.substring(idx, idx + q.length),
-        style: const TextStyle(fontWeight: FontWeight.w700),
-      ));
-      start = idx + q.length;
-    }
-
-    return RichText(
-      text:
-          TextSpan(style: DefaultTextStyle.of(context).style, children: spans),
-      maxLines: 1,
-      overflow: TextOverflow.ellipsis,
-    );
-  }
-}
-
 class _GalleryHeader extends StatelessWidget {
   final bool isRoot;
   final List<FolderData> breadcrumbs;
   final bool Function() onBack;
   final VoidCallback onRootTap;
   final void Function(int index) onCrumbTap;
-
   const _GalleryHeader({
     required this.isRoot,
     required this.breadcrumbs,
@@ -450,9 +342,7 @@ class _GalleryGrid extends StatelessWidget {
   final List<FolderData> items;
   final void Function(GalleryNode folder) onFolderTap;
   final void Function(GalleryNode node) onLeafTap;
-
   final GalleryController controller;
-
   const _GalleryGrid({
     required this.items,
     required this.onFolderTap,
@@ -491,7 +381,8 @@ class _GalleryGrid extends StatelessWidget {
                       if (Get.isRegistered<GalleryItemController>(tag: tag)) {
                         Get.delete<GalleryItemController>(tag: tag, force: true);
                       }
-                      Get.put(GalleryItemController(folderData: node), tag: tag);
+                      Get.lazyPut<GalleryItemController>(() => GalleryItemController(folderData: node), tag: tag);
+
                     }),);
                 } ,
               );

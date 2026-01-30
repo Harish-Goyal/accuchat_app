@@ -1,11 +1,14 @@
 import 'package:AccuChat/Constants/assets.dart';
 import 'package:AccuChat/Constants/colors.dart';
+import 'package:AccuChat/Constants/themes.dart';
 import 'package:AccuChat/Screens/Chat/screens/chat_tasks/Presentation/Controllers/chat_home_controller.dart';
 import 'package:AccuChat/Screens/Chat/screens/chat_tasks/Presentation/Controllers/chat_screen_controller.dart';
 import 'package:AccuChat/Screens/Chat/screens/chat_tasks/Presentation/Controllers/task_controller.dart';
 import 'package:AccuChat/Screens/Chat/screens/chat_tasks/Presentation/Controllers/task_home_controller.dart';
 import 'package:AccuChat/Screens/Home/Presentation/Controller/gallery_controller.dart';
 import 'package:AccuChat/Screens/Home/Presentation/Controller/home_controller.dart';
+import 'package:AccuChat/utils/bottom_nav_budge.dart';
+import 'package:AccuChat/utils/custom_container.dart';
 import 'package:AccuChat/utils/text_style.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
@@ -13,6 +16,7 @@ import 'package:flutter_snake_navigationbar/flutter_snake_navigationbar.dart';
 import 'package:get/get.dart';
 import '../../../../main.dart';
 import '../../../../routes/app_routes.dart';
+import '../../../../utils/budge_controller.dart';
 import '../../../Chat/api/apis.dart';
 
 class AccuChatDashboard extends StatelessWidget {
@@ -34,9 +38,7 @@ class AccuChatDashboard extends StatelessWidget {
         body: Row(
           children: [
             if (isWideScreen)
-            SizedBox(
-                  width: Get.width * .13,
-                  child: buildSideNav(controller)), // For web/tablet
+              SizedBox(width: Get.width * .13, child: buildSideNav(controller)),
             Expanded(
               child: controller.screens.isEmpty
                   ? const SizedBox()
@@ -75,7 +77,6 @@ class AccuChatDashboard extends StatelessWidget {
             child: const Text('AccuChat Menu',
                 style: TextStyle(color: Colors.white, fontSize: 20)),
           ),
-
           ListTile(
             leading: Image.asset(
               chatHome,
@@ -127,7 +128,7 @@ class AccuChatDashboard extends StatelessWidget {
               controller.updateIndex(3);
               Get.back();
 
-                isTaskMode = false;
+              isTaskMode = false;
               controller.update();
             },
           ),
@@ -287,6 +288,13 @@ class AccuChatDashboard extends StatelessWidget {
 }
 
 Widget buildSideNav(DashboardController controller) {
+  ChatHomeController? homec;
+  if (Get.isRegistered<ChatHomeController>()) {
+    homec = Get.find<ChatHomeController>();
+  } else {
+    homec = Get.put(ChatHomeController());
+  }
+
   return Column(
     children: [
       Expanded(
@@ -302,93 +310,91 @@ Widget buildSideNav(DashboardController controller) {
             // Get.toNamed(AppRoutes.home);
 
             isTaskMode = index == 1;
-            if(index == 0){
-              final homec = Get.find<ChatHomeController>();
-              if(Get.isRegistered<ChatScreenController>()){
+            if (index == 0) {
+              if (Get.isRegistered<ChatScreenController>()) {
                 final chatc = Get.find<ChatScreenController>();
-                chatc.replyToMessage=null;
-                chatc.user =homec.selectedChat.value;
-                chatc.showPostShimmer =true;
-                chatc.openConversation(chatc.user);
-                if (homec.selectedChat.value?.pendingCount != 0) {
-                  chatc.markAllVisibleAsReadOnOpen(
-                      APIs.me?.userCompany?.userCompanyId,
-                      chatc.user?.userCompany?.userCompanyId,
-                      chatc.user?.userCompany?.isGroup == 1 ? 1 : 0);
+                chatc.replyToMessage = null;
+                if (homec!.filteredList.isNotEmpty) {
+                  homec.selectedChat.value = homec.filteredList[0];
+                  chatc.user = homec.selectedChat.value;
+                  chatc.showPostShimmer = true;
+                  chatc.openConversation(homec.selectedChat.value);
+                  if (homec.selectedChat.value?.pendingCount != 0) {
+                    chatc.markAllVisibleAsReadOnOpen(
+                        APIs.me?.userCompany?.userCompanyId,
+                        chatc.user?.userCompany?.userCompanyId,
+                        chatc.user?.userCompany?.isGroup == 1 ? 1 : 0);
+                  }
+                  homec.selectedChat.refresh();
+                  chatc.update();
                 }
-                // homec.selectedChat.refresh();
-                chatc.update();
-
-              }else{
-                Future.delayed(Duration(milliseconds: 1000),(){
-                  if(homec.filteredList.isNotEmpty) {
+              } else {
+                Future.delayed(Duration(milliseconds: 500), () {
+                  if (homec!.filteredList.isNotEmpty) {
                     Get.put(ChatScreenController(user: homec.filteredList[0]));
                     final chatc = Get.find<ChatScreenController>();
-                    chatc.replyToMessage=null;
-                    chatc.user =homec.filteredList[0];
-                    chatc.showPostShimmer =true;
-                    chatc.openConversation(chatc.user);
+                    chatc.replyToMessage = null;
+                    homec.selectedChat.value = homec.filteredList[0];
+                    chatc.user = homec.selectedChat.value;
+                    chatc.showPostShimmer = true;
+                    chatc.openConversation(homec.selectedChat.value);
                     if (homec.selectedChat.value?.pendingCount != 0) {
                       chatc.markAllVisibleAsReadOnOpen(
                           APIs.me?.userCompany?.userCompanyId,
                           chatc.user?.userCompany?.userCompanyId,
                           chatc.user?.userCompany?.isGroup == 1 ? 1 : 0);
                     }
-                    // homec.selectedChat.refresh();
-                    chatc.update();
+                    homec.selectedChat.refresh();
                     chatc.update();
                   }
                 });
-
               }
               // homec.page = 1;
               // homec.hitAPIToGetRecentChats();
-
             }
 
-            if(index == 1){
+            if (index == 1) {
               final homec = Get.find<TaskHomeController>();
-              if(Get.isRegistered<TaskController>()){
+              if (Get.isRegistered<TaskController>()) {
                 final chatc = Get.find<TaskController>();
-                chatc.replyToMessage=null;
-                chatc.user =homec.selectedChat.value;
-                chatc.showPostShimmer =true;
-                chatc.openConversation(chatc.user);
-                // homec.selectedChat.refresh();
-                chatc.update();
-
-              }else{
-                Future.delayed(Duration(milliseconds: 1000),(){
-                  if(homec.filteredList.isNotEmpty) {
+                chatc.replyToMessage = null;
+                if (homec.filteredList.isNotEmpty) {
+                  homec.selectedChat.value = homec.filteredList[0];
+                  chatc.user = homec.selectedChat.value;
+                  chatc.showPostShimmer = true;
+                  chatc.openConversation(homec.selectedChat.value);
+                  homec.selectedChat.refresh();
+                  chatc.update();
+                }
+              } else {
+                Future.delayed(Duration(milliseconds: 500), () {
+                  if (homec.filteredList.isNotEmpty) {
                     Get.put(TaskController(user: homec.filteredList[0]));
                     final chatc = Get.find<TaskController>();
-                    chatc.replyToMessage=null;
-                    chatc.user =homec.filteredList[0];
-                    chatc.showPostShimmer =true;
-                    chatc.openConversation(chatc.user);
+                    chatc.replyToMessage = null;
+                    homec.selectedChat.value = homec.filteredList[0];
+                    chatc.user = homec.selectedChat.value;
+                    chatc.showPostShimmer = true;
+                    chatc.openConversation(homec.selectedChat.value);
 
-                    // homec.selectedChat.refresh();
-                    chatc.update();
+                    homec.selectedChat.refresh();
                     chatc.update();
                   }
                 });
-
               }
               // homec.page = 1;
               // homec.hitAPIToGetRecentChats();
-
             }
 
-            if(index==2){
-              if(Get.isRegistered<GalleryController>()){
+            if (index == 2) {
+              if (Get.isRegistered<GalleryController>()) {
                 final homec = Get.find<GalleryController>();
                 homec.getCompany();
                 homec.resetPagination();
                 homec.hitApiToGetFolder(reset: true);
                 homec.update();
-              }
-              else{
-            final homec= Get.put(GalleryController());
+              } else {
+                final homec = Get.put(GalleryController());
                 homec.getCompany();
                 homec.resetPagination();
                 homec.hitApiToGetFolder(reset: true);
@@ -407,44 +413,95 @@ Widget buildSideNav(DashboardController controller) {
           elevation: 1,
           destinations: [
             NavigationRailDestination(
-                icon: Image.asset(
-                  chatHome,
-                  height: 22,
-                  color:
-                      controller.currentIndex == 0 ? Colors.white : Colors.grey,
-                ),
+                icon:Stack(
+                    clipBehavior: Clip.none,
+                    children: [
+                      Image.asset(
+                        chatHome,
+                        height: 22,
+                        color: controller.currentIndex == 0
+                            ? Colors.white
+                            : Colors.grey,
+                      ),
+                      /*homec!.selectedChat.value?.pendingCount==0||homec!.selectedChat.value?.pendingCount==null ?SizedBox():*/
+                   /*   controller.newChat.value
+                          ? Positioned(
+                              top: -5,
+                              right: -10,
+                              child:Obx(() {
+                                final b = AppBadgeController.to;
+                                return BottomNavBudge(
+                                  budgeCount: "${b.otherCompanyDot.value}",
+                                );
+                              }))
+                          : SizedBox()*/
+                    ],
+                  ),
+
                 label: Text(
                   'Chats',
                   style: BalooStyles.baloomediumTextStyle(),
                 )),
             NavigationRailDestination(
-                icon: Image.asset(
-                  tasksHome,
-                  height: 22,
-                  color:
-                      controller.currentIndex == 1 ? Colors.white : Colors.grey,
+                icon: Obx(
+                  () => Stack(
+                    clipBehavior: Clip.none,
+                    children: [
+                      Image.asset(
+                        tasksHome,
+                        height: 22,
+                        color: controller.currentIndex == 1
+                            ? Colors.white
+                            : Colors.grey,
+                      ),
+                      controller.newTask.value
+                          ? Positioned(
+                              top: -5,
+                              right: -10,
+                              child: BottomNavBudge(
+                                  budgeCount:
+                                      "${homec?.selectedChat.value?.pendingCount ?? ''}"))
+                          : SizedBox()
+                    ],
+                  ),
                 ),
                 label:
                     Text('Tasks', style: BalooStyles.baloomediumTextStyle())),
-
-
-                NavigationRailDestination(
-                  icon: Image.asset(
-                    galleryIcon,
-                    height: 22,
-                    color:
-                    controller.currentIndex == 2 ? Colors.white : Colors.grey,
-                  ),
-                  label: Text('Gallery',
-                      style: BalooStyles.baloomediumTextStyle(), maxLines: 1,
-                    overflow: TextOverflow.ellipsis,)),
-
             NavigationRailDestination(
                 icon: Image.asset(
-                  connectedAppIcon,
+                  galleryIcon,
                   height: 22,
                   color:
-                  controller.currentIndex == 3 ? Colors.white : Colors.grey,
+                      controller.currentIndex == 2 ? Colors.white : Colors.grey,
+                ),
+                label: Text(
+                  'Gallery',
+                  style: BalooStyles.baloomediumTextStyle(),
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                )),
+            NavigationRailDestination(
+                icon: Obx(
+                  () => Stack(
+                    clipBehavior: Clip.none,
+                    children: [
+                      Image.asset(
+                        connectedAppIcon,
+                        height: 22,
+                        color: controller.currentIndex == 3
+                            ? Colors.white
+                            : Colors.grey,
+                      ),
+                      controller.newCompanyChat.value
+                          ? Positioned(
+                              top: -5,
+                              right: -10,
+                              child: BottomNavBudge(
+                                  budgeCount:
+                                      "${homec?.selectedChat.value?.pendingCount ?? ''}"))
+                          : SizedBox()
+                    ],
+                  ),
                 ),
                 label: Text(
                   'Your Companies',

@@ -8,7 +8,6 @@ import 'package:AccuChat/utils/text_style.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:get/get.dart';
-
 import '../../../../Constants/themes.dart';
 import '../../../../utils/common_textfield.dart';
 import '../../../../utils/custom_dialogue.dart';

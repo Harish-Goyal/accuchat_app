@@ -1,8 +1,6 @@
 import 'package:AccuChat/Constants/colors.dart';
 import 'package:AccuChat/Screens/Settings/Model/get_nav_permission_res_model.dart';
-import 'package:AccuChat/main.dart';
 import 'package:AccuChat/routes/app_routes.dart';
-import 'package:AccuChat/utils/custom_container.dart';
 import 'package:AccuChat/utils/helper_widget.dart';
 import 'package:AccuChat/utils/loading_indicator.dart';
 import 'package:AccuChat/utils/text_style.dart';

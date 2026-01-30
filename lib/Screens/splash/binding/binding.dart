@@ -8,6 +8,8 @@ import '../../../Services/APIs/post/post_api_service_impl.dart';
 import '../../../utils/shares_pref_web.dart';
 import '../../Chat/api/session_alive.dart';
 import '../../Chat/models/get_company_res_model.dart';
+import '../../Chat/screens/chat_tasks/Presentation/Controllers/chat_home_controller.dart';
+import '../../Chat/screens/chat_tasks/Presentation/Controllers/task_home_controller.dart';
 import '../../Home/Presentation/Controller/socket_controller.dart';
 import '../presentation/controllers/splash_controller.dart';
 
