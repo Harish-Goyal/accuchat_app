@@ -39,6 +39,7 @@ import '../../../../../../utils/text_button.dart';
 import '../../../../../../utils/text_style.dart';
 import '../../../../../Home/Models/pickes_file_item.dart';
 import '../../../../../Home/Presentation/Controller/socket_controller.dart';
+import '../../../../api/apis.dart';
 import '../../../../helper/dialogs.dart';
 import '../Controllers/save_in_accuchat_gallery_controller.dart';
 import '../Widgets/reply_msg_widget.dart';
@@ -224,7 +225,7 @@ class ChatScreenMobile extends GetView<ChatScreenController> {
                     CrossAxisAlignment.start,
                     children: [
                       Text(
-                        "${controller.replyToMessage?.fromUser?.userId == controller.me?.userId ? 'You' : username}",
+                        "${controller.replyToMessage?.fromUser?.userId == APIs.me?.userId ? 'You' : username}",
                         maxLines: 1,
                         overflow:
                         TextOverflow.ellipsis,
@@ -357,7 +358,7 @@ class ChatScreenMobile extends GetView<ChatScreenController> {
          controller.hasMore) {
 
        controller.isPageLoading = true;
-       controller.hitAPIToGetChatHistory();
+       controller.hitAPIToGetChatHistory("groupListView");
      }
 
      return false;
@@ -385,11 +386,7 @@ class ChatScreenMobile extends GetView<ChatScreenController> {
 
               formatatedTime = convertUtcToIndianTime(timeString);
             }
-            final id = element.chatMessageItems.chatId;
-            final rowKey = (id == null)
-                ? null
-                : controller.chatIdToKey.putIfAbsent(id, () => GlobalKey());
-            var userid = controller.me?.userId;
+            var userid = APIs.me?.userId;
             return  SwipeTo(
               iconColor: appColorGreen,
               onRightSwipe: element.chatMessageItems.isActivity == 1
@@ -825,7 +822,10 @@ class ChatScreenMobile extends GetView<ChatScreenController> {
               isCancel: false,
               sentByMe: sentByMe,
               onReplu: (){
-                controller.scrollToChatId(data.replyToId??0);
+                final int? replyId = data.replyToId; // confirm field name
+                if (replyId != null) {
+                  controller.jumpToRepliedMessage(replyId);
+                }
               },
               empIdsender: data.fromUser?.userId.toString(),
               chatdata: data,
@@ -833,7 +833,7 @@ class ChatScreenMobile extends GetView<ChatScreenController> {
               empName: data.isGroupChat == 1
                   ? data.fromUser?.userCompany?.displayName ?? ''
                   : data.fromUser?.userId.toString() ==
-                  controller.me?.userId?.toString()
+                  APIs.me?.userId?.toString()
                   ? data.fromUser?.userCompany?.displayName ?? ''
                   : data.toUser?.userCompany?.displayName ?? '',
               message: data.replyToText ?? '',
@@ -846,13 +846,13 @@ class ChatScreenMobile extends GetView<ChatScreenController> {
             children: [
               Flexible(
                 child: Text(
-                    data.fromUser?.userId == controller.me?.userId
+                    data.fromUser?.userId == APIs.me?.userId
                         ? "You"
                         :
                     data.fromUser?.userCompany?.displayName!=null?  (data.fromUser?.userCompany?.displayName ?? ''):data.fromUser?.userName!=null? (data.fromUser?.userName ?? ''):(data.fromUser?.phone??''),
                     style: BalooStyles.baloonormalTextStyle(
                         color:
-                        data.fromUser?.userId == controller.me?.userId
+                        data.fromUser?.userId == APIs.me?.userId
                             ? Colors.green
                             : Colors.purple),
                     textAlign: TextAlign.end, maxLines: 1,
@@ -893,7 +893,7 @@ class ChatScreenMobile extends GetView<ChatScreenController> {
               ? ChatMessageMedia(
                   chat: data,
                   isGroupMessage: data.isGroupChat==1?true:false,
-                  myId: (controller.me?.userId ?? 0).toString(),
+                  myId: (APIs.me?.userId ?? 0).toString(),
                   fromId: (data.fromUser?.userId ?? 0).toString(),
                   senderName:data.fromUser?.userCompany?.displayName!=null? data.fromUser?.userCompany?.displayName ?? '':data.fromUser?.userName??'',
                   baseUrl: ApiEnd.baseUrlMedia,
@@ -1056,10 +1056,10 @@ class ChatScreenMobile extends GetView<ChatScreenController> {
                           ? Text('${controller.members.length} members',
                           style: BalooStyles.baloonormalTextStyle())
                           : const SizedBox(),
-                  
+
                       vGap(2),
                       //for adding some space
-                  
+
                       //last seen time of user
                       //TODO
                       /* Text(
@@ -2419,7 +2419,7 @@ class ChatScreenMobile extends GetView<ChatScreenController> {
                   : const SizedBox()
                   : const SizedBox(),
 
-              (!(data.media ?? []).isNotEmpty || data.media?.length == 1)
+              (((data.media ?? []).isNotEmpty && data.media?.length == 1) ||data.message!='')
                   ? _OptionItem(
                   icon: Icon(Icons.reply, color: appColorGreen, size: 18),
                   name: 'Reply',
@@ -2435,7 +2435,10 @@ class ChatScreenMobile extends GetView<ChatScreenController> {
                       controller.userIDReceiver = data.toUser?.userId;
                       controller.replyToMessage = data;
                       controller.update();
-                      controller.messageParentFocus.requestFocus();
+                      controller.messageParentFocus.unfocus();
+                      if (controller.messageParentFocus.canRequestFocus) {
+                        controller.messageParentFocus.requestFocus();
+                      }
                     } else {
                       final firstMedia = media.first;
                       controller.refIdis = data.chatId;
@@ -2459,7 +2462,10 @@ class ChatScreenMobile extends GetView<ChatScreenController> {
                       );
 
                       controller.update();
-                      controller.messageParentFocus.requestFocus();
+                      controller.messageParentFocus.unfocus();
+                      if (controller.messageParentFocus.canRequestFocus) {
+                        controller.messageParentFocus.requestFocus();
+                      }
                     }
                   })
                   : const SizedBox(),
@@ -2543,7 +2549,7 @@ class ChatScreenMobile extends GetView<ChatScreenController> {
                     }),*/
 
               // delete option
-              if (controller.me?.userId == controller.myCompany?.createdBy && isMe)
+              if (APIs.me?.userId == controller.myCompany?.createdBy && isMe)
                 _OptionItem(
                     icon: const Icon(Icons.delete_forever,
                         color: Colors.red, size: 18),
@@ -2759,7 +2765,7 @@ class ChatScreenMobile extends GetView<ChatScreenController> {
     // ... your normal bubble
     return _chatMessageTile(
         data: msg,
-        sentByMe: (controller.me?.userId.toString() ==
+        sentByMe: (APIs.me?.userId.toString() ==
             msg.fromUser?.userId?.toString()
             ? true
             : false),

@@ -968,7 +968,7 @@ class TaskScreen extends GetView<TaskController> {
           if (!Get.isRegistered<ChatScreenController>()) {
             // toast("Something went wrong! Please refresh the App");
             // return;
-            Get.put(ChatScreenController(user: controller.user),permanent: true);
+            Get.put(ChatScreenController(user: controller.user));
           }
 
           final chatHome = Get.find<ChatHomeController>();

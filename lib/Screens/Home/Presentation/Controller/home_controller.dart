@@ -9,6 +9,7 @@ import 'package:AccuChat/Screens/Home/Presentation/Controller/socket_controller.
 import 'package:AccuChat/utils/loading_indicator.dart';
 import 'package:AccuChat/utils/text_style.dart';
 import 'package:connectivity_plus/connectivity_plus.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:get/get.dart';
@@ -18,6 +19,7 @@ import '../../../../Services/APIs/post/post_api_service_impl.dart';
 import '../../../../main.dart';
 import '../../../../utils/budge_controller.dart';
 import '../../../../utils/custom_flashbar.dart';
+import '../../../../utils/register_image.dart';
 import '../../../../utils/shares_pref_web.dart';
 import '../../../Chat/api/apis.dart';
 import '../../../Chat/api/session_alive.dart';
@@ -130,10 +132,13 @@ class DashboardController extends GetxController with WidgetsBindingObserver {
       case 'Chat Button':
         return ChatsHomeScreen();
       case 'Task Button':
+        if (kIsWeb) unregisterImage();
         return TaskHomeScreen();
       case 'Gallery Button':
+        if (kIsWeb) unregisterImage();
         return GalleryTab();
       case 'Companies Button':
+        if (kIsWeb) unregisterImage();
         return CompaniesScreen();
       default:
         return const Center(child: IndicatorLoading());
@@ -233,9 +238,7 @@ class DashboardController extends GetxController with WidgetsBindingObserver {
     final svc = CompanyService.to;
     myCompany = svc.selected;
     update();
-
-       await hitAPIToGetUser(myCompany?.companyId);
-
+    await hitAPIToGetUser(myCompany?.companyId);
   }
 
   List<RolesData> rolesList = [];

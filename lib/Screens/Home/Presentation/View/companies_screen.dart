@@ -1,4 +1,5 @@
 import 'package:AccuChat/Constants/themes.dart';
+import 'package:AccuChat/Screens/Chat/screens/chat_tasks/Presentation/Controllers/chat_screen_controller.dart';
 import 'package:AccuChat/Screens/Home/Presentation/Controller/compnaies_controller.dart';
 import 'package:AccuChat/Screens/Home/Presentation/View/pending_invites_animated.dart';
 import 'package:AccuChat/Services/APIs/api_ends.dart';
@@ -19,6 +20,7 @@ import '../../../../routes/app_routes.dart';
 import '../../../../utils/budge_controller.dart';
 import '../../../../utils/product_shimmer_widget.dart';
 import '../../../Chat/api/apis.dart';
+import '../../../Chat/screens/chat_tasks/Presentation/Controllers/task_controller.dart';
 import '../Controller/company_service.dart';
 import '../Controller/home_controller.dart';
 import '../Controller/socket_controller.dart';
@@ -266,7 +268,13 @@ class CompaniesScreen extends GetView<CompaniesController> {
                                                           ''
                                                     });
                                               }
+                                            if(Get.isRegistered<ChatScreenController>()){
+                                              Get.delete<ChatScreenController>();
+                                            }
 
+                                            if (Get.isRegistered<TaskController>()) {
+                                              Get.delete<TaskController>();
+                                            }
                                             customLoader.hide();
                                             controller.update();
                                           },
@@ -288,6 +296,14 @@ class CompaniesScreen extends GetView<CompaniesController> {
                                               Get.find<SocketController>()
                                                   .connectUserEmitter(
                                                       companyData.companyId);
+
+                                              if(Get.isRegistered<ChatScreenController>()){
+                                                Get.delete<ChatScreenController>();
+                                              }
+
+                                            if (Get.isRegistered<TaskController>()) {
+                                              Get.delete<TaskController>();
+                                            }
 
 
                                             customLoader.hide();

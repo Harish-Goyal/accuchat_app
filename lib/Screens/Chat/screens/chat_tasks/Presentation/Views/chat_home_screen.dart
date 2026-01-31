@@ -286,6 +286,7 @@ class ChatsHomeScreen extends GetView<ChatHomeController> {
                     ? const Center(
                         child: Text("Select a chat to start messaging"))
                     : ChatScreen(
+                  key: ValueKey(selected.userCompany?.userCompanyId ?? selected.userId),
                         user: selected,
                         showBack: false,
                       ), // <- correct

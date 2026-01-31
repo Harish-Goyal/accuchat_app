@@ -6,3 +6,7 @@ if (dart.library.js) 'register_image_web.dart';
 Future<void> registerImage(Function(XFile file) onImagePasted) async {
   return registerImagePasteHandlerImpl(onImagePasted);
 }
+
+Future<void> unregisterImage()  async {
+  return unregister();
+}

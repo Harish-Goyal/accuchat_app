@@ -17,6 +17,8 @@ import 'package:get/get.dart';
 import '../../../../main.dart';
 import '../../../../routes/app_routes.dart';
 import '../../../../utils/budge_controller.dart';
+import '../../../../utils/register_image.dart';
+import '../../../../utils/register_image_web.dart';
 import '../../../Chat/api/apis.dart';
 
 class AccuChatDashboard extends StatelessWidget {
@@ -236,6 +238,7 @@ class AccuChatDashboard extends StatelessWidget {
         if (controller.bottomNavItems.isNotEmpty) {
           controller.updateIndex(v);
           if (v == 1) {
+            if (kIsWeb) unregisterImage();
             isTaskMode = true;
             if (Get.isRegistered<TaskHomeController>()) {
               Get.find<TaskHomeController>().page = 1;
@@ -268,14 +271,15 @@ class AccuChatDashboard extends StatelessWidget {
             }
             if (Get.isRegistered<ChatScreenController>()) {
               if (kIsWeb && isWide) {
-                Get.find<ChatScreenController>().page = 1;
-                Get.find<ChatScreenController>().hitAPIToGetChatHistory();
+               final con = Get.find<ChatScreenController>();
+               con.page = 1;
+               con.hitAPIToGetChatHistory('isRegistered bottomnav chat kIsWeb && isWide');
               }
             } else {
               if (kIsWeb && isWide) {
-                Get.put(ChatScreenController(user: controller.user));
-                Get.find<ChatScreenController>().page = 1;
-                Get.find<ChatScreenController>().hitAPIToGetChatHistory();
+              final con=  Get.put(ChatScreenController(user: controller.user));
+              con.page = 1;
+              con.hitAPIToGetChatHistory('bottomnav chat kIsWeb && isWide');
               }
             }
           }
@@ -305,6 +309,7 @@ Widget buildSideNav(DashboardController controller) {
 
             final isSetting = index == 4;
             if (isSetting) {
+              if (kIsWeb) unregisterImage();
               Get.toNamed(AppRoutes.all_settings);
             }
             // Get.toNamed(AppRoutes.home);
@@ -312,12 +317,21 @@ Widget buildSideNav(DashboardController controller) {
             isTaskMode = index == 1;
             if (index == 0) {
               if (Get.isRegistered<ChatScreenController>()) {
+                print("resgistered=====");
                 final chatc = Get.find<ChatScreenController>();
                 chatc.replyToMessage = null;
                 if (homec!.filteredList.isNotEmpty) {
-                  homec.selectedChat.value = homec.filteredList[0];
-                  chatc.user = homec.selectedChat.value;
+                  final user = homec.filteredList[0];
+                  homec.selectedChat.value = user;
+                  chatc.user =homec.selectedChat.value;
+                  chatc.textController.clear();
+
+                  chatc.update();
                   chatc.showPostShimmer = true;
+                  print("unregoisted user======= chatc.user?.userId");
+                  print(chatc.user?.userId);
+                  print(homec.selectedChat.value?.userId);
+                  print(user?.userId);
                   chatc.openConversation(homec.selectedChat.value);
                   if (homec.selectedChat.value?.pendingCount != 0) {
                     chatc.markAllVisibleAsReadOnOpen(
@@ -325,35 +339,35 @@ Widget buildSideNav(DashboardController controller) {
                         chatc.user?.userCompany?.userCompanyId,
                         chatc.user?.userCompany?.isGroup == 1 ? 1 : 0);
                   }
-                  homec.selectedChat.refresh();
-                  chatc.update();
+
                 }
               } else {
-                Future.delayed(Duration(milliseconds: 500), () {
+                print("unresgistered=====");
                   if (homec!.filteredList.isNotEmpty) {
-                    Get.put(ChatScreenController(user: homec.filteredList[0]));
-                    final chatc = Get.find<ChatScreenController>();
-                    chatc.replyToMessage = null;
-                    homec.selectedChat.value = homec.filteredList[0];
-                    chatc.user = homec.selectedChat.value;
-                    chatc.showPostShimmer = true;
-                    chatc.openConversation(homec.selectedChat.value);
-                    if (homec.selectedChat.value?.pendingCount != 0) {
-                      chatc.markAllVisibleAsReadOnOpen(
-                          APIs.me?.userCompany?.userCompanyId,
-                          chatc.user?.userCompany?.userCompanyId,
-                          chatc.user?.userCompany?.isGroup == 1 ? 1 : 0);
-                    }
-                    homec.selectedChat.refresh();
-                    chatc.update();
+                    final user = homec.filteredList[0];
+                  // final chatc =Get.put(ChatScreenController(user: user));
+                  //   chatc.showPostShimmer = true;
+                  //   chatc.replyToMessage = null;
+                  //   homec.selectedChat.value = user;
+                  //   chatc.user =homec.selectedChat.value;
+                  //   // chatc.openConversation(homec.selectedChat.value);
+                  //   if (homec.selectedChat.value?.pendingCount != 0) {
+                  //     chatc.markAllVisibleAsReadOnOpen(
+                  //         APIs.me?.userCompany?.userCompanyId,
+                  //         chatc.user?.userCompany?.userCompanyId,
+                  //         chatc.user?.userCompany?.isGroup == 1 ? 1 : 0);
+                  //   }
+                    // homec.selectedChat.refresh();
+                    // chatc.update();
                   }
-                });
+
               }
               // homec.page = 1;
               // homec.hitAPIToGetRecentChats();
             }
 
             if (index == 1) {
+              if (kIsWeb) unregisterImage();
               final homec = Get.find<TaskHomeController>();
               if (Get.isRegistered<TaskController>()) {
                 final chatc = Get.find<TaskController>();
@@ -367,26 +381,27 @@ Widget buildSideNav(DashboardController controller) {
                   chatc.update();
                 }
               } else {
-                Future.delayed(Duration(milliseconds: 500), () {
-                  if (homec.filteredList.isNotEmpty) {
-                    Get.put(TaskController(user: homec.filteredList[0]));
-                    final chatc = Get.find<TaskController>();
-                    chatc.replyToMessage = null;
-                    homec.selectedChat.value = homec.filteredList[0];
-                    chatc.user = homec.selectedChat.value;
-                    chatc.showPostShimmer = true;
-                    chatc.openConversation(homec.selectedChat.value);
-
-                    homec.selectedChat.refresh();
-                    chatc.update();
-                  }
-                });
+                // Future.delayed(const Duration(milliseconds: 500), () {
+                //   if (homec.filteredList.isNotEmpty) {
+                //     Get.put(TaskController(user: homec.filteredList[0]));
+                //     final chatc = Get.find<TaskController>();
+                //     chatc.replyToMessage = null;
+                //     homec.selectedChat.value = homec.filteredList[0];
+                //     chatc.user = homec.selectedChat.value;
+                //     chatc.showPostShimmer = true;
+                //     chatc.openConversation(homec.selectedChat.value);
+                //
+                //     homec.selectedChat.refresh();
+                //     chatc.update();
+                //   }
+                // });
               }
               // homec.page = 1;
               // homec.hitAPIToGetRecentChats();
             }
 
             if (index == 2) {
+              if (kIsWeb) unregisterImage();
               if (Get.isRegistered<GalleryController>()) {
                 final homec = Get.find<GalleryController>();
                 homec.getCompany();
@@ -461,7 +476,7 @@ Widget buildSideNav(DashboardController controller) {
                               child: BottomNavBudge(
                                   budgeCount:
                                       "${homec?.selectedChat.value?.pendingCount ?? ''}"))
-                          : SizedBox()
+                          : const SizedBox()
                     ],
                   ),
                 ),
@@ -499,7 +514,7 @@ Widget buildSideNav(DashboardController controller) {
                               child: BottomNavBudge(
                                   budgeCount:
                                       "${homec?.selectedChat.value?.pendingCount ?? ''}"))
-                          : SizedBox()
+                          : const SizedBox()
                     ],
                   ),
                 ),

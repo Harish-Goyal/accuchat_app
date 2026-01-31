@@ -1,11 +1,7 @@
 import 'dart:async';
 import 'dart:io';
-import 'dart:math';
 import 'package:AccuChat/Screens/Chat/models/chat_his_res_model.dart';
 import 'package:AccuChat/Screens/Chat/models/chat_history_response_model.dart';
-import 'package:AccuChat/Screens/Chat/screens/chat_tasks/Presentation/Controllers/task_controller.dart';
-import 'package:AccuChat/Screens/Chat/screens/chat_tasks/Presentation/Controllers/task_home_controller.dart';
-import 'package:AccuChat/utils/register_image.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
@@ -21,6 +17,7 @@ import '../../../../../../utils/chat_presence.dart';
 import '../../../../../../utils/custom_flashbar.dart';
 import '../../../../../../utils/helper.dart';
 import '../../../../../../utils/helper_widget.dart';
+import '../../../../../../utils/register_image.dart';
 import '../../../../../Home/Presentation/Controller/company_service.dart';
 import '../../../../../Home/Presentation/Controller/socket_controller.dart';
 import '../../../../api/apis.dart';
@@ -45,8 +42,8 @@ class ChatScreenController extends GetxController {
   String validString = '';
   List<Map<String, String>> uploadedAttachments = [];
   List<ChatHisResModel> msgList = [];
-  late TextEditingController textController;
-  late FocusNode messageParentFocus;
+  final textController = TextEditingController();
+  FocusNode messageParentFocus=FocusNode();
   // FocusNode messageInputFocus=FocusNode();
   ChatHisList? replyToMessage;
   String? replyToImage;
@@ -93,8 +90,8 @@ class ChatScreenController extends GetxController {
   }
 
   List<ChatRow> flatRows = [];
-  final Map<int, int> chatIdToIndex = {};
-  final Map<int, GlobalKey> chatIdToKey = {};
+  // final Map<int, int> chatIdToIndex = {};
+  // final Map<int, GlobalKey> chatIdToKey = {};
   bool isSearching = false;
   String searchQuery = '';
   TextEditingController seacrhCon = TextEditingController();
@@ -111,7 +108,7 @@ class ChatScreenController extends GetxController {
       chatHisList = [];
       update();
 
-      hitAPIToGetChatHistory(searchQuery: searchQuery.isEmpty ? null : searchQuery);
+      hitAPIToGetChatHistory("onsearch",searchQuery: searchQuery.isEmpty ? null : searchQuery);
     });
 
   }
@@ -120,7 +117,88 @@ class ChatScreenController extends GetxController {
 
   Timer? _pageDebounce;
 
-  void attachPaginationListener({bool reverseList = true}) {
+  // This is the flat list that contains BOTH date headers + messages
+
+  // chatId -> index in flatRows
+  final Map<int, int> chatIdIndexMap = {};
+
+  int? highlightedChatId;
+
+  List<ChatRow> chatRows = [];
+  void rebuildFlatRows() {
+    chatRows.clear();
+    chatIdIndexMap.clear();
+
+    final sorted = [...chatCatygory];
+    sorted.sort((a, b) => b.date.compareTo(a.date));
+
+    DateTime? lastDate;
+
+    for (final g in sorted) {
+      final d = DateTime(g.date.year, g.date.month, g.date.day);
+
+      if (lastDate == null || d != lastDate) {
+        chatRows.add(ChatHeaderRow(d));
+        lastDate = d;
+      }
+
+      final chatId = g.chatMessageItems.chatId ?? 0;
+
+      chatRows.add(ChatMessageRow(g));
+      chatIdIndexMap[chatId] = chatRows.length - 1;
+    }
+
+    update();
+  }
+
+  Future<void> jumpToRepliedMessage(int targetChatId) async {
+    /// Load more pages if message not found
+    if (!chatIdIndexMap.containsKey(targetChatId)) {
+      await _loadUntilFound(targetChatId);
+      rebuildFlatRows();
+    }
+
+    final index = chatIdIndexMap[targetChatId];
+    if (index == null) return;
+
+    itemScrollController.scrollTo(
+      index: index,
+      duration: const Duration(milliseconds: 400),
+      curve: Curves.easeOutCubic,
+      alignment: 0.15,
+    );
+
+    // highlight effect
+    highlightedChatId = targetChatId;
+    update();
+
+    Future.delayed(const Duration(seconds: 2), () {
+      if (highlightedChatId == targetChatId) {
+        highlightedChatId = null;
+        update();
+      }
+    });
+  }
+
+  Future<void> _loadUntilFound(int targetChatId) async {
+    int safety = 0;
+    while (!chatIdIndexMap.containsKey(targetChatId) &&
+        hasMore &&
+        !isPageLoading) {
+      safety++;
+      if (safety > 50) break;
+
+      await hitAPIToGetChatHistory("_loadUntilFound");
+      rebuildFlatRows();
+
+      if (chatIdIndexMap.containsKey(targetChatId)) break;
+    }
+  }
+
+
+
+
+/*  void attachPaginationListener({bool reverseList = true}) {
     itemPositionsListener.itemPositions.addListener(() {
       if (isPageLoading || !hasMore) return;
 
@@ -150,9 +228,10 @@ class ChatScreenController extends GetxController {
         }
       });
     });
-  }
+  }*/
 
   // Call this whenever chatCatygory changes
+/*
   void rebuildFlatRows() {
     flatRows = [];
     chatIdToIndex.clear();
@@ -180,55 +259,7 @@ class ChatScreenController extends GetxController {
     }
     update();
   }
-
-
-  // Jump to a message by chatId
-  Future<void> scrollToChatId(int chatId) async {
-    // ✅ 1) If widget is already built, ensureVisible works even when list not scrollable
-    final ctx = chatIdToKey[chatId]?.currentContext;
-    if (ctx != null) {
-      await Scrollable.ensureVisible(
-        ctx,
-        duration: const Duration(milliseconds: 250),
-        curve: Curves.easeInOut,
-        alignment: 0.35,
-      );
-      highlightMessage(chatId); // ✅ always give feedback
-      return;
-    }
-
-    // ✅ 2) Otherwise use index-based scroll
-    final idx = chatIdToIndex[chatId];
-    if (idx == null) {
-      debugPrint("Original message not found (maybe not loaded)");
-      return;
-    }
-
-    if (!itemScrollController.isAttached) {
-      // list not attached yet (web pe hota hai sometimes) -> run after frame
-      WidgetsBinding.instance.addPostFrameCallback((_) {
-        scrollToChatId(chatId);
-      });
-      return;
-    }
-
-    // ✅ 3) If already visible, don't depend on scrollTo
-    final positions = itemPositionsListener.itemPositions.value;
-    final isVisible = positions.any((p) => p.index == idx);
-    if (isVisible) {
-      highlightMessage(chatId);
-      return;
-    }
-
-    await itemScrollController.scrollTo(
-      index: idx,
-      duration: const Duration(milliseconds: 350),
-      curve: Curves.easeInOut,
-      alignment: 0.35,
-    );
-
-    highlightMessage(chatId);
-  }
+*/
 
 
   // Optional highlight logic
@@ -242,7 +273,7 @@ class ChatScreenController extends GetxController {
     });
   }
 
-
+  bool _pasteRegistered = false;
 
   @override
   void onInit() {
@@ -250,8 +281,6 @@ class ChatScreenController extends GetxController {
     // textController.addListener(() {
     //   showUpload.value = textController.text.trim().isEmpty;
     // });
-    textController = TextEditingController();
-    messageParentFocus=FocusNode();
     _getCompany();
     scrollListener();
     if(Get.isRegistered<ChatHomeController>()){
@@ -269,13 +298,30 @@ class ChatScreenController extends GetxController {
     }
     // attachPaginationListener(reverseList: true);
 
+    _initImagePaste();
+    if (kIsWeb && !_pasteRegistered) {
+      _pasteRegistered = true;
+      registerImage((XFile image) => _handlePastedImage(image));
+    }
+    // if (kIsWeb) {
+    //   messageParentFocus.requestFocus();
+    //   registerImage((XFile image) {
+    //     _handlePastedImage(image);
+    //   });
+    // }
+  }
 
+  _initImagePaste(){
     if (kIsWeb) {
-      messageParentFocus.requestFocus();
-      registerImage((XFile image) {
-        _handlePastedImage(image);
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        final current = FocusManager.instance.primaryFocus;
+        // only request focus if nothing is focused
+        if (current == null) {
+          messageParentFocus.requestFocus();
+        }
       });
     }
+
   }
 
   Future<void> _handlePastedImage(XFile file) async {
@@ -427,11 +473,10 @@ class ChatScreenController extends GetxController {
   void openConversation(UserDataAPI? useriii) {
 
     user = useriii;
-    update();
-    _getMe();
+
     Future.delayed(const Duration(milliseconds: 500), () {
       resetPaginationForNewChat();
-      hitAPIToGetChatHistory();
+      hitAPIToGetChatHistory("openConversation");
       // messageInputFocus.requestFocus();
       if (user?.userCompany?.isGroup == 1 ||
           user?.userCompany?.isBroadcast == 1) {
@@ -444,12 +489,9 @@ class ChatScreenController extends GetxController {
   List<Message> filteredTasks = [];
   String selectedFilter = 'all';
 
-  UserDataAPI? me = UserDataAPI();
+
   TextEditingController updateMsgController = TextEditingController();
-  _getMe() {
-    me = APIs.me;
-    update();
-  }
+
 
   CompanyData? myCompany = CompanyData();
   _getCompany() async {
@@ -500,7 +542,7 @@ class ChatScreenController extends GetxController {
             !isPageLoading &&
             hasMore) {
           // resetPaginationForNewChat();
-          hitAPIToGetChatHistory();
+          hitAPIToGetChatHistory("scrollListener");
         }
       });
     } else {
@@ -510,7 +552,7 @@ class ChatScreenController extends GetxController {
             !isPageLoading &&
             hasMore) {
           // resetPaginationForNewChat();
-          hitAPIToGetChatHistory();
+          hitAPIToGetChatHistory("scrollListenermobile");
         }
       });
     }
@@ -525,7 +567,10 @@ class ChatScreenController extends GetxController {
     update();
   }
 
-  hitAPIToGetChatHistory({String? searchQuery}) async {
+
+  hitAPIToGetChatHistory(p,{String? searchQuery}) async {
+    print("00000000000000000000000");
+    print(p);
     if (page == 1) {
       showPostShimmer = true;
       chatHisList?.clear();
@@ -573,7 +618,9 @@ class ChatScreenController extends GetxController {
       showPostShimmer = false;
       isPageLoading = false;
       update();
-
+      messageParentFocus.unfocus();
+      if (messageParentFocus.canRequestFocus) {
+        messageParentFocus.requestFocus();      }
     }).onError((error, stackTrace) {
       showPostShimmer = false;
       isPageLoading = false;
@@ -1116,7 +1163,8 @@ class ChatScreenController extends GetxController {
       if (/*Get.currentRoute == AppRoutes.chats_li_r &&*/
         Get.isRegistered<ChatScreenController>()) {
         Get.find<ChatHomeController>().selectedChat.value = selectedUser;
-        Get.find<ChatScreenController>().openConversation(selectedUser);
+       final con= Get.find<ChatScreenController>(tag: "chat_${selectedUser.userId ?? 'mobile'}");
+        con.openConversation(selectedUser);
       } else {
         toast("Something went wrong please refresh and try again");
         // if (kIsWeb) {
@@ -1136,8 +1184,8 @@ class ChatScreenController extends GetxController {
     // Safety: don’t forward to yourself
     final targetUcId = selectedUser.userCompany?.userCompanyId;
     if (targetUcId != null &&
-        me?.userCompany?.userCompanyId != null &&
-        targetUcId == me?.userCompany?.userCompanyId) {
+        APIs.me?.userCompany?.userCompanyId != null &&
+        targetUcId == APIs.me?.userCompany?.userCompanyId) {
       Get.snackbar('Oops', 'You cannot forward a message to yourself.',
           backgroundColor: Colors.white, colorText: Colors.black,duration: Duration(seconds: 6));
       return;

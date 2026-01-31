@@ -172,7 +172,7 @@ class AddGroupMembersScreen extends GetView<AddGroupMemController> {
   }
   AppBar _buildAppBar(){
     return AppBar(
-      automaticallyImplyLeading: false,
+      // automaticallyImplyLeading: false,
       backgroundColor: Colors.white,   // white color
       elevation: 1,                    // remove shadow
       scrolledUnderElevation: 0,       // ✨ prevents color change on scroll

@@ -21,3 +21,11 @@ void registerImagePasteHandlerImpl(
     onImagePasted(file);
   };
 }
+
+void unregister() {
+  // Option 1: set to null
+  js.context['flutterImagePasteHandler'] = null;
+
+  // Option 2 (optional): delete the key (works in many cases)
+  // js.context.deleteProperty('flutterImagePasteHandler');
+}

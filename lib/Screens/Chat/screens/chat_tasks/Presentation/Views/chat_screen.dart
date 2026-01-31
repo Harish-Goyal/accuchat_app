@@ -5,6 +5,7 @@ import 'package:AccuChat/utils/text_button.dart';
 import 'package:AccuChat/Screens/voice_to_texx/speech_controller_factory.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter_linkify/flutter_linkify.dart';
+import 'package:scrollable_positioned_list/scrollable_positioned_list.dart';
 import 'package:share_plus/share_plus.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:AccuChat/Screens/Chat/models/chat_history_response_model.dart';
@@ -37,6 +38,7 @@ import '../../../../../../utils/product_shimmer_widget.dart';
 import '../../../../../../utils/share_helper.dart';
 import '../../../../../../utils/text_style.dart';
 import '../../../../../Home/Models/pickes_file_item.dart';
+import '../../../../api/apis.dart';
 import '../Controllers/save_in_accuchat_gallery_controller.dart';
 import '../../../../../Home/Presentation/Controller/socket_controller.dart';
 import '../../../../helper/dialogs.dart';
@@ -110,26 +112,42 @@ double _textScaleClamp(BuildContext context) {
 
 final FocusNode _focusNode = FocusNode();
 
-class ChatScreen extends GetView<ChatScreenController> {
+class ChatScreen extends StatefulWidget {
   final UserDataAPI? user;
   bool showBack = true;
-  // SaveToGalleryController galleryController = Get.put(SaveToGalleryController());
-
-
-
-  final speechC = Get.put(SpeechControllerImpl());
 
   ChatScreen({super.key, this.user, this.showBack = true});
 
   @override
-  Widget build(BuildContext context) {
-    final chatController = Get.put(
-      ChatScreenController(user: user),
-      tag: "chat_${user?.userId ?? 'mobile'}",
+  State<ChatScreen> createState() => _ChatScreenState();
+}
+
+class _ChatScreenState extends State<ChatScreen> {
+  // SaveToGalleryController galleryController = Get.put(SaveToGalleryController());
+  late ChatScreenController controller;
+  final speechC = Get.put(SpeechControllerImpl());
+
+  @override
+  void initState() {
+    super.initState();
+    controller = Get.put(
+      ChatScreenController(user: widget.user),
     );
 
+  }
+
+  // @override
+  // void dispose() {
+  //   // if you want to remove controller when leaving chat:
+  //   Get.delete<ChatScreenController>();
+  //   super.dispose();
+  // }
+
+  @override
+  Widget build(BuildContext context) {
+
+
     return GetBuilder<ChatScreenController>(
-        init: chatController,
         builder: (controller) {
           return GestureDetector(
             onTap: () => FocusScope.of(context).unfocus(),
@@ -260,7 +278,7 @@ class ChatScreen extends GetView<ChatScreenController> {
                     CrossAxisAlignment.start,
                     children: [
                       Text(
-                        "${controller.replyToMessage?.fromUser?.userId == controller.me?.userId ? 'You' : username}",
+                        controller.replyToMessage?.fromUser?.userId == APIs.me?.userId ? 'You' : username,
                         maxLines: 1,
                         overflow:
                         TextOverflow.ellipsis,
@@ -359,7 +377,6 @@ class ChatScreen extends GetView<ChatScreenController> {
     );
   }
 
-
   _changeLanguage(){
    return PopupMenuButton<String>(
      color: Colors.white,
@@ -457,6 +474,7 @@ class ChatScreen extends GetView<ChatScreenController> {
     ;
 
   }
+
   Widget chatMessageBuilder() {
     return Column(
       mainAxisSize: MainAxisSize.min,
@@ -469,7 +487,7 @@ class ChatScreen extends GetView<ChatScreenController> {
                 child: ChatHistoryShimmer(
               chatData: ChatHisList(),
             )),
-            child: groupListView() /*AnimationLimiter(child: )*/,
+            child: groupListView()
           ),
         ),
         // vGap(80)
@@ -482,109 +500,98 @@ class ChatScreen extends GetView<ChatScreenController> {
         ? 0
         : controller.flatRows.length - 1;*/
     return (controller.chatCatygory ?? []).isNotEmpty
-        ? GroupedListView<GroupChatElement, DateTime>(
-            shrinkWrap: true,
-            padding: const EdgeInsets.only(bottom: 30),
-            controller: controller.scrollController,
-            elements: controller.chatCatygory,
-            order: GroupedListOrder.DESC,
-            reverse: true,
-            floatingHeader: true,
-            useStickyGroupSeparators: true,
-            groupBy: (GroupChatElement element) => DateTime(
-                  element.date.year,
-                  element.date.month,
-                  element.date.day,
+        ? ScrollablePositionedList.builder(
+        itemScrollController: controller.itemScrollController,
+        itemPositionsListener: controller.itemPositionsListener,
+        itemCount: controller.chatRows.length,
+        reverse: true,
+        padding: const EdgeInsets.only(bottom: 30),
+        itemBuilder: (context, index) {
+          final row = controller.chatRows[index];
+
+          /// ✅ 1) HEADER FIRST
+          if (row is ChatHeaderRow) {
+            return _createGroupHeader(row.date);
+          }
+
+          /// ✅ 2) NOW SAFE TO CAST
+          final msgRow = row as ChatMessageRow;
+          final element = msgRow.element;
+          final msg = element.chatMessageItems;
+
+          final chatId = msg.chatId ?? 0;
+
+          String formatatedTime = '';
+          if (msg.sentOn != null && msg.sentOn!.isNotEmpty) {
+            formatatedTime = convertUtcToIndianTime(msg.sentOn!);
+          }
+
+          final isHighlighted = controller.highlightedChatId == chatId;
+          final userid = APIs.me?.userId;
+              return AnimatedContainer(
+                duration: const Duration(milliseconds: 250),
+                color: isHighlighted ? const Color(0x33FFFF00) : null,
+                child: SwipeTo(
+                  iconColor: appColorGreen,
+                  onRightSwipe: element.chatMessageItems.isActivity == 1
+                      ? (v) {}
+                      : (detail) {
+
+
+                                final media = element.chatMessageItems.media;
+                                if (media == null || media.isEmpty) {
+                                  controller.refIdis = element.chatMessageItems.chatId;
+                                  controller.userIDSender = element.chatMessageItems.fromUser?.userId;
+                                  controller.userNameReceiver = element.chatMessageItems.toUser?.userCompany?.displayName ?? '';
+                                  controller.userNameSender = element.chatMessageItems.fromUser?.userCompany?.displayName ?? '';
+                                  controller.userIDReceiver = element.chatMessageItems.toUser?.userId;
+                                  controller.replyToMessage = element.chatMessageItems;
+                                  controller.update();
+                                  controller.messageParentFocus.unfocus();
+                                  if (controller.messageParentFocus.canRequestFocus) {
+                                    controller.messageParentFocus.requestFocus();
+                                  }
+                                  Get.back();
+                                } else {
+                                  final firstMedia = media.first;
+                                  controller.refIdis = element.chatMessageItems.chatId;
+                                  controller.userIDSender = element.chatMessageItems.fromUser?.userId;
+                                  controller.userNameReceiver = element.chatMessageItems.toUser?.userCompany?.displayName ?? '';
+                                  controller.userNameSender = element.chatMessageItems.fromUser?.userCompany?.displayName ?? '';
+                                  controller.userIDReceiver = element.chatMessageItems.toUser?.userId;
+                                  controller.replyToImage = firstMedia.orgFileName;
+                                  final isDoc = firstMedia.mediaType?.mediaCode == "DOC";
+                                  final msg = isDoc
+                                      ? (firstMedia.orgFileName ?? '')
+                                      : "${ApiEnd.baseUrlMedia}${firstMedia.fileName ?? ''}";
+                                  controller.replyToMessage = ChatHisList(
+                                    chatId: element.chatMessageItems.chatId,
+                                    fromUser: element.chatMessageItems.fromUser,
+                                    toUser: element.chatMessageItems.toUser,
+                                    message: msg,
+                                    replyToId: element.chatMessageItems.chatId,
+                                    replyToText: firstMedia.orgFileName,
+                                    replyToMedia: msg,
+                                  );
+                                  controller.update();
+                                  controller.messageParentFocus.unfocus();
+                                  if (controller.messageParentFocus.canRequestFocus) {
+                                    controller.messageParentFocus.requestFocus();
+                                  }
+                                  Get.back();
+                                }
+
+
+                        },
+                  child: _chatMessageTile(
+                      data: element.chatMessageItems,
+                      sentByMe: (userid?.toString() ==
+                              element.chatMessageItems.fromUser?.userId
+                                  ?.toString()
+                          ? true
+                          : false),
+                      formatedTime: formatatedTime),
                 ),
-            groupHeaderBuilder: _createGroupHeader,
-            indexedItemBuilder:
-                (BuildContext context, GroupChatElement element, int index) {
-              String formatatedTime = '';
-              if (element.chatMessageItems.sentOn != null) {
-                var timeString = element.chatMessageItems.sentOn ?? '';
-
-                formatatedTime = convertUtcToIndianTime(timeString);
-              }
-
-              var userid = controller.me?.userId;
-              return SwipeTo(
-                iconColor: appColorGreen,
-                onRightSwipe: element.chatMessageItems.isActivity == 1
-                    ? (v) {}
-                    : (detail) {
-
-
-                              final media = element.chatMessageItems.media;
-                              if (media == null || media.isEmpty) {
-                                controller.refIdis = element.chatMessageItems.chatId;
-                                controller.userIDSender = element.chatMessageItems.fromUser?.userId;
-                                controller.userNameReceiver =
-                                    element.chatMessageItems.toUser?.userCompany?.displayName ?? '';
-                                controller.userNameSender =
-                                    element.chatMessageItems.fromUser?.userCompany?.displayName ?? '';
-                                controller.userIDReceiver = element.chatMessageItems.toUser?.userId;
-                                controller.replyToMessage = element.chatMessageItems;
-                                controller.update();
-                                controller.messageParentFocus.requestFocus();
-                                Get.back();
-                              } else {
-                                final firstMedia = media.first;
-                                controller.refIdis = element.chatMessageItems.chatId;
-                                controller.userIDSender = element.chatMessageItems.fromUser?.userId;
-                                controller.userNameReceiver = element.chatMessageItems.toUser?.userCompany?.displayName ?? '';
-                                controller.userNameSender = element.chatMessageItems.fromUser?.userCompany?.displayName ?? '';
-                                controller.userIDReceiver = element.chatMessageItems.toUser?.userId;
-
-                                controller.replyToImage = firstMedia.orgFileName;
-
-                                final isDoc = firstMedia.mediaType?.mediaCode == "DOC";
-                                final msg = isDoc
-                                    ? (firstMedia.orgFileName ?? '')
-                                    : "${ApiEnd.baseUrlMedia}${firstMedia.fileName ?? ''}";
-
-                                controller.replyToMessage = ChatHisList(
-                                  chatId: element.chatMessageItems.chatId,
-                                  fromUser: element.chatMessageItems.fromUser,
-                                  toUser: element.chatMessageItems.toUser,
-                                  message: msg,
-                                  replyToId: element.chatMessageItems.chatId,
-                                  replyToText: firstMedia.orgFileName,
-                                  replyToMedia: msg,
-                                );
-
-                                controller.update();
-                                controller.messageParentFocus.requestFocus();
-                                Get.back();
-                              }
-
-
-                          // // Set the message being replied to
-                          // controller.refIdis =
-                          //     element.chatMessageItems.chatId;
-                          // controller.userIDSender =
-                          //     element.chatMessageItems.fromUser?.userId;
-                          // controller.userNameReceiver =
-                          //     element.chatMessageItems.toUser?.userCompany?.displayName ??
-                          //         '';
-                          // controller.userNameSender = element
-                          //         .chatMessageItems.fromUser?.userCompany?.displayName ??
-                          //     '';
-                          // controller.userIDReceiver =
-                          //     element.chatMessageItems.toUser?.userId;
-                          // controller.replyToMessage =
-                          //     element.chatMessageItems;
-                          // controller.update();
-                          // controller.messageInputFocus.requestFocus();
-
-                      },
-                child: _chatMessageTile(
-                    data: element.chatMessageItems,
-                    sentByMe: (userid?.toString() ==
-                            element.chatMessageItems.fromUser?.userId
-                                ?.toString()
-                        ? true
-                        : false),
-                    formatedTime: formatatedTime),
               );
             })
         : const Center(
@@ -666,7 +673,7 @@ class ChatScreen extends GetView<ChatScreenController> {
         child: Text('Say Hii! 👋', style: TextStyle(fontSize: 20)));*/
   }
 
-  Widget _createGroupHeader(GroupChatElement element) {
+ /* Widget _createGroupHeader(GroupChatElement element) {
     final isToday = DateUtils.isSameDay(element.date, DateTime.now());
     final dateText =
         isToday ? "Today" : DateFormat.yMMMd().format(element.date);
@@ -689,27 +696,46 @@ class ChatScreen extends GetView<ChatScreenController> {
         ],
       ),
     );
+  }*/
+
+
+  Widget _createGroupHeader(DateTime date) {
+    final isToday = DateUtils.isSameDay(date, DateTime.now());
+    final dateText = isToday ? "Today" : DateFormat.yMMMd().format(date);
+
+    return Container(
+      color: Colors.transparent,
+      margin: const EdgeInsets.symmetric(vertical: 8),
+      child: Row(
+        children: [
+          Expanded(
+            child: Divider(
+              color: appColorGreen.withOpacity(.3),
+              thickness: 1,
+            ),
+          ),
+          CustomContainer(
+            elevation: 2,
+            vPadding: 3,
+            hPadding: 7,
+            color: AppTheme.whiteColor,
+            childWidget: Text(
+              dateText,
+              style: BalooStyles.balooregularTextStyle(size: 12.5),
+            ),
+          ),
+          Expanded(
+            child: Divider(
+              color: appColorGreen.withOpacity(.3),
+              thickness: 1,
+            ),
+          ),
+        ],
+      ),
+    );
   }
-  //  Widget _createGroupHeader(date) {
-  //   return Container(
-  //     color: Colors.transparent,
-  //     child: Row(
-  //       children: [
-  //         Expanded(child: divider(color: appColorGreen.withOpacity(.3))),
-  //         CustomContainer(
-  //           elevation: 2,
-  //             vPadding: 3,
-  //             hPadding: 7,
-  //             color: AppTheme.whiteColor.withOpacity(.6),
-  //             childWidget: Text(DateFormat.yMMMd().format(date),
-  //             // childWidget: Text(DateFormat.yMMMd().format(element.date),
-  //             style: BalooStyles.balooregularTextStyle(),),
-  //         ),
-  //         Expanded(child: divider(color: appColorGreen.withOpacity(.3))),
-  //       ],
-  //     ),
-  //   );
-  // }
+
+
 
   Widget _chatMessageTile(
       {required ChatHisList data, required bool sentByMe, formatedTime}) {
@@ -895,8 +921,10 @@ class ChatScreen extends GetView<ChatScreenController> {
                       isCancel: false,
                       sentByMe: sentByMe,
                       onReplu: (){
-                        controller.scrollToChatId(data.replyToId??0);
-
+                        final int? replyId = data.replyToId; // confirm field name
+                        if (replyId != null) {
+                          controller.jumpToRepliedMessage(replyId);
+                        }
                       },
                       empIdsender: data.fromUser?.userId.toString(),
                       chatdata: data,
@@ -904,7 +932,7 @@ class ChatScreen extends GetView<ChatScreenController> {
                       empName: data.isGroupChat == 1
                           ? data.fromUser?.userCompany?.displayName ?? ''
                           : data.fromUser?.userId.toString() ==
-                                  controller.me?.userId?.toString()
+                          APIs.me?.userId?.toString()
                               ? data.fromUser?.userCompany?.displayName ?? ''
                               : data.toUser?.userCompany?.displayName ?? '',
                       message: data.replyToText ?? '',
@@ -918,7 +946,7 @@ class ChatScreen extends GetView<ChatScreenController> {
                   children: [
                     Flexible(
                       child: Text(
-                              data.fromUser?.userId == controller.me?.userId
+                              data.fromUser?.userId == APIs.me?.userId
                                   ? "You"
                                   : data.fromUser?.userCompany?.displayName !=
                                           null
@@ -930,7 +958,7 @@ class ChatScreen extends GetView<ChatScreenController> {
                                           : (data.fromUser?.phone ?? ''),
                               style: BalooStyles.baloonormalTextStyle(
                                   color: data.fromUser?.userId ==
-                                          controller.me?.userId
+                                      APIs.me?.userId
                                       ? Colors.green
                                       : Colors.purple),
                               textAlign: TextAlign.end,
@@ -987,7 +1015,7 @@ class ChatScreen extends GetView<ChatScreenController> {
               ? ChatMessageMedia(
                 chat: data,
                 isGroupMessage: data.isGroupChat == 1 ? true : false,
-                myId: (controller.me?.userId ?? 0).toString(),
+                myId: (APIs.me?.userId ?? 0).toString(),
                 fromId: (data.fromUser?.userId ?? 0).toString(),
                 senderName: data.fromUser?.userCompany?.displayName != null
                     ? data.fromUser?.userCompany?.displayName ?? ''
@@ -1090,7 +1118,7 @@ class ChatScreen extends GetView<ChatScreenController> {
                   child: Row(
                     children: [
                       //back button
-                      !showBack
+                      !widget.showBack
                           ? const SizedBox(
                               width: 14,
                             )
@@ -1341,9 +1369,7 @@ class ChatScreen extends GetView<ChatScreenController> {
   // bottom chat input field
   Widget _chatInput(BuildContext context) {
     // ✅ don't put controller every rebuild
-    final speechC = Get.isRegistered<SpeechControllerImpl>()
-        ? Get.find<SpeechControllerImpl>()
-        : Get.put(SpeechControllerImpl());
+
 
     void _appendSpeechToInput() {
       final text = speechC.getCombinedText();
@@ -1534,9 +1560,10 @@ class ChatScreen extends GetView<ChatScreenController> {
                                   onSend: () => Get.back(),
                                   isMobile: false,
                                 );
-                                WidgetsBinding.instance.addPostFrameCallback((_) {
+                                controller.messageParentFocus.unfocus();
+                                if (controller.messageParentFocus.canRequestFocus) {
                                   controller.messageParentFocus.requestFocus();
-                                });
+                                }
                               },
                               child: IconButtonWidget(emojiPng),
                             ),
@@ -1568,306 +1595,7 @@ class ChatScreen extends GetView<ChatScreenController> {
     );
   }
 
-
   //No Voice to text
-/*  Widget _chatInput() {
-    return Container(
-      // height: Get.height*.4,
-      padding: EdgeInsets.symmetric(vertical: 0, horizontal: mq.width * .025),
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.end,
-        children: [
-          //input field & buttons
-          Expanded(
-            child: Row(
-              crossAxisAlignment: CrossAxisAlignment.end,
-              children: [
-                //emoji button
-                *//* IconButton(
-                          onPressed: () {
-                            FocusScope.of(context).unfocus();
-                            setState(() => _showEmoji = !_showEmoji);
-                          },
-                          icon: const Icon(Icons.emoji_emotions,
-                              color: Colors.blueAccent, size: 25)),*//*
-
-                Expanded(
-                  child: SingleChildScrollView(
-                    child: Column(
-                      children: [
-                        Focus(
-                          focusNode: controller.messageParentFocus,
-                          autofocus: true,
-                          onKeyEvent: (node, event) {
-                            if (!kIsWeb) return KeyEventResult.ignored;
-
-                            if (event is KeyDownEvent &&
-                                event.logicalKey == LogicalKeyboardKey.enter) {
-                              final bool shiftPressed = HardwareKeyboard
-                                      .instance.logicalKeysPressed
-                                      .contains(LogicalKeyboardKey.shiftLeft) ||
-                                  HardwareKeyboard.instance.logicalKeysPressed
-                                      .contains(LogicalKeyboardKey.shiftRight);
-
-                              if (shiftPressed) {
-                                // SHIFT + ENTER → new line
-                                return KeyEventResult.ignored;
-                              } else {
-                                // ENTER → send
-                                _sendMessage();
-                                return KeyEventResult.handled;
-                              }
-                            }
-
-                            return KeyEventResult.ignored;
-                          },
-                          child: ConstrainedBox(
-                            constraints: BoxConstraints(
-                              maxHeight: Get.height * .3,
-                              minHeight: 30,
-                            ),
-                            child: Container(
-                              margin: const EdgeInsets.symmetric(vertical: 4),
-                              decoration: BoxDecoration(
-                                borderRadius: BorderRadius.circular(8),
-                                border: Border.all(
-                                    color: AppTheme.appColor.withOpacity(.2)),
-                              ),
-                              child: Row(
-                                children: [
-                                  Expanded(
-                                    child: TextFormField(
-                                      controller: controller.textController,
-                                      keyboardType: TextInputType.multiline,
-                                      focusNode: controller.messageInputFocus,
-                                      textInputAction: TextInputAction.newline,
-                                      maxLines: null,
-                                      minLines: 1,
-                                      autofocus: true,
-                                      onTap: () {
-                                        controller.messageInputFocus
-                                            .requestFocus();
-                                      },
-                                      decoration: InputDecoration(
-                                        isDense: true,
-                                        hintText: 'Type Something...',
-                                        hintStyle:
-                                            themeData.textTheme.bodySmall,
-                                        contentPadding: const EdgeInsets.all(8),
-                                        border: InputBorder.none,
-                                        enabledBorder: InputBorder.none,
-                                        disabledBorder: InputBorder.none,
-                                        errorBorder: InputBorder.none,
-                                        focusedBorder: InputBorder.none,
-                                      ),
-                                      inputFormatters: [
-                                        FilteringTextInputFormatter.allow(
-                                          RegExp(r'[\s\S]'),
-                                        ),
-                                      ],
-                                    ),
-                                  ),
-                                  if (!isTaskMode)
-                                    Visibility(
-                                      visible: isVisibleUpload,
-                                      child: InkWell(
-                                        onTap: () =>
-                                            showUploadOptions(Get.context!),
-                                        child: Container(
-                                          padding: const EdgeInsets.all(5),
-                                          margin: const EdgeInsets.all(5),
-                                          decoration: BoxDecoration(
-                                            borderRadius:
-                                                BorderRadius.circular(8),
-                                            border: Border.all(
-                                                color: appColorGreen),
-                                            color:
-                                                appColorGreen.withOpacity(.1),
-                                          ),
-                                          child: Icon(
-                                            Icons.upload_outlined,
-                                            color: appColorGreen,
-                                          ),
-                                        ),
-                                      ),
-                                    ),
-                                ],
-                              ),
-                            ),
-                          ),
-                        )
-
-                        *//*ConstrainedBox(
-                          constraints: BoxConstraints(
-                              maxHeight: Get.height * .3, minHeight: 30),
-                          child: Container(
-                            margin: EdgeInsets.symmetric(vertical: 4),
-                            decoration: BoxDecoration(
-                                borderRadius: BorderRadius.circular(8),
-                                border: Border.all(
-                                    color: AppTheme.appColor.withOpacity(.2))),
-                            child: Row(
-                              children: [
-                                Expanded(
-                                  child: TextFormField(
-                                    controller: controller.textController,
-                                    // keyboardType: TextInputType.multiline,
-                                    cursorColor: AppTheme.appColor,
-                                    // maxLines: kIsWeb ? 1 : null,
-                                    // textInputAction: kIsWeb
-                                    //     ? TextInputAction.send
-                                    //     : TextInputAction.newline,
-                                    keyboardType: TextInputType.multiline,
-                                    textInputAction: TextInputAction.newline,
-                                    minLines: 1,
-                                    maxLines: null, // unlimited lines
-                                    expands: false,
-                                    onChanged: (text) {
-                                      // if (text.isNotEmpty) {
-                                      //   list[0].isTyping = true;
-                                      //   APIs.updateTypingStatus(true);
-                                      //   if(isVisibleUpload){
-                                      //
-                                      //     isVisibleUpload = false;
-                                      //     controller.update();
-                                      //   }
-                                      // } else {
-                                      //   list[0].isTyping = false;
-                                      //   APIs.updateTypingStatus(false);
-                                      //   if(!isVisibleUpload){
-                                      //
-                                      //     isVisibleUpload = true;
-                                      //     controller.update();
-                                      //   }
-                                      // }
-                                    },
-                                    onTap: () {
-                                    },
-                                    onFieldSubmitted: (v){
-                                        _sendMessage();
-                                    },
-
-                                    decoration: InputDecoration(
-                                      isDense: true,
-                                      hintText: 'Type Something...',
-                                      hintStyle: themeData.textTheme.bodySmall,
-                                      contentPadding: const EdgeInsets.all(8),
-                                      border: InputBorder.none,
-                                      enabledBorder: InputBorder.none,
-                                      disabledBorder: InputBorder.none,
-                                      errorBorder: InputBorder.none,
-                                      focusedBorder: InputBorder.none,
-                                    ),
-                                    inputFormatters: [
-                                      FilteringTextInputFormatter.allow(
-                                        RegExp(r'[\s\S]'), // allows everything including new lines
-                                      ),
-                                    ],
-
-                                  ),
-                                ),
-                                if (!isTaskMode)
-                                  Visibility(
-                                      visible: isVisibleUpload,
-                                      child: InkWell(
-                                        onTap: () =>
-                                            showUploadOptions(Get.context!),
-                                        child: Container(
-                                          padding: EdgeInsets.all(5),
-                                          margin: EdgeInsets.all(5),
-                                          decoration: BoxDecoration(
-                                            borderRadius: BorderRadius.circular(8),
-                                            border: Border.all(color: appColorGreen),
-                                            color: appColorGreen.withOpacity(.1)
-                                          ),
-                                          child:  Icon(
-                                            Icons.upload_outlined,
-                                            color: appColorGreen,
-                                          ),
-                                        ),
-                                      ))
-                              ],
-                            ),
-                          ),
-                        ),*//*
-                      ],
-                    ),
-                  ),
-                ),
-              ],
-            ),
-          ),
-          *//*hGap(6),
-                Card(
-                  clipBehavior: Clip.none,
-                  color: Colors.transparent,
-                  shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(8)),
-                  child: Row(
-                    children: [
-                      //pick image from gallery button
-                        IconButton(
-                          onPressed: () async {
-                            final ImagePicker picker = ImagePicker();
-
-                            // Picking multiple images
-                            final List<XFile> imgs =
-                            await picker.pickMultiImage(imageQuality: 70);
-                              controller.images.addAll(imgs);
-
-                          },
-                          icon: const Icon(Icons.image,
-                              color: Colors.blueAccent, size: 26)),
-
-                      //take image from camera button
-                      IconButton(
-                          onPressed: () async {
-                            // final ImagePicker picker = ImagePicker();
-                            // // Pick an image
-                            // final XFile? image = await picker.pickImage(
-                            //     source: ImageSource.camera, imageQuality: 70);
-                            // if (image != null) {
-                            //   // log('Image Path: ${image.path}');
-                            //   setState(() => _isUploading = true);
-                            //
-                            //   await APIs.sendChatImage(
-                            //       widget.user, File(image.path));
-                            //   setState(() => _isUploading = false);
-                            // }
-                            controller.chooseMediaSource();
-                          },
-                          tooltip: "Choose image from Gallery or Camera",
-                          padding: EdgeInsets.all(0),
-                          splashRadius: 1,
-                          icon: const Icon(Icons.camera_alt_outlined,
-                              color: Colors.blueAccent, size: 26)),
-                    ],
-                  ),
-                ),*//*
-
-          hGap(6),
-          InkWell(
-            onTap: () async {
-              _sendMessage();
-            },
-            child: Container(
-              padding: const EdgeInsets.all(12),
-              decoration: BoxDecoration(
-                borderRadius: BorderRadius.circular(8),
-                color: appColorGreen,
-              ),
-              child: const Icon(Icons.send, color: Colors.white),
-            ),
-          ).marginOnly(bottom: 4),
-
-          Visibility(
-            visible: !speechC.isListening.value || isVisibleUpload,
-              child: _languageToggle())
-        ],
-      ),
-    );
-  }*/
-
   KeyEventResult _handleKey(FocusNode node, KeyEvent event) {
     if (!kIsWeb) return KeyEventResult.ignored;
 
@@ -1944,9 +1672,6 @@ class ChatScreen extends GetView<ChatScreenController> {
       // APIs.updateTypingStatus(false);
     }
   }
-
-
-
 
   void showUploadOptions(BuildContext context) {
     if (kIsWeb) {
@@ -2102,6 +1827,7 @@ class ChatScreen extends GetView<ChatScreenController> {
 
 
   int maxBytes = 15 * 1024 * 1024;
+
   Future<List<PlatformFile>> _pickWebDocs() async {
     final result = await FilePicker.platform.pickFiles(
       allowMultiple: false,
@@ -2166,8 +1892,6 @@ class ChatScreen extends GetView<ChatScreenController> {
     return result.files;
   }
 
-
-
   // bottom sheet for modifying message details
   void _showBottomSheet(bool isMe, {required ChatHisList data}) async {
     DateTime msg = DateTime.parse(data.sentOn ?? '');
@@ -2230,7 +1954,57 @@ class ChatScreen extends GetView<ChatScreenController> {
                           : const SizedBox()
                       : const SizedBox(),
 
-              ((data.media ?? []).isNotEmpty || data.media?.length == 1)
+              (((data.media ?? []).isNotEmpty && data.media?.length == 1) ||data.message!='')
+                  ? _OptionItem(
+                      icon: Icon(Icons.reply, color: appColorGreen, size: 16),
+                      name: 'Reply',
+                      onTap: () async {
+                        final media = data.media;
+                        if (media == null || media.isEmpty) {
+                          controller.refIdis = data.chatId;
+                          controller.userIDSender = data.fromUser?.userId;
+                          controller.userNameReceiver = data.toUser?.userCompany?.displayName ?? '';
+                          controller.userNameSender =data.fromUser?.userCompany?.displayName ?? '';
+                          controller.userIDReceiver = data.toUser?.userId;
+                          controller.replyToMessage = data;
+                          controller.update();
+                          controller.messageParentFocus.unfocus();
+                          if (controller.messageParentFocus.canRequestFocus) {
+                            controller.messageParentFocus.requestFocus();
+                          }
+                          Get.back();
+                        } else {
+                          final firstMedia = media.first;
+                          controller.refIdis = data.chatId;
+                          controller.userIDSender = data.fromUser?.userId;
+                          controller.userNameReceiver = data.toUser?.userCompany?.displayName ?? '';
+                          controller.userNameSender = data.fromUser?.userCompany?.displayName ?? '';
+                          controller.userIDReceiver = data.toUser?.userId;
+                          controller.replyToImage = firstMedia.orgFileName;
+                          final isDoc = firstMedia.mediaType?.mediaCode == "DOC";
+                          final msg = isDoc
+                              ? (firstMedia.orgFileName ?? '')
+                              : "${ApiEnd.baseUrlMedia}${firstMedia.fileName ?? ''}";
+                          controller.replyToMessage = ChatHisList(
+                            chatId: data.chatId,
+                            fromUser: data.fromUser,
+                            toUser: data.toUser,
+                            message: msg,
+                            replyToId: data.chatId,
+                            replyToText: firstMedia.orgFileName,
+                            replyToMedia:msg,
+                          );
+                          controller.update();
+                          controller.messageParentFocus.unfocus();
+                          if (controller.messageParentFocus.canRequestFocus) {
+                            controller.messageParentFocus.requestFocus();
+                          }
+                          Get.back();
+                        }
+                      })
+                  : const SizedBox(),
+
+             /* (data.message!='')
                   ? _OptionItem(
                       icon: Icon(Icons.reply, color: appColorGreen, size: 16),
                       name: 'Reply',
@@ -2279,7 +2053,7 @@ class ChatScreen extends GetView<ChatScreenController> {
                           Get.back();
                         }
                       })
-                  : const SizedBox(),
+                  : const SizedBox(),*/
 
               ((data.media ?? []).isNotEmpty && data.media?.length == 1)?
               _OptionItem(
@@ -2307,7 +2081,7 @@ class ChatScreen extends GetView<ChatScreenController> {
 
                         Get.dialog(
                           SaveToCustomFolderDialog(
-                            user: user,
+                            user: widget.user,
                             filesImages: picked,
                             isImage: true,
                             isFromChat: true,
@@ -2352,7 +2126,7 @@ class ChatScreen extends GetView<ChatScreenController> {
                     }),*/
 
               // delete option
-              if (controller.me?.userId == controller.myCompany?.createdBy &&
+              if (APIs.me?.userId == controller.myCompany?.createdBy &&
                   isMe)
                 _OptionItem(
                     icon: const Icon(Icons.delete_forever,
@@ -2421,10 +2195,6 @@ class ChatScreen extends GetView<ChatScreenController> {
         });
   }
 
-
-
-
-
   Widget buildMessageBubble(ChatHisList msg, {required bool isMine}) {
     final bool isDeleted = (msg.message == null || msg.message!.isEmpty);
     String formatatedTime = '';
@@ -2454,7 +2224,7 @@ class ChatScreen extends GetView<ChatScreenController> {
     // ... your normal bubble
     return _chatMessageTile(
         data: msg,
-        sentByMe: (controller.me?.userId.toString() ==
+        sentByMe: (APIs.me?.userId.toString() ==
                 msg.fromUser?.userId?.toString()
             ? true
             : false),

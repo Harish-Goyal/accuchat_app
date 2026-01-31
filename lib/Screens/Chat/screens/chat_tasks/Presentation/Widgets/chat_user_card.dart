@@ -122,23 +122,30 @@ class _ChatUserCardState extends State<ChatUserCard>
                 }else{
                   if (kIsWeb) {
                     final homec = Get.find<ChatHomeController>();
-                    final chatc = Get.find<ChatScreenController>();
+                    ChatScreenController? chatc;
+                    if(Get.isRegistered<ChatScreenController>()){
+                      chatc = Get.find<ChatScreenController>();
+                    }else{
+                      Get.put(ChatScreenController(user: widget.user));
+                    }
+
                     // homec.page = 1;
                     // homec.hitAPIToGetRecentChats();
-                    chatc.textController.clear();
-                    chatc.replyToMessage=null;
+                    chatc?.textController.clear();
+                    chatc?.replyToMessage=null;
+                    chatc?.showPostShimmer =true;
                     homec.selectedChat.value = widget.user;
-                    chatc.user =homec.selectedChat.value;
-                    chatc.showPostShimmer =true;
-                    chatc.openConversation(widget.user);
+                    chatc?.user = homec.selectedChat.value;
+                    chatc?.openConversation(homec.selectedChat.value);
                     if (homec.selectedChat.value?.pendingCount != 0) {
-                      chatc.markAllVisibleAsReadOnOpen(
+                      chatc?.markAllVisibleAsReadOnOpen(
                           APIs.me?.userCompany?.userCompanyId,
                           chatc.user?.userCompany?.userCompanyId,
                           chatc.user?.userCompany?.isGroup == 1 ? 1 : 0);
                     }
-                    // homec.selectedChat.refresh();
-                    chatc.update();
+                    homec.update();
+                    homec.selectedChat.refresh();
+                    chatc?.update();
                   } else {
 
                     Get.toNamed(

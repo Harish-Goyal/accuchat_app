@@ -249,10 +249,10 @@ class NotificationServicess {
         Get.put(ChatHomeController());
       }
       if (!Get.isRegistered<ChatScreenController>()) {
-        Get.put(ChatScreenController(user: user));
+        Get.lazyPut(()=>ChatScreenController(user: user));
       }
-      final homec = Get.find<ChatHomeController>();
       final chatc = Get.find<ChatScreenController>();
+      final homec = Get.find<ChatHomeController>();
       // homec.page = 1;
       // homec.hitAPIToGetRecentChats();
       chatc.replyToMessage = null;

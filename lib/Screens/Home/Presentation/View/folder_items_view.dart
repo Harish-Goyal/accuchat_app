@@ -5,6 +5,7 @@ import 'package:AccuChat/routes/app_routes.dart';
 import 'package:AccuChat/utils/common_textfield.dart';
 import 'package:AccuChat/utils/helper_widget.dart';
 import 'package:flutter/cupertino.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import '../../../../Constants/assets.dart';
@@ -13,6 +14,7 @@ import '../../../../utils/confirmation_dialog.dart';
 import '../../../../utils/custom_container.dart';
 import '../../../../utils/loading_indicator.dart';
 import '../../../../utils/networl_shimmer_image.dart';
+import '../../../../utils/share_helper.dart';
 import '../../../../utils/show_upload_option_galeery.dart';
 import '../../../Chat/screens/chat_tasks/Presentation/Controllers/gallery_view_controller.dart';
 import '../../../Chat/screens/chat_tasks/Presentation/Views/images_gallery_page.dart';
@@ -124,7 +126,8 @@ class FolderItemsScreen extends GetView<GalleryItemController> {
                         onDelete: () => _openDeleteConfirm(context, it,controller),
                         onShare: () {
                           // c.shareMedia(it);
-                        },
+                        }, onSharew: ()=>
+                        _onShareWhatsapp(thumbUrl),
                       );
                     },
                   );
@@ -261,6 +264,18 @@ class FolderItemsScreen extends GetView<GalleryItemController> {
 
   }
 
+  void _onShareWhatsapp(url)async{
+    if (kIsWeb) {
+      ShareHelper.shareOnWhatsApp(url);
+    } else {
+      await ShareHelper.shareNetworkFile(
+        url,
+        text: "From AccuChat",
+        fileName: url, // optional if you store it
+      );
+    }
+  }
+
   // ---------- File helpers ----------
   static bool _isImage(int mediaTypeId, String fileName) {
     final lower = fileName.toLowerCase();
@@ -312,6 +327,7 @@ class _MediaCard extends StatelessWidget {
   final VoidCallback onRename;
   final VoidCallback onDelete;
   final VoidCallback onShare;
+  final VoidCallback onSharew;
 
   const _MediaCard({
     required this.thumbHeight,
@@ -326,6 +342,7 @@ class _MediaCard extends StatelessWidget {
     required this.onRename,
     required this.onDelete,
     required this.onShare,
+    required this.onSharew,
   });
 
   @override
@@ -406,22 +423,18 @@ class _MediaCard extends StatelessWidget {
                       borderRadius: BorderRadius.circular(12),
                       color: Colors.white,
                       onSelected: (action) {
-                     /* if (action == "rename") onRename();
-                        if (action == "share") onShare();
-                        if (action == "delete") onDelete();*/
+
                         switch (action) {
                           case FolderMenuAction.rename:
                             onRename();
-                          // controller.startRename(id: node.id??'', currentName: node.name??'');
                             break;
                           case FolderMenuAction.delete:
-                          // showResponsiveConfirmationDialog(onConfirm:  () async {
-                          //   Get.back();
-                          // },title: "Delete ${node.name} Folder(Permanently Deleted)");
                          onDelete();
                             break;
                           case FolderMenuAction.share:
-                          // onShare?.call(node);
+                            break;
+                          case FolderMenuAction.sharew:
+                           onSharew();
                             break;
                         }
                       },
@@ -433,6 +446,10 @@ class _MediaCard extends StatelessWidget {
                         PopupMenuItem(
                           value: FolderMenuAction.share,
                           child: Text("Share"),
+                        ),
+                        PopupMenuItem(
+                          value: FolderMenuAction.sharew,
+                          child: Text("Share on Whatsapp"),
                         ),
                         PopupMenuDivider(),
                         PopupMenuItem(

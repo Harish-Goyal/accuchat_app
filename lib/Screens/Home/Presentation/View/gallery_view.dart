@@ -394,7 +394,7 @@ class _GalleryGrid extends StatelessWidget {
   }
 }
 
-enum FolderMenuAction { rename, share, delete }
+enum FolderMenuAction { rename, share,sharew, delete }
 
 class _GalleryTile extends StatelessWidget {
   // final GalleryNode node;
@@ -547,6 +547,9 @@ class _GalleryTile extends StatelessWidget {
                                 "Delete ${folder.folderName} (Permanently Deleted)");
                         break;
                       case FolderMenuAction.share:
+                        // onShare?.call(node);
+                        break;
+                      case FolderMenuAction.sharew:
                         // onShare?.call(node);
                         break;
                     }

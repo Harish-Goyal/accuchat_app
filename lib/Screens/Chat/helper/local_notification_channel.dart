@@ -270,7 +270,7 @@ class LocalNotificationService {
         Get.put(ChatScreenController(user: user));
       }
       final homec = Get.find<ChatHomeController>();
-      final chatc = Get.find<ChatScreenController>();
+      final chatc = Get.find<ChatScreenController>(tag: "chat_${user.userId ?? 'mobile'}");
       // homec.page = 1;
       // homec.hitAPIToGetRecentChats();
       chatc.replyToMessage = null;
