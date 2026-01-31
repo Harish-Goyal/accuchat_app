@@ -35,10 +35,15 @@ class ChatsHomeScreen extends GetView<ChatHomeController> {
         onWillPop: () {
           return Future.value(true);
         },
-        child: Scaffold(
-          appBar: _appBarWidget(),
-          floatingActionButton: _floatingBotton(),
-          body: _mainBody(),
+        child: LayoutBuilder(
+            builder: (context, constraints) {
+              double w = constraints.maxWidth;
+            return Scaffold(
+              appBar: _appBarWidget(w),
+              floatingActionButton: _floatingBotton(),
+              body: _mainBody(),
+            );
+          }
         ),
       ),
     );
@@ -66,18 +71,78 @@ class ChatsHomeScreen extends GetView<ChatHomeController> {
           );
   }
 
-  AppBar _appBarWidget() {
+  AppBar _appBarWidget(w) {
+
     return AppBar(
       automaticallyImplyLeading: false,
       backgroundColor: Colors.white,
       elevation: 1,
       scrolledUnderElevation: 0,
       surfaceTintColor: Colors.white,
-      title: Obx(() {
+      title:kIsWeb && w>600 ?InkWell(
+        hoverColor: Colors.transparent,
+        onTap: () {
+          Get.toNamed(AppRoutes.all_settings);
+        },
+        child: Row(
+          children: [
+            SizedBox(
+              width: 40,
+              child: CustomCacheNetworkImage(
+                "${ApiEnd.baseUrlMedia}${controller.myCompany?.logo ?? ''}",
+                radiusAll: 100,
+                height: 40,
+                width: 40,
+                borderColor: appColorYellow,
+                defaultImage: appIcon,
+                boxFit: BoxFit.cover,
+              ),
+            ).paddingAll(3),
+            Expanded(
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.end,
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    'Chats',
+                    style: BalooStyles.balooboldTitleTextStyle(
+                        color: AppTheme.appColor, size: 16),
+                  ).paddingOnly(left: 4, top: 4),
+                  Text(
+                    (controller.myCompany?.companyName ?? ''),
+                    style: BalooStyles.baloomediumTextStyle(
+                      color: appColorYellow,
+                    ),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                  ).paddingOnly(left: 4, top: 2),
+                ],
+              ),
+            ),
+          ],
+        ),
+      ): Obx(() {
         if (controller.loadingCompany.value) {
           return const Center(child: CircularProgressIndicator());
         }
-        return InkWell(
+        return controller.isSearching.value
+            ? TextField(
+                controller: controller.seacrhCon,
+                cursorColor: appColorGreen,
+                decoration: const InputDecoration(
+                    border: InputBorder.none,
+                    hintText: 'Search User, Group & Collection ...',
+                    contentPadding: EdgeInsets.symmetric(vertical: 0, horizontal: 10),
+                    constraints: BoxConstraints(maxHeight: 45)),
+                autofocus: true,
+                style: const TextStyle(fontSize: 13, letterSpacing: 0.5),
+                onChanged: (val) {
+                  controller.searchQuery = val;
+                  controller.onSearch(val);
+                },
+              ).marginSymmetric(vertical: 10)
+            : InkWell(
                 hoverColor: Colors.transparent,
                 onTap: () {
                   Get.toNamed(AppRoutes.all_settings);
@@ -141,7 +206,23 @@ class ChatsHomeScreen extends GetView<ChatHomeController> {
                   filterQuality: FilterQuality.high,
                 ))
             : const SizedBox(),
-
+    kIsWeb && w >600 ?const SizedBox(): hGap(10),
+       kIsWeb && w > 600?const SizedBox(): Obx(() {
+          return IconButton(
+              onPressed: () {
+                controller.isSearching.value = !controller.isSearching.value;
+                controller.isSearching.refresh();
+                if (!controller.isSearching.value) {
+                  controller.searchQuery = '';
+                  controller.onSearch('');
+                  controller.seacrhCon.clear();
+                }
+                // controller.update();
+              },
+              icon: controller.isSearching.value
+                  ? const Icon(CupertinoIcons.clear_circled_solid)
+                  : Image.asset(searchPng, height: 25, width: 25));
+        }),
         PopupMenuButton<String>(
           padding: EdgeInsets.zero,
           menuPadding: EdgeInsets.zero,
@@ -269,7 +350,7 @@ class ChatsHomeScreen extends GetView<ChatHomeController> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.end,
       children: [
-       TextField(
+        kIsWeb && !isWebwidth ?TextField(
           controller: controller.seacrhCon,
           focusNode:controller.searchFocus,
           autocorrect: true,
@@ -278,10 +359,10 @@ class ChatsHomeScreen extends GetView<ChatHomeController> {
             controller.searchFocus.requestFocus(controller.searchFocus);
           },
           decoration:  InputDecoration(
-              border: InputBorder.none,
-              hintText: 'Search User, Group & Collection ...',
-              contentPadding: const EdgeInsets.symmetric(vertical: 3, horizontal: 10),
-              constraints: const BoxConstraints(maxHeight: 35),
+            border: InputBorder.none,
+            hintText: 'Search User, Group & Collection ...',
+            contentPadding: const EdgeInsets.symmetric(vertical: 3, horizontal: 10),
+            constraints: const BoxConstraints(maxHeight: 35),
             suffixIcon: Obx(() {
               return IconButton(
                   onPressed: () {
@@ -312,7 +393,7 @@ class ChatsHomeScreen extends GetView<ChatHomeController> {
             }
           },
 
-        ).marginSymmetric(vertical: 10,horizontal: 15),
+        ).marginSymmetric(vertical: 10,horizontal: 15):const SizedBox()    ,
         (controller.filteredList != [])
         ? Expanded(
           child: RefreshIndicator(
