@@ -31,6 +31,7 @@ import '../../../../../../Constants/colors.dart';
 import '../../../../../../utils/common_textfield.dart';
 import '../../../../../../utils/custom_dialogue.dart';
 import '../../../../../../utils/custom_flashbar.dart';
+import '../../../../../../utils/emogi_checker.dart';
 import '../../../../../../utils/emogi_picker_web.dart';
 import '../../../../../../utils/gradient_button.dart';
 import '../../../../../../utils/product_shimmer_widget.dart';
@@ -810,6 +811,7 @@ class ChatScreenMobile extends GetView<ChatScreenController> {
   }
 
   messageTypeView(ChatHisList data, {required bool sentByMe}) {
+    final isEmojiMsg = isEmojiOnlyMessage(data.message??'');
     return Container(
       key: ValueKey('msg-${data.chatId}'),
       child: Column(
@@ -885,7 +887,7 @@ class ChatScreenMobile extends GetView<ChatScreenController> {
               textAlign: TextAlign.start,
               style: BalooStyles.baloonormalTextStyle(
                 color: Colors.black87,
-                size: 15,
+                size:isEmojiMsg?40: 15,
               ),
               overflow: TextOverflow.visible)
               : const SizedBox(),

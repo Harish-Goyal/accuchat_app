@@ -69,32 +69,15 @@ class ChatsHomeScreen extends GetView<ChatHomeController> {
   AppBar _appBarWidget() {
     return AppBar(
       automaticallyImplyLeading: false,
-      backgroundColor: Colors.white, // white color
-      elevation: 1, // remove shadow
-      scrolledUnderElevation: 0, // ✨ prevents color change on scroll
+      backgroundColor: Colors.white,
+      elevation: 1,
+      scrolledUnderElevation: 0,
       surfaceTintColor: Colors.white,
       title: Obx(() {
         if (controller.loadingCompany.value) {
           return const Center(child: CircularProgressIndicator());
         }
-        return controller.isSearching.value
-            ? TextField(
-                controller: controller.seacrhCon,
-                cursorColor: appColorGreen,
-                decoration: const InputDecoration(
-                    border: InputBorder.none,
-                    hintText: 'Search User, Group & Collection ...',
-                    contentPadding:
-                        EdgeInsets.symmetric(vertical: 0, horizontal: 10),
-                    constraints: BoxConstraints(maxHeight: 45)),
-                autofocus: true,
-                style: const TextStyle(fontSize: 13, letterSpacing: 0.5),
-                onChanged: (val) {
-                  controller.searchQuery = val;
-                  controller.onSearch(val);
-                },
-              ).marginSymmetric(vertical: 10)
-            : InkWell(
+        return InkWell(
                 hoverColor: Colors.transparent,
                 onTap: () {
                   Get.toNamed(AppRoutes.all_settings);
@@ -158,24 +141,7 @@ class ChatsHomeScreen extends GetView<ChatHomeController> {
                   filterQuality: FilterQuality.high,
                 ))
             : const SizedBox(),
-        hGap(10),
-        Obx(() {
-          return IconButton(
-              onPressed: () {
-                controller.isSearching.value = !controller.isSearching.value;
-                controller.isSearching.refresh();
 
-                if (!controller.isSearching.value) {
-                  controller.searchQuery = '';
-                  controller.onSearch('');
-                  controller.seacrhCon.clear();
-                }
-                // controller.update();
-              },
-              icon: controller.isSearching.value
-                  ? const Icon(CupertinoIcons.clear_circled_solid)
-                  : Image.asset(searchPng, height: 25, width: 25));
-        }),
         PopupMenuButton<String>(
           padding: EdgeInsets.zero,
           menuPadding: EdgeInsets.zero,
@@ -300,65 +266,118 @@ class ChatsHomeScreen extends GetView<ChatHomeController> {
 
   Widget _recentChatsList(
       ChatHomeController controller, bool isWebwidth, double width) {
-    return (controller.filteredList != [])
-        ? RefreshIndicator(
-            backgroundColor: Colors.white,
-            color: appColorGreen,
-            onRefresh: () async {
-              controller.resetPagination();
-              controller.hitAPIToGetRecentChats(page: 1);
-            },
-            child: Obx(() {
-              return ListView.builder(
-                physics: const AlwaysScrollableScrollPhysics(),
-                itemCount: controller.filteredList.length,
-                padding: EdgeInsets.zero,
-                controller: controller.scrollController,
-                itemBuilder: (context, index) {
-                  final item = controller.filteredList[index];
-                  return kIsWeb && !isWebwidth
-                      ? ChatUserCard(user: item)
-                      : ChatUserCardMobile(user: item);
-                },
-              );
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.end,
+      children: [
+       TextField(
+          controller: controller.seacrhCon,
+          focusNode:controller.searchFocus,
+          autocorrect: true,
+          cursorColor: appColorGreen,
+          onTap: (){
+            controller.searchFocus.requestFocus(controller.searchFocus);
+          },
+          decoration:  InputDecoration(
+              border: InputBorder.none,
+              hintText: 'Search User, Group & Collection ...',
+              contentPadding: const EdgeInsets.symmetric(vertical: 3, horizontal: 10),
+              constraints: const BoxConstraints(maxHeight: 35),
+            suffixIcon: Obx(() {
+              return IconButton(
+                  onPressed: () {
+                    controller.isSearching.value = !controller.isSearching.value;
+                    controller.isSearching.refresh();
+                    if (!controller.isSearching.value) {
+                      controller.searchQuery = '';
+                      controller.onSearch('');
+                      controller.seacrhCon.clear();
+                      controller.searchFocus.unfocus();
+                    }
+                    // controller.update();
+                  },
+                  icon: controller.isSearching.value
+                      ? const Icon(CupertinoIcons.clear_circled_solid)
+                      : Image.asset(searchPng, height: 25, width: 25));
             }),
-          )
-        : Center(
-            child: InkWell(
-              onTap: () {
-                if (kIsWeb) {
-                  Get.toNamed("${AppRoutes.all_users}?isRecent='false'");
-                } else {
-                  Get.toNamed(AppRoutes.all_users,
-                      arguments: {"isRecent": 'false'});
-                }
-              },
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                mainAxisAlignment: MainAxisAlignment.center,
-                crossAxisAlignment: CrossAxisAlignment.center,
-                children: [
-                  Image.asset(
-                    emptyRecentPng,
-                    height: 90,
-                  ),
-                  Text('Click to Start new Chat 👋',
-                          style: BalooStyles.baloosemiBoldTextStyle(
-                              color: appColorGreen))
-                      .paddingAll(12),
-                  vGap(12),
-                  IconButton(
-                      onPressed: () async =>
-                          controller.hitAPIToGetRecentChats(page: 1),
-                      icon: Icon(
-                        Icons.refresh,
-                        size: 35,
-                        color: appColorGreen,
-                      )).paddingOnly(right: 8)
-                ],
-              ),
-            ),
+          ),
+          autofocus: true,
+          style: const TextStyle(fontSize: 13, letterSpacing: 0.5),
+          onChanged: (val) {
+            controller.searchQuery = val;
+            controller.isSearching.value=true;
+            controller.onSearch(val);
+            if(val.isEmpty){
+              controller.isSearching.value=false;
+              controller.searchFocus.unfocus();
+            }
+          },
+
+        ).marginSymmetric(vertical: 10,horizontal: 15),
+        (controller.filteredList != [])
+        ? Expanded(
+          child: RefreshIndicator(
+                backgroundColor: Colors.white,
+                color: appColorGreen,
+                onRefresh: () async {
+          controller.resetPagination();
+          controller.hitAPIToGetRecentChats(page: 1);
+                },
+                child: Obx(() {
+          return ListView.builder(
+            physics: const AlwaysScrollableScrollPhysics(),
+            itemCount: controller.filteredList.length,
+            padding: EdgeInsets.zero,
+            controller: controller.scrollController,
+            itemBuilder: (context, index) {
+              final item = controller.filteredList[index];
+              return kIsWeb && !isWebwidth
+                  ? ChatUserCard(user: item)
+                  : ChatUserCardMobile(user: item);
+            },
           );
+                }),
+              ),
+        )
+        : Center(
+      child: InkWell(
+        onTap: () {
+          if (kIsWeb) {
+            Get.toNamed("${AppRoutes.all_users}?isRecent='false'");
+          } else {
+            Get.toNamed(AppRoutes.all_users,
+                arguments: {"isRecent": 'false'});
+          }
+        },
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          mainAxisAlignment: MainAxisAlignment.center,
+          crossAxisAlignment: CrossAxisAlignment.center,
+          children: [
+            Image.asset(
+              emptyRecentPng,
+              height: 90,
+            ),
+            Text('Click to Start new Chat 👋',
+                style: BalooStyles.baloosemiBoldTextStyle(
+                    color: appColorGreen))
+                .paddingAll(12),
+            vGap(12),
+            IconButton(
+                onPressed: () async =>
+                    controller.hitAPIToGetRecentChats(page: 1),
+                icon: Icon(
+                  Icons.refresh,
+                  size: 35,
+                  color: appColorGreen,
+                )).paddingOnly(right: 8)
+          ],
+        ),
+      ),
+    )
+      ],
+    );
+
+
   }
 
   Widget _buildHeader(String title) {

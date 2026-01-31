@@ -33,6 +33,7 @@ import '../../../../../../Constants/app_theme.dart';
 import '../../../../../../Constants/assets.dart';
 import '../../../../../../Constants/colors.dart';
 import '../../../../../../utils/custom_flashbar.dart';
+import '../../../../../../utils/emogi_checker.dart';
 import '../../../../../../utils/emogi_picker_web.dart';
 import '../../../../../../utils/product_shimmer_widget.dart';
 import '../../../../../../utils/share_helper.dart';
@@ -910,6 +911,7 @@ class _ChatScreenState extends State<ChatScreen> {
   }
 
   messageTypeView(ChatHisList data, {required bool sentByMe}) {
+    final isEmojiMsg = isEmojiOnlyMessage(data.message??'');
     return Container(
       key: ValueKey('msg-${data.chatId}'),
       child: Column(
@@ -988,7 +990,9 @@ class _ChatScreenState extends State<ChatScreen> {
                 )
               : const SizedBox(),
           data.message != '' || data.message != null
-              ? DefaultSelectionStyle(
+              ?
+
+          DefaultSelectionStyle(
                   selectionColor: appColorPerple.withOpacity(0.3),
                   cursorColor: appColorPerple,
                   child: SelectableLinkify(
@@ -999,7 +1003,7 @@ class _ChatScreenState extends State<ChatScreen> {
                     },
                     style: BalooStyles.baloonormalTextStyle(
                       color: Colors.black87,
-                      size: 15,
+                      size:isEmojiMsg?50: 15,
                     ),
                     linkStyle: BalooStyles.baloonormalTextStyle(
                       color: Colors.blue,

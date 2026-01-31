@@ -35,6 +35,7 @@ class ChatHomeController extends GetxController{
   // RxBool loadingCompany = false.obs;
   String? selectedCompanyId;
   TextEditingController seacrhCon = TextEditingController();
+  FocusNode searchFocus = FocusNode();
   String searchQuery = '';
   Future<void> onCompanyChanged(int? companyId) async => hitAPIToGetRecentChats(page: 1);
 
