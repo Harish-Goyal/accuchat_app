@@ -105,7 +105,7 @@ class TaskHomeScreen extends GetView<TaskHomeController> {
                                       hintText: 'Search User ...',
                                       contentPadding: EdgeInsets.symmetric(vertical: 0, horizontal: 10),
                                       constraints: BoxConstraints(maxHeight: 45)),
-                                  autofocus: true,
+                                  // autofocus: true,
                                   style: const TextStyle(fontSize: 13, letterSpacing: 0.5),
                                   onChanged: (val) {
                                     controller.searchQuery = val;
@@ -395,7 +395,7 @@ class TaskHomeScreen extends GetView<TaskHomeController> {
                             : Image.asset(searchPng, height: 25, width: 25));
                   }),
                 ),
-                autofocus: true,
+                autofocus: false,
                 style: const TextStyle(fontSize: 13, letterSpacing: 0.5),
                 onChanged: (val) {
                   controller.searchQuery = val;

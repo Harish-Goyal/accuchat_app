@@ -135,9 +135,7 @@ class ChatScreenMobile extends GetView<ChatScreenController> {
                     child: _appBar(),
                   ),
                 ),
-
                 backgroundColor: const Color.fromARGB(255, 234, 248, 255),
-
                 body: ScrollConfiguration(
                   behavior: const _NoGlowScrollBehavior(),
                   child: _mainBody(context),

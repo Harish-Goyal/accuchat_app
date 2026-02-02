@@ -17,6 +17,11 @@ import '../../../../utils/animated_badge.dart';
 import '../../../../utils/data_not_found.dart';
 import '../../../../utils/helper_widget.dart';
 import '../../../../utils/networl_shimmer_image.dart';
+import '../../../Chat/api/apis.dart';
+import '../../../Chat/screens/chat_tasks/Presentation/Controllers/chat_home_controller.dart';
+import '../../../Chat/screens/chat_tasks/Presentation/Controllers/chat_screen_controller.dart';
+import '../../../Chat/screens/chat_tasks/Presentation/Controllers/task_controller.dart';
+import '../../../Chat/screens/chat_tasks/Presentation/Controllers/task_home_controller.dart';
 import '../../../Chat/screens/chat_tasks/Presentation/Views/chat_screen.dart';
 import '../../../Chat/screens/chat_tasks/Presentation/dialogs/profile_dialog.dart';
 
@@ -24,7 +29,7 @@ class CompanyMembers extends GetView<CompanyMemberController> {
   CompanyMembers({super.key});
 
   DashboardController dcController =
-  Get.put<DashboardController>(DashboardController());
+      Get.put<DashboardController>(DashboardController());
   DateTime _lastCall = DateTime.fromMillisecondsSinceEpoch(0);
 
   bool canFetch() {
@@ -33,6 +38,7 @@ class CompanyMembers extends GetView<CompanyMemberController> {
     _lastCall = now;
     return true;
   }
+
   @override
   Widget build(BuildContext context) {
     final size = MediaQuery.of(context).size;
@@ -41,111 +47,108 @@ class CompanyMembers extends GetView<CompanyMemberController> {
 
     return Scaffold(
       appBar: _buildAppBar(),
-      body:
-     Center(
-          child: ConstrainedBox(
-            constraints: BoxConstraints(
-              maxWidth: isWide ? maxContentWidth : double.infinity,
-            ),
-            child: Padding(
-              padding: EdgeInsets.symmetric(horizontal: isWide ? 16 : 10),
-              child: buildCompanyMembersList(),
-            ),
+      body: Center(
+        child: ConstrainedBox(
+          constraints: BoxConstraints(
+            maxWidth: isWide ? maxContentWidth : double.infinity,
+          ),
+          child: Padding(
+            padding: EdgeInsets.symmetric(horizontal: isWide ? 16 : 10),
+            child: buildCompanyMembersList(),
           ),
         ),
+      ),
     );
   }
 
-
-  AppBar _buildAppBar(){
+  AppBar _buildAppBar() {
     return AppBar(
-      automaticallyImplyLeading: false,
-      backgroundColor: Colors.white,   // white color
-      elevation: 1,                    // remove shadow
-      scrolledUnderElevation: 0,       // ✨ prevents color change on scroll
+      automaticallyImplyLeading: true,
+      backgroundColor: Colors.white, // white color
+      elevation: 1, // remove shadow
+      scrolledUnderElevation: 0, // ✨ prevents color change on scroll
       surfaceTintColor: Colors.white,
-      title: Obx(
-              () {
-            return controller.isSearching.value
-                ? TextField(
-              controller: controller.searchController,
-              cursorColor: appColorGreen,
-              decoration: const InputDecoration(
-                  border: InputBorder.none,
-                  hintText: 'Search User by name and phone ...',
-                  contentPadding: EdgeInsets.symmetric(
-                      vertical: 0, horizontal: 10),
-                  constraints: BoxConstraints(maxHeight: 45)),
-              autofocus: true,
-              style: const TextStyle(
-                  fontSize: 13, letterSpacing: 0.5),
-              onChanged: (val) {
-                controller.searchText = val;
-                controller.onSearch(val);
-              },
-            ).marginSymmetric(vertical: 10)
-                :
-
-            Text(
-              ("${(controller.companyName ?? '')}'s Members"),
-              style: BalooStyles.balooboldTitleTextStyle(),
-            );
-          }
-      ),
+      title: Obx(() {
+        return controller.isSearching.value
+            ? TextField(
+                controller: controller.searchController,
+                cursorColor: appColorGreen,
+                decoration: const InputDecoration(
+                    border: InputBorder.none,
+                    hintText: 'Search User by name and phone ...',
+                    contentPadding:
+                        EdgeInsets.symmetric(vertical: 0, horizontal: 10),
+                    constraints: BoxConstraints(maxHeight: 45)),
+                autofocus: true,
+                style: const TextStyle(fontSize: 13, letterSpacing: 0.5),
+                onChanged: (val) {
+                  controller.searchText = val;
+                  controller.onSearch(val);
+                },
+              ).marginSymmetric(vertical: 10)
+            : Text(
+                ("${(controller.companyName ?? '')}'s Members"),
+                style: BalooStyles.balooboldTitleTextStyle(),
+              );
+      }),
       actions: [
-        Obx(
-                () {
-              return IconButton(
+        Obx(() {
+          return IconButton(
                   onPressed: () {
-                    controller.isSearching.value = !controller.isSearching.value;
+                    controller.isSearching.value =
+                        !controller.isSearching.value;
                     controller.isSearching.refresh();
 
-                    if(!controller.isSearching.value){
+                    if (!controller.isSearching.value) {
                       controller.searchText = '';
                       controller.onSearch('');
                       controller.searchController.clear();
                     }
                     // controller.update();
                   },
-                  icon:  controller.isSearching.value?  const Icon(
-                      CupertinoIcons.clear_circled_solid)
-                      : Image.asset(searchPng,height:25,width:25)
-              ).paddingOnly(right:8);
-            }
-        ),
-
+                  icon: controller.isSearching.value
+                      ? const Icon(CupertinoIcons.clear_circled_solid)
+                      : Image.asset(searchPng, height: 25, width: 25))
+              .paddingOnly(right: 8);
+        }),
       ],
     );
   }
 
   Widget buildCompanyMembersList() {
-    return Obx(()=> controller.isLoading.value?const IndicatorLoading():
-    (controller.filteredList??[]).isEmpty?DataNotFoundText():  NotificationListener<ScrollNotification>(
-      onNotification: (ScrollNotification n) {
-        if (n is! ScrollEndNotification) return false; // ✅ avoid spam
+    return Obx(
+      () => controller.isLoading.value
+          ? const IndicatorLoading()
+          : (controller.filteredList ?? []).isEmpty
+              ? DataNotFoundText()
+              : NotificationListener<ScrollNotification>(
+                  onNotification: (ScrollNotification n) {
+                    if (n is! ScrollEndNotification)
+                      return false; // ✅ avoid spam
 
-        final m = n.metrics;
+                    final m = n.metrics;
 
-        if (m.extentAfter < 200 &&
-            !controller.isLoading.value &&
-            controller.hasMore &&
-            canFetch()) {
-          controller.hitAPIToGetMember();
-        }
-        return false;
-      },
-      child: ListView.separated(
-          // shrinkWrap: true,
-          itemCount: controller.filteredList.length??0,
-          physics: const AlwaysScrollableScrollPhysics(),
-          controller: controller.scrollController,
-          itemBuilder: (context, index) {
-            final memData = controller.filteredList[index];
-            final bool isWide = MediaQuery.of(context).size.width >= 900; // web-aware inside the row
-            return SwipeTo(
-              iconOnLeftSwipe: Icons.delete_outline,
-              iconColor: Colors.red,
-              onLeftSwipe: /*(((APIs.me.selectedCompany!.createdBy == user.id) ))
+                    if (m.extentAfter < 200 &&
+                        !controller.isLoading.value &&
+                        controller.hasMore &&
+                        canFetch()) {
+                      controller.hitAPIToGetMember();
+                    }
+                    return false;
+                  },
+                  child: ListView.separated(
+                    // shrinkWrap: true,
+                    itemCount: controller.filteredList.length ?? 0,
+                    physics: const AlwaysScrollableScrollPhysics(),
+                    controller: controller.scrollController,
+                    itemBuilder: (context, index) {
+                      final memData = controller.filteredList[index];
+                      final bool isWide = MediaQuery.of(context).size.width >=
+                          900; // web-aware inside the row
+                      return SwipeTo(
+                        iconOnLeftSwipe: Icons.delete_outline,
+                        iconColor: Colors.red,
+                        onLeftSwipe: /*(((APIs.me.selectedCompany!.createdBy == user.id) ))
                                 ? (de) {
                               if(user.role
                                   != 'admin') {
@@ -155,9 +158,9 @@ class CompanyMembers extends GetView<CompanyMemberController> {
                               }
                             }
                                 :*/
-                  (detail) async {
-                    controller.removeCompanyMember(memData);
-                /*final meId = controller.me?.userId;
+                            (detail) async {
+                          controller.removeCompanyMember(memData);
+                          /*final meId = controller.me?.userId;
                 final creatorId = controller.myCompany?.createdBy;
                 final targetId = memData?.userId;
 
@@ -235,263 +238,152 @@ class CompanyMembers extends GetView<CompanyMemberController> {
                 if (confirm == true) {
                   controller.hitAPIToRemoveMember(targetId);
                 }*/
-              },
-
-                child: ListTile(
-                dense: true,
-                enabled: false,
-                visualDensity: kIsWeb ? const VisualDensity(vertical: -1) : VisualDensity.standard, // tighter on web
-                contentPadding:
-                const EdgeInsets.symmetric(horizontal: 10, vertical: 0),
-                leading:
-                    memData?.userImage == '' ||
-                    memData?.userImage == null
-                    ? InkWell(
-                      onTap: (){
-                        showDialog(
-                            context: context,
-                            builder: (_) => ProfileDialog(user: memData));
-                      },
-                      child: CircleAvatar(
-                      radius: isWide ? 22 : 20, // slightly larger on wide
-                      backgroundColor: appColorGreen.withOpacity(.1),
-                      child: Icon(
-                        Icons.person,
-                        size: isWide ? 18 : 15,
-                        color: appColorGreen,
-                      )),
-                    )
-                    : InkWell(
-            onTap: (){
-            showDialog(
-            context: context,
-            builder: (_) => ProfileDialog(user: memData));
-            },
-            child:CircleAvatar(
-                    radius: isWide ? 22 : 20,
-                    backgroundColor: appColorGreen.withOpacity(.1),
-                    child: SizedBox(
-                      width: 60,
-                      child: CustomCacheNetworkImage(
-                        radiusAll: 100,
-                        width: 60,
-                        height: 60,
-                        boxFit: BoxFit.cover,
-                        defaultImage: userIcon,
-                        borderColor: greyText,
-                        "${ApiEnd.baseUrlMedia}${memData?.userImage ?? ''}",
-                      ),
-                    ))),
-                title:
-
-                    InkWell(
-                      onLongPress: (){
-                        controller.removeCompanyMember(memData);
-                      },
-                      onTap: (){
-                        dcController.updateIndex(0);
-                        isTaskMode = false;
-                        controller.update();
-                        // APIs.updateActiveStatus(true);
-                        if(isTaskMode) {
-                          if(kIsWeb){
-                            Get.to(()=>TaskScreen(taskUser: memData ,showBack: true,));
-                            // Get.toNamed(
-                            //   "${AppRoutes.tasks_li_r}?userId=${memData?.userId.toString()}",
-                            // );
-                          }else{
-                            Get.toNamed(
-                              AppRoutes.tasks_li_r,
-                              arguments: {'user': memData},
-                            );
-                          }
-                        }else{
-                          if(kIsWeb){
-                            Get.to(()=>ChatScreen(user: memData ,showBack: true,));
-                          }else{
-                            Get.toNamed(
-                              AppRoutes.chats_li_r,
-                              arguments: {'user': memData},
-                            );
-                          }
-                        }
-                      },
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                         Text(
-                            memData?.userName!=null ? memData?.userName??'' :memData?.userCompany?.displayName!=null?memData?.userCompany?.displayName ?? '':memData?.phone??'',
-                            style: BalooStyles.baloosemiBoldTextStyle(),
-                            maxLines: 1,
-                            overflow: TextOverflow.ellipsis,
-                          ),
-
-                          vGap(4),
-                          memData?.userName==null && memData?.userCompany?.displayName==null?SizedBox():  Text(
-                            memData?.phone != null
-                                ?memData?.phone ?? ''
-                                : memData?.email ?? '',
-                            style: BalooStyles.balooregularTextStyle(),
-                            maxLines: 1,
-                            overflow: TextOverflow.ellipsis,
-                          )
-                        ],
-                      ),
-                    ),
-
-
-
-                trailing: Column(
-                    crossAxisAlignment: CrossAxisAlignment.end,
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-
-                      // (user.userId == APIs.me.id && user.userId != APIs.me.selectedCompany?.adminUserId)
-                      //  ? Text(
-                      //                     //   "You",
-                      //                     //   style: BalooStyles
-                      //                     //       .baloonormalTextStyle(),
-                      //                     // )
-                      //     :(user.userId == APIs.me.selectedCompany?.adminUserId)?Text(
-                      //   "Creator",
-                      //   style: BalooStyles
-                      //       .baloonormalTextStyle(color:appColorGreen),
-                      // ): const SizedBox(),
-
-                      Row(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-
-                          Stack(
-                            clipBehavior: Clip.none,
-                            children: [
-                              TextButton(
-                                  onPressed: () {
-
-                                    dcController.updateIndex(0);
-
-                                    isTaskMode = false;
-                                    controller.update();
-                                    // APIs.updateActiveStatus(true);
-
-
-                                    if(isTaskMode) {
-                                      if(kIsWeb){
-                                        Get.toNamed(
-                                          "${AppRoutes.tasks_li_r}?userId=${memData?.userId.toString()}",
-                                        );
-                                      }else{
-                                        Get.toNamed(
-                                          AppRoutes.tasks_li_r,
-                                          arguments: {'user': memData},
-                                        );
-                                      }
-                                    }else{
-                                      if(kIsWeb){
-                                        Get.toNamed(
-                                          "${AppRoutes.chats_li_r}?userId=${memData?.userId.toString()}",
-                                        );
-                                      }else{
-                                        Get.toNamed(
-                                          AppRoutes.chats_li_r,
-                                          arguments: {'user': memData},
-                                        );
-                                      }
-                                    }
+                        },
+                        child: ListTile(
+                          dense: true,
+                          enabled: false,
+                          visualDensity: kIsWeb
+                              ? const VisualDensity(vertical: -1)
+                              : VisualDensity.standard, // tighter on web
+                          contentPadding: const EdgeInsets.symmetric(
+                              horizontal: 10, vertical: 0),
+                          leading: memData?.userImage == '' ||
+                                  memData?.userImage == null
+                              ? InkWell(
+                                  onTap: () {
+                                    showDialog(
+                                        context: context,
+                                        builder: (_) =>
+                                            ProfileDialog(user: memData));
                                   },
-                                  style: TextButton.styleFrom(
-                                    // backgroundColor: appColorGreen.withOpacity(.1), // Button background color
-                                    foregroundColor: appColorGreen,
-                                    padding: const EdgeInsets.symmetric(
-                                        horizontal: 7.0,
-                                        vertical: 3.0), // reduce as needed
-                                    minimumSize: const Size(0,
-                                        0), // optional: allows tighter sizing
-                                    tapTargetSize: MaterialTapTargetSize
-                                        .shrinkWrap, // optional: reduces touch target
-                                  ),
-                                  child: Image.asset(chatHome,color: appColorGreen,height: 20,)),
-
-                              Positioned(
-                                  top: -13,
-                                  right: -7,
-                                child: InkWell(
-                                  onTap: (){
-                                    dcController.updateIndex(0);
-
-                                    isTaskMode = false;
-                                    controller.update();
-                                    // APIs.updateActiveStatus(true);
-
-
-                                    if(isTaskMode) {
-                                      if(kIsWeb){
-                                        Get.toNamed(
-                                          "${AppRoutes.tasks_li_r}?userId=${memData?.userId.toString()}",
-                                        );
-                                      }else{
-                                        Get.toNamed(
-                                          AppRoutes.tasks_li_r,
-                                          arguments: {'user': memData},
-                                        );
-                                      }
-                                    }else{
-                                      if(kIsWeb){
-                                        Get.toNamed(
-                                          "${AppRoutes.chats_li_r}?userId=${memData?.userId.toString()}",
-                                        );
-                                      }else{
-                                        Get.toNamed(
-                                          AppRoutes.chats_li_r,
-                                          arguments: {'user': memData},
-                                        );
-                                      }
-                                    }
+                                  child: CircleAvatar(
+                                      radius: isWide
+                                          ? 22
+                                          : 20, // slightly larger on wide
+                                      backgroundColor:
+                                          appColorGreen.withOpacity(.1),
+                                      child: Icon(
+                                        Icons.person,
+                                        size: isWide ? 18 : 15,
+                                        color: appColorGreen,
+                                      )),
+                                )
+                              : InkWell(
+                                  onTap: () {
+                                    showDialog(
+                                        context: context,
+                                        builder: (_) =>
+                                            ProfileDialog(user: memData));
                                   },
-                                    child: AnimatedBadge(count:memData?.unread_msg_count??0,)),
-                              ),
-                            ],
-                          ),
-
-                          hGap(12),
-
-
-                          InkWell(
-                            onTap: () => _goToTask(memData),
-                            child: Stack(
-                              clipBehavior: Clip.none,
+                                  child: CircleAvatar(
+                                      radius: isWide ? 22 : 20,
+                                      backgroundColor:
+                                          appColorGreen.withOpacity(.1),
+                                      child: SizedBox(
+                                        width: 60,
+                                        child: CustomCacheNetworkImage(
+                                          radiusAll: 100,
+                                          width: 60,
+                                          height: 60,
+                                          boxFit: BoxFit.cover,
+                                          defaultImage: userIcon,
+                                          borderColor: greyText,
+                                          "${ApiEnd.baseUrlMedia}${memData?.userImage ?? ''}",
+                                        ),
+                                      ))),
+                          title: InkWell(
+                            onLongPress: () {
+                              controller.removeCompanyMember(memData);
+                            },
+                            onTap: () => _goToChat(memData),
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
-                                // invisible hit area (does not affect layout)
-                                Positioned.fill(
-                                  child: Container(
-                                    color: Colors.transparent, // makes whole area clickable
-                                  ),
+                                Text(
+                                  memData?.userName != null
+                                      ? memData?.userName ?? ''
+                                      : memData?.userCompany?.displayName !=
+                                              null
+                                          ? memData?.userCompany?.displayName ??
+                                              ''
+                                          : memData?.phone ?? '',
+                                  style: BalooStyles.baloosemiBoldTextStyle(),
+                                  maxLines: 1,
+                                  overflow: TextOverflow.ellipsis,
                                 ),
-
-                                TextButton(
-                                  onPressed: () => _goToTask(memData),
-                                  style: TextButton.styleFrom(
-                                    padding: EdgeInsets.symmetric(horizontal: 6, vertical: 3),
-                                    minimumSize: Size(0, 0),
-                                    tapTargetSize: MaterialTapTargetSize.shrinkWrap,
-                                  ),
-                                  child: Image.asset(tasksHome, color: appColorYellow, height: 20),
-                                ),
-
-                                Positioned(
-                                  top: -13,
-                                  right: -7,
-                                  child: AnimatedBadge(
-                                    count: memData?.pending_task_count ?? 0,
-                                  ),
-                                ),
+                                vGap(4),
+                                memData?.userName == null &&
+                                        memData?.userCompany?.displayName ==
+                                            null
+                                    ? SizedBox()
+                                    : Text(
+                                        memData?.phone != null
+                                            ? memData?.phone ?? ''
+                                            : memData?.email ?? '',
+                                        style:
+                                            BalooStyles.balooregularTextStyle(),
+                                        maxLines: 1,
+                                        overflow: TextOverflow.ellipsis,
+                                      )
                               ],
                             ),
                           ),
-                        ],
-                      )
-                    ]),
-                /*trailing: IconButton(
+
+                          trailing: Column(
+                              crossAxisAlignment: CrossAxisAlignment.end,
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                // (user.userId == APIs.me.id && user.userId != APIs.me.selectedCompany?.adminUserId)
+                                //  ? Text(
+                                //                     //   "You",
+                                //                     //   style: BalooStyles
+                                //                     //       .baloonormalTextStyle(),
+                                //                     // )
+                                //     :(user.userId == APIs.me.selectedCompany?.adminUserId)?Text(
+                                //   "Creator",
+                                //   style: BalooStyles
+                                //       .baloonormalTextStyle(color:appColorGreen),
+                                // ): const SizedBox(),
+
+                                Row(
+                                  mainAxisSize: MainAxisSize.min,
+                                  children: [
+                                    TextButton(
+                                        onPressed: () => _goToChat(memData),
+                                        style: TextButton.styleFrom(
+                                          // backgroundColor: appColorGreen.withOpacity(.1), // Button background color
+                                          foregroundColor: appColorGreen,
+                                          padding: const EdgeInsets.symmetric(
+                                              horizontal: 7.0,
+                                              vertical:
+                                                  3.0), // reduce as needed
+                                          minimumSize: const Size(0,
+                                              0), // optional: allows tighter sizing
+                                          tapTargetSize: MaterialTapTargetSize
+                                              .shrinkWrap, // optional: reduces touch target
+                                        ),
+                                        child: Image.asset(
+                                          chatHome,
+                                          color: appColorGreen,
+                                          height: 20,
+                                        )),
+                                    hGap(12),
+                                    TextButton(
+                                      onPressed: () => _goToTask(memData),
+                                      style: TextButton.styleFrom(
+                                        padding: EdgeInsets.symmetric(
+                                            horizontal: 6, vertical: 3),
+                                        minimumSize: Size(0, 0),
+                                        tapTargetSize:
+                                            MaterialTapTargetSize.shrinkWrap,
+                                      ),
+                                      child: Image.asset(tasksHome,
+                                          color: appColorYellow, height: 20),
+                                    ),
+                                  ],
+                                )
+                              ]),
+                          /*trailing: IconButton(
                           icon: Icon(Icons.delete, color: Colors.red),
                           onPressed: () async {
                             final confirm = await showDialog(
@@ -511,18 +403,36 @@ class CompanyMembers extends GetView<CompanyMemberController> {
                             }
                           },
                         ),*/
-              ),
-            );
-          },
-          separatorBuilder: (BuildContext context, int index) {
-            return divider().marginSymmetric(horizontal: 20);
-          },
-        ),
-    ),
+                        ),
+                      );
+                    },
+                    separatorBuilder: (BuildContext context, int index) {
+                      return divider().marginSymmetric(horizontal: 20);
+                    },
+                  ),
+                ),
     );
   }
 
-  _goToTask(memData){
+  _goToTask(memData) {
+
+    // if (kIsWeb) {
+    //   Get.back();
+    //   dcController.updateIndex(1);
+    //   dcController.update();
+    //   isTaskMode = true;
+    //   final homec = Get.find<TaskHomeController>();
+    //   final taskC = Get.find<TaskController>();
+    //   homec.selectedChat.value = memData;
+    //   taskC.user = homec.selectedChat.value;
+    //   taskC.replyToMessage = null;
+    //   taskC.showPostShimmer = true;
+    //   taskC.openConversation(homec.selectedChat.value);
+    //   homec.selectedChat.refresh();
+    //   taskC.update();
+    // } else {
+    //   Get.toNamed(AppRoutes.tasks_li_r, arguments: {'user': memData});
+    // }
     dcController.updateIndex(1);
 
     isTaskMode = true;
@@ -546,5 +456,77 @@ class CompanyMembers extends GetView<CompanyMemberController> {
         );
       }
     }
+  }
+
+  _goToChat(memData) {
+
+    dcController.updateIndex(0);
+
+    isTaskMode = false;
+    controller.update();
+    // APIs.updateActiveStatus(true);
+
+    if(isTaskMode) {
+      if(kIsWeb){
+        Get.toNamed(
+          "${AppRoutes.tasks_li_r}?userId=${memData?.userId.toString()}",
+        );
+      }else{
+        Get.toNamed(
+          AppRoutes.tasks_li_r,
+          arguments: {'user': memData},
+        );
+      }
+    }else{
+      if(kIsWeb){
+        Get.toNamed(
+          "${AppRoutes.chats_li_r}?userId=${memData?.userId.toString()}",
+        );
+      }else{
+        Get.toNamed(
+          AppRoutes.chats_li_r,
+          arguments: {'user': memData},
+        );
+      }
+    }
+    // if (kIsWeb) {
+    //   print("kIsWeb=========");
+    //   print(kIsWeb);
+    //   Get.back();
+    //   dcController.updateIndex(0);
+    //   dcController.update();
+    //   isTaskMode = false;
+    //   final homec = Get.find<ChatHomeController>();
+    //   ChatScreenController? chatc;
+    //   if (Get.isRegistered<ChatScreenController>()) {
+    //     chatc = Get.find<ChatScreenController>();
+    //   } else {
+    //     Get.put(ChatScreenController(user: memData));
+    //   }
+    //
+    //   // homec.page = 1;
+    //   // homec.hitAPIToGetRecentChats();
+    //   chatc?.textController.clear();
+    //   chatc?.replyToMessage = null;
+    //   chatc?.showPostShimmer = true;
+    //   homec.selectedChat.value = memData;
+    //   chatc?.user = homec.selectedChat.value;
+    //   chatc?.openConversation(homec.selectedChat.value);
+    //   if (homec.selectedChat.value?.pendingCount != 0) {
+    //     chatc?.markAllVisibleAsReadOnOpen(
+    //         APIs.me?.userCompany?.userCompanyId,
+    //         chatc.user?.userCompany?.userCompanyId,
+    //         chatc.user?.userCompany?.isGroup == 1 ? 1 : 0);
+    //   }
+    //   homec.update();
+    //   homec.selectedChat.refresh();
+    //   chatc?.update();
+    // } else {
+    //
+    //   Get.toNamed(
+    //     AppRoutes.chats_li_r,
+    //     arguments: {'user': memData},
+    //   );
+    // }
   }
 }

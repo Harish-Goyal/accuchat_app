@@ -153,15 +153,6 @@ class _ChatUserCardState extends State<ChatUserCard>
                       arguments: {'user': widget.user},
                     );
                   }
-                  // if(kIsWeb){
-                  //   Get.toNamed(
-                  //     "${AppRoutes.chats_li_r}?userId=${widget.user?.userId?.toString()}",
-                  //   );
-                  // }else{
-                  //   Get.toNamed(AppRoutes.chats_li_r, arguments: {
-                  //     'user': widget.user
-                  //   });
-                  // }
 
                 }
               },

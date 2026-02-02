@@ -130,26 +130,55 @@ class ChatScreenController extends GetxController {
     chatIdIndexMap.clear();
 
     final sorted = [...chatCatygory];
+    // newest first (DESC)
     sorted.sort((a, b) => b.date.compareTo(a.date));
 
-    DateTime? lastDate;
+    DateTime? currentDay;
 
     for (final g in sorted) {
-      final d = DateTime(g.date.year, g.date.month, g.date.day);
+      final day = DateTime(g.date.year, g.date.month, g.date.day);
 
-      if (lastDate == null || d != lastDate) {
-        chatRows.add(ChatHeaderRow(d));
-        lastDate = d;
+      // day changed => close previous day by adding header
+      if (currentDay != null && day != currentDay) {
+        chatRows.add(ChatHeaderRow(currentDay));
       }
 
-      final chatId = g.chatMessageItems.chatId ?? 0;
+      currentDay = day;
 
+      // add message row
       chatRows.add(ChatMessageRow(g));
+      final chatId = g.chatMessageItems.chatId ?? 0;
       chatIdIndexMap[chatId] = chatRows.length - 1;
+    }
+
+    // add header for last day
+    if (currentDay != null) {
+      chatRows.add(ChatHeaderRow(currentDay));
     }
 
     update();
   }
+
+  /* void rebuildFlatRows() {
+    chatRows = [];
+    chatIdIndexMap.clear();
+    final sorted = [...chatCatygory];
+    sorted.sort((a, b) => b.date.compareTo(a.date));
+
+    DateTime? lastHeaderDate;
+    for (final g in sorted) {
+      final d = DateTime(g.date.year, g.date.month, g.date.day);
+      if (lastHeaderDate == null || d.compareTo(lastHeaderDate!) != 0) {
+        chatRows.add(ChatHeaderRow(d));
+        lastHeaderDate = d;
+      }
+      final chatId = g.chatMessageItems.chatId ?? 0;
+      chatRows.add(ChatMessageRow(g));
+      chatIdIndexMap[chatId] = chatRows.length - 1;
+    }
+    update();
+
+  }*/
 
   Future<void> jumpToRepliedMessage(int targetChatId) async {
     /// Load more pages if message not found
@@ -569,8 +598,6 @@ class ChatScreenController extends GetxController {
 
 
   hitAPIToGetChatHistory(p,{String? searchQuery}) async {
-    print("00000000000000000000000");
-    print(p);
     if (page == 1) {
       showPostShimmer = true;
       chatHisList?.clear();
@@ -599,15 +626,21 @@ class ChatScreenController extends GetxController {
         isPageLoading = false;
         update();
       }
-
       chatCatygory = (chatHisList ?? []).map((item) {
-        DateTime? datais;
-        if (item.sentOn != null) {
-          datais = DateTime.parse(item.sentOn ?? '');
+        DateTime dt = DateTime.now();
+        if (item.sentOn != null && item.sentOn!.isNotEmpty) {
+          dt = DateTime.parse(item.sentOn!).toLocal(); // ✅ local day grouping
         }
-
-        return GroupChatElement(datais ?? DateTime.now(), item);
+        return GroupChatElement(dt, item);
       }).toList();
+      // chatCatygory = (chatHisList ?? []).map((item) {
+      //   DateTime? datais;
+      //   if (item.sentOn != null) {
+      //     datais = DateTime.parse(item.sentOn ?? '');
+      //   }
+      //
+      //   return GroupChatElement(datais ?? DateTime.now(), item);
+      // }).toList();
       if (user?.pendingCount != 0) {
         markAllVisibleAsReadOnOpen(
             user?.userCompany?.userCompanyId,
@@ -618,9 +651,6 @@ class ChatScreenController extends GetxController {
       showPostShimmer = false;
       isPageLoading = false;
       update();
-      messageParentFocus.unfocus();
-      if (messageParentFocus.canRequestFocus) {
-        messageParentFocus.requestFocus();      }
     }).onError((error, stackTrace) {
       showPostShimmer = false;
       isPageLoading = false;

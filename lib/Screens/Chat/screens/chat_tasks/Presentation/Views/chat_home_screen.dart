@@ -130,12 +130,13 @@ class ChatsHomeScreen extends GetView<ChatHomeController> {
             ? TextField(
                 controller: controller.seacrhCon,
                 cursorColor: appColorGreen,
+                autocorrect: true,
                 decoration: const InputDecoration(
                     border: InputBorder.none,
                     hintText: 'Search User, Group & Collection ...',
                     contentPadding: EdgeInsets.symmetric(vertical: 0, horizontal: 10),
                     constraints: BoxConstraints(maxHeight: 45)),
-                autofocus: true,
+                autofocus: false,
                 style: const TextStyle(fontSize: 13, letterSpacing: 0.5),
                 onChanged: (val) {
                   controller.searchQuery = val;
@@ -379,7 +380,7 @@ class ChatsHomeScreen extends GetView<ChatHomeController> {
                       : Image.asset(searchPng, height: 25, width: 25));
             }),
           ),
-          autofocus: true,
+          autofocus: false,
           style: const TextStyle(fontSize: 13, letterSpacing: 0.5),
           onChanged: (val) {
             controller.searchQuery = val;

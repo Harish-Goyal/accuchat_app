@@ -502,7 +502,7 @@ class _ChatScreenState extends State<ChatScreen> {
       /* final initialIndex = (controller.flatRows.isEmpty)
         ? 0
         : controller.flatRows.length - 1;*/
-    return (controller.chatCatygory ?? []).isNotEmpty
+    return (controller.chatRows ?? []).isNotEmpty
         ? ScrollablePositionedList.builder(
         itemScrollController: controller.itemScrollController,
         itemPositionsListener: controller.itemPositionsListener,
@@ -512,12 +512,11 @@ class _ChatScreenState extends State<ChatScreen> {
         itemBuilder: (context, index) {
           final row = controller.chatRows[index];
 
-          /// ✅ 1) HEADER FIRST
           if (row is ChatHeaderRow) {
             return _createGroupHeader(row.date);
           }
 
-          /// ✅ 2) NOW SAFE TO CAST
+// message row
           final msgRow = row as ChatMessageRow;
           final element = msgRow.element;
           final msg = element.chatMessageItems;
@@ -533,7 +532,7 @@ class _ChatScreenState extends State<ChatScreen> {
           final userid = APIs.me?.userId;
               return AnimatedContainer(
                 duration: const Duration(milliseconds: 250),
-                color: isHighlighted ? const Color(0x33FFFF00) : null,
+                color: isHighlighted ? appColorGreen.withOpacity(.3) : null,
                 child: SwipeTo(
                   iconColor: appColorGreen,
                   onRightSwipe: element.chatMessageItems.isActivity == 1
@@ -675,8 +674,9 @@ class _ChatScreenState extends State<ChatScreen> {
         : const Center(
         child: Text('Say Hii! 👋', style: TextStyle(fontSize: 20)));*/
   }
+/*
 
- /* Widget _createGroupHeader(GroupChatElement element) {
+ Widget _createGroupHeader(GroupChatElement element) {
     final isToday = DateUtils.isSameDay(element.date, DateTime.now());
     final dateText =
         isToday ? "Today" : DateFormat.yMMMd().format(element.date);
@@ -699,24 +699,19 @@ class _ChatScreenState extends State<ChatScreen> {
         ],
       ),
     );
-  }*/
+  }
+*/
 
 
   Widget _createGroupHeader(DateTime date) {
     final isToday = DateUtils.isSameDay(date, DateTime.now());
-    final dateText = isToday ? "Today" : DateFormat.yMMMd().format(date);
-
+    final dateText =
+    isToday ? "Today" : DateFormat.yMMMd().format(date);
     return Container(
       color: Colors.transparent,
-      margin: const EdgeInsets.symmetric(vertical: 8),
       child: Row(
         children: [
-          Expanded(
-            child: Divider(
-              color: appColorGreen.withOpacity(.3),
-              thickness: 1,
-            ),
-          ),
+          Expanded(child: divider(color: appColorGreen.withOpacity(.3))),
           CustomContainer(
             elevation: 2,
             vPadding: 3,
@@ -727,12 +722,7 @@ class _ChatScreenState extends State<ChatScreen> {
               style: BalooStyles.balooregularTextStyle(size: 12.5),
             ),
           ),
-          Expanded(
-            child: Divider(
-              color: appColorGreen.withOpacity(.3),
-              thickness: 1,
-            ),
-          ),
+          Expanded(child: divider(color: appColorGreen.withOpacity(.3))),
         ],
       ),
     );
@@ -1400,14 +1390,14 @@ class _ChatScreenState extends State<ChatScreen> {
 
     }
 
-    void _hardFocusBack() {
-      FocusManager.instance.primaryFocus?.unfocus();
-      WidgetsBinding.instance.addPostFrameCallback((_) {
-        if (controller.messageParentFocus.canRequestFocus) {
-          controller.messageParentFocus.requestFocus();
-        }
-      });
-    }
+    // void _hardFocusBack() {
+    //   FocusManager.instance.primaryFocus?.unfocus();
+    //   WidgetsBinding.instance.addPostFrameCallback((_) {
+    //     if (controller.messageParentFocus.canRequestFocus) {
+    //       controller.messageParentFocus.requestFocus();
+    //     }
+    //   });
+    // }
 
     void _send() {
       if (kIsWeb && speechC.isListening.value) {
@@ -1418,7 +1408,7 @@ class _ChatScreenState extends State<ChatScreen> {
         // _appendSpeechToInput();
       }
       _sendMessage();
-      _hardFocusBack();
+      // _hardFocusBack();
     }
 
     return Container(
@@ -1466,7 +1456,7 @@ class _ChatScreenState extends State<ChatScreen> {
                           onTap: () {
                             speechC.stop(skipOnStopped: true);
                             _appendSpeechToInput();
-                            _hardFocusBack();
+                            // _hardFocusBack();
                           },
                           child: Container(
                             padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
@@ -1486,7 +1476,7 @@ class _ChatScreenState extends State<ChatScreen> {
                 // ✅ Input Row (field + icons)
                 GestureDetector(
                   behavior: HitTestBehavior.translucent,
-                  onTap: _hardFocusBack, // web reattach fix
+                  // onTap: _hardFocusBack, // web reattach fix
                   child: ConstrainedBox(
                     constraints: BoxConstraints(maxHeight: Get.height * .3, minHeight: 30),
                     child: Container(
@@ -1500,7 +1490,7 @@ class _ChatScreenState extends State<ChatScreen> {
                           Expanded(
                             // ✅ Focus wrapper WITHOUT focusNode (prevents cycle)
                             child: Focus(
-                              skipTraversal: true,
+                              // skipTraversal: true,
                               onKeyEvent: (node, event) {
                                 if (!kIsWeb) return KeyEventResult.ignored;
                                 if (event is! KeyDownEvent) return KeyEventResult.ignored;
@@ -1516,10 +1506,10 @@ class _ChatScreenState extends State<ChatScreen> {
                                   _sendMessage();
 
                                   // ✅ hard reattach focus (web)
-                                  FocusManager.instance.primaryFocus?.unfocus();
-                                  WidgetsBinding.instance.addPostFrameCallback((_) {
-                                    controller.messageParentFocus.requestFocus();
-                                  });
+                                  // FocusManager.instance.primaryFocus?.unfocus();
+                                  // WidgetsBinding.instance.addPostFrameCallback((_) {
+                                  //   controller.messageParentFocus.requestFocus();
+                                  // });
 
                                   return KeyEventResult.handled;
                                 }
@@ -1528,8 +1518,9 @@ class _ChatScreenState extends State<ChatScreen> {
                               },
                               child: TextFormField(
                                 controller: controller.textController,
+                                autocorrect: true,
                                 focusNode: controller.messageParentFocus, // ✅ only here
-                                autofocus: !kIsWeb, // web me autofocus glitch karta hai
+                                autofocus: false, // web me autofocus glitch karta hai
                                 keyboardType: TextInputType.multiline,
                                 textInputAction: TextInputAction.newline,
                                 maxLines: null,
@@ -1576,10 +1567,10 @@ class _ChatScreenState extends State<ChatScreen> {
                                   textController: controller.textController,
                                   onSend:(){
                                     Get.back();
-                                    controller.messageParentFocus.unfocus();
-                                    if (controller.messageParentFocus.canRequestFocus) {
-                                      controller.messageParentFocus.requestFocus();
-                                    }
+                                    // controller.messageParentFocus.unfocus();
+                                    // if (controller.messageParentFocus.canRequestFocus) {
+                                    //   controller.messageParentFocus.requestFocus();
+                                    // }
                                   } ,
                                   isMobile: false,
                                 );
@@ -2109,14 +2100,17 @@ class _ChatScreenState extends State<ChatScreen> {
                       _showMessageUpdateDialog(data, Get.context!);
                     }),
 
-              /*if ((APIs.me?.userCompany?.company?.createdBy ==data.fromUser?.userCompany?.company?.createdBy))
+              /*
+              if ((APIs.me?.userCompany?.company?.createdBy ==data.fromUser?.userCompany?.company?.createdBy))
                 _OptionItem(
                     icon:  Icon(Icons.edit, color: appColorGreen,  size: 18),
                     name: 'Edit Message',
                     onTap: () {
                       Get.back();
                       _showMessageUpdateDialog(data,Get.context!);
-                    }),*/
+                    }),
+
+                    */
 
               // delete option
               if (APIs.me?.userId == controller.myCompany?.createdBy &&
