@@ -237,7 +237,7 @@ class DashboardController extends GetxController with WidgetsBindingObserver {
   getCompany() async {
     final svc = CompanyService.to;
     myCompany = svc.selected;
-    update();
+    // update();
     await hitAPIToGetUser(myCompany?.companyId);
   }
 

@@ -147,7 +147,7 @@ class AllSettingsController extends GetxController {
   _getCompany()async {
     final svc = CompanyService.to;
     myCompany =  svc.selected;
-    Get.find<DashboardController>().getCompany();
+    // Get.find<DashboardController>().getCompany();
 
     // hitAPIToGetNavPermissions();
     // Future.delayed(Duration(milliseconds: 500),(){

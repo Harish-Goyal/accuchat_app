@@ -107,6 +107,8 @@ double _textScaleClamp(BuildContext context) {
 
 class ChatScreenMobile extends GetView<ChatScreenController> {
   ChatScreenMobile({super.key});
+
+
   final speechC = Get.put(SpeechControllerImpl());
   SaveToGalleryController galleryController= Get.put(SaveToGalleryController());
 
@@ -1230,7 +1232,7 @@ class ChatScreenMobile extends GetView<ChatScreenController> {
               speechC.setLanguage(langCode: speechC.selectedLang);
 
               if (listening) {
-                speechC.stop();
+                speechC.stop(skipOnStopped:true);
                 appendSpeechToInput();
               } else {
                 speechC.start();
@@ -1238,7 +1240,7 @@ class ChatScreenMobile extends GetView<ChatScreenController> {
             },
 
             onLongPress: () async {
-              if (speechC.isListening.value) speechC.stop();
+              if (speechC.isListening.value) speechC.stop(skipOnStopped:true);
 
               final RenderBox button = micContext.findRenderObject() as RenderBox;
               final RenderBox overlay =
@@ -1302,9 +1304,6 @@ class ChatScreenMobile extends GetView<ChatScreenController> {
   // bottom chat input field
   Widget _chatInput(BuildContext context) {
     // ✅ don't put controller every rebuild
-    final speechC = Get.isRegistered<SpeechControllerImpl>()
-        ? Get.find<SpeechControllerImpl>()
-        : Get.put(SpeechControllerImpl());
 
     void _appendSpeechToInput() {
       final text = speechC.getCombinedText();
@@ -1332,7 +1331,7 @@ class ChatScreenMobile extends GetView<ChatScreenController> {
 
     void _send() {
       if (kIsWeb && speechC.isListening.value) {
-        speechC.stop();
+        speechC.stop(skipOnStopped:true);
         _appendSpeechToInput();
       }
       _sendMessage();
@@ -1382,7 +1381,7 @@ class ChatScreenMobile extends GetView<ChatScreenController> {
                         const SizedBox(width: 8),
                         InkWell(
                           onTap: () {
-                            speechC.stop();
+                            speechC.stop(skipOnStopped:true);
                             _appendSpeechToInput();
                             _hardFocusBack();
                           },
@@ -1492,12 +1491,14 @@ class ChatScreenMobile extends GetView<ChatScreenController> {
                                 openWhatsAppEmojiPicker(
                                   context: context,
                                   textController: controller.textController,
-                                  onSend: () => Get.back(),
+                                  onSend:() {
+                                    WidgetsBinding.instance.addPostFrameCallback((_) {
+                                      controller.messageParentFocus.requestFocus();
+                                    });
+                                  } ,
                                   isMobile: false,
                                 );
-                                WidgetsBinding.instance.addPostFrameCallback((_) {
-                                  controller.messageParentFocus.requestFocus();
-                                });
+
                               },
                               child: IconButtonWidget(emojiPng),
                             ),

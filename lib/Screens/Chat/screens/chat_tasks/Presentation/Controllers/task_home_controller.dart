@@ -30,6 +30,7 @@ class TaskHomeController extends GetxController{
   // for storing search status
   RxBool isSearching = false.obs;
   TextEditingController seacrhCon = TextEditingController();
+  FocusNode searchFocus = FocusNode();
   String searchQuery = '';
   Rxn<UserDataAPI> selectedChat = Rxn<UserDataAPI>();
 

@@ -29,6 +29,9 @@ class SpeechControllerImpl  extends SpeechController{
   StreamSubscription<html.Event>? _subError;
   StreamSubscription<html.Event>? _subEnd;
 
+  bool _skipNextOnStopped = false;   // ✅ add this
+  bool _disposed = false;
+
   @override
   bool get isSupported => _speech != null;
 
@@ -97,18 +100,33 @@ class SpeechControllerImpl  extends SpeechController{
     isListening.value = true;
     _speech!.start();
   }
+
   @override
+  void stop({bool skipOnStopped = false}) {   // ✅ change signature
+    if (!isSupported) return;
+
+    _skipNextOnStopped = skipOnStopped;       // ✅ set flag
+
+    isListening.value = false;
+    interimText.value = '';
+    _speech!.stop();
+  }
+/*  @override
   void stop() {
     if (!isSupported) return;
     isListening.value = false;
     interimText.value = '';
     _speech!.stop();
   }
+  */
+
   @override
   String getCombinedText() => (finalText.value + ' ' + interimText.value).trim();
 
   @override
   void onClose() {
+    _disposed = true;
+    onStopped = null;                 // ✅ super important
     _subResult?.cancel();
     _subError?.cancel();
     _subEnd?.cancel();

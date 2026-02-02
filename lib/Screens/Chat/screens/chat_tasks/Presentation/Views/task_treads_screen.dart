@@ -20,6 +20,7 @@ import '../../../../../../Constants/colors.dart';
 import '../../../../../../Constants/themes.dart';
 import '../../../../../../main.dart';
 import '../../../../../../utils/custom_flashbar.dart';
+import '../../../../../../utils/emogi_checker.dart';
 import '../../../../../../utils/helper_widget.dart';
 import '../../../../../../utils/product_shimmer_widget.dart';
 import '../../../../../Home/Presentation/Controller/socket_controller.dart';
@@ -471,6 +472,7 @@ class TaskThreadScreen extends GetView<TaskThreadController> {
   }
 
   messageTypeView(TaskComments data, {required bool sentByMe}) {
+    final isEmojiMsg = isEmojiOnlyMessage(data.commentText??'');
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -510,6 +512,7 @@ class TaskThreadScreen extends GetView<TaskThreadController> {
             textAlign: TextAlign.start,
             style: BalooStyles.baloonormalTextStyle(
               color: Colors.black87,
+                size: isEmojiMsg?40:14
             ),
             overflow: TextOverflow.visible)
             : const SizedBox(),

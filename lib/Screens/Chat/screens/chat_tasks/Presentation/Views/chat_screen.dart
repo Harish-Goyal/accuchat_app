@@ -137,17 +137,19 @@ class _ChatScreenState extends State<ChatScreen> {
 
   }
 
-  // @override
-  // void dispose() {
-  //   // if you want to remove controller when leaving chat:
-  //   Get.delete<ChatScreenController>();
-  //   super.dispose();
-  // }
+
+  @override
+  void dispose() {
+    // if you want to remove controller when leaving chat:
+    // Get.delete<ChatScreenController>();
+
+    speechC.stop(skipOnStopped: true);
+    speechC.onStopped = null;
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
-
-
     return GetBuilder<ChatScreenController>(
         builder: (controller) {
           return GestureDetector(
@@ -410,14 +412,14 @@ class _ChatScreenState extends State<ChatScreen> {
               speechC.setLanguage(langCode: speechC.selectedLang);
 
               if (speechC.isListening.value) {
-                speechC.stop(); // ✅ append will happen on speech-end
+                speechC.stop(skipOnStopped: true); // ✅ append will happen on speech-end
               } else {
                 speechC.start();
               }
             },
 
             onLongPress: () async {
-              if (speechC.isListening.value) speechC.stop();
+              if (speechC.isListening.value) speechC.stop(skipOnStopped:true );
 
               final RenderBox button = micContext.findRenderObject() as RenderBox;
               final RenderBox overlay =
@@ -1376,18 +1378,26 @@ class _ChatScreenState extends State<ChatScreen> {
 
 
     void _appendSpeechToInput() {
-      final text = speechC.getCombinedText();
+      final text = speechC.getCombinedText().trim();
       if (text.isEmpty) return;
 
-      final old = controller.textController.text.trim();
-      controller.textController.text = old.isEmpty ? text : '$old $text';
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        // if your screen/controller got closed, skip
+        if (!controller.textController.hasListeners) return;
 
-      controller.textController.selection = TextSelection.fromPosition(
-        TextPosition(offset: controller.textController.text.length),
-      );
+        final old = controller.textController.text.trim();
+        final combined = old.isEmpty ? text : '$old $text';
 
-      speechC.finalText.value = '';
-      speechC.interimText.value = '';
+        controller.textController.value = controller.textController.value.copyWith(
+          text: combined,
+          selection: TextSelection.collapsed(offset: combined.length),
+          composing: TextRange.empty,
+        );
+
+        speechC.finalText.value = '';
+        speechC.interimText.value = '';
+      });
+
     }
 
     void _hardFocusBack() {
@@ -1401,8 +1411,11 @@ class _ChatScreenState extends State<ChatScreen> {
 
     void _send() {
       if (kIsWeb && speechC.isListening.value) {
-        speechC.stop();
-        _appendSpeechToInput();
+        speechC.stop(skipOnStopped: true);  // ✅ don't let speech-end append
+        _appendSpeechToInput();             // ✅ append once
+        // _hardFocusBack();
+        // speechC.stop();
+        // _appendSpeechToInput();
       }
       _sendMessage();
       _hardFocusBack();
@@ -1451,7 +1464,7 @@ class _ChatScreenState extends State<ChatScreen> {
                         const SizedBox(width: 8),
                         InkWell(
                           onTap: () {
-                            speechC.stop();
+                            speechC.stop(skipOnStopped: true);
                             _appendSpeechToInput();
                             _hardFocusBack();
                           },
@@ -1521,12 +1534,12 @@ class _ChatScreenState extends State<ChatScreen> {
                                 textInputAction: TextInputAction.newline,
                                 maxLines: null,
                                 minLines: 1,
-                                onTap: () {
-                                  // web reattach
-                                  WidgetsBinding.instance.addPostFrameCallback((_) {
-                                    controller.messageParentFocus.requestFocus();
-                                  });
-                                },
+                                // onTap: () {
+                                //   // web reattach
+                                //   WidgetsBinding.instance.addPostFrameCallback((_) {
+                                //     controller.messageParentFocus.requestFocus();
+                                //   });
+                                // },
                                 decoration: InputDecoration(
                                   isDense: true,
                                   hintText: 'Type Something...',
@@ -1548,9 +1561,9 @@ class _ChatScreenState extends State<ChatScreen> {
                             InkWell(
                               onTap: () async {
                                  showUploadOptions(context);
-                                WidgetsBinding.instance.addPostFrameCallback((_) {
-                                  controller.messageParentFocus.requestFocus();
-                                });
+                                // WidgetsBinding.instance.addPostFrameCallback((_) {
+                                //   controller.messageParentFocus.requestFocus();
+                                // });
                               },
                               child: IconButtonWidget(Icons.upload_outlined, isIcon: true),
                             ),
@@ -1561,13 +1574,16 @@ class _ChatScreenState extends State<ChatScreen> {
                                 openWhatsAppEmojiPicker(
                                   context: context,
                                   textController: controller.textController,
-                                  onSend: () => Get.back(),
+                                  onSend:(){
+                                    Get.back();
+                                    controller.messageParentFocus.unfocus();
+                                    if (controller.messageParentFocus.canRequestFocus) {
+                                      controller.messageParentFocus.requestFocus();
+                                    }
+                                  } ,
                                   isMobile: false,
                                 );
-                                controller.messageParentFocus.unfocus();
-                                if (controller.messageParentFocus.canRequestFocus) {
-                                  controller.messageParentFocus.requestFocus();
-                                }
+
                               },
                               child: IconButtonWidget(emojiPng),
                             ),
@@ -1597,33 +1613,6 @@ class _ChatScreenState extends State<ChatScreen> {
         ],
       ),
     );
-  }
-
-  //No Voice to text
-  KeyEventResult _handleKey(FocusNode node, KeyEvent event) {
-    if (!kIsWeb) return KeyEventResult.ignored;
-
-    if (event is KeyDownEvent && event.logicalKey == LogicalKeyboardKey.enter) {
-      // Check if SHIFT is pressed
-      final bool shiftPressed =
-          HardwareKeyboard.instance.logicalKeysPressed.contains(
-                LogicalKeyboardKey.shiftLeft,
-              ) ||
-              HardwareKeyboard.instance.logicalKeysPressed.contains(
-                LogicalKeyboardKey.shiftRight,
-              );
-
-      if (shiftPressed) {
-        // Shift + Enter → new line
-        return KeyEventResult.ignored;
-      }
-
-      // Enter → send
-      _sendMessage();
-      return KeyEventResult.handled;
-    }
-
-    return KeyEventResult.ignored;
   }
 
   _sendMessage() {

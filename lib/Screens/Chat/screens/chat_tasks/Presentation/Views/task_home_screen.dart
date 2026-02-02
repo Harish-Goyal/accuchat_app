@@ -26,304 +26,488 @@ class TaskHomeScreen extends GetView<TaskHomeController> {
   TaskHomeScreen({super.key});
 
   TaskHomeController taskhomec =
-  Get.put<TaskHomeController>(TaskHomeController());
+      Get.put<TaskHomeController>(TaskHomeController());
   @override
   Widget build(BuildContext context) {
     return GetBuilder<TaskHomeController>(
         init: TaskHomeController(),
         builder: (controller) {
           return GestureDetector(
-            //for hiding keyboard when a tap is detected on screen
-            onTap: () => FocusScope.of(context).unfocus(),
-            child: WillPopScope(
-              //if search is on & back button is pressed then close search
-              //or else simple close current screen on back button click
-              onWillPop: () {
-                // if (_isSearching) {
-                //   setState(() {
-                //     _isSearching = !_isSearching;
-                //   });
-                //   return Future.value(false);
-                // } else {
-                //   return Future.value(true);
-                // }
-                return Future.value(true);
-              },
-              child: controller.isLoading?const ChatHomeShimmer(itemCount: 12):Scaffold(
-                //app bar
-                // backgroundColor: isTaskMode?appColorYellow.withOpacity(.05):Colors.white,
-                  appBar: AppBar(
-                    automaticallyImplyLeading: false,
-                    backgroundColor: Colors.white,   // white color
-                    elevation: 1,                    // remove shadow
-                    scrolledUnderElevation: 0,       // ✨ prevents color change on scroll
-                    surfaceTintColor: Colors.white,
-                    title: Obx(
-                       () {
-                        return controller.isSearching.value
-                            ? TextField(
-                          controller: controller.seacrhCon,
-                          cursorColor: appColorGreen,
-                          decoration: const InputDecoration(
-                              border: InputBorder.none,
-                              hintText: 'Search User, Group & Collection ...',
-                              contentPadding:
-                              EdgeInsets.symmetric(vertical: 0, horizontal: 10),
-                              constraints: BoxConstraints(maxHeight: 45)),
-                          autofocus: true,
-                          style: const TextStyle(fontSize: 13, letterSpacing: 0.5),
-                          onChanged: (val) {
-                            controller.searchQuery = val;
-                            controller.onSearch(val);
-                          },
-                        ).marginSymmetric(vertical: 10)
-                            : Row(
-                              children: [
-                                SizedBox(
-                                  width: 40,
-                                  child: CustomCacheNetworkImage(
-                                    "${ApiEnd.baseUrlMedia}${controller.myCompany?.logo ?? ''}",
-                                    radiusAll: 100,
-                                    height: 40,
-                                    width: 40,
-                                    defaultImage: appIcon,
-                                    borderColor: greyText,
-                                    boxFit: BoxFit.cover,
-                                  ),
-                                ).paddingAll(4),
-                                Expanded(
-                                  child: Column(
-                                    mainAxisAlignment: MainAxisAlignment.end,
-                                    mainAxisSize: MainAxisSize.min,
-                                    crossAxisAlignment: CrossAxisAlignment.start,
-                                    children: [
-                                  Text(
-                                   "Tasks",
-                                    style: BalooStyles.balooboldTitleTextStyle(
-                                        color:appColorYellow,size: 16),
-                                  ).paddingOnly(left: 8, top: 4),
-                                  Text(
-                                   ( controller.myCompany?.companyName??''),
-                                    style: BalooStyles.baloomediumTextStyle(
-                                      color: appColorYellow,
-                                   ),
-                                    maxLines: 1,
-                                    overflow: TextOverflow.ellipsis,
-                                  ).paddingOnly(left: 8, top: 2),
-
-
-                                                        ],
-                                                      ),
+              //for hiding keyboard when a tap is detected on screen
+              onTap: () => FocusScope.of(context).unfocus(),
+              child: WillPopScope(
+                onWillPop: () {
+                  return Future.value(true);
+                },
+                child: controller.isLoading
+                    ? const ChatHomeShimmer(itemCount: 12)
+                    : LayoutBuilder(
+          builder: (context, constraints) {
+          double w = constraints.maxWidth;
+                        return Scaffold(
+                            appBar: AppBar(
+                              automaticallyImplyLeading: false,
+                              backgroundColor: Colors.white, // white color
+                              elevation: 1, // remove shadow
+                              scrolledUnderElevation:
+                                  0, // ✨ prevents color change on scroll
+                              surfaceTintColor: Colors.white,
+                              title:kIsWeb && w>600 ?InkWell(
+                                hoverColor: Colors.transparent,
+                                onTap: () {
+                                  Get.toNamed(AppRoutes.all_settings);
+                                },
+                                child: Row(
+                                  children: [
+                                    SizedBox(
+                                      width: 40,
+                                      child: CustomCacheNetworkImage(
+                                        "${ApiEnd.baseUrlMedia}${controller.myCompany?.logo ?? ''}",
+                                        radiusAll: 100,
+                                        height: 40,
+                                        width: 40,
+                                        borderColor: appColorYellow,
+                                        defaultImage: appIcon,
+                                        boxFit: BoxFit.cover,
+                                      ),
+                                    ).paddingAll(3),
+                                    Expanded(
+                                      child: Column(
+                                        mainAxisAlignment: MainAxisAlignment.end,
+                                        mainAxisSize: MainAxisSize.min,
+                                        crossAxisAlignment: CrossAxisAlignment.start,
+                                        children: [
+                                          Text(
+                                            'Chats',
+                                            style: BalooStyles.balooboldTitleTextStyle(
+                                                color: AppTheme.appColor, size: 16),
+                                          ).paddingOnly(left: 4, top: 4),
+                                          Text(
+                                            (controller.myCompany?.companyName ?? ''),
+                                            style: BalooStyles.baloomediumTextStyle(
+                                              color: appColorYellow,
+                                            ),
+                                            maxLines: 1,
+                                            overflow: TextOverflow.ellipsis,
+                                          ).paddingOnly(left: 4, top: 2),
+                                        ],
+                                      ),
+                                    ),
+                                  ],
                                 ),
-                              ],
-                            );
-                      }
-                    ),
-                    actions: [
-                      //search user button
-                      kIsWeb? IconButton(
-                          onPressed: () {
-                            if (kIsWeb) {
-                              Get.offNamed(
-                                  "${AppRoutes.all_users}?isRecent='false'");
-                            } else {
-                              Get.toNamed(AppRoutes.all_users,
-                                  arguments: {"isRecent": 'false'});
-                            }
-                          },
-                          icon:  Image.asset(addNewChatPng,height:27,width:27)):SizedBox(),
-                      hGap(10),
-                      Obx(
-                              () {
-                            return IconButton(
-                                onPressed: () {
+                              ): Obx(() {
+                                return controller.isSearching.value
+                                    ? TextField(
+                                  controller: controller.seacrhCon,
+                                  cursorColor: appColorGreen,
+                                  decoration: const InputDecoration(
+                                      border: InputBorder.none,
+                                      hintText: 'Search User ...',
+                                      contentPadding: EdgeInsets.symmetric(vertical: 0, horizontal: 10),
+                                      constraints: BoxConstraints(maxHeight: 45)),
+                                  autofocus: true,
+                                  style: const TextStyle(fontSize: 13, letterSpacing: 0.5),
+                                  onChanged: (val) {
+                                    controller.searchQuery = val;
+                                    controller.onSearch(val);
+                                  },
+                                ).marginSymmetric(vertical: 10)
+                                    : InkWell(
+                                  hoverColor: Colors.transparent,
+                                  onTap: () {
+                                    Get.toNamed(AppRoutes.all_settings);
+                                  },
+                                  child: Row(
+                                    children: [
+                                      SizedBox(
+                                        width: 40,
+                                        child: CustomCacheNetworkImage(
+                                          "${ApiEnd.baseUrlMedia}${controller.myCompany?.logo ?? ''}",
+                                          radiusAll: 100,
+                                          height: 40,
+                                          width: 40,
+                                          borderColor: appColorYellow,
+                                          defaultImage: appIcon,
+                                          boxFit: BoxFit.cover,
+                                        ),
+                                      ).paddingAll(3),
+                                      Expanded(
+                                        child: Column(
+                                          mainAxisAlignment: MainAxisAlignment.end,
+                                          mainAxisSize: MainAxisSize.min,
+                                          crossAxisAlignment: CrossAxisAlignment.start,
+                                          children: [
+                                            Text(
+                                              'Task',
+                                              style: BalooStyles.balooboldTitleTextStyle(
+                                                  color: AppTheme.appColor, size: 16),
+                                            ).paddingOnly(left: 4, top: 4),
+                                            Text(
+                                              (controller.myCompany?.companyName ?? ''),
+                                              style: BalooStyles.baloomediumTextStyle(
+                                                color: appColorYellow,
+                                              ),
+                                              maxLines: 1,
+                                              overflow: TextOverflow.ellipsis,
+                                            ).paddingOnly(left: 4, top: 2),
+                                          ],
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                );
+                              }),
+                              /*title: Obx(() {
+                                return controller.isSearching.value
+                                    ? TextField(
+                                        controller: controller.seacrhCon,
+                                        cursorColor: appColorGreen,
+                                        decoration: const InputDecoration(
+                                            border: InputBorder.none,
+                                            hintText:
+                                                'Search User, Group & Collection ...',
+                                            contentPadding: EdgeInsets.symmetric(
+                                                vertical: 0, horizontal: 10),
+                                            constraints:
+                                                BoxConstraints(maxHeight: 45)),
+                                        autofocus: true,
+                                        style: const TextStyle(
+                                            fontSize: 13, letterSpacing: 0.5),
+                                        onChanged: (val) {
+                                          controller.searchQuery = val;
+                                          controller.onSearch(val);
+                                        },
+                                      ).marginSymmetric(vertical: 10)
+                                    : Row(
+                                        children: [
+                                          SizedBox(
+                                            width: 40,
+                                            child: CustomCacheNetworkImage(
+                                              "${ApiEnd.baseUrlMedia}${controller.myCompany?.logo ?? ''}",
+                                              radiusAll: 100,
+                                              height: 40,
+                                              width: 40,
+                                              defaultImage: appIcon,
+                                              borderColor: greyText,
+                                              boxFit: BoxFit.cover,
+                                            ),
+                                          ).paddingAll(4),
+                                          Expanded(
+                                            child: Column(
+                                              mainAxisAlignment:
+                                                  MainAxisAlignment.end,
+                                              mainAxisSize: MainAxisSize.min,
+                                              crossAxisAlignment:
+                                                  CrossAxisAlignment.start,
+                                              children: [
+                                                Text(
+                                                  "Tasks",
+                                                  style: BalooStyles
+                                                      .balooboldTitleTextStyle(
+                                                          color: appColorYellow,
+                                                          size: 16),
+                                                ).paddingOnly(left: 8, top: 4),
+                                                Text(
+                                                  (controller
+                                                          .myCompany?.companyName ??
+                                                      ''),
+                                                  style: BalooStyles
+                                                      .baloomediumTextStyle(
+                                                    color: appColorYellow,
+                                                  ),
+                                                  maxLines: 1,
+                                                  overflow: TextOverflow.ellipsis,
+                                                ).paddingOnly(left: 8, top: 2),
+                                              ],
+                                            ),
+                                          ),
+                                        ],
+                                      );
+                              }),*/
+                              actions: [
+                                //search user button
+                                kIsWeb
+                                    ? IconButton(
+                                        onPressed: () {
+                                          if (kIsWeb) {
+                                            Get.offNamed(
+                                                "${AppRoutes.all_users}?isRecent='false'");
+                                          } else {
+                                            Get.toNamed(AppRoutes.all_users,
+                                                arguments: {"isRecent": 'false'});
+                                          }
+                                        },
+                                        icon: Image.asset(addNewChatPng,
+                                            height: 27, width: 27))
+                                    : SizedBox(),
+                                hGap(10),
+
+                                  kIsWeb && w >600 ?const SizedBox(): hGap(10),
+                                  kIsWeb && w > 600?const SizedBox(): Obx(() {
+                                  return IconButton(
+                                  onPressed: () {
                                   controller.isSearching.value = !controller.isSearching.value;
                                   controller.isSearching.refresh();
-
-                                  if(!controller.isSearching.value){
-                                    controller.searchQuery = '';
-                                    controller.onSearch('');
-                                    controller.seacrhCon.clear();
+                                  if (!controller.isSearching.value) {
+                                  controller.searchQuery = '';
+                                  controller.onSearch('');
+                                  controller.seacrhCon.clear();
                                   }
                                   // controller.update();
+                                  },
+                                  icon: controller.isSearching.value
+                                  ? const Icon(CupertinoIcons.clear_circled_solid)
+                                      : Image.asset(searchPng, height: 25, width: 25));
+                                  })
+                                /*Obx(() {
+                                  return IconButton(
+                                          onPressed: () {
+                                            controller.isSearching.value =
+                                                !controller.isSearching.value;
+                                            controller.isSearching.refresh();
+
+                                            if (!controller.isSearching.value) {
+                                              controller.searchQuery = '';
+                                              controller.onSearch('');
+                                              controller.seacrhCon.clear();
+                                            }
+                                            // controller.update();
+                                          },
+                                          icon: controller.isSearching.value
+                                              ? const Icon(CupertinoIcons
+                                                  .clear_circled_solid)
+                                              : Image.asset(searchPng,
+                                                  height: 25, width: 25))
+                                      .paddingOnly(top: 0, right: 0);
+                                }),*/
+                              ],
+                            ),
+
+                            //floating button to add new user
+                            floatingActionButton: kIsWeb
+                                ? const SizedBox()
+                                : Padding(
+                                    padding: const EdgeInsets.only(bottom: 10),
+                                    child: FloatingActionButton(
+                                        onPressed: () {
+                                          // _addChatUserDialog();
+                                          if (kIsWeb) {
+                                            Get.toNamed(
+                                                "${AppRoutes.all_users}?isRecent='false'");
+                                          } else {
+                                            Get.toNamed(AppRoutes.all_users,
+                                                arguments: {"isRecent": 'false'});
+                                          }
+                                        },
+                                        backgroundColor: appColorYellow,
+                                        child: const Icon(
+                                          Icons.add,
+                                          color: Colors.white,
+                                        )),
+                                  ),
+
+                            body: Obx(() {
+                              final selected = controller.selectedChat.value;
+                              return LayoutBuilder(
+                                builder: (context, constraints) {
+                                  double w = constraints.maxWidth;
+
+                                  // ---------------- MOBILE ----------------
+                                  if (w < 500) {
+                                    return _recentTaskBody(
+                                        true); // your existing list
+                                  }
+
+                                  // ---------------- TABLET (Drawer + Recents) ----------------
+                                  if (w < 600) {
+                                    return Row(
+                                      children: [
+                                        // SizedBox(
+                                        //   width: 250,
+                                        //   child: buildSideNav(dashboardController),   // <--- add your drawer here
+                                        // ),
+                                        Expanded(
+                                          child: _recentTaskBody(true),
+                                        ),
+                                      ],
+                                    );
+                                  }
+
+                                  // ---------------- WEB (Drawer + Recents + ChatScreen) ----------------
+
+                                  return Row(
+                                    children: [
+                                      SizedBox(
+                                          width: 320,
+                                          child: _recentTaskBody(false)),
+                                      Expanded(
+                                        child: selected == null
+                                            ? const Center(
+                                                child: Text(
+                                                    "Select a chat to start messaging"))
+                                            : TaskScreen(
+                                                taskUser: selected,
+                                                showBack: false,
+                                              ), // <- correct
+                                      ),
+                                    ],
+                                  );
                                 },
-                                icon:controller.isSearching.value?  const Icon(
-                                     CupertinoIcons.clear_circled_solid)
-                                    : Image.asset(searchPng,height:25,width:25)
-                            ).paddingOnly(top: 0, right: 0);
+                              );
+                            }),
+                          );
+                      }
+                    ),
+              ));
+        });
+  }
+
+  Widget _recentTaskBody(bool isWebwidth) {
+    return Column(
+      children: [
+        kIsWeb && !isWebwidth
+            ? TextField(
+                controller: controller.seacrhCon,
+                focusNode: controller.searchFocus,
+                autocorrect: true,
+                cursorColor: appColorGreen,
+                decoration: InputDecoration(
+                  border: InputBorder.none,
+                  hintText: 'Search User, Group & Collection ...',
+                  contentPadding:
+                      const EdgeInsets.symmetric(vertical: 3, horizontal: 10),
+                  constraints: const BoxConstraints(maxHeight: 35),
+                  suffixIcon: Obx(() {
+                    return IconButton(
+                        onPressed: () {
+                          controller.isSearching.value =
+                              !controller.isSearching.value;
+                          controller.isSearching.refresh();
+                          if (!controller.isSearching.value) {
+                            controller.searchQuery = '';
+                            controller.onSearch('');
+                            controller.seacrhCon.clear();
+                            controller.searchFocus.unfocus();
                           }
+                        },
+                        icon: controller.isSearching.value
+                            ? const Icon(CupertinoIcons.clear_circled_solid)
+                            : Image.asset(searchPng, height: 25, width: 25));
+                  }),
+                ),
+                autofocus: true,
+                style: const TextStyle(fontSize: 13, letterSpacing: 0.5),
+                onChanged: (val) {
+                  controller.searchQuery = val;
+                  controller.isSearching.value = true;
+                  controller.onSearch(val);
+                  if (val.isEmpty) {
+                    controller.isSearching.value = false;
+                    controller.searchFocus.unfocus();
+                  }
+                },
+              ).marginSymmetric(vertical: 10, horizontal: 15)
+            : const SizedBox(),
+        (controller.filteredList ?? []).isEmpty
+            ? Center(
+                child: InkWell(
+                  onTap: () {
+                    if (kIsWeb) {
+                      Get.toNamed("${AppRoutes.all_users}?isRecent='false'");
+                    } else {
+                      Get.toNamed(AppRoutes.all_users,
+                          arguments: {"isRecent": 'false'});
+                    }
+                  },
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    crossAxisAlignment: CrossAxisAlignment.center,
+                    children: [
+                      Image.asset(
+                        emptyRecentPng,
+                        height: 90,
                       ),
-
-
+                      Text('Click to Start New Task ✍️',
+                              style: BalooStyles.baloosemiBoldTextStyle(
+                                  color: appColorGreen))
+                          .paddingAll(12),
+                      vGap(12),
+                      IconButton(
+                          onPressed: () async =>
+                              controller.hitAPIToGetRecentTasksUser(),
+                          icon: Icon(
+                            Icons.refresh,
+                            size: 35,
+                            color: appColorGreen,
+                          )).paddingOnly(right: 8)
                     ],
                   ),
-
-                  //floating button to add new user
-                  floatingActionButton: kIsWeb?const SizedBox(): Padding(
-                    padding:  const EdgeInsets.only(bottom: 10),
-                    child: FloatingActionButton(
-                        onPressed: () {
-                          // _addChatUserDialog();
-                          if(kIsWeb){
-                            Get.toNamed("${AppRoutes.all_users}?isRecent='false'");
-                          }else{
-                            Get.toNamed(AppRoutes.all_users,
-                                arguments: {"isRecent": 'false'});
-                          }
-                        },
-                        backgroundColor:appColorYellow,
-                        child: const Icon(
-                          Icons.add,
-                          color: Colors.white,
-                        )),
-                  ),
-
-
-                body: Obx(
-                        () {
-                      final selected = controller.selectedChat.value;
-                      return LayoutBuilder(
-                        builder: (context, constraints) {
-                          double w = constraints.maxWidth;
-
-                          // ---------------- MOBILE ----------------
-                          if (w < 500) {
-                            return _recentTaskBody(true);  // your existing list
-                          }
-
-                          // ---------------- TABLET (Drawer + Recents) ----------------
-                          if (w < 600) {
-                            return Row(
-                              children: [
-                                // SizedBox(
-                                //   width: 250,
-                                //   child: buildSideNav(dashboardController),   // <--- add your drawer here
-                                // ),
-                                Expanded(
-                                  child: _recentTaskBody(true),
-                                ),
-                              ],
-                            );
-                          }
-
-                          // ---------------- WEB (Drawer + Recents + ChatScreen) ----------------
-
-                          return Row(
-                            children: [
-                              SizedBox(width: 320, child: _recentTaskBody(false)),
-
-                              Expanded(
-                                child: selected == null
-                                    ? const Center(child: Text("Select a chat to start messaging"))
-                                    : TaskScreen(taskUser: selected,showBack: false,),   // <- correct
-                              ),
-                            ],
-                          );
-
-
-                        },
-                      );
-                    }
                 ),
+              )
+            : Expanded(
+              child: RefreshIndicator(
+                  backgroundColor: Colors.white,
+                  color: appColorGreen,
+                  onRefresh: () async {
+                    controller.resetPaginationForNewChat();
+                    controller.hitAPIToGetRecentTasksUser();
+                  },
+                  child: Obx(() {
+                    return ListView.builder(
+                      physics: const AlwaysScrollableScrollPhysics(),
+                      itemCount: controller.filteredList.length,
+                      controller: controller.scrollController,
+                      itemBuilder: (context, index) {
+                        final item = controller.filteredList[index];
+                        return SwipeTo(
+                            iconOnLeftSwipe: Icons.delete_outline,
+                            iconColor: Colors.red,
+                            onLeftSwipe: (detail) async {
+                              final confirm = await showDialog(
+                                context: context,
+                                builder: (_) => AlertDialog(
+                                  backgroundColor: Colors.white,
+                                  title: Text(
+                                      "Remove ${item.email == null || item.email == '' ? item.phone : item.email}"),
+                                  content: const Text(
+                                      "Are you sure you want to remove this member from recants?"),
+                                  actions: [
+                                    TextButton(
+                                        onPressed: () =>
+                                            Navigator.pop(context, false),
+                                        child: const Text("Cancel")),
+                                    TextButton(
+                                        onPressed: () =>
+                                            Navigator.pop(context, true),
+                                        child: Text(
+                                          "Remove",
+                                          style:
+                                              BalooStyles.baloosemiBoldTextStyle(
+                                                  color: Colors.red),
+                                        )),
+                                  ],
+                                ),
+                              );
 
+                              if (confirm == true) {
+                                customLoader.show();
 
-            ),
-          ));
-        }
+                                // await APIs.deleteRecantUserAndChat(item.id);
+                                customLoader.hide();
+                                controller.update();
+                              }
+                            },
+                            child: kIsWeb && !isWebwidth
+                                ? ChatUserCard(user: item)
+                                : ChatUserCardMobile(user: item));
+                      },
+                    );
+                  })),
+            )
+      ],
     );
   }
-
-  Widget _recentTaskBody(bool isWebwidth){
-    return (controller.filteredList??[]).isEmpty?Center(
-      child: InkWell(
-        onTap: (){
-          if(kIsWeb){
-            Get.toNamed("${AppRoutes.all_users}?isRecent='false'");
-          }else{
-            Get.toNamed(AppRoutes.all_users,
-                arguments: {"isRecent": 'false'});
-          }
-        },
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          mainAxisAlignment: MainAxisAlignment.center,
-          crossAxisAlignment: CrossAxisAlignment.center,
-          children: [
-
-            Image.asset(emptyRecentPng,height: 90,),
-            Text('Click to Start New Task ✍️',
-                style: BalooStyles.baloosemiBoldTextStyle(color: appColorGreen)).paddingAll(12),
-            vGap(12),
-            IconButton(onPressed: () async => controller.hitAPIToGetRecentTasksUser(), icon: Icon(Icons.refresh,size: 35,color: appColorGreen,)).paddingOnly(right: 8)
-
-          ],
-        ),
-      ),
-    ) : RefreshIndicator(
-        backgroundColor: Colors.white,
-        color: appColorGreen,
-        onRefresh: () async{
-          controller.resetPaginationForNewChat();
-          controller.hitAPIToGetRecentTasksUser();
-        }
-        ,
-        child: Obx(
-           () {
-            return ListView.builder(
-              physics: const AlwaysScrollableScrollPhysics(),
-              itemCount: controller.filteredList.length,
-              controller: controller.scrollController,
-              itemBuilder: (context, index) {
-                final item = controller.filteredList[index];
-                return  SwipeTo(
-                    iconOnLeftSwipe: Icons.delete_outline,
-                    iconColor: Colors.red,
-                    onLeftSwipe: (detail)async {
-                      final confirm = await showDialog(
-                        context: context,
-                        builder: (_) => AlertDialog(
-                          backgroundColor: Colors.white,
-                          title: Text(
-                              "Remove ${ item.email == null || item.email == '' ? item.phone : item.email}"),
-                          content: const Text(
-                              "Are you sure you want to remove this member from recants?"),
-                          actions: [
-                            TextButton(
-                                onPressed: () =>
-                                    Navigator.pop(context, false),
-                                child: const Text("Cancel")),
-                            TextButton(
-                                onPressed: () =>
-                                    Navigator.pop(context, true),
-                                child: Text(
-                                  "Remove",
-                                  style: BalooStyles
-                                      .baloosemiBoldTextStyle(
-                                      color: Colors.red),
-                                )),
-                          ],
-                        ),
-                      );
-
-                      if (confirm == true) {
-                        customLoader.show();
-
-                        // await APIs.deleteRecantUserAndChat(item.id);
-                        customLoader.hide();
-                        controller.update();
-
-                      }
-                    },
-                    child:
-                     kIsWeb && !isWebwidth?ChatUserCard(user: item):ChatUserCardMobile(user: item)
-                );
-              },
-            );
-          }
-        )
-    );
-  }
-
 
   Widget _buildHeader(String title) {
     return Padding(
@@ -332,9 +516,6 @@ class TaskHomeScreen extends GetView<TaskHomeController> {
           style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
     );
   }
-
-
-
 
   _groupDialogWidget() {
     return CustomDialogue(
@@ -417,7 +598,8 @@ class TaskHomeScreen extends GetView<TaskHomeController> {
             vPadding: 8,
             onTap: () {
               if (controller.groupController.text.isNotEmpty) {
-                controller.createGroupBroadcastApi(isGroup: "1",isBroadcast: '0');
+                controller.createGroupBroadcastApi(
+                    isGroup: "1", isBroadcast: '0');
               } else {
                 errorDialog("Please enter group name");
               }
@@ -436,65 +618,65 @@ class TaskHomeScreen extends GetView<TaskHomeController> {
     showDialog(
         context: Get.context!,
         builder: (_) => AlertDialog(
-          contentPadding: const EdgeInsets.only(
-              left: 24, right: 24, top: 20, bottom: 10),
+              contentPadding: const EdgeInsets.only(
+                  left: 24, right: 24, top: 20, bottom: 10),
 
-          shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(20)),
+              shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(20)),
 
-          //title
-          title: const Row(
-            children: [
-              Icon(
-                Icons.person_add,
-                color: Colors.blue,
-                size: 28,
+              //title
+              title: const Row(
+                children: [
+                  Icon(
+                    Icons.person_add,
+                    color: Colors.blue,
+                    size: 28,
+                  ),
+                  Text('  Add User')
+                ],
               ),
-              Text('  Add User')
-            ],
-          ),
 
-          //content
-          content: TextFormField(
-            maxLines: null,
-            onChanged: (value) => email = value,
-            decoration: InputDecoration(
-                hintText: 'Email Id',
-                prefixIcon: const Icon(Icons.email, color: Colors.blue),
-                border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(15))),
-          ),
+              //content
+              content: TextFormField(
+                maxLines: null,
+                onChanged: (value) => email = value,
+                decoration: InputDecoration(
+                    hintText: 'Email Id',
+                    prefixIcon: const Icon(Icons.email, color: Colors.blue),
+                    border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(15))),
+              ),
 
-          //actions
-          actions: [
-            //cancel button
-            MaterialButton(
-                onPressed: () {
-                  //hide alert dialog
-                  Get.back();
-                },
-                child: const Text('Cancel',
-                    style: TextStyle(color: Colors.blue, fontSize: 16))),
+              //actions
+              actions: [
+                //cancel button
+                MaterialButton(
+                    onPressed: () {
+                      //hide alert dialog
+                      Get.back();
+                    },
+                    child: const Text('Cancel',
+                        style: TextStyle(color: Colors.blue, fontSize: 16))),
 
-            //add button
-            MaterialButton(
-                onPressed: () async {
-                  //hide alert dialog
-                  Get.back();
-                  // if (email.isNotEmpty) {
-                  //   await APIs.addChatUser(email).then((value) {
-                  //     if (!value) {
-                  //       Dialogs.showSnackbar(
-                  //           Get.context!, 'User does not Exists!');
-                  //     }
-                  //   });
-                  // }
-                },
-                child: const Text(
-                  'Add',
-                  style: TextStyle(color: Colors.blue, fontSize: 16),
-                ))
-          ],
-        ));
+                //add button
+                MaterialButton(
+                    onPressed: () async {
+                      //hide alert dialog
+                      Get.back();
+                      // if (email.isNotEmpty) {
+                      //   await APIs.addChatUser(email).then((value) {
+                      //     if (!value) {
+                      //       Dialogs.showSnackbar(
+                      //           Get.context!, 'User does not Exists!');
+                      //     }
+                      //   });
+                      // }
+                    },
+                    child: const Text(
+                      'Add',
+                      style: TextStyle(color: Colors.blue, fontSize: 16),
+                    ))
+              ],
+            ));
   }
 }

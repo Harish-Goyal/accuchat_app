@@ -15,7 +15,7 @@ abstract class SpeechController extends GetxController {
 
   void setLanguage({required String langCode});
   void start();
-  void stop();
+  void stop({bool skipOnStopped = false});
   void toggle();
   VoidCallback? onStopped;
   String getCombinedText();

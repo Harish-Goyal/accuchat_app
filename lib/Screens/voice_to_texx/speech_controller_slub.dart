@@ -15,7 +15,7 @@ class SpeechControllerImpl extends SpeechController {
   @override void setLanguage({required String langCode}) {}
 
   @override void start() => Get.snackbar('Not supported', 'Voice-to-text is disabled on mobile.');
-  @override void stop() {}
+  @override void stop({bool skipOnStopped = false}) {}
   @override void toggle() => start();
 
   @override String getCombinedText() => '';

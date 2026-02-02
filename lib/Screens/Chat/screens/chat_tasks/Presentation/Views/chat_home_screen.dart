@@ -274,7 +274,8 @@ class ChatsHomeScreen extends GetView<ChatHomeController> {
             ),
             PopupMenuItem(
               value: 'settings',
-              child: Row(mainAxisSize: MainAxisSize.min, children: [
+              child: Row(
+                mainAxisSize: MainAxisSize.min, children: [
                 Image.asset(
                   settingPng,
                   height: 15,
@@ -348,16 +349,13 @@ class ChatsHomeScreen extends GetView<ChatHomeController> {
   Widget _recentChatsList(
       ChatHomeController controller, bool isWebwidth, double width) {
     return Column(
-      crossAxisAlignment: CrossAxisAlignment.end,
       children: [
         kIsWeb && !isWebwidth ?TextField(
           controller: controller.seacrhCon,
           focusNode:controller.searchFocus,
           autocorrect: true,
           cursorColor: appColorGreen,
-          onTap: (){
-            controller.searchFocus.requestFocus(controller.searchFocus);
-          },
+
           decoration:  InputDecoration(
             border: InputBorder.none,
             hintText: 'Search User, Group & Collection ...',
