@@ -761,6 +761,58 @@ class ChatScreenController extends GetxController {
   }
 
   hitAPIToGetChatHistory(p, {String? searchQuery}) async {
+    if (isPageLoading || !hasMore) return; // ✅ IMPORTANT guard
+    if (page == 1) {
+      showPostShimmer = true;
+      chatHisList?.clear();
+      chatCatygory.clear();
+    }
+    isPageLoading = true;
+    update();
+    try {
+      final value = await Get.find<PostApiServiceImpl>().getChatHistoryApiCall(
+        userComId: user?.userCompany?.userCompanyId,
+        page: page,
+        searchText: searchQuery ?? '',
+      );
+      showPostShimmer = false;
+      chatHisResModelAPI = value;
+      final rows = value.data?.rows ?? [];
+      if (rows.isNotEmpty) {
+        if (page == 1) {
+          chatHisList = rows;
+        } else {
+          chatHisList?.addAll(rows);
+        }
+        page++;
+      } else {
+        hasMore = false;
+      }
+      chatCatygory = (chatHisList ?? []).map((item) {
+        DateTime dt = DateTime.now();
+        if (item.sentOn != null && item.sentOn!.isNotEmpty) {
+          dt = DateTime.parse(item.sentOn!).toLocal();
+        }
+        return GroupChatElement(dt, item);
+      }).toList();
+      if ((user?.pendingCount ?? 0) != 0) {
+        markAllVisibleAsReadOnOpen(
+          user?.userCompany?.userCompanyId,
+          APIs.me.userCompany?.userCompanyId,
+          user?.userCompany?.isGroup == 1 ? 1 : 0,
+        );
+      }
+      rebuildFlatRows();
+    } catch (e) {
+      showPostShimmer = false;
+    } finally {
+      isPageLoading = false;
+      update();
+    }
+  }
+
+/*  hitAPIToGetChatHistory(p, {String? searchQuery}) async {
+    if (isPageLoading || !hasMore) return;
     if (page == 1) {
       showPostShimmer = true;
       chatHisList?.clear();
@@ -818,7 +870,7 @@ class ChatScreenController extends GetxController {
       isPageLoading = false;
       update();
     });
-  }
+  }*/
 
   MediaType _mediaTypeForPath(String path) {
     final mime = lookupMimeType(path) ?? 'application/octet-stream';
