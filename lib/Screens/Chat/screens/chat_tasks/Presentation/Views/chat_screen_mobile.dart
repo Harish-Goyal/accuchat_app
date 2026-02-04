@@ -121,7 +121,7 @@ class ChatScreenMobile extends GetView<ChatScreenController> {
         child: SafeArea(
           child: WillPopScope(
             onWillPop: () {
-              Get.find<ChatHomeController>().localPage = 1;
+              Get.find<ChatHomeController>().localPage.value = 1;
               Get.find<ChatHomeController>().hitAPIToGetRecentChats(page: 1);
               return Future.value(true);
             },
@@ -187,7 +187,7 @@ class ChatScreenMobile extends GetView<ChatScreenController> {
                 ],
               )
                   : const SizedBox.shrink(),
-              if (kIsWeb) _chatInput(context) else _chatInputMobile(),
+              if (kIsWeb) _chatInput(context) else _chatInputMobile(context),
             ],
           ),
         ),
@@ -1001,7 +1001,7 @@ class ChatScreenMobile extends GetView<ChatScreenController> {
                         Get.offAllNamed(AppRoutes.home); // or your main route
                       }
                       if(!kIsWeb) {
-                        Get.find<ChatHomeController>().localPage = 1;
+                        Get.find<ChatHomeController>().localPage.value = 1;
                         Get.find<ChatHomeController>().hitAPIToGetRecentChats(page: 1);
                         if (isTaskMode) {
                           Get.find<DashboardController>().updateIndex(1);
@@ -1865,7 +1865,7 @@ class ChatScreenMobile extends GetView<ChatScreenController> {
     );
   }*/
 
-  Widget _chatInputMobile() {
+  Widget _chatInputMobile(context) {
     return Container(
       // height: Get.height*.4,
       padding: EdgeInsets.symmetric(
@@ -2055,6 +2055,24 @@ class ChatScreenMobile extends GetView<ChatScreenController> {
 
                                         ),
                                       )),
+
+ if (!isTaskMode)
+                                      InkWell(
+                                        onTap: () async {
+                                          openWhatsAppEmojiPicker(
+                                            context: context,
+                                            textController: controller.textController,
+                                            onSend:() {
+                                              WidgetsBinding.instance.addPostFrameCallback((_) {
+                                                controller.messageParentFocus.requestFocus();
+                                              });
+                                            },
+                                            isMobile: false,
+                                          );
+
+                                        },
+                                        child: IconButtonWidget(emojiPng),
+                                      ),
                                   ],
                                 ),
                               ),

@@ -815,7 +815,6 @@ class TaskScreen extends GetView<TaskController> {
     }
   }
 
-  DashboardController dashboardController = Get.put(DashboardController());
 
   // app bar widget
   Widget _appBar() {
@@ -883,11 +882,17 @@ class TaskScreen extends GetView<TaskController> {
 
                           Get.find<TaskHomeController>()
                               .hitAPIToGetRecentTasksUser();
+                          var dashCon;
+                          if(Get.isRegistered<DashboardController>()){
+                            dashCon = Get.find<DashboardController>();
+                          }else{
+                            dashCon = Get.put(DashboardController());
+                          }
 
                           if (isTaskMode) {
-                            dashboardController.updateIndex(1);
+                            dashCon.updateIndex(1);
                           } else {
-                            dashboardController.updateIndex(0);
+                            dashCon.updateIndex(0);
                           }
 
                           // APIs.updateActiveStatus(false);

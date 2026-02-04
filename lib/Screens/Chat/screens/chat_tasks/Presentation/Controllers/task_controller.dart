@@ -97,14 +97,17 @@ class TaskController extends GetxController {
   getArguments() {
     if(kIsWeb){
       _getCompany();
-      // if (Get.parameters != null) {
-      final String? argUserId = Get.parameters['userId'];
-      if (argUserId != null) {
-        getUserByIdApi(userId: int.parse(argUserId ?? ''));
-        // }
-      } else {
-        getUserByIdApi(userId: user?.userId);
-      }
+      if (Get.parameters != null) {
+        if( Get.parameters['user']==null){
+          final String? argUserId = Get.parameters['userId'];
+          if (argUserId != null) {
+            getUserByIdApi(userId: int.parse(argUserId ?? ''));
+          }
+        } else {
+          getUserByIdApi(userId: user?.userId);
+        }
+        }
+
     }else{
       if (Get.arguments != null) {
         UserDataAPI argUser = Get.arguments['user'];
@@ -1182,13 +1185,11 @@ class TaskController extends GetxController {
         if(!isFilter ){
           hasMore = false;
           isPageLoading = false;
-          update();
         }else{
           isPageLoading = false;
           hasMore = false;
           taskHisList=[];
           taskCategory=[];
-          update();
         }
       }
 

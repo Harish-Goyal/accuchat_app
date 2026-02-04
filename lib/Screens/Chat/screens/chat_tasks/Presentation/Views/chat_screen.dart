@@ -499,9 +499,7 @@ class _ChatScreenState extends State<ChatScreen> {
   }
 
   groupListView() {
-      /* final initialIndex = (controller.flatRows.isEmpty)
-        ? 0
-        : controller.flatRows.length - 1;*/
+
     return (controller.chatRows ?? []).isNotEmpty
         ? ScrollablePositionedList.builder(
         itemScrollController: controller.itemScrollController,
@@ -538,8 +536,6 @@ class _ChatScreenState extends State<ChatScreen> {
                   onRightSwipe: element.chatMessageItems.isActivity == 1
                       ? (v) {}
                       : (detail) {
-
-
                                 final media = element.chatMessageItems.media;
                                 if (media == null || media.isEmpty) {
                                   controller.refIdis = element.chatMessageItems.chatId;

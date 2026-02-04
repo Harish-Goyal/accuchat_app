@@ -484,13 +484,16 @@ class GroupMemberShimmer extends StatelessWidget {
           "",defaultImage: userIcon,
         ),
       ),
-      title: Row(
+      title: Column(
         mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Container(
             padding: EdgeInsets.symmetric(vertical: 5,horizontal: 7),
 
-              child: Text("member",style: BalooStyles.baloonormalTextStyle(color: Colors.black),)),
+              child: Text("XXXXXXXXXX",style: BalooStyles.baloonormalTextStyle(color: Colors.black),)),
+          vGap(5),
+          Text("*******",style: BalooStyles.baloonormalTextStyle(color: Colors.black),)
         ],
       ),
       trailing: Container(

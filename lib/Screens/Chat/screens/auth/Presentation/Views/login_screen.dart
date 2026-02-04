@@ -15,8 +15,8 @@ import '../../../../../Settings/Presentation/Views/settings_screen.dart';
 import '../../../../../Settings/Presentation/Views/static_page.dart';
 
 class LoginScreenG extends GetView<LoginGController> {
-  const LoginScreenG({super.key});
-
+   LoginScreenG({super.key});
+  final _formKey = GlobalKey<FormState>();
   @override
   Widget build(BuildContext context) {
     //initializing media query (for getting device screen size)
@@ -42,132 +42,143 @@ class LoginScreenG extends GetView<LoginGController> {
                       maxWidth: isWide ? 500 : double.infinity,
                     ),
                     child: SingleChildScrollView(
-                        child: Column(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      crossAxisAlignment: CrossAxisAlignment.center,
-                      children: [
-                        Image.asset(
-                          appIcon,
-                          width: isWide ? Get.width * .1 : Get.width * .3,
-                          height: isWide ? Get.width * .1 : Get.width * .3,
-                        ),
-                        Text(
-                          "Login with phone or email address!",
-                          style: BalooStyles.baloonormalTextStyle(
-                              weight: FontWeight.w500),
-                          textAlign: TextAlign.center,
-                        ),
-                        vGap(30),
-                        CustomTextField(
-                          hintText: "Email or Phone".tr,
-                          controller: controller.phoneController,
-                          textInputType: TextInputType.emailAddress,
-                          inputFormatters: controller.showCountryCode
-                              ? <TextInputFormatter>[
-                                  FilteringTextInputFormatter.digitsOnly,
-                                  LengthLimitingTextInputFormatter(10),
-                                ]
-                              : <TextInputFormatter>[],
-                          validator: (value) {
-                            return controller.showCountryCode
-                                ? value?.validateMobile(
-                                    controller.phoneController.text)
-                                : value?.isValidEmail();
-                          },
-                          onFieldSubmitted: (String? value) {
-                            FocusScope.of(Get.context!).unfocus();
-                            controller.hitAPIToSendOtp();
-                          },
-                          labletext: "Phone or Email",
-                          prefix: !controller.showCountryCode
-                              ? Icon(Icons.email_outlined,
-                                  size: 18, color: appColorGreen)
-                              : CountryCodePicker(
-                            initialSelection: 'IN',
-                            showFlagDialog: false,
-                            showDropDownButton: false,
-                            padding: EdgeInsets.zero,
-                            backgroundColor: Colors.transparent,            // just in case
-                            boxDecoration: const BoxDecoration(
-                              color: Colors.transparent,                    // main container transparent
-                            ),
-                            builder: (code) {
-                              return Container(                             // you control the painting
-                                color: Colors.transparent,
-                                padding: const EdgeInsets.symmetric(horizontal: 8),
-                                child: Row(
-                                  mainAxisSize: MainAxisSize.min,
-                                  children: [
-                                    if (code?.flagUri != null)
-                                      Image.asset(code!.flagUri!,
-                                          package: 'country_code_picker', width: 20),
-                                    const SizedBox(width: 6),
-                                    Text(code?.dialCode ?? ''),
-                                  ],
+                        child: Form(
+                          key: _formKey,
+                          child: Column(
+                                                mainAxisAlignment: MainAxisAlignment.center,
+                                                crossAxisAlignment: CrossAxisAlignment.center,
+                                                children: [
+                          Image.asset(
+                            appIcon,
+                            width: isWide ? Get.width * .1 : Get.width * .3,
+                            height: isWide ? Get.width * .1 : Get.width * .3,
+                          ),
+                          Text(
+                            "Login with phone or email address!",
+                            style: BalooStyles.baloonormalTextStyle(
+                                weight: FontWeight.w500),
+                            textAlign: TextAlign.center,
+                          ),
+                          vGap(30),
+                          CustomTextField(
+                            hintText: "Email or Phone".tr,
+                            controller: controller.phoneController,
+                            textInputType: TextInputType.emailAddress,
+                            inputFormatters: controller.showCountryCode
+                                ? <TextInputFormatter>[
+                                    FilteringTextInputFormatter.digitsOnly,
+                                    LengthLimitingTextInputFormatter(10),
+                                  ]
+                                : <TextInputFormatter>[],
+                            validator: (value) {
+                              return controller.showCountryCode
+                                  ? value?.validateMobile(
+                                      controller.phoneController.text)
+                                  : value?.isValidEmail();
+                            },
+                            onFieldSubmitted: (String? value) {
+                              if(_formKey.currentState!.validate()){
+                                FocusScope.of(Get.context!).unfocus();
+                                controller.hitAPIToSendOtp();
+                              }
+
+                            },
+                            labletext: "Phone or Email",
+                            prefix: !controller.showCountryCode
+                                ? Icon(Icons.email_outlined,
+                                    size: 18, color: appColorGreen)
+                                : CountryCodePicker(
+                              initialSelection: 'IN',
+                              showFlagDialog: false,
+                              showDropDownButton: false,
+                              padding: EdgeInsets.zero,
+                              backgroundColor: Colors.transparent,            // just in case
+                              boxDecoration: const BoxDecoration(
+                                color: Colors.transparent,                    // main container transparent
+                              ),
+                              builder: (code) {
+                                return Container(                             // you control the painting
+                                  color: Colors.transparent,
+                                  padding: const EdgeInsets.symmetric(horizontal: 8),
+                                  child: Row(
+                                    mainAxisSize: MainAxisSize.min,
+                                    children: [
+                                      if (code?.flagUri != null)
+                                        Image.asset(code!.flagUri!,
+                                            package: 'country_code_picker', width: 20),
+                                      const SizedBox(width: 6),
+                                      Text(code?.dialCode ?? ''),
+                                    ],
+                                  ),
+                                );
+                              },
+                              onChanged: (_) {
+
+                              },
+                            )
+                            ,
+                            onChangee:(v){
+                              if (controller.showCountryCode) {
+                                // Remove all non-digits
+                                String cleaned = v.replaceAll(RegExp(r'[^0-9]'), '');
+
+                                // Limit to 10 digits
+                                if (cleaned.length > 10) {
+                                  cleaned = cleaned.substring(0, 10);
+                                }
+
+                                // Only update if different to avoid cursor jump
+                                if (cleaned != controller.phoneController.text) {
+                                  controller.phoneController.value =
+                                      controller.phoneController.value.copyWith(
+                                        text: cleaned,
+                                        selection: TextSelection.fromPosition(
+                                          TextPosition(offset: cleaned.length),
+                                        ),
+                                      );
+                                }
+                              }
+                              controller.onTextChanged(v);
+                            } ,
+                          ),
+                          vGap(40),
+                          dynamicButton(
+                            name: "Send OTP",
+                            onTap: () {
+                              if(_formKey.currentState!.validate()){
+                                FocusScope.of(Get.context!).unfocus();
+                                controller.hitAPIToSendOtp();
+                              }
+                            },
+                            isShowText: true,
+                            isShowIconText: false,
+                            gradient: buttonGradient,
+                            leanIcon: 'assets/images/google.png',
+                          ),
+                          /*vGap(35),
+                            Row(
+                              children: [
+                                Expanded(
+                                  child: dynamicButton(
+                                    name: "Login with Google",
+                                    onTap: () => controller.handleGoogleBtnClick(),
+                                    isShowText: true,
+                                    isShowIconText: true,
+                                    gradient: buttonGradient,
+                                    leanIcon: 'assets/images/google.png',
+                                  ),
                                 ),
-                              );
-                            },
-                            onChanged: (_) {
-
-                            },
-                          )
-                          ,
-                          onChangee:(v){
-                            if (controller.showCountryCode) {
-                              // Remove all non-digits
-                              String cleaned = v.replaceAll(RegExp(r'[^0-9]'), '');
-
-                              // Limit to 10 digits
-                              if (cleaned.length > 10) {
-                                cleaned = cleaned.substring(0, 10);
-                              }
-
-                              // Only update if different to avoid cursor jump
-                              if (cleaned != controller.phoneController.text) {
-                                controller.phoneController.value =
-                                    controller.phoneController.value.copyWith(
-                                      text: cleaned,
-                                      selection: TextSelection.fromPosition(
-                                        TextPosition(offset: cleaned.length),
-                                      ),
-                                    );
-                              }
-                            }
-                            controller.onTextChanged(v);
-                          } ,
-                        ),
-                        vGap(40),
-                        dynamicButton(
-                          name: "Send OTP",
-                          onTap: () => controller.hitAPIToSendOtp(),
-                          isShowText: true,
-                          isShowIconText: false,
-                          gradient: buttonGradient,
-                          leanIcon: 'assets/images/google.png',
-                        ),
-                        /*vGap(35),
+                              ],
+                            ).marginSymmetric(horizontal: 20),*/
+                          vGap(20),
                           Row(
                             children: [
-                              Expanded(
-                                child: dynamicButton(
-                                  name: "Login with Google",
-                                  onTap: () => controller.handleGoogleBtnClick(),
-                                  isShowText: true,
-                                  isShowIconText: true,
-                                  gradient: buttonGradient,
-                                  leanIcon: 'assets/images/google.png',
-                                ),
-                              ),
+                              Flexible(child: _policyText()),
                             ],
-                          ).marginSymmetric(horizontal: 20),*/
-                        vGap(20),
-                        Row(
-                          children: [
-                            Flexible(child: _policyText()),
-                          ],
-                        ).marginSymmetric(vertical: 35, horizontal: 20),
-                      ],
-                    ).paddingSymmetric(vertical: 5, horizontal: 15)),
+                          ).marginSymmetric(vertical: 35, horizontal: 20),
+                                                ],
+                                              ).paddingSymmetric(vertical: 5, horizontal: 15),
+                        )),
                   ),
                 );
               },

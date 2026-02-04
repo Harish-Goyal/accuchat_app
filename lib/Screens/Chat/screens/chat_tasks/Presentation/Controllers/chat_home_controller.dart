@@ -39,7 +39,7 @@ class ChatHomeController extends GetxController{
   String searchQuery = '';
   Future<void> onCompanyChanged(int? companyId) async => hitAPIToGetRecentChats(page: 1);
 
-  final dash = Get.put(DashboardController());
+  final dash = Get.put(DashboardController(),permanent: true);
   var selectedCompany = Rxn<CompanyData>();     // Rx nullable object
   var joinedCompaniesList = <CompanyData>[].obs; // Rx list
   var loadingCompany = false.obs;
@@ -62,24 +62,14 @@ class ChatHomeController extends GetxController{
     });
   }
 
-  void resetPagination() {
-    localPage = 1;
-    hasMore = true;
-    isPageLoading = false;
-    filteredList.clear();
-  }
   @override
   void onInit() {
     super.onInit();
-    isOnRecentList.value = true;
-    resetPagination();
-    scrollController = ScrollController();
     getCompany();
-    Future.delayed(const Duration(milliseconds: 200),(){
-      resetPaginationForNewChat();
-      hitAPIToGetRecentChats(page: 1);
-    }
-    );
+    isOnRecentList.value = true;
+    scrollController = ScrollController();
+    resetPaginationForNewChat();
+    hitAPIToGetRecentChats(page: 1);
     scrollListener();
 
     // SystemChannels.lifecycle.setMessageHandler((message) {
@@ -134,13 +124,13 @@ class ChatHomeController extends GetxController{
     });
   }
 
-  int localPage =1;
+  RxInt localPage =1.obs;
   RxBool isOnRecentList = true.obs;
-  bool isLoading =false;
-  bool isPageLoading =false;
-  bool hasMore = true;
+  RxBool isLoading =false.obs;
+  RxBool isPageLoading =false.obs;
+  RxBool hasMore = true.obs;
   RecentChatsUserResModel recentChatsUserResModel = RecentChatsUserResModel();
-  bool showPostShimmer = true;
+  RxBool showPostShimmer = true.obs;
 
   late ScrollController scrollController;
 
@@ -149,9 +139,9 @@ class ChatHomeController extends GetxController{
       scrollController.addListener(() {
         if (scrollController.position.pixels >=
             scrollController.position.maxScrollExtent - 100 &&
-            !isPageLoading && hasMore) {
+            !isPageLoading.value && hasMore.value) {
           // resetPaginationForNewChat();
-          hitAPIToGetRecentChats(page: localPage);
+          hitAPIToGetRecentChats(page: localPage.value);
         }
       });
     } else {
@@ -159,18 +149,18 @@ class ChatHomeController extends GetxController{
         if (!scrollController.hasClients) return;
         final position = scrollController.position;
         if (position.maxScrollExtent >0) {
-          if (!isPageLoading && hasMore) {
-            hitAPIToGetRecentChats(page: localPage);
+          if (!isPageLoading.value && hasMore.value) {
+            hitAPIToGetRecentChats(page: localPage.value);
           }
         }
       });
     }
   }
   void resetPaginationForNewChat() {
-    localPage = 1;
-    hasMore = true;
+    localPage.value = 1;
+    hasMore.value = true;
     filteredList.clear();
-    showPostShimmer = true;
+    showPostShimmer.value = true;
     update();
   }
 
@@ -178,16 +168,15 @@ class ChatHomeController extends GetxController{
 
   hitAPIToGetRecentChats({String? search, UserDataAPI? userData,required int page}) async {
     if(page==1){
-      showPostShimmer = true;
+      showPostShimmer.value = true;
       filteredList.clear();
     }
-    isPageLoading = true;
+    isPageLoading.value = true;
     update();
     Get.find<PostApiServiceImpl>()
         .getRecentChatUserApiCall(comId:myCompany?.companyId,page: page,searchText: search??'')
         .then((value) async {
-      isLoading = false;
-      update();
+      isLoading.value = false;
       recentChatsUserResModel=value;
       recentChatUserList=value.data?.rows??[];
       if (value.data?.rows != null && (value.data?.rows ?? []).isNotEmpty) {
@@ -206,19 +195,17 @@ class ChatHomeController extends GetxController{
           }
         localPage++; // next page
       } else {
-        hasMore = false;
-        isPageLoading = false;
-        update();
+        hasMore.value = false;
+        isPageLoading.value = false;
       }
-      showPostShimmer = false;
-      isPageLoading = false;
+      showPostShimmer.value = false;
+      isPageLoading.value = false;
       update();
 
     }).onError((error, stackTrace) {
-      showPostShimmer = false;
-      isPageLoading = false;
-      update();
-      update();
+      showPostShimmer.value = false;
+      isPageLoading.value = false;
+
     });
   }
 
@@ -238,7 +225,7 @@ class ChatHomeController extends GetxController{
       customLoader.hide();
       Get.find<SocketController>().connectUserEmitter(myCompany?.companyId);
       Get.back();
-      localPage=1;
+      localPage.value=1;
       groupResModel = value;
       groupController.clear();
       toast(value.message??'');
@@ -267,7 +254,6 @@ class ChatHomeController extends GetxController{
   }
 
   TextEditingController groupController = TextEditingController();
-  DashboardController dashboardController = Get.put(DashboardController());
 
   // List<dynamic> mergedList = [];
   var filteredList = <UserDataAPI>[].obs;
@@ -277,8 +263,8 @@ class ChatHomeController extends GetxController{
     searchDelay?.cancel();
     searchDelay = Timer(const Duration(milliseconds: 400), () {
       searchQuery = query.trim().toLowerCase();
-      localPage = 1;
-      hasMore = false;
+      localPage.value = 1;
+      hasMore.value = false;
       filteredList.clear();
       update();
       hitAPIToGetRecentChats(search: searchQuery.isEmpty ? null : searchQuery,page: 1);

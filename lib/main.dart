@@ -48,7 +48,7 @@ class GlobalVariable {
 }
 
 // (kept as-is)
-DashboardController dashboardController = Get.put(DashboardController());
+// DashboardController dashboardController = Get.put(DashboardController(),permanent: true);
 
 // ---------------------------------------------
 // NEW: one-shot boot guard (so we don't run twice)

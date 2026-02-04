@@ -28,7 +28,6 @@ import 'home_screen.dart';
 
 class CompaniesScreen extends GetView<CompaniesController> {
   CompaniesScreen({super.key});
-  final dash = Get.put(DashboardController());
 
   @override
   Widget build(BuildContext context) => SafeArea(

@@ -16,128 +16,355 @@ import 'package:flutter_snake_navigationbar/flutter_snake_navigationbar.dart';
 import 'package:get/get.dart';
 import '../../../../main.dart';
 import '../../../../routes/app_routes.dart';
-import '../../../../utils/budge_controller.dart';
 import '../../../../utils/register_image.dart';
-import '../../../../utils/register_image_web.dart';
 import '../../../Chat/api/apis.dart';
 
-class AccuChatDashboard extends StatelessWidget {
-  final DashboardController controller = Get.put(DashboardController());
+class AccuChatDashboard extends StatefulWidget {
+  @override
+  State<AccuChatDashboard> createState() => _AccuChatDashboardState();
+}
 
+
+
+class _AccuChatDashboardState extends State<AccuChatDashboard> {
+  ChatHomeController? homec;
+
+
+  @override
+  void initState() {
+    if (Get.isRegistered<ChatHomeController>()) {
+      homec = Get.find<ChatHomeController>();
+    } else {
+      homec = Get.put(ChatHomeController());
+    }
+    super.initState();
+  }
   @override
   Widget build(BuildContext context) {
     bool isWideScreen = MediaQuery.of(context).size.width > 800;
 
-    return WillPopScope(onWillPop: () async {
-      if (controller.currentIndex != 0) {
-        controller.updateIndex(0);
-        return false;
+    return GetBuilder<DashboardController>(builder: (controller) {
+        return WillPopScope(onWillPop: () async {
+          if (controller.currentIndex != 0) {
+            controller.updateIndex(0);
+            return false;
+          }
+          return true;
+        }, child:  Scaffold(
+            // drawer: isWideScreen ? null : _buildDrawer(), // for mobile
+            body: Row(
+              children: [
+                if (isWideScreen)
+                  SizedBox(width: Get.width * .13, child: buildSideNav(controller)),
+                Expanded(
+                  child: controller.screens.isEmpty
+                      ? const SizedBox()
+                      : ConstrainedBox(
+                          constraints: const BoxConstraints(maxWidth: 1000),
+                          child: controller.screens[controller.currentIndex],
+                        ),
+                ),
+              ],
+            ),
+            bottomNavigationBar: isWideScreen
+                ? null
+                : controller.screens.isEmpty
+                    ? const SizedBox()
+                    : _bottomNavigationBar(isWideScreen,controller),
+          )
+           );
       }
-      return true;
-    }, child: GetBuilder<DashboardController>(builder: (controller) {
-      return Scaffold(
-        // drawer: isWideScreen ? null : _buildDrawer(), // for mobile
-        body: Row(
-          children: [
-            if (isWideScreen)
-              SizedBox(width: Get.width * .13, child: buildSideNav(controller)),
-            Expanded(
-              child: controller.screens.isEmpty
-                  ? const SizedBox()
-                  : ConstrainedBox(
-                      constraints: const BoxConstraints(maxWidth: 1000),
-                      child: controller.screens[controller.currentIndex],
-                    ),
-            ),
-          ],
-        ),
-        bottomNavigationBar: isWideScreen
-            ? null
-            : controller.screens.isEmpty
-                ? const SizedBox()
-                : _bottomNavigationBar(isWideScreen),
-      );
-    }));
-  }
-
-  Widget _buildDrawer() {
-    return Drawer(
-      backgroundColor: Colors.white,
-      elevation: 0,
-      child: ListView(
-        padding: EdgeInsets.zero,
-        children: [
-          DrawerHeader(
-            decoration: BoxDecoration(
-              gradient: LinearGradient(
-                colors: [
-                  appColorGreen.withOpacity(.8),
-                  appColorYellow.withOpacity(.8)
-                ],
-              ),
-            ),
-            child: const Text('AccuChat Menu',
-                style: TextStyle(color: Colors.white, fontSize: 20)),
-          ),
-          ListTile(
-            leading: Image.asset(
-              chatHome,
-              height: 22,
-            ),
-            title: const Text('Chats'),
-            onTap: () {
-              controller.updateIndex(0);
-              Get.back();
-              isTaskMode = false;
-              controller.update();
-            },
-          ),
-          ListTile(
-            leading: Image.asset(
-              tasksHome,
-              height: 22,
-            ),
-            title: const Text('Tasks'),
-            onTap: () {
-              controller.updateIndex(1);
-
-              isTaskMode = true;
-              Get.back();
-              controller.update();
-            },
-          ),
-          ListTile(
-            leading: Image.asset(
-              connectedAppIcon,
-              height: 22,
-            ),
-            title: const Text('Your Companies'),
-            onTap: () {
-              controller.updateIndex(2);
-              Get.back();
-
-              isTaskMode = false;
-              controller.update();
-            },
-          ),
-          ListTile(
-            leading: Image.asset(
-              galleryIcon,
-              height: 22,
-            ),
-            title: const Text('Gallery'),
-            onTap: () {
-              controller.updateIndex(3);
-              Get.back();
-
-              isTaskMode = false;
-              controller.update();
-            },
-          ),
-        ],
-      ),
     );
   }
+
+
+  Widget buildSideNav(DashboardController controller) {
+
+
+    return Column(
+      children: [
+        Expanded(
+          child: Container(
+            decoration: BoxDecoration(
+                border: Border.symmetric(vertical: BorderSide(color: Colors.grey.shade200))
+            ),
+            child: NavigationRail(
+              selectedIndex: controller.currentIndex,
+              onDestinationSelected: (index) {
+                controller.getCompany();
+                final isSetting = index == 4;
+                if (isSetting) {
+                  if (kIsWeb) unregisterImage();
+                  Get.toNamed(AppRoutes.all_settings);
+                }
+                // Get.toNamed(AppRoutes.home);
+                isTaskMode = index == 1;
+               /* if (index == 0) {
+                  var homec;
+                  if (!Get.isRegistered<ChatHomeController>()) {
+                    homec= Get.put(ChatHomeController(), permanent: true);
+                  } else{
+                    homec = Get.find<ChatHomeController>();
+                  }
+                  var chatc;
+                  if (!Get.isRegistered<ChatScreenController>()) {
+                    chatc =  Get.put(ChatScreenController(user: controller.user), permanent: true);
+                  }else{
+                    chatc = Get.find<ChatScreenController>();
+                  }
+                  chatc.replyToMessage = null;
+
+                  // ✅ ONLY AUTO-SELECT if nothing selected yet
+                  if (homec.selectedChat.value == null && homec.filteredList.isNotEmpty) {
+                    final user = homec.filteredList[0];
+                    homec.selectedChat.value = user;
+                    chatc.user = user;
+                    chatc.textController.clear();
+                    chatc.showPostShimmer = true;
+                    chatc.openConversation(user);
+                  }
+
+                  homec.update();
+                  homec.selectedChat.refresh();
+                  chatc.update();
+                }*/
+
+                if (index == 0) {
+                if (Get.isRegistered<ChatScreenController>()) {
+                  final chatc = Get.find<ChatScreenController>();
+                  chatc.replyToMessage = null;
+                  if (homec!.filteredList.isNotEmpty) {
+                    final user = homec?.filteredList[0];
+                    homec?.selectedChat.value = user;
+                    chatc.user =homec?.selectedChat.value;
+                    chatc.textController.clear();
+
+                    chatc.update();
+                    chatc.showPostShimmer = true;
+                    chatc.resetPaginationForNewChat();
+
+                    chatc.openConversation(homec?.selectedChat.value);
+                    if (homec?.selectedChat.value?.pendingCount != 0) {
+                      chatc.markAllVisibleAsReadOnOpen(
+                          APIs.me?.userCompany?.userCompanyId,
+                          chatc.user?.userCompany?.userCompanyId,
+                          chatc.user?.userCompany?.isGroup == 1 ? 1 : 0);
+                    }
+
+                  }
+                } else {
+                    if (homec!.filteredList.isNotEmpty) {
+                      final user = homec?.filteredList[0];
+                    final chatc =Get.put(ChatScreenController(user: user));
+                      chatc.showPostShimmer = true;
+                      chatc.replyToMessage = null;
+                      homec?.selectedChat.value = user;
+                      chatc.user =homec?.selectedChat.value;
+                      // chatc.openConversation(homec.selectedChat.value);
+                      if (homec?.selectedChat.value?.pendingCount != 0) {
+                        chatc.markAllVisibleAsReadOnOpen(
+                            APIs.me?.userCompany?.userCompanyId,
+                            chatc.user?.userCompany?.userCompanyId,
+                            chatc.user?.userCompany?.isGroup == 1 ? 1 : 0);
+                      }
+                      homec?.selectedChat.refresh();
+                      chatc.update();
+                    }
+
+                }
+                // homec.page = 1;
+                // homec.hitAPIToGetRecentChats();
+              }
+
+                if (index == 1) {
+                  if (kIsWeb) unregisterImage();
+                  final homec = Get.find<TaskHomeController>();
+                  if (Get.isRegistered<TaskController>()) {
+                    final chatc = Get.find<TaskController>();
+                    chatc.replyToMessage = null;
+                    if (homec.filteredList.isNotEmpty) {
+                      final user = homec?.filteredList[0];
+                      homec?.selectedChat.value = user;
+                      chatc.user =homec?.selectedChat.value;
+                      chatc.textController.clear();
+                      chatc.update();
+                      chatc.showPostShimmer = true;
+                      chatc.resetPaginationForNewChat();
+                      chatc.openConversation(homec?.selectedChat.value);
+                      // homec.selectedChat.value = homec.filteredList[0];
+                      // chatc.user = homec.selectedChat.value;
+                      // chatc.showPostShimmer = true;
+                      // chatc.openConversation(homec.selectedChat.value);
+                      // homec.selectedChat.refresh();
+                      // chatc.update();
+                    }
+                  } else {
+                    print("un=registered");
+                    // Future.delayed(const Duration(milliseconds: 500), () {
+                    //   if (homec.filteredList.isNotEmpty) {
+                        final  chatc =  Get.put(TaskController(user: homec.filteredList[0]));
+                        // chatc.replyToMessage = null;
+                        // homec.selectedChat.value = homec.filteredList[0];
+                        // chatc.user = homec.selectedChat.value;
+                        // // chatc.showPostShimmer = true;
+                        // // chatc.resetPaginationForNewChat();
+                        // //
+                        chatc.openConversation(homec.selectedChat.value);
+
+                        // homec.selectedChat.refresh();
+                      // }
+                    // });
+                  }
+                  // homec.page = 1;
+                  // homec.hitAPIToGetRecentChats();
+                }
+
+                if (index == 2) {
+                  if (kIsWeb) unregisterImage();
+                  if (Get.isRegistered<GalleryController>()) {
+                    final homec = Get.find<GalleryController>();
+                    homec.getCompany();
+                    homec.resetPagination();
+                    homec.hitApiToGetFolder(reset: true);
+                    homec.update();
+                  } else {
+                    final homec = Get.put(GalleryController());
+                    homec.getCompany();
+                    homec.resetPagination();
+                    homec.hitApiToGetFolder(reset: true);
+                    homec.update();
+                  }
+                }
+                controller.updateIndex(index);
+                controller.update();
+              },
+              unselectedIconTheme: const IconThemeData(color: Colors.black45),
+              selectedIconTheme: const IconThemeData(color: Colors.white),
+              useIndicator: true,
+              indicatorColor: appColorGreen,
+              labelType: NavigationRailLabelType.all,
+              backgroundColor: Colors.white,
+              elevation: 1,
+              destinations: [
+                NavigationRailDestination(
+                    icon:Stack(
+                      clipBehavior: Clip.none,
+                      children: [
+                        Image.asset(
+                          chatHome,
+                          height: 22,
+                          color: controller.currentIndex == 0
+                              ? Colors.white
+                              : Colors.grey,
+                        ),
+                        /*homec!.selectedChat.value?.pendingCount==0||homec!.selectedChat.value?.pendingCount==null ?SizedBox():*/
+                        /*   controller.newChat.value
+                            ? Positioned(
+                                top: -5,
+                                right: -10,
+                                child:Obx(() {
+                                  final b = AppBadgeController.to;
+                                  return BottomNavBudge(
+                                    budgeCount: "${b.otherCompanyDot.value}",
+                                  );
+                                }))
+                            : SizedBox()*/
+                      ],
+                    ),
+
+                    label: Text(
+                      'Chats',
+                      style: BalooStyles.baloomediumTextStyle(),
+                    )),
+                NavigationRailDestination(
+                    icon: Obx(
+                          () => Stack(
+                        clipBehavior: Clip.none,
+                        children: [
+                          Image.asset(
+                            tasksHome,
+                            height: 22,
+                            color: controller.currentIndex == 1
+                                ? Colors.white
+                                : Colors.grey,
+                          ),
+                          controller.newTask.value
+                              ? Positioned(
+                              top: -5,
+                              right: -10,
+                              child: BottomNavBudge(
+                                  budgeCount:
+                                  "${homec?.selectedChat.value?.pendingCount ?? ''}"))
+                              : const SizedBox()
+                        ],
+                      ),
+                    ),
+                    label:
+                    Text('Tasks', style: BalooStyles.baloomediumTextStyle())),
+                NavigationRailDestination(
+                    icon: Image.asset(
+                      galleryIcon,
+                      height: 22,
+                      color:
+                      controller.currentIndex == 2 ? Colors.white : Colors.grey,
+                    ),
+                    label: Text(
+                      'Gallery',
+                      style: BalooStyles.baloomediumTextStyle(),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                    )),
+                NavigationRailDestination(
+                    icon: Obx(
+                          () => Stack(
+                        clipBehavior: Clip.none,
+                        children: [
+                          Image.asset(
+                            connectedAppIcon,
+                            height: 22,
+                            color: controller.currentIndex == 3
+                                ? Colors.white
+                                : Colors.grey,
+                          ),
+                          controller.newCompanyChat.value
+                              ? Positioned(
+                              top: -5,
+                              right: -10,
+                              child: BottomNavBudge(
+                                  budgeCount:
+                                  "${homec?.selectedChat.value?.pendingCount ?? ''}"))
+                              : const SizedBox()
+                        ],
+                      ),
+                    ),
+                    label: Text(
+                      'Your Companies',
+                      style: BalooStyles.baloomediumTextStyle(),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                    )),
+              ],
+            ),
+          ),
+        ),
+        InkWell(
+          onTap: () {
+            Get.toNamed(AppRoutes.all_settings);
+          },
+          child: Container(
+            padding: const EdgeInsets.all(15),
+            margin: const EdgeInsets.all(2),
+            color: Colors.white,
+            child: Image.asset(
+              settingPng,
+              height: 22,
+            ),
+          ),
+        )
+      ],
+    );
+  }
+
 
 /*
   @override
@@ -212,8 +439,7 @@ class AccuChatDashboard extends StatelessWidget {
           ),
         ));
   }*/
-
-  SnakeNavigationBar _bottomNavigationBar(bool isWide) {
+  SnakeNavigationBar _bottomNavigationBar(bool isWide,DashboardController controller) {
     return SnakeNavigationBar.gradient(
       behaviour: SnakeBarBehaviour.floating,
       backgroundGradient: LinearGradient(colors: [
@@ -291,256 +517,3 @@ class AccuChatDashboard extends StatelessWidget {
   }
 }
 
-Widget buildSideNav(DashboardController controller) {
-  ChatHomeController? homec;
-  if (Get.isRegistered<ChatHomeController>()) {
-    homec = Get.find<ChatHomeController>();
-  } else {
-    homec = Get.put(ChatHomeController());
-  }
-
-  return Column(
-    children: [
-      Expanded(
-        child: NavigationRail(
-          selectedIndex: controller.currentIndex,
-          onDestinationSelected: (index) {
-            controller.getCompany();
-
-            final isSetting = index == 4;
-            if (isSetting) {
-              if (kIsWeb) unregisterImage();
-              Get.toNamed(AppRoutes.all_settings);
-            }
-            // Get.toNamed(AppRoutes.home);
-
-            isTaskMode = index == 1;
-            if (index == 0) {
-              if (Get.isRegistered<ChatScreenController>()) {
-                print("resgistered=====");
-                final chatc = Get.find<ChatScreenController>();
-                chatc.replyToMessage = null;
-                if (homec!.filteredList.isNotEmpty) {
-                  final user = homec.filteredList[0];
-                  homec.selectedChat.value = user;
-                  chatc.user =homec.selectedChat.value;
-                  chatc.textController.clear();
-
-                  chatc.update();
-                  chatc.showPostShimmer = true;
-                  print("unregoisted user======= chatc.user?.userId");
-                  print(chatc.user?.userId);
-                  print(homec.selectedChat.value?.userId);
-                  print(user?.userId);
-                  chatc.openConversation(homec.selectedChat.value);
-                  if (homec.selectedChat.value?.pendingCount != 0) {
-                    chatc.markAllVisibleAsReadOnOpen(
-                        APIs.me?.userCompany?.userCompanyId,
-                        chatc.user?.userCompany?.userCompanyId,
-                        chatc.user?.userCompany?.isGroup == 1 ? 1 : 0);
-                  }
-
-                }
-              } else {
-                print("unresgistered=====");
-                  if (homec!.filteredList.isNotEmpty) {
-                    final user = homec.filteredList[0];
-                  // final chatc =Get.put(ChatScreenController(user: user));
-                  //   chatc.showPostShimmer = true;
-                  //   chatc.replyToMessage = null;
-                  //   homec.selectedChat.value = user;
-                  //   chatc.user =homec.selectedChat.value;
-                  //   // chatc.openConversation(homec.selectedChat.value);
-                  //   if (homec.selectedChat.value?.pendingCount != 0) {
-                  //     chatc.markAllVisibleAsReadOnOpen(
-                  //         APIs.me?.userCompany?.userCompanyId,
-                  //         chatc.user?.userCompany?.userCompanyId,
-                  //         chatc.user?.userCompany?.isGroup == 1 ? 1 : 0);
-                  //   }
-                    // homec.selectedChat.refresh();
-                    // chatc.update();
-                  }
-
-              }
-              // homec.page = 1;
-              // homec.hitAPIToGetRecentChats();
-            }
-
-            if (index == 1) {
-              if (kIsWeb) unregisterImage();
-              final homec = Get.find<TaskHomeController>();
-              if (Get.isRegistered<TaskController>()) {
-                final chatc = Get.find<TaskController>();
-                chatc.replyToMessage = null;
-                if (homec.filteredList.isNotEmpty) {
-                  homec.selectedChat.value = homec.filteredList[0];
-                  chatc.user = homec.selectedChat.value;
-                  chatc.showPostShimmer = true;
-                  chatc.openConversation(homec.selectedChat.value);
-                  homec.selectedChat.refresh();
-                  chatc.update();
-                }
-              } else {
-                // Future.delayed(const Duration(milliseconds: 500), () {
-                //   if (homec.filteredList.isNotEmpty) {
-                //     Get.put(TaskController(user: homec.filteredList[0]));
-                //     final chatc = Get.find<TaskController>();
-                //     chatc.replyToMessage = null;
-                //     homec.selectedChat.value = homec.filteredList[0];
-                //     chatc.user = homec.selectedChat.value;
-                //     chatc.showPostShimmer = true;
-                //     chatc.openConversation(homec.selectedChat.value);
-                //
-                //     homec.selectedChat.refresh();
-                //     chatc.update();
-                //   }
-                // });
-              }
-              // homec.page = 1;
-              // homec.hitAPIToGetRecentChats();
-            }
-
-            if (index == 2) {
-              if (kIsWeb) unregisterImage();
-              if (Get.isRegistered<GalleryController>()) {
-                final homec = Get.find<GalleryController>();
-                homec.getCompany();
-                homec.resetPagination();
-                homec.hitApiToGetFolder(reset: true);
-                homec.update();
-              } else {
-                final homec = Get.put(GalleryController());
-                homec.getCompany();
-                homec.resetPagination();
-                homec.hitApiToGetFolder(reset: true);
-                homec.update();
-              }
-            }
-            controller.updateIndex(index);
-            controller.update();
-          },
-          unselectedIconTheme: const IconThemeData(color: Colors.black45),
-          selectedIconTheme: const IconThemeData(color: Colors.white),
-          useIndicator: true,
-          indicatorColor: appColorGreen,
-          labelType: NavigationRailLabelType.all,
-          backgroundColor: Colors.white,
-          elevation: 1,
-          destinations: [
-            NavigationRailDestination(
-                icon:Stack(
-                    clipBehavior: Clip.none,
-                    children: [
-                      Image.asset(
-                        chatHome,
-                        height: 22,
-                        color: controller.currentIndex == 0
-                            ? Colors.white
-                            : Colors.grey,
-                      ),
-                      /*homec!.selectedChat.value?.pendingCount==0||homec!.selectedChat.value?.pendingCount==null ?SizedBox():*/
-                   /*   controller.newChat.value
-                          ? Positioned(
-                              top: -5,
-                              right: -10,
-                              child:Obx(() {
-                                final b = AppBadgeController.to;
-                                return BottomNavBudge(
-                                  budgeCount: "${b.otherCompanyDot.value}",
-                                );
-                              }))
-                          : SizedBox()*/
-                    ],
-                  ),
-
-                label: Text(
-                  'Chats',
-                  style: BalooStyles.baloomediumTextStyle(),
-                )),
-            NavigationRailDestination(
-                icon: Obx(
-                  () => Stack(
-                    clipBehavior: Clip.none,
-                    children: [
-                      Image.asset(
-                        tasksHome,
-                        height: 22,
-                        color: controller.currentIndex == 1
-                            ? Colors.white
-                            : Colors.grey,
-                      ),
-                      controller.newTask.value
-                          ? Positioned(
-                              top: -5,
-                              right: -10,
-                              child: BottomNavBudge(
-                                  budgeCount:
-                                      "${homec?.selectedChat.value?.pendingCount ?? ''}"))
-                          : const SizedBox()
-                    ],
-                  ),
-                ),
-                label:
-                    Text('Tasks', style: BalooStyles.baloomediumTextStyle())),
-            NavigationRailDestination(
-                icon: Image.asset(
-                  galleryIcon,
-                  height: 22,
-                  color:
-                      controller.currentIndex == 2 ? Colors.white : Colors.grey,
-                ),
-                label: Text(
-                  'Gallery',
-                  style: BalooStyles.baloomediumTextStyle(),
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                )),
-            NavigationRailDestination(
-                icon: Obx(
-                  () => Stack(
-                    clipBehavior: Clip.none,
-                    children: [
-                      Image.asset(
-                        connectedAppIcon,
-                        height: 22,
-                        color: controller.currentIndex == 3
-                            ? Colors.white
-                            : Colors.grey,
-                      ),
-                      controller.newCompanyChat.value
-                          ? Positioned(
-                              top: -5,
-                              right: -10,
-                              child: BottomNavBudge(
-                                  budgeCount:
-                                      "${homec?.selectedChat.value?.pendingCount ?? ''}"))
-                          : const SizedBox()
-                    ],
-                  ),
-                ),
-                label: Text(
-                  'Your Companies',
-                  style: BalooStyles.baloomediumTextStyle(),
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                )),
-          ],
-        ),
-      ),
-      InkWell(
-        onTap: () {
-          Get.toNamed(AppRoutes.all_settings);
-        },
-        child: Container(
-          padding: const EdgeInsets.all(15),
-          margin: const EdgeInsets.all(2),
-          color: Colors.white,
-          child: Image.asset(
-            settingPng,
-            height: 22,
-          ),
-        ),
-      )
-    ],
-  );
-}

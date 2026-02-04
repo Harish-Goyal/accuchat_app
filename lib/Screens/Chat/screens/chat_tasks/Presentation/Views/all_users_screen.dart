@@ -13,6 +13,7 @@ import 'package:get/get.dart';
 import '../../../../../../Constants/colors.dart';
 import '../../../../../../main.dart';
 import '../../../../../../utils/helper_widget.dart';
+import '../../../auth/models/get_uesr_Res_model.dart';
 import 'chat_screen.dart';
 
 class AllUserScreen extends GetView<AllUserController> {
@@ -26,13 +27,15 @@ class AllUserScreen extends GetView<AllUserController> {
     _lastCall = now;
     return true;
   }
+  void selectUser(UserDataAPI user) {
+    Get.back(result: user); // ✅ return to caller
+  }
 
   @override
   Widget build(BuildContext context) {
     return SafeArea(
         child: Scaffold(
       appBar: _buildAppBar(),
-
       // ---------------- WEB RESPONSIVE WRAPPER ADDED ----------------
       body: _mainBody(),
       // ---------------- END RESPONSIVE WRAPPER ----------------
@@ -149,31 +152,7 @@ class AllUserScreen extends GetView<AllUserController> {
                 ],
               ),
               onTap: () {
-                if (isTaskMode) {
-                  if (kIsWeb) {
-                    Get.to(() => TaskScreen(
-                      taskUser: controller.filteredList[i],
-                      showBack: true,
-                    ));
-                  } else {
-                    Get.toNamed(AppRoutes.tasks_li_r,
-                        arguments: {
-                          'user': controller.filteredList[i]
-                        });
-                  }
-                } else {
-                  if (kIsWeb) {
-                    Get.to(() => ChatScreen(
-                      user: controller.filteredList[i],
-                      showBack: true,
-                    ));
-                  } else {
-                    Get.toNamed(AppRoutes.chats_li_r,
-                        arguments: {
-                          'user': controller.filteredList[i]
-                        });
-                  }
-                }
+                selectUser(controller.filteredList[i]);
               },
             );
           }),
@@ -189,7 +168,7 @@ class AllUserScreen extends GetView<AllUserController> {
       surfaceTintColor: Colors.white,
       leading: IconButton(
           onPressed: () {
-            Get.offAllNamed(AppRoutes.home);
+            Get.back();
           },
           icon: Icon(
             Icons.arrow_back,

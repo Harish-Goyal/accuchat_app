@@ -210,6 +210,9 @@ class GalleryTab extends GetView<GalleryController> {
                   Get.back();
                 },
                 onOpenMedia: (media) {
+                  controller.isSearchingIcon = false;
+                  controller.searchCtrl.clear();
+                  controller.searchResults?.clear();
                   // open preview screen
                   Get.to(()=>FolderItemsScreen(folderData: media),
                     binding: BindingsBuilder(() {
@@ -219,7 +222,6 @@ class GalleryTab extends GetView<GalleryController> {
                       }
                       Get.lazyPut<GalleryItemController>(() => GalleryItemController(folderData: media), tag: tag);
                     }),);
-
                 },
               );
             })

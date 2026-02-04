@@ -170,7 +170,7 @@ class CreateBroadcastsController extends GetxController{
       Get.back();
       groupResModel = value;
       nameController.clear();
-      Get.find<ChatHomeController>().localPage = 1;
+      Get.find<ChatHomeController>().localPage.value = 1;
       Get.find<ChatHomeController>().hitAPIToGetRecentChats(userData:groupResModel.data,page: 1 );
       toast(value.message??'');
       Dialogs.showSnackbar(Get.context!, "Scroll down to see your latest create 'Broadcast'");

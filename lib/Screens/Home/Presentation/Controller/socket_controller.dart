@@ -212,7 +212,10 @@ class SocketController extends GetxController with WidgetsBindingObserver {
             : (!selectedIsGroup &&
                 ((msgFrom == selectedUserId && msgTo == meId) ||
                     (msgFrom == meId && msgTo == selectedUserId)));
-
+        var dashCon;
+        if(Get.isRegistered<DashboardController>()){
+          dashCon = Get.find<DashboardController>();
+        }
         if (isMessageForThisChat) {
           // safe to insert the message
           ChatHisList chatMessageItems = ChatHisList(
@@ -242,10 +245,8 @@ class SocketController extends GetxController with WidgetsBindingObserver {
 
           chatDetailController?.update();
         }
-        dashboardController.newChat.value=true;
-        dashboardController.newChat.refresh();
-        print("dashboardController.newChat.value");
-        print(dashboardController.newChat.value);
+        dashCon.newChat.value=true;
+        dashCon.newChat.refresh();
         // if (meId != msgFrom) {
         //   chatDetailController.markAllVisibleAsReadOnOpen(
         //       receivedMessageDataModal.fromUser?.userCompany?.userCompanyId,
@@ -350,6 +351,10 @@ class SocketController extends GetxController with WidgetsBindingObserver {
           // AppBadgeController.to.markOtherCompany(BadgeType.task, msgCompanyId);
           return;
         }
+        var dashCon;
+        if(Get.isRegistered<DashboardController>()){
+          dashCon = Get.find<DashboardController>();
+        }
 // allow only when the message belongs to CURRENT OPEN CHAT
         final isMessageForThisChat =
             (msgFrom == selectedUserId && msgTo == meId) || // selectedUser → me
@@ -375,7 +380,7 @@ class SocketController extends GetxController with WidgetsBindingObserver {
           taskController.taskCategory
               .insert(0, GroupTaskElement(DateTime.now(), chatMessageItems));
           // }
-          dashboardController.newTask.value=true;
+          dashCon.newTask.value=true;
           taskController.update();
         }
         Get.find<TaskHomeController>().hitAPIToGetRecentTasksUser();
@@ -597,11 +602,14 @@ class SocketController extends GetxController with WidgetsBindingObserver {
           final existing = list[index];
 
           existing.lastMessage = updated.lastMessage;
-
+          var dashCon;
+          if(Get.isRegistered<DashboardController>()){
+            dashCon = Get.find<DashboardController>();
+          }
           if (isCurrentlyOpen) {
             existing.pendingCount = 0;
-            dashboardController.newCompanyChat.value=false;
-            dashboardController.newChat.value=false;
+            dashCon.newCompanyChat.value=false;
+            dashCon.newChat.value=false;
           } else {
             // keep server count if available
             existing.pendingCount =
@@ -942,7 +950,10 @@ class SocketController extends GetxController with WidgetsBindingObserver {
 
         if (idx != -1) {
           final existing = list[idx];
-
+          var dashCon;
+          if(Get.isRegistered<DashboardController>()){
+            dashCon = Get.find<DashboardController>();
+          }
           // update last preview + pending if you want (optional but useful)
           existing.lastMessage = updated.lastMessage;
           existing.pendingCount = updated.pendingCount ?? existing.pendingCount;
@@ -950,7 +961,7 @@ class SocketController extends GetxController with WidgetsBindingObserver {
           // move to top
           list.removeAt(idx);
           list.insert(0, existing);
-          dashboardController.newTask.value=true;
+          dashCon.newTask.value=true;
         } else {
           list.insert(0, updated);
         }
@@ -1158,6 +1169,10 @@ class SocketController extends GetxController with WidgetsBindingObserver {
     socket?.off('read_message_listener');
     socket?.on('read_message_listener', (data) {
       debugPrint("read_message_listener: ${jsonEncode(data)}");
+      var dashCon;
+      if(Get.isRegistered<DashboardController>()){
+        dashCon = Get.find<DashboardController>();
+      }
 
       final homeController = Get.find<ChatHomeController>();
       final chatScreenController = Get.find<ChatScreenController>();
@@ -1176,8 +1191,8 @@ class SocketController extends GetxController with WidgetsBindingObserver {
 
       if (index != -1) {
         homeController.filteredList[index].pendingCount = 0;
-      dashboardController.newChat.value=false;
-        dashboardController.newCompanyChat.value=false;
+        dashCon.newChat.value=false;
+        dashCon.newCompanyChat.value=false;
       }
 
       // 2️⃣ Update read_on in currently open chat

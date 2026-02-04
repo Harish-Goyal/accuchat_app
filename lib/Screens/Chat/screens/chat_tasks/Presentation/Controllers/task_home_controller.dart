@@ -36,7 +36,6 @@ class TaskHomeController extends GetxController{
 
   Future<void> onCompanyChanged() async => hitAPIToGetRecentTasksUser();
 
-  final dash = Get.put(DashboardController());
   @override
   void onInit() {
     super.onInit();
@@ -73,10 +72,10 @@ class TaskHomeController extends GetxController{
   }
 
   int page =1;
-  bool isLoading =false;
-  bool showPostShimmer =false;
-  bool isPageLoading =false;
-  bool hasMore = true;
+  RxBool isLoading =false.obs;
+  RxBool showPostShimmer =false.obs;
+  RxBool isPageLoading =false.obs;
+  RxBool hasMore = true.obs;
   RecentTaskUserData recentTasksUserResModel = RecentTaskUserData();
 
   ScrollController scrollController = ScrollController();
@@ -86,7 +85,7 @@ class TaskHomeController extends GetxController{
       scrollController.addListener(() {
         if (scrollController.position.pixels >=
             scrollController.position.maxScrollExtent - 100 &&
-            !isPageLoading && hasMore) {
+            !isPageLoading.value && hasMore.value) {
           // resetPaginationForNewChat();
           hitAPIToGetRecentTasksUser();
         }
@@ -98,7 +97,7 @@ class TaskHomeController extends GetxController{
         final position = scrollController.position;
 
         if (position.maxScrollExtent >0) {
-          if (!isPageLoading && hasMore) {
+          if (!isPageLoading.value && hasMore.value) {
             hitAPIToGetRecentTasksUser();
           }
         }
@@ -111,10 +110,10 @@ class TaskHomeController extends GetxController{
 
   void resetPaginationForNewChat() {
     page = 1;
-    hasMore = true;
+    hasMore.value = true;
     filteredList.clear();
-    showPostShimmer = true;
-    isPageLoading = false;
+    showPostShimmer.value = true;
+    isPageLoading.value = false;
     // update();
   }
 
@@ -122,15 +121,15 @@ class TaskHomeController extends GetxController{
 
   hitAPIToGetRecentTasksUser({String? search}) async {
     if(page==1){
-      showPostShimmer = true;
+      showPostShimmer.value = true;
       filteredList.clear();
     }
-    isPageLoading = true;
+    isPageLoading.value = true;
     update();
     Get.find<PostApiServiceImpl>()
         .getRecentTaskUserApiCall(comId:myCompany?.companyId,page: page,searchText: search??'')
         .then((value) async {
-      isLoading = false;
+      isLoading.value = false;
       update();
       recentTasksUserResModel=value;
       recentTaskUserList=value.data?.rows??[];
@@ -147,17 +146,16 @@ class TaskHomeController extends GetxController{
         }
         page++; // next page
       } else {
-        hasMore = false;
-        isPageLoading = false;
-        update();
+        hasMore.value = false;
+        isPageLoading.value = false;
       }
-      showPostShimmer = false;
-      isPageLoading = false;
+      showPostShimmer.value = false;
+      isPageLoading.value = false;
       update();
 
     }).onError((error, stackTrace) {
-      showPostShimmer = false;
-      isPageLoading = false;
+      showPostShimmer.value = false;
+      isPageLoading.value = false;
       update();
     });
   }
@@ -236,7 +234,6 @@ class TaskHomeController extends GetxController{
   // List<dynamic> mergedList = [];
   final filteredList = <UserDataAPI>[].obs;
 
-  DashboardController dashboardController = Get.put(DashboardController());
 
   Timer? searchDelay;
   void onSearch(String query) {
@@ -244,7 +241,7 @@ class TaskHomeController extends GetxController{
     searchDelay = Timer(const Duration(milliseconds: 400), () {
       searchQuery = query.trim().toLowerCase();
       page = 1;
-      hasMore = false;
+      hasMore.value = false;
       filteredList.clear();
       update();
       hitAPIToGetRecentTasksUser(search: searchQuery.isEmpty ? null : searchQuery);

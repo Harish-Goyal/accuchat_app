@@ -58,7 +58,7 @@ class AllSettingsScreen extends GetView<AllSettingsController> {
             try {
               Get.back();
               final con = Get.find<DashboardController>();
-              con.updateIndex(2);
+              con.updateIndex(3);
               con.update();
             }catch(v){
               print(v);

@@ -806,7 +806,6 @@ class TaskScreenMobile extends GetView<TaskController> {
     }
   }
 
-  DashboardController dashboardController = Get.put(DashboardController());
 
   // app bar widget
   Widget _appBar() {
@@ -868,11 +867,17 @@ class TaskScreenMobile extends GetView<TaskController> {
 
                       Get.find<TaskHomeController>()
                           .hitAPIToGetRecentTasksUser();
+                      var dashCon;
+                      if(Get.isRegistered<DashboardController>()){
+                        dashCon = Get.find<DashboardController>();
+                      }else{
+                        dashCon = Get.put(DashboardController());
+                      }
 
                       if (isTaskMode) {
-                        dashboardController.updateIndex(1);
+                        dashCon.updateIndex(1);
                       } else {
-                        dashboardController.updateIndex(0);
+                        dashCon.updateIndex(0);
                       }
 
                       // APIs.updateActiveStatus(false);
@@ -1881,8 +1886,10 @@ class TaskScreenMobile extends GetView<TaskController> {
               child: Row(
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  Icon(isImage ? Icons.image : Icons.description,
-                      color: Colors.blue),
+                  Flexible(
+                    child: Icon(isImage ? Icons.image : Icons.description,
+                        color: Colors.blue),
+                  ),
                   const SizedBox(width: 6),
                   Flexible(
                     child: Text(

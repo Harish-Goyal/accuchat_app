@@ -1,7 +1,10 @@
 import 'package:AccuChat/Constants/assets.dart';
 import 'package:AccuChat/Constants/colors.dart';
 import 'package:AccuChat/Constants/themes.dart';
+import 'package:AccuChat/Screens/Chat/screens/auth/models/get_uesr_Res_model.dart';
 import 'package:AccuChat/Screens/Chat/screens/chat_tasks/Presentation/Views/chat_screen.dart';
+import 'package:AccuChat/Screens/Chat/screens/chat_tasks/Presentation/Views/chat_task_shimmmer.dart';
+import 'package:AccuChat/Screens/Chat/screens/chat_tasks/Presentation/Views/task_chat_screen.dart';
 import 'package:AccuChat/routes/app_routes.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/foundation.dart';
@@ -9,16 +12,24 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import '../../../../../../Constants/app_theme.dart';
 import '../../../../../../Services/APIs/api_ends.dart';
+import '../../../../../../main.dart';
 import '../../../../../../utils/common_textfield.dart';
 import '../../../../../../utils/custom_dialogue.dart';
 import '../../../../../../utils/custom_flashbar.dart';
 import '../../../../../../utils/gradient_button.dart';
 import '../../../../../../utils/helper_widget.dart';
 import '../../../../../../utils/networl_shimmer_image.dart';
+import '../../../../../../utils/product_shimmer_widget.dart';
 import '../../../../../../utils/text_style.dart';
+import '../../../../api/apis.dart';
+import '../Controllers/all_user_controller.dart';
+import '../Controllers/chat_screen_controller.dart';
+import '../Controllers/task_controller.dart';
+import '../Controllers/task_home_controller.dart';
 import '../Widgets/chat_user_card.dart';
 import '../Controllers/chat_home_controller.dart';
 import '../Widgets/chat_user_card_mobile.dart';
+import 'all_users_screen.dart';
 import 'create_broadcast_dialog_screen.dart';
 
 class ChatsHomeScreen extends GetView<ChatHomeController> {
@@ -40,7 +51,7 @@ class ChatsHomeScreen extends GetView<ChatHomeController> {
               double w = constraints.maxWidth;
             return Scaffold(
               appBar: _appBarWidget(w),
-              floatingActionButton: _floatingBotton(),
+              floatingActionButton: _floatingBotton(w),
               body: _mainBody(),
             );
           }
@@ -49,18 +60,18 @@ class ChatsHomeScreen extends GetView<ChatHomeController> {
     );
   }
 
-  Widget _floatingBotton() {
+  Widget _floatingBotton(w) {
     return kIsWeb
         ? const SizedBox()
         : Padding(
             padding: const EdgeInsets.only(bottom: 10),
             child: FloatingActionButton(
-                onPressed: () {
-                  if (kIsWeb) {
-                    Get.offNamed("${AppRoutes.all_users}?isRecent='false'");
-                  } else {
-                    Get.toNamed(AppRoutes.all_users,
-                        arguments: {"isRecent": 'false'});
+                onPressed: () async {
+                  final user = await openAllUserDialog();
+                  if (user != null) {
+
+                    _goToScreen(user,w);
+
                   }
                 },
                 backgroundColor: appColorGreen,
@@ -72,13 +83,13 @@ class ChatsHomeScreen extends GetView<ChatHomeController> {
   }
 
   AppBar _appBarWidget(w) {
-
     return AppBar(
       automaticallyImplyLeading: false,
       backgroundColor: Colors.white,
       elevation: 1,
       scrolledUnderElevation: 0,
       surfaceTintColor: Colors.white,
+      bottom: PreferredSize(preferredSize: Size(Get.width*.75, 5), child: divider()),
       title:kIsWeb && w>600 ?InkWell(
         hoverColor: Colors.transparent,
         onTap: () {
@@ -191,13 +202,29 @@ class ChatsHomeScreen extends GetView<ChatHomeController> {
       actions: [
         kIsWeb
             ? IconButton(
-                onPressed: () {
-                  if (kIsWeb) {
-                    Get.offNamed("${AppRoutes.all_users}?isRecent='false'");
-                  } else {
-                    Get.toNamed(AppRoutes.all_users,
-                        arguments: {"isRecent": 'false'});
+                onPressed: () async {
+
+
+                  final user = await openAllUserDialog();
+                  if (user != null) {
+
+                    _goToScreen(user,w);
+
                   }
+
+
+                  // final selectedUser = await showDialog<UserDataAPI>(
+                  //   context: Get.context!,
+                  //   builder: (_) =>  AllUserScreenDialog(users: taskData.members,),
+                  // );
+                  // if (selectedUser == null) return;
+
+                  // if (kIsWeb) {
+                  //   Get.offNamed("${AppRoutes.all_users}?isRecent='false'");
+                  // } else {
+                  //   Get.toNamed(AppRoutes.all_users,
+                  //       arguments: {"isRecent": 'false'});
+                  // }
                 },
                 icon: Image.asset(
                   addNewChatPng,
@@ -297,6 +324,75 @@ class ChatsHomeScreen extends GetView<ChatHomeController> {
     );
   }
 
+  _goToScreen(UserDataAPI user,w){
+
+      if (kIsWeb && w>600) {
+        final homec = Get.find<ChatHomeController>();
+        ChatScreenController? chatc;
+        if(Get.isRegistered<ChatScreenController>()){
+          chatc = Get.find<ChatScreenController>();
+        }else{
+          chatc = Get.put(ChatScreenController(user: user));
+        }
+
+        // homec.page = 1;
+        // homec.hitAPIToGetRecentChats();
+        chatc?.textController.clear();
+        chatc?.replyToMessage=null;
+        chatc?.showPostShimmer =true;
+        homec.selectedChat.value = user;
+        chatc?.user = homec.selectedChat.value;
+        chatc?.openConversation(homec.selectedChat.value);
+        if (homec.selectedChat.value?.pendingCount != 0) {
+          chatc?.markAllVisibleAsReadOnOpen(
+              APIs.me?.userCompany?.userCompanyId,
+              chatc.user?.userCompany?.userCompanyId,
+              chatc.user?.userCompany?.isGroup == 1 ? 1 : 0);
+        }
+        homec.update();
+        homec.selectedChat.refresh();
+        chatc?.update();
+      } else {
+
+        Get.toNamed(
+          AppRoutes.chats_li_r,
+          arguments:{'userId':user.userId,'user':kIsWeb && w < 600 ? null : user,}
+        );
+      }
+  }
+
+
+  Future<UserDataAPI?> openAllUserDialog() async {
+    // create controller before opening dialog (this is your "binding")
+    final c = Get.put(AllUserController());
+
+    try {
+      final user = await Get.dialog<UserDataAPI>(
+        Dialog(
+          insetPadding: const EdgeInsets.all(12),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(12),
+          ),
+          child: SizedBox(
+            width: Get.width * 0.5,
+            height: Get.height * 0.8,
+            child:  AllUserScreen(),
+          ),
+        ),
+        barrierDismissible: true,
+      );
+
+      return user; // ✅ selected user (or null)
+    } finally {
+      // cleanup controller when dialog closes
+      if (Get.isRegistered<AllUserController>()) {
+        Get.delete<AllUserController>();
+      }
+    }
+  }
+
+
+
   Widget _mainBody() {
     return Obx(() {
       final selected = controller.selectedChat.value;
@@ -393,67 +489,67 @@ class ChatsHomeScreen extends GetView<ChatHomeController> {
           },
 
         ).marginSymmetric(vertical: 10,horizontal: 15):const SizedBox()    ,
-        (controller.filteredList != [])
-        ? Expanded(
-          child: RefreshIndicator(
-                backgroundColor: Colors.white,
-                color: appColorGreen,
-                onRefresh: () async {
-          controller.resetPagination();
-          controller.hitAPIToGetRecentChats(page: 1);
-                },
-                child: Obx(() {
-          return ListView.builder(
-            physics: const AlwaysScrollableScrollPhysics(),
-            itemCount: controller.filteredList.length,
-            padding: EdgeInsets.zero,
-            controller: controller.scrollController,
-            itemBuilder: (context, index) {
-              final item = controller.filteredList[index];
-              return kIsWeb && !isWebwidth
-                  ? ChatUserCard(user: item)
-                  : ChatUserCardMobile(user: item);
-            },
-          );
-                }),
+        Obx(() {
+          if (!controller.showPostShimmer.value&&controller.filteredList.isEmpty) {
+            return Expanded(
+              child: Center(
+                child: InkWell(
+                  onTap: () {
+                    if (kIsWeb) {
+                      Get.toNamed("${AppRoutes.all_users}?isRecent='false'");
+                    } else {
+                      Get.toNamed(AppRoutes.all_users, arguments: {"isRecent": 'false'});
+                    }
+                  },
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Image.asset(emptyRecentPng, height: 90),
+                      Text('Click to Start new Chat 👋',
+                          style: BalooStyles.baloosemiBoldTextStyle(color: appColorGreen))
+                          .paddingAll(12),
+                      vGap(12),
+                      IconButton(
+                        onPressed: () async => controller.hitAPIToGetRecentChats(page: 1),
+                        icon: Icon(Icons.refresh, size: 35, color: appColorGreen),
+                      )
+                    ],
+                  ),
+                ),
               ),
-        )
-        : Center(
-      child: InkWell(
-        onTap: () {
-          if (kIsWeb) {
-            Get.toNamed("${AppRoutes.all_users}?isRecent='false'");
-          } else {
-            Get.toNamed(AppRoutes.all_users,
-                arguments: {"isRecent": 'false'});
+            );
           }
-        },
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          mainAxisAlignment: MainAxisAlignment.center,
-          crossAxisAlignment: CrossAxisAlignment.center,
-          children: [
-            Image.asset(
-              emptyRecentPng,
-              height: 90,
-            ),
-            Text('Click to Start new Chat 👋',
-                style: BalooStyles.baloosemiBoldTextStyle(
-                    color: appColorGreen))
-                .paddingAll(12),
-            vGap(12),
-            IconButton(
-                onPressed: () async =>
-                    controller.hitAPIToGetRecentChats(page: 1),
-                icon: Icon(
-                  Icons.refresh,
-                  size: 35,
+
+          return Expanded(
+            child: shimmerEffectWidget(
+                showShimmer: controller.showPostShimmer.value,
+                shimmerWidget: shimmerlistView(
+                    child: GroupMemberShimmer(
+                    )),
+                child: RefreshIndicator(
+                  backgroundColor: Colors.white,
                   color: appColorGreen,
-                )).paddingOnly(right: 8)
-          ],
-        ),
-      ),
-    )
+                  onRefresh: () async {
+                    controller.resetPaginationForNewChat();
+                    await controller.hitAPIToGetRecentChats(page: 1);
+                  },
+                  child: ListView.builder(
+                    physics: const AlwaysScrollableScrollPhysics(),
+                    itemCount: controller.filteredList.length,
+                    padding: EdgeInsets.zero,
+                    controller: controller.scrollController,
+                    itemBuilder: (context, index) {
+                      final item = controller.filteredList[index];
+                      return kIsWeb && !isWebwidth
+                          ? ChatUserCard(user: item)
+                          : ChatUserCardMobile(user: item);
+                    },
+                  ),
+                )
+            ),
+          );
+        })
+
       ],
     );
 

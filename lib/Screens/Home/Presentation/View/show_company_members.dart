@@ -1,5 +1,6 @@
 import 'package:AccuChat/Constants/assets.dart';
 import 'package:AccuChat/Constants/colors.dart';
+import 'package:AccuChat/Screens/Chat/screens/auth/models/get_uesr_Res_model.dart';
 import 'package:AccuChat/Screens/Chat/screens/chat_tasks/Presentation/Views/task_chat_screen.dart';
 import 'package:AccuChat/Screens/Home/Presentation/Controller/company_members_controller.dart';
 import 'package:AccuChat/Screens/Home/Presentation/Controller/home_controller.dart';
@@ -28,8 +29,8 @@ import '../../../Chat/screens/chat_tasks/Presentation/dialogs/profile_dialog.dar
 class CompanyMembers extends GetView<CompanyMemberController> {
   CompanyMembers({super.key});
 
-  DashboardController dcController =
-      Get.put<DashboardController>(DashboardController());
+  // DashboardController dcController =
+  //     Get.put<DashboardController>(DashboardController());
   DateTime _lastCall = DateTime.fromMillisecondsSinceEpoch(0);
 
   bool canFetch() {
@@ -415,24 +416,7 @@ class CompanyMembers extends GetView<CompanyMemberController> {
   }
 
   _goToTask(memData) {
-
-    // if (kIsWeb) {
-    //   Get.back();
-    //   dcController.updateIndex(1);
-    //   dcController.update();
-    //   isTaskMode = true;
-    //   final homec = Get.find<TaskHomeController>();
-    //   final taskC = Get.find<TaskController>();
-    //   homec.selectedChat.value = memData;
-    //   taskC.user = homec.selectedChat.value;
-    //   taskC.replyToMessage = null;
-    //   taskC.showPostShimmer = true;
-    //   taskC.openConversation(homec.selectedChat.value);
-    //   homec.selectedChat.refresh();
-    //   taskC.update();
-    // } else {
-    //   Get.toNamed(AppRoutes.tasks_li_r, arguments: {'user': memData});
-    // }
+    final dcController = Get.find<DashboardController>();
     dcController.updateIndex(1);
 
     isTaskMode = true;
@@ -457,76 +441,118 @@ class CompanyMembers extends GetView<CompanyMemberController> {
       }
     }
   }
-
-  _goToChat(memData) {
-
-    dcController.updateIndex(0);
-
-    isTaskMode = false;
-    controller.update();
-    // APIs.updateActiveStatus(true);
-
-    if(isTaskMode) {
-      if(kIsWeb){
-        Get.toNamed(
-          "${AppRoutes.tasks_li_r}?userId=${memData?.userId.toString()}",
-        );
-      }else{
-        Get.toNamed(
-          AppRoutes.tasks_li_r,
-          arguments: {'user': memData},
-        );
-      }
-    }else{
-      if(kIsWeb){
-        Get.toNamed(
-          "${AppRoutes.chats_li_r}?userId=${memData?.userId.toString()}",
-        );
-      }else{
-        Get.toNamed(
-          AppRoutes.chats_li_r,
-          arguments: {'user': memData},
-        );
-      }
-    }
     // if (kIsWeb) {
-    //   print("kIsWeb=========");
-    //   print(kIsWeb);
     //   Get.back();
-    //   dcController.updateIndex(0);
+    //   dcController.updateIndex(1);
     //   dcController.update();
-    //   isTaskMode = false;
-    //   final homec = Get.find<ChatHomeController>();
-    //   ChatScreenController? chatc;
-    //   if (Get.isRegistered<ChatScreenController>()) {
-    //     chatc = Get.find<ChatScreenController>();
+    //   isTaskMode = true;
+    //   final homec = Get.find<TaskHomeController>();
+    //   TaskController? taskC;
+    //   if (Get.isRegistered<TaskController>()) {
+    //     taskC = Get.find<TaskController>();
     //   } else {
-    //     Get.put(ChatScreenController(user: memData));
+    //     taskC = Get.put(TaskController(user: memData));
     //   }
-    //
-    //   // homec.page = 1;
-    //   // homec.hitAPIToGetRecentChats();
-    //   chatc?.textController.clear();
-    //   chatc?.replyToMessage = null;
-    //   chatc?.showPostShimmer = true;
     //   homec.selectedChat.value = memData;
-    //   chatc?.user = homec.selectedChat.value;
-    //   chatc?.openConversation(homec.selectedChat.value);
-    //   if (homec.selectedChat.value?.pendingCount != 0) {
-    //     chatc?.markAllVisibleAsReadOnOpen(
-    //         APIs.me?.userCompany?.userCompanyId,
-    //         chatc.user?.userCompany?.userCompanyId,
-    //         chatc.user?.userCompany?.isGroup == 1 ? 1 : 0);
-    //   }
-    //   homec.update();
+    //   taskC?.user = homec.selectedChat.value;
+    //   taskC?.replyToMessage = null;
+    //   taskC?.showPostShimmer = true;
+    //   taskC?.openConversation(homec.selectedChat.value);
     //   homec.selectedChat.refresh();
-    //   chatc?.update();
+    //   taskC?.update();
     // } else {
-    //
-    //   Get.toNamed(
-    //     AppRoutes.chats_li_r,
-    //     arguments: {'user': memData},
-    //   );
+    //   Get.toNamed(AppRoutes.tasks_li_r, arguments: {'user': memData});
     // }
-  }
+  // }
+
+    Future<void> _goToChat(memData) async {
+      DashboardController?   dcController ;
+      if(Get.isRegistered<DashboardController>()){
+        dcController = Get.find<DashboardController>();
+      }
+      dcController?.updateIndex(0);
+      isTaskMode = false;
+      // APIs.updateActiveStatus(true);
+      if(isTaskMode) {
+        if(kIsWeb){
+          Get.to(()=>TaskScreen(taskUser: memData ,showBack: true,));
+          // Get.toNamed(
+          //   "${AppRoutes.tasks_li_r}?userId=${memData?.userId.toString()}",
+          // );
+        }else{
+          Get.toNamed(
+            AppRoutes.tasks_li_r,
+            arguments: {'user': memData},
+          );
+        }
+      }else{
+        if(kIsWeb){
+          Get.to(()=>ChatScreen(user: memData ,showBack: true,));
+        }else{
+          Get.toNamed(
+            AppRoutes.chats_li_r,
+            arguments: {'user': memData},
+          );
+        }
+      }
+      // if (!kIsWeb) {
+      //   Get.toNamed(AppRoutes.chats_li_r, arguments: {'user': memData});
+      //   return;
+      // }
+
+
+
+      // close member screen
+      // if (Get.key.currentState?.canPop() ?? false) Get.back();
+
+      // ✅ switch tab first
+      // dcController.getCompany();
+      // dcController.updateIndex(0);
+      // dcController.update();
+      // isTaskMode = false;
+
+      //   var homec;
+      //   var chatc;
+      //   // ensure controllers exist
+      //   if (!Get.isRegistered<ChatHomeController>()) {
+      //     homec =  Get.put(ChatHomeController());
+      //   }else{
+      //     homec = Get.find<ChatHomeController>();
+      //   }
+      //   if (!Get.isRegistered<ChatScreenController>()) {
+      //     chatc = Get.put(ChatScreenController(user: memData));
+      //   }else{
+      //     chatc = Get.find<ChatScreenController>();
+      //   }
+      //
+      // Future.delayed(Duration(milliseconds: 600),(){
+      //     // ✅ run after UI builds chat tab
+      //     WidgetsBinding.instance.addPostFrameCallback((_) {
+      //       homec.selectedChat.value = memData;
+      //       homec.selectedChat.refresh();
+      //       homec.update();
+      //
+      //       chatc.user = memData;
+      //       chatc.textController.clear();
+      //       chatc.replyToMessage = null;
+      //       chatc.showPostShimmer = true;
+      //
+      //       chatc.openConversation(memData);
+      //       chatc.update();
+      //     });
+      //
+      //     if (Get.key.currentState?.canPop() ?? false) Get.back();
+      //     DashboardController?   dcController ;
+      //     if(Get.isRegistered<DashboardController>()){
+      //       dcController = Get.find<DashboardController>();
+      //     }
+      //
+      //     dcController?.updateIndex(0);
+      //     dcController?.update();
+      //     isTaskMode = false;
+      //
+      // });
+
+      }
+
 }

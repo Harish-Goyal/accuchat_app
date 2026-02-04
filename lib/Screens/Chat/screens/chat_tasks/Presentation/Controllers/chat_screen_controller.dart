@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'dart:io';
+import 'package:AccuChat/Constants/colors.dart';
 import 'package:AccuChat/Screens/Chat/models/chat_his_res_model.dart';
 import 'package:AccuChat/Screens/Chat/models/chat_history_response_model.dart';
 import 'package:file_picker/file_picker.dart';
@@ -17,6 +18,7 @@ import '../../../../../../utils/chat_presence.dart';
 import '../../../../../../utils/custom_flashbar.dart';
 import '../../../../../../utils/helper.dart';
 import '../../../../../../utils/helper_widget.dart';
+import '../../../../../../utils/networl_shimmer_image.dart';
 import '../../../../../../utils/register_image.dart';
 import '../../../../../Home/Presentation/Controller/company_service.dart';
 import '../../../../../Home/Presentation/Controller/socket_controller.dart';
@@ -43,7 +45,7 @@ class ChatScreenController extends GetxController {
   List<Map<String, String>> uploadedAttachments = [];
   List<ChatHisResModel> msgList = [];
   final textController = TextEditingController();
-  FocusNode messageParentFocus=FocusNode();
+  FocusNode messageParentFocus = FocusNode();
   // FocusNode messageInputFocus=FocusNode();
   ChatHisList? replyToMessage;
   String? replyToImage;
@@ -58,10 +60,10 @@ class ChatScreenController extends GetxController {
   var userIDReceiver;
   var refIdis;
 
-
   final ItemScrollController itemScrollController = ItemScrollController();
   final ItemPositionsListener itemPositionsListener =
       ItemPositionsListener.create();
+
 
   bool isDoc(String orignalMsg) {
     final ext = (orignalMsg ?? '').toLowerCase();
@@ -99,21 +101,19 @@ class ChatScreenController extends GetxController {
   Timer? searchDelay;
   void onSearch(String query) {
     searchDelay?.cancel();
-
     searchDelay = Timer(const Duration(milliseconds: 400), () {
       searchQuery = query.trim().toLowerCase();
-
       page = 1;
       hasMore = true;
       chatHisList = [];
       update();
 
-      hitAPIToGetChatHistory("onsearch",searchQuery: searchQuery.isEmpty ? null : searchQuery);
+      hitAPIToGetChatHistory("onsearch",
+          searchQuery: searchQuery.isEmpty ? null : searchQuery);
     });
-
   }
-  final showUpload = true.obs;
 
+  final showUpload = true.obs;
 
   Timer? _pageDebounce;
 
@@ -224,9 +224,6 @@ class ChatScreenController extends GetxController {
     }
   }
 
-
-
-
 /*  void attachPaginationListener({bool reverseList = true}) {
     itemPositionsListener.itemPositions.addListener(() {
       if (isPageLoading || !hasMore) return;
@@ -290,7 +287,6 @@ class ChatScreenController extends GetxController {
   }
 */
 
-
   // Optional highlight logic
   final highlighted = <int>{}.obs;
   void highlightMessage(int chatId) {
@@ -301,30 +297,27 @@ class ChatScreenController extends GetxController {
       update();
     });
   }
-
+  bool _paginationListenerAttached = false;
   bool _pasteRegistered = false;
 
   @override
   void onInit() {
     super.onInit();
-    // textController.addListener(() {
-    //   showUpload.value = textController.text.trim().isEmpty;
-    // });
     _getCompany();
-    scrollListener();
-    if(Get.isRegistered<ChatHomeController>()){
-      Get.find<ChatHomeController>()
-          .isOnRecentList.value = false;
-    }
-
     replyToMessage = null;
-    // resetPaginationForNewChat();
     getArguments();
-
-    if (kIsWeb) {
-      user = Get.find<ChatHomeController>().selectedChat.value;
-      // _initScroll();
+    // scrollListener();
+    if (Get.isRegistered<ChatHomeController>()) {
+      Get.find<ChatHomeController>().isOnRecentList.value = false;
+      if (kIsWeb) {
+        user = Get.find<ChatHomeController>().selectedChat.value;
+        // _initScroll();
+      }
     }
+
+
+
+
     // attachPaginationListener(reverseList: true);
 
     _initImagePaste();
@@ -338,29 +331,203 @@ class ChatScreenController extends GetxController {
     //     _handlePastedImage(image);
     //   });
     // }
+
+    _attachPaginationListener();
   }
 
-  _initImagePaste(){
+  void _attachPaginationListener() {
+    if (_paginationListenerAttached) return;
+    _paginationListenerAttached = true;
+
+    itemPositionsListener.itemPositions.addListener(() {
+      if (isPageLoading || !hasMore) return;
+
+      final positions = itemPositionsListener.itemPositions.value;
+      if (positions.isEmpty) return;
+      // When reverse:true, loading older messages happens when you reach the "top".
+      // In practice: the highest index becomes visible.
+      final maxVisibleIndex = positions
+          .where((p) => p.itemTrailingEdge > 0) // visible
+          .map((p) => p.index)
+          .reduce((a, b) => a > b ? a : b);
+
+      // near the end (top side in reverse list)
+      if (maxVisibleIndex >= chatRows.length - 4) {
+        hitAPIToGetChatHistory("pagination");
+      }
+    });
+  }
+
+  _initImagePaste() {
     if (kIsWeb) {
       WidgetsBinding.instance.addPostFrameCallback((_) {
         final current = FocusManager.instance.primaryFocus;
         // only request focus if nothing is focused
         if (current == null) {
-          messageParentFocus.requestFocus();
+          messageParentFocus.unfocus();
+          if (messageParentFocus.canRequestFocus) {
+            messageParentFocus.requestFocus();
+          }
         }
       });
     }
-
   }
 
   Future<void> _handlePastedImage(XFile file) async {
-    // same flow as picker
+    final shouldSend = await _showPastedImagePreviewDialog(file);
+    if (shouldSend != true) return;
+
+    // User confirmed -> proceed with your current flow
     images.clear();
     images.add(file);
 
-    await uploadMediaApiCall(
-      type: ChatMediaType.IMAGE.name,
-    );
+    await uploadMediaApiCall(type: ChatMediaType.IMAGE.name);
+    // // same flow as picker
+    // images.clear();
+    // images.add(file);
+    //
+    //
+    // await uploadMediaApiCall(
+    //   type: ChatMediaType.IMAGE.name,
+    // );
+  }
+
+  Future<bool?> _showPastedImagePreviewDialog(XFile file) {
+    final captionController = TextEditingController();
+
+    return Get.dialog<bool>(
+      Dialog(
+        backgroundColor: Colors.white,
+        insetPadding: const EdgeInsets.all(16),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+        child: LayoutBuilder(
+          builder: (context, constraints) {
+            final maxH = MediaQuery.of(context).size.height * 0.85;
+            final maxW = 560.0;
+
+            return ConstrainedBox(
+              constraints: BoxConstraints(
+                maxHeight: maxH,
+                maxWidth: maxW,
+              ),
+              child: Column(
+                mainAxisSize: MainAxisSize.max, // IMPORTANT
+                children: [
+                  // Header (fixed)
+                  Padding(
+                    padding: const EdgeInsets.fromLTRB(16, 14, 8, 10),
+                    child: Row(
+                      children: [
+                        const Expanded(
+                          child: Text(
+                            "Preview",
+                            style: TextStyle(
+                              fontSize: 16,
+                              fontWeight: FontWeight.w700,
+                            ),
+                          ),
+                        ),
+                        IconButton(
+                          onPressed: () => Get.back(result: false),
+                          icon: const Icon(Icons.close),
+                        ),
+                      ],
+                    ),
+                  ),
+
+                  const Divider(height: 1),
+
+                  // Body (scrollable if needed)
+                  Expanded(
+                    child: SingleChildScrollView(
+                      padding: const EdgeInsets.all(14),
+                      child: Column(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          // Image Preview (keeps good height, no overflow)
+                          ClipRRect(
+                            borderRadius: BorderRadius.circular(12),
+                            child: AspectRatio(
+                              aspectRatio: 16 / 10,
+                              child: Container(
+                                color: Colors.black12,
+                                alignment: Alignment.center,
+                                child: kIsWeb
+                                    ? CustomCacheNetworkImage(
+                                        radiusAll: 10,
+                                        borderColor: greyText,
+                                        boxFit: BoxFit.contain,
+                                        file.path,
+                                      )
+                                    : Image.file(
+                                        File(file.path),
+                                        fit: BoxFit.contain,
+                                        errorBuilder: (_, __, ___) =>
+                                            const Text("Couldn’t load preview"),
+                                      ),
+                              ),
+                            ),
+                          ),
+
+                          /*  const SizedBox(height: 12),
+
+                          // Caption (optional)
+                          TextField(
+                            controller: captionController,
+                            minLines: 1,
+                            maxLines: 3,
+                            decoration: InputDecoration(
+                              hintText: "Add a caption… (optional)",
+                              contentPadding: const EdgeInsets.symmetric(
+                                  horizontal: 12, vertical: 10),
+                              border: OutlineInputBorder(
+                                borderRadius: BorderRadius.circular(12),
+                              ),
+                            ),
+                          ),
+*/
+                          const SizedBox(height: 14),
+                        ],
+                      ),
+                    ),
+                  ),
+
+                  const Divider(height: 1),
+
+                  // Bottom actions (fixed)
+                  Padding(
+                    padding: const EdgeInsets.all(12),
+                    child: Row(
+                      children: [
+                        Expanded(
+                          child: OutlinedButton(
+                            onPressed: () => Get.back(result: false),
+                            child: const Text("Cancel"),
+                          ),
+                        ),
+                        const SizedBox(width: 10),
+                        Expanded(
+                          child: ElevatedButton.icon(
+                            onPressed: () {
+                              // optional: store caption somewhere
+                              // controller.captionText = captionController.text;
+                              Get.back(result: true);
+                            },
+                            icon: const Icon(Icons.send),
+                            label: const Text("Send"),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+            );
+          },
+        ),
+      ),
+      barrierDismissible: true,
+    ).whenComplete(() => captionController.dispose());
   }
 
   Future<List<XFile>> pickWebImages({int maxFiles = 10}) async {
@@ -409,6 +576,7 @@ class ChatScreenController extends GetxController {
     if (lower.endsWith('.jpg') || lower.endsWith('.jpeg')) return 'image/jpeg';
     return 'image/*';
   }
+
   _initScroll() {
     WidgetsBinding.instance.addPostFrameCallback((_) async {
       // 1) if list hasn't loaded yet, don't scroll
@@ -451,7 +619,6 @@ class ChatScreenController extends GetxController {
     }
 
     super.onClose();
-
   }
 
   @override
@@ -500,7 +667,6 @@ class ChatScreenController extends GetxController {
   }
 
   void openConversation(UserDataAPI? useriii) {
-
     user = useriii;
 
     Future.delayed(const Duration(milliseconds: 500), () {
@@ -518,9 +684,7 @@ class ChatScreenController extends GetxController {
   List<Message> filteredTasks = [];
   String selectedFilter = 'all';
 
-
   TextEditingController updateMsgController = TextEditingController();
-
 
   CompanyData? myCompany = CompanyData();
   _getCompany() async {
@@ -577,7 +741,7 @@ class ChatScreenController extends GetxController {
     } else {
       scrollController2.addListener(() {
         if (scrollController2.position.pixels <=
-            scrollController2.position.minScrollExtent + 50 &&
+                scrollController2.position.minScrollExtent + 50 &&
             !isPageLoading &&
             hasMore) {
           // resetPaginationForNewChat();
@@ -596,8 +760,7 @@ class ChatScreenController extends GetxController {
     update();
   }
 
-
-  hitAPIToGetChatHistory(p,{String? searchQuery}) async {
+  hitAPIToGetChatHistory(p, {String? searchQuery}) async {
     if (page == 1) {
       showPostShimmer = true;
       chatHisList?.clear();
@@ -609,7 +772,7 @@ class ChatScreenController extends GetxController {
         .getChatHistoryApiCall(
             userComId: user?.userCompany?.userCompanyId,
             page: page,
-            searchText: searchQuery??'')
+            searchText: searchQuery ?? '')
         .then((value) async {
       showPostShimmer = false;
       chatHisResModelAPI = value;
@@ -620,8 +783,7 @@ class ChatScreenController extends GetxController {
           chatHisList?.addAll(value.data?.rows ?? []);
         }
         page++;
-      }
-      else {
+      } else {
         hasMore = false;
         isPageLoading = false;
         update();
@@ -1089,7 +1251,8 @@ class ChatScreenController extends GetxController {
     uploadProgress = 0.0;
     update();
   }
-   int maxBytes = 15 * 1024 * 1024; // 10MB
+
+  int maxBytes = 15 * 1024 * 1024; // 10MB
   Future<void> pickDocument() async {
     final permission = await requestStoragePermission();
     if (!permission) {
@@ -1180,7 +1343,7 @@ class ChatScreenController extends GetxController {
   Future<void> handleForward({required chatId}) async {
     final selectedUser = await showDialog<UserDataAPI>(
       context: Get.context!,
-      builder: (_) =>  AllUserScreenDialog(),
+      builder: (_) => AllUserScreenDialog(),
     );
     if (selectedUser == null) return;
     final socket = Get.find<SocketController>();
@@ -1191,9 +1354,10 @@ class ChatScreenController extends GetxController {
 
       // Replace current chat screen with the target chat
       if (/*Get.currentRoute == AppRoutes.chats_li_r &&*/
-        Get.isRegistered<ChatScreenController>()) {
+          Get.isRegistered<ChatScreenController>()) {
         Get.find<ChatHomeController>().selectedChat.value = selectedUser;
-       final con= Get.find<ChatScreenController>(tag: "chat_${selectedUser.userId ?? 'mobile'}");
+        final con = Get.find<ChatScreenController>(
+            tag: "chat_${selectedUser.userId ?? 'mobile'}");
         con.openConversation(selectedUser);
       } else {
         toast("Something went wrong please refresh and try again");
@@ -1217,7 +1381,9 @@ class ChatScreenController extends GetxController {
         APIs.me?.userCompany?.userCompanyId != null &&
         targetUcId == APIs.me?.userCompany?.userCompanyId) {
       Get.snackbar('Oops', 'You cannot forward a message to yourself.',
-          backgroundColor: Colors.white, colorText: Colors.black,duration: Duration(seconds: 6));
+          backgroundColor: Colors.white,
+          colorText: Colors.black,
+          duration: Duration(seconds: 6));
       return;
     }
 
@@ -1349,7 +1515,8 @@ class ChatScreenController extends GetxController {
   void _toast(String msg) {
     // Plug your toast/snackbar here
     // e.g., Get.snackbar('Info', msg); or your existing toast()
-    Get.snackbar('AccuChat', msg, snackPosition: SnackPosition.BOTTOM,duration: Duration(seconds: 6));
+    Get.snackbar('AccuChat', msg,
+        snackPosition: SnackPosition.BOTTOM, duration: Duration(seconds: 6));
   }
 }
 
