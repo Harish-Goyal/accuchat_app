@@ -42,6 +42,8 @@ class ViewProfileScreen extends GetView<ViewProfileController> {
                     : controller.user?.userCompany?.displayName ?? '',
                 style: BalooStyles.balooboldTitleTextStyle(),
               ),
+              scrolledUnderElevation: 0,
+              surfaceTintColor: Colors.white,
             ),
             floatingActionButton: //user about
                 Row(

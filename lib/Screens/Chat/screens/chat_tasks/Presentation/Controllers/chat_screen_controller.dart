@@ -60,11 +60,12 @@ class ChatScreenController extends GetxController {
   var userIDReceiver;
   var refIdis;
 
-  final ItemScrollController itemScrollController = ItemScrollController();
-  final ItemPositionsListener itemPositionsListener =
-      ItemPositionsListener.create();
+  // final ItemScrollController itemScrollController = ItemScrollController();
+  // final ItemPositionsListener itemPositionsListener =
+  //     ItemPositionsListener.create();
 
-
+  late final ItemScrollController itemScrollController;
+  late final ItemPositionsListener itemPositionsListener;
   bool isDoc(String orignalMsg) {
     final ext = (orignalMsg ?? '').toLowerCase();
     return ext.endsWith('.pdf') ||
@@ -303,6 +304,8 @@ class ChatScreenController extends GetxController {
   @override
   void onInit() {
     super.onInit();
+    itemScrollController = ItemScrollController();
+    itemPositionsListener = ItemPositionsListener.create();
     _getCompany();
     replyToMessage = null;
     getArguments();
@@ -332,11 +335,20 @@ class ChatScreenController extends GetxController {
     //   });
     // }
 
-    _attachPaginationListener();
+
+  }
+ @override
+  void onReady() {
+   _attachPaginationListener();
+    super.onReady();
   }
 
   void _attachPaginationListener() {
-    if (_paginationListenerAttached) return;
+    if (_paginationListenerAttached) return;  // ✅ prevents duplicate attach
+    _paginationListenerAttached = true;
+
+    itemPositionsListener.itemPositions.addListener(onPositionsChanged);
+/*    if (_paginationListenerAttached) return;
     _paginationListenerAttached = true;
 
     itemPositionsListener.itemPositions.addListener(() {
@@ -355,7 +367,26 @@ class ChatScreenController extends GetxController {
       if (maxVisibleIndex >= chatRows.length - 4) {
         hitAPIToGetChatHistory("pagination");
       }
-    });
+    });*/
+  }
+
+  void onPositionsChanged() {
+
+    if (isPageLoading || !hasMore) return;
+
+    final positions = itemPositionsListener.itemPositions.value;
+    if (positions.isEmpty) return;
+    // When reverse:true, loading older messages happens when you reach the "top".
+    // In practice: the highest index becomes visible.
+    final maxVisibleIndex = positions
+        .where((p) => p.itemTrailingEdge > 0) // visible
+        .map((p) => p.index)
+        .reduce((a, b) => a > b ? a : b);
+
+    // near the end (top side in reverse list)
+    if (maxVisibleIndex >= chatRows.length - 4) {
+      hitAPIToGetChatHistory("pagination");
+    }
   }
 
   _initImagePaste() {
@@ -499,18 +530,15 @@ class ChatScreenController extends GetxController {
                     padding: const EdgeInsets.all(12),
                     child: Row(
                       children: [
+
                         Expanded(
-                          child: OutlinedButton(
-                            onPressed: () => Get.back(result: false),
-                            child: const Text("Cancel"),
-                          ),
+                          child: TextButton(onPressed: () => Get.back(result: false), child: const Text("Cancel"))
+
                         ),
                         const SizedBox(width: 10),
                         Expanded(
                           child: ElevatedButton.icon(
                             onPressed: () {
-                              // optional: store caption somewhere
-                              // controller.captionText = captionController.text;
                               Get.back(result: true);
                             },
                             icon: const Icon(Icons.send),
@@ -761,7 +789,7 @@ class ChatScreenController extends GetxController {
   }
 
   hitAPIToGetChatHistory(p, {String? searchQuery}) async {
-    if (isPageLoading || !hasMore) return; // ✅ IMPORTANT guard
+    if (isPageLoading || !hasMore) return;
     if (page == 1) {
       showPostShimmer = true;
       chatHisList?.clear();
@@ -795,6 +823,7 @@ class ChatScreenController extends GetxController {
         }
         return GroupChatElement(dt, item);
       }).toList();
+
       if ((user?.pendingCount ?? 0) != 0) {
         markAllVisibleAsReadOnOpen(
           user?.userCompany?.userCompanyId,

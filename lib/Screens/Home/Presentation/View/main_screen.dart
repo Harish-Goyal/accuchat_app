@@ -486,7 +486,9 @@ class _AccuChatDashboardState extends State<AccuChatDashboard> {
                 Get.find<TaskController>().hitAPIToGetTaskHistory();
               }
             }
-          } else {
+          }
+
+          if(v==0) {
             isTaskMode = false;
 
             if (Get.isRegistered<ChatHomeController>()) {

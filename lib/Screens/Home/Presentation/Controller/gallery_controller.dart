@@ -214,6 +214,11 @@ class GalleryController extends GetxController
   }
 //Create folder
 
+  void refreshGallery() async {
+  hitApiToGetFolder(reset: true);
+   // homeController.update();
+  }
+
   final TextEditingController nameController = TextEditingController();
 
   final RxBool isSaving = false.obs;
@@ -878,7 +883,7 @@ class GalleryController extends GetxController
           : Get.put(SaveToGalleryController());
       folder!=null? null:await saveC.hitApiToGetFolder(reset: true);
       if (galle.isNotEmpty) {
-        Navigator.of(Get.context!).pop();
+        // Navigator.of(Get.context!).pop();
         showDialog(
             context: Get.context!,
             builder: (_) => SaveToCustomFolderDialog(

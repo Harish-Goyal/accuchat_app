@@ -22,7 +22,8 @@ class InviteMembersScreen extends GetView<InviteMemberController> {
     return GetBuilder<InviteMemberController>(
       builder: (c) {
         return Scaffold(
-          appBar: AppBar(
+          appBar: AppBar(      scrolledUnderElevation: 0,
+            surfaceTintColor: Colors.white,
             automaticallyImplyLeading: false,
             leadingWidth: 25,
             title: Text(

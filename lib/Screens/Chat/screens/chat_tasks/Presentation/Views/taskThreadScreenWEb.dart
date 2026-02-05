@@ -240,7 +240,6 @@ class TaskThreadScreenWeb extends GetView<TaskThreadController> {
             showShimmer: controller.showPostShimmer,
             shimmerWidget: shimmerlistView(
                 child: ChatHistoryShimmer(
-              chatData: ChatHisList(),
             )),
             child: groupListView(),
           ),

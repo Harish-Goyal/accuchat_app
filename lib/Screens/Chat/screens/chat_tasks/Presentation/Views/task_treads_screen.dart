@@ -226,9 +226,7 @@ class TaskThreadScreen extends GetView<TaskThreadController> {
           child: shimmerEffectWidget(
             showShimmer: controller.showPostShimmer,
             shimmerWidget: shimmerlistView(
-                child: ChatHistoryShimmer(
-                  chatData: ChatHisList(),
-                )),
+                child: ChatHistoryShimmer()),
             child: groupListView(),
           ),
         ),
@@ -241,12 +239,10 @@ class TaskThreadScreen extends GetView<TaskThreadController> {
     return controller.commentsCategory.isNotEmpty
         ? NotificationListener<ScrollNotification>(
       onNotification: (n) {
-
         if (n is ScrollEndNotification &&
             n.metrics.extentAfter <= 0 &&
             !controller.isPageLoading &&
             controller.hasMore) {
-
           controller.isPageLoading = true;
           controller.hitAPIToGetCommentsHistory();
         }

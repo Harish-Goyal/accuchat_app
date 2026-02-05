@@ -27,7 +27,8 @@ class MediaPreviewPage extends StatelessWidget {
 
     return Scaffold(
       backgroundColor: Colors.black,
-      appBar: AppBar(
+      appBar: AppBar(      scrolledUnderElevation: 0,
+        surfaceTintColor: Colors.white,
         backgroundColor: Colors.black,
         title: Text(fileName, style: const TextStyle(color: Colors.white, fontSize: 14), maxLines: 1, overflow: TextOverflow.ellipsis),
         actions: [

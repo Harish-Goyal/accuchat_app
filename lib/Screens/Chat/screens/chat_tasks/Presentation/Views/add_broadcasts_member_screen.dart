@@ -19,7 +19,8 @@ class AddBroadcastsMembersScreen extends GetView<AddBroadcastMemController> {
     return GetBuilder<AddBroadcastMemController>(
       builder: (controller) {
         return Scaffold(
-          appBar: AppBar(title:  Text('Add Broadcasts Members',style: themeData.textTheme.titleMedium,)),
+          appBar: AppBar(      scrolledUnderElevation: 0,
+              surfaceTintColor: Colors.white,title:  Text('Add Broadcasts Members',style: themeData.textTheme.titleMedium,)),
           body: _mainBody(),
           floatingActionButton: FloatingActionButton.extended(
             onPressed: () {

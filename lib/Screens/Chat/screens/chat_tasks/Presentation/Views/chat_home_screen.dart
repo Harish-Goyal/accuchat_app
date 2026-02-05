@@ -89,7 +89,7 @@ class ChatsHomeScreen extends GetView<ChatHomeController> {
       elevation: 1,
       scrolledUnderElevation: 0,
       surfaceTintColor: Colors.white,
-      bottom: PreferredSize(preferredSize: Size(Get.width*.75, 5), child: divider()),
+      bottom: PreferredSize(preferredSize: Size(Get.width*.75, 5), child: divider(color: Colors.grey.shade300,thikness: 1.1)),
       title:kIsWeb && w>600 ?InkWell(
         hoverColor: Colors.transparent,
         onTap: () {
@@ -369,6 +369,7 @@ class ChatsHomeScreen extends GetView<ChatHomeController> {
     try {
       final user = await Get.dialog<UserDataAPI>(
         Dialog(
+          clipBehavior: Clip.antiAlias,
           insetPadding: const EdgeInsets.all(12),
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(12),

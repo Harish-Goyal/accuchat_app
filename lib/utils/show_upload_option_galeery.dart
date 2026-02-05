@@ -1,7 +1,6 @@
 import 'package:AccuChat/Screens/Home/Models/get_folder_res_model.dart';
 import 'package:AccuChat/Screens/Home/Presentation/Controller/gallery_controller.dart';
 import 'package:AccuChat/utils/text_style.dart';
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
@@ -62,7 +61,7 @@ void showUploadOptions(BuildContext context, {FolderData? folder}) {
                   folder!=null? null:await saveC.hitApiToGetFolder(reset: true);
                   saveC.docNameController.text = image.name;
 
-                  Navigator.of(context).pop();
+                  // Navigator.of(context).pop();
                   showDialog(
                       context: Get.context!,
                       builder: (_) => SaveToCustomFolderDialog(
@@ -109,7 +108,7 @@ void showUploadOptions(BuildContext context, {FolderData? folder}) {
                     : Get.put(SaveToGalleryController());
                 folder!=null? null:await saveC.hitApiToGetFolder(reset: true);
                 if (galle.isNotEmpty) {
-                  Navigator.of(context).pop();
+                  // Navigator.of(context).pop();
                   showDialog(
                       context: Get.context!,
                       builder: (_) => SaveToCustomFolderDialog(
@@ -171,7 +170,7 @@ void showUploadOptionsWeb(BuildContext context,FolderData? folderdata) {
       actions: [
         TextButton(
           onPressed: () async {
-            //IMAGES (multiple)
+            Get.back();
             final galle = Get.find<GalleryController>();
             final images = await galle.pickWebImages(maxFiles: 10);
             if (images.isNotEmpty) {
@@ -180,7 +179,7 @@ void showUploadOptionsWeb(BuildContext context,FolderData? folderdata) {
                   : Get.put(SaveToGalleryController());
 
               folderdata!=null?null: await saveC.hitApiToGetFolder();
-              Navigator.of(ctx).pop();
+
               galle.images.addAll(images);
               final picked = await Future.wait(
                 images.map((f) async {
@@ -217,7 +216,7 @@ void showUploadOptionsWeb(BuildContext context,FolderData? folderdata) {
         ),
         TextButton(
           onPressed: () async {
-            // DOCUMENTS (pdf/office/etc.)
+            Get.back();
             final galle = Get.find<GalleryController>();
             final docs = await galle.pickWebDocs();
 
@@ -234,7 +233,7 @@ void showUploadOptionsWeb(BuildContext context,FolderData? folderdata) {
                 : Get.put(SaveToGalleryController());
             await saveC.hitApiToGetFolder();
             if (docs.isNotEmpty) {
-              Navigator.of(ctx).pop();
+              // Navigator.of(ctx).pop();
               showDialog(
                   context: Get.context!,
                   builder: (_) => SaveToCustomFolderDialog(

@@ -140,7 +140,8 @@ class FolderItemsScreen extends GetView<GalleryItemController> {
   }
 
   AppBar _searchBarWidget(context,GalleryItemController c) {
-    return AppBar(
+    return AppBar(      scrolledUnderElevation: 0,
+      surfaceTintColor: Colors.white,
       leading: IconButton(onPressed: (){
         Get.toNamed(AppRoutes.home);
         Get.find<DashboardController>().updateIndex(2);

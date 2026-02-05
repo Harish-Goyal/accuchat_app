@@ -121,7 +121,8 @@ class _BroadcastsMembersScreenState extends State<BroadcastsMembersScreen> {
     ThemeData themeData = Theme.of(context);
 
     return Scaffold(
-      appBar: AppBar(title:  Text('Broadcasts Members',style: BalooStyles.balooboldTitleTextStyle(),),
+      appBar: AppBar(      scrolledUnderElevation: 0,
+        surfaceTintColor: Colors.white,title:  Text('Broadcasts Members',style: BalooStyles.balooboldTitleTextStyle(),),
         actions: [
           // if (isCurrentUserAdmin)
             PopupMenuButton<String>(

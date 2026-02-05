@@ -272,7 +272,8 @@ class GroupMembersScreen extends GetView<GrBrMembersController> {
   }
 
   AppBar _appBarWidget(){
-    return  AppBar(
+    return  AppBar(      scrolledUnderElevation: 0,
+      surfaceTintColor: Colors.white,
       automaticallyImplyLeading: false,
       leading: IconButton(onPressed: (){
         Get.back();

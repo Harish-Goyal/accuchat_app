@@ -1,6 +1,7 @@
 import 'package:AccuChat/Constants/themes.dart';
 import 'package:AccuChat/Screens/Chat/screens/chat_tasks/Presentation/Controllers/chat_screen_controller.dart';
 import 'package:AccuChat/Screens/Home/Presentation/Controller/compnaies_controller.dart';
+import 'package:AccuChat/Screens/Home/Presentation/Controller/gallery_controller.dart';
 import 'package:AccuChat/Screens/Home/Presentation/View/pending_invites_animated.dart';
 import 'package:AccuChat/Services/APIs/api_ends.dart';
 import 'package:AccuChat/Services/subscription/billing_controller.dart';
@@ -274,6 +275,10 @@ class CompaniesScreen extends GetView<CompaniesController> {
                                             if (Get.isRegistered<TaskController>()) {
                                               Get.delete<TaskController>();
                                             }
+                                            if (Get.isRegistered<GalleryController>()) {
+                                              Get.delete<GalleryController>();
+                                            }
+
                                             customLoader.hide();
                                             controller.update();
                                           },
@@ -303,7 +308,9 @@ class CompaniesScreen extends GetView<CompaniesController> {
                                             if (Get.isRegistered<TaskController>()) {
                                               Get.delete<TaskController>();
                                             }
-
+                                            if (Get.isRegistered<GalleryController>()) {
+                                              Get.delete<GalleryController>();
+                                            }
 
                                             customLoader.hide();
                                             controller.update();

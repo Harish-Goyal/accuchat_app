@@ -30,7 +30,8 @@ class GalleryViewerPage extends GetView<GalleryViewerController> {
       builder: (c) {
         return Scaffold(
           backgroundColor: Colors.white,
-          appBar: AppBar(
+          appBar: AppBar(      scrolledUnderElevation: 0,
+            surfaceTintColor: Colors.white,
             backgroundColor: Colors.white,
             foregroundColor: Colors.white,
             elevation: 0,

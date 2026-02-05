@@ -23,7 +23,8 @@ class RoleListScreen extends GetView<RoleListController> {
       init: RoleListController(),
       builder: (ctrl) {
         return Scaffold(
-          appBar: AppBar(
+          appBar: AppBar(      scrolledUnderElevation: 0,
+            surfaceTintColor: Colors.white,
             title:  Text('All Roles',style: BalooStyles.baloosemiBoldTextStyle(),
             ),
             centerTitle: true,

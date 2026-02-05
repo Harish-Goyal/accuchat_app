@@ -24,7 +24,8 @@ class LoginScreenG extends GetView<LoginGController> {
 
     return Scaffold(
       //app bar
-      appBar: AppBar(
+      appBar: AppBar(      scrolledUnderElevation: 0,
+        surfaceTintColor: Colors.white,
         automaticallyImplyLeading: false,
         title: const Text('Welcome to AccuChat'),
       ),

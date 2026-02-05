@@ -25,7 +25,8 @@ class AllSettingsScreen extends GetView<AllSettingsController> {
       init: AllSettingsController(),
       builder: (controller) {
         return Scaffold(
-          appBar: AppBar(
+          appBar: AppBar(      scrolledUnderElevation: 0,
+            surfaceTintColor: Colors.white,
             title:  Text('Settings',style: BalooStyles.balooboldTitleTextStyle(),),
             // Slightly increase toolbar height on very wide web to breathe
             toolbarHeight: isWide ? 64 : kToolbarHeight,

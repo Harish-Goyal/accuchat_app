@@ -22,6 +22,7 @@ import 'package:get/get.dart';
 import 'package:grouped_list/grouped_list.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:intl/intl.dart';
+import 'package:scrollable_positioned_list/scrollable_positioned_list.dart';
 import 'package:swipe_to/swipe_to.dart';
 import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/gestures.dart';
@@ -42,11 +43,14 @@ import '../../../../../Home/Models/pickes_file_item.dart';
 import '../../../../../Home/Presentation/Controller/socket_controller.dart';
 import '../../../../api/apis.dart';
 import '../../../../helper/dialogs.dart';
+import '../../../auth/models/get_uesr_Res_model.dart';
+import '../Controllers/add_group_mem_controller.dart';
 import '../Controllers/save_in_accuchat_gallery_controller.dart';
 import '../Widgets/reply_msg_widget.dart';
 import '../Controllers/gallery_view_controller.dart';
 import '../Widgets/media_view.dart';
 import '../dialogs/save_in_gallery_dialog.dart';
+import 'add_group_members_screens.dart';
 import 'images_gallery_page.dart';
 
 /// -------------------------
@@ -128,6 +132,8 @@ class ChatScreenMobile extends GetView<ChatScreenController> {
             child: SafeArea(
               child: Scaffold(
                 appBar: AppBar(
+                  scrolledUnderElevation: 0,
+                  surfaceTintColor: Colors.white,
                   backgroundColor: Colors.white,
                   automaticallyImplyLeading: false,
                   flexibleSpace: MediaQuery( // ✅ clamp text scale for web
@@ -197,7 +203,7 @@ class ChatScreenMobile extends GetView<ChatScreenController> {
 
   Widget _replyMessageWidgetCancel(username){
     return  Container(
-      padding: const EdgeInsets.all(2),
+      padding: const EdgeInsets.all(6),
       margin:
       const EdgeInsets.only(bottom: 0, left: 10, right: 63),
       decoration: BoxDecoration(
@@ -208,7 +214,7 @@ class ChatScreenMobile extends GetView<ChatScreenController> {
       child: Row(
         children: [
           Container(
-            height: 40,
+            height: 45,
             width: 3,
             color: appColorYellow,
           ),
@@ -220,25 +226,23 @@ class ChatScreenMobile extends GetView<ChatScreenController> {
               mainAxisSize: MainAxisSize.min,
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                Flexible(
-                  child: Column(
-                    crossAxisAlignment:
-                    CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        "${controller.replyToMessage?.fromUser?.userId == APIs.me?.userId ? 'You' : username}",
-                        maxLines: 1,
-                        overflow:
-                        TextOverflow.ellipsis,
-                        style: themeData
-                            .textTheme.bodySmall
-                            ?.copyWith(
-                            color: greyText),
-                      ),
-                    ],
-                  ).paddingSymmetric(
-                      horizontal: 4),
-                ),
+                Column(
+                  crossAxisAlignment:
+                  CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      "${controller.replyToMessage?.fromUser?.userId == APIs.me?.userId ? 'You' : username}",
+                      maxLines: 1,
+                      overflow:
+                      TextOverflow.ellipsis,
+                      style: themeData
+                          .textTheme.bodySmall
+                          ?.copyWith(
+                          color: greyText),
+                    ),
+                  ],
+                ).paddingSymmetric(
+                    horizontal: 4),
 
                 Text(
                   " : ",
@@ -290,20 +294,22 @@ class ChatScreenMobile extends GetView<ChatScreenController> {
                       appColorGreen,
                       boxFit: BoxFit.cover,
                     )
-                ):Text(
-                  controller.replyToMessage
-                      ?.message ??
-                      '',
-                  maxLines: 2,
-                  overflow:
-                  TextOverflow
-                      .ellipsis,
-                  style: themeData
-                      .textTheme
-                      .bodySmall
-                      ?.copyWith(
-                      color:
-                      greyText),
+                ):Flexible(
+                  child: Text(
+                    controller.replyToMessage
+                        ?.message ??
+                        '',
+                    maxLines: 2,
+                    overflow:
+                    TextOverflow
+                        .ellipsis,
+                    style: themeData
+                        .textTheme
+                        .bodySmall
+                        ?.copyWith(
+                        color:
+                        greyText),
+                  ),
                 )
               ],
             ) ,
@@ -334,7 +340,6 @@ class ChatScreenMobile extends GetView<ChatScreenController> {
             showShimmer: controller.showPostShimmer,
             shimmerWidget: shimmerlistView(
                 child: ChatHistoryShimmer(
-                  chatData: ChatHisList(),
                 )),
             child: groupListView(),
           ),
@@ -344,7 +349,130 @@ class ChatScreenMobile extends GetView<ChatScreenController> {
     );
   }
 
-  Widget groupListView() {
+  groupListView() {
+    return (controller.chatRows ?? []).isNotEmpty
+        ? ScrollablePositionedList.builder(
+        itemScrollController: controller.itemScrollController,
+        itemPositionsListener: controller.itemPositionsListener,
+        itemCount: controller.chatRows.length,
+        reverse: true,
+        padding: const EdgeInsets.only(bottom: 30),
+        itemBuilder: (context, index) {
+          final row = controller.chatRows[index];
+          if (row is ChatHeaderRow) {
+            return _createGroupHeader(row.date);
+          }
+          final msgRow = row as ChatMessageRow;
+          final element = msgRow.element;
+          final msg = element.chatMessageItems;
+          final chatId = msg.chatId ?? 0;
+          String formatedTime = '';
+          if (msg.sentOn != null && msg.sentOn!.isNotEmpty) {
+            formatedTime = convertUtcToIndianTime(msg.sentOn!);
+          }
+
+          final isHighlighted = controller.highlightedChatId == chatId;
+          final userid = APIs.me?.userId;
+          return AnimatedContainer(
+            duration: const Duration(milliseconds: 250),
+            color: isHighlighted ? appColorGreen.withOpacity(.3) : null,
+            child: SwipeTo(
+              iconColor: appColorGreen,
+              onRightSwipe: element.chatMessageItems.isActivity == 1
+                  ? (v) {}
+                  : (detail) {
+                final media = element.chatMessageItems.media;
+                if (media == null || media.isEmpty) {
+                  controller.refIdis = element.chatMessageItems.chatId;
+                  controller.userIDSender = element.chatMessageItems.fromUser?.userId;
+                  controller.userNameReceiver =
+                      element.chatMessageItems.toUser?.userCompany?.displayName ?? '';
+                  controller.userNameSender =
+                      element.chatMessageItems.fromUser?.userCompany?.displayName ?? '';
+                  controller.userIDReceiver = element.chatMessageItems.toUser?.userId;
+                  controller.replyToMessage = element.chatMessageItems;
+                  controller.update();
+                  controller.messageParentFocus.requestFocus();
+                } else {
+                  if (media.length == 1) {
+                    final firstMedia = media.first;
+                    controller.refIdis = element.chatMessageItems.chatId;
+                    controller.userIDSender =
+                        element.chatMessageItems.fromUser?.userId;
+                    controller.userNameReceiver =
+                        element.chatMessageItems.toUser?.userCompany
+                            ?.displayName ?? '';
+                    controller.userNameSender =
+                        element.chatMessageItems.fromUser?.userCompany
+                            ?.displayName ?? '';
+                    controller.userIDReceiver =
+                        element.chatMessageItems.toUser?.userId;
+
+                    controller.replyToImage = firstMedia.orgFileName;
+
+                    final isDoc = firstMedia.mediaType?.mediaCode == "DOC";
+                    final msg = isDoc
+                        ? (firstMedia.orgFileName ?? '')
+                        : "${ApiEnd.baseUrlMedia}${firstMedia.fileName ??
+                        ''}";
+
+                    controller.replyToMessage = ChatHisList(
+                      chatId: element.chatMessageItems.chatId,
+                      fromUser: element.chatMessageItems.fromUser,
+                      toUser: element.chatMessageItems.toUser,
+                      message: msg,
+                      replyToId: element.chatMessageItems.chatId,
+                      replyToText: firstMedia.orgFileName,
+                    );
+
+                    controller.update();
+                    controller.messageParentFocus.requestFocus();
+                  }
+                  else {
+                    toast("Tap to enter details and than can reply over image");
+                  }
+                }
+              },
+              child: _chatMessageTile(
+                  data: element.chatMessageItems,
+                  sentByMe: (userid?.toString() ==
+                      element.chatMessageItems.fromUser?.userId
+                          ?.toString()
+                      ? true
+                      : false),
+                  formatedTime: formatedTime),
+            ),
+          );
+        })
+        : const Center(
+        child: Text('Say Hii! 👋', style: TextStyle(fontSize: 20)));
+  }
+
+  Widget _createGroupHeader(DateTime date) {
+    final isToday = DateUtils.isSameDay(date, DateTime.now());
+    final dateText =
+    isToday ? "Today" : DateFormat.yMMMd().format(date);
+    return Container(
+      color: Colors.transparent,
+      child: Row(
+        children: [
+          Expanded(child: divider(color: appColorGreen.withOpacity(.3))),
+          CustomContainer(
+            elevation: 2,
+            vPadding: 3,
+            hPadding: 7,
+            color: AppTheme.whiteColor,
+            childWidget: Text(
+              dateText,
+              style: BalooStyles.balooregularTextStyle(size: 12.5),
+            ),
+          ),
+          Expanded(child: divider(color: appColorGreen.withOpacity(.3))),
+        ],
+      ),
+    );
+  }
+/*  Widget groupListView() {
     // final initialIndex = (controller.flatRows.isEmpty)
     //     ? 0
     //     : controller.flatRows.length - 1;
@@ -464,7 +592,7 @@ class ChatScreenMobile extends GetView<ChatScreenController> {
 
 
 
-/*    ScrollablePositionedList.builder(
+*//*    ScrollablePositionedList.builder(
       itemScrollController: controller.itemScrollController,
       itemPositionsListener: controller.itemPositionsListener,
       initialScrollIndex: initialIndex,        // start at bottom (chat-like)
@@ -592,12 +720,12 @@ class ChatScreenMobile extends GetView<ChatScreenController> {
 
         return const SizedBox.shrink();
       },
-    );*/
+    );*//*
 
-  }
+  }*/
 
 
-  Widget _createGroupHeader(GroupChatElement element) {
+ /* Widget _createGroupHeader(GroupChatElement element) {
     final isToday = DateUtils.isSameDay(element.date, DateTime.now());
     final dateText =
     isToday ? "Today" : DateFormat.yMMMd().format(element.date);
@@ -620,7 +748,7 @@ class ChatScreenMobile extends GetView<ChatScreenController> {
         ],
       ),
     );
-  }
+  }*/
  /* Widget _createGroupHeader(date) {
     return Container(
       color: Colors.transparent,
@@ -1118,14 +1246,13 @@ class ChatScreenMobile extends GetView<ChatScreenController> {
           onSelected: (value) {
             if (value == 'AddMember') {
               if (kIsWeb) {
-                Get.toNamed(
-                  "${AppRoutes.add_group_member}?groupChatId=${controller.user?.userId.toString()}",
-                );
+                openAllUserDialog(controller.user);
               } else {
-                Get.toNamed(
-                  AppRoutes.add_group_member,
-                  arguments: {'groupChat': controller.user},
-                );
+                openAllUserDialog(controller.user);
+                // Get.toNamed(
+                //   AppRoutes.add_group_member,
+                //   arguments: {'groupChat': controller.user},
+                // );
               }
             }
             if (value == 'Exit') {
@@ -1195,6 +1322,37 @@ class ChatScreenMobile extends GetView<ChatScreenController> {
         hGap(8)
       ],
     );
+  }
+
+  Future<void> openAllUserDialog(UserDataAPI? user) async {
+    if (Get.isRegistered<AddGroupMemController>()) {
+      Get.delete<AddGroupMemController>(force: true);
+    }
+
+    final c = Get.put(AddGroupMemController());
+
+    // ✅ pass the selected group/user directly
+    c.setGroupChat(user);
+
+    try {
+      await Get.dialog(
+        Dialog(
+          insetPadding: const EdgeInsets.all(12),
+          clipBehavior: Clip.antiAlias,
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+          child: SizedBox(
+            width: Get.width * 0.8,
+            height: Get.height * 0.9,
+            child: const AddGroupMembersScreen(),
+          ),
+        ),
+        barrierDismissible: true,
+      );
+    } finally {
+      if (Get.isRegistered<AddGroupMemController>()) {
+        Get.delete<AddGroupMemController>();
+      }
+    }
   }
 
 

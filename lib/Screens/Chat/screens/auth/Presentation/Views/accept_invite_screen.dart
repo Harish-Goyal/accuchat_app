@@ -21,7 +21,8 @@ class AcceptInvitationScreen extends GetView<AcceptInviteController> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: Text("Pending Invitations", style: BalooStyles.balooboldTitleTextStyle())),
+      appBar: AppBar(      scrolledUnderElevation: 0,
+          surfaceTintColor: Colors.white,title: Text("Pending Invitations", style: BalooStyles.balooboldTitleTextStyle())),
       body: GetBuilder<AcceptInviteController>(
         builder: (controller) {
           return controller.pendingInvitesList.isEmpty?Center(

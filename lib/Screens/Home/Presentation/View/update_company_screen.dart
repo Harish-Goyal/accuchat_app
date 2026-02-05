@@ -29,7 +29,8 @@ class UpdateCompanyScreen extends GetView<UpdateCompanyController> {
     return GetBuilder<UpdateCompanyController>(builder: (controller) {
       return Scaffold(
         backgroundColor: const Color(0xFFF6F7F9),
-        appBar: AppBar(
+        appBar: AppBar(      scrolledUnderElevation: 0,
+          surfaceTintColor: Colors.white,
           title: Text(
             "Update Company",
             style: BalooStyles.balooboldTitleTextStyle(),

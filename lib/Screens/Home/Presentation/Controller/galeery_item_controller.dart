@@ -359,7 +359,6 @@ class GalleryItemController extends GetxController{
         toast(value.message ?? '');
       }).onError((error, stackTrace) {
         isUploading.value  = false;
-        Get.back();
         customLoader.hide();
         errorDialog(error.toString());
       }).whenComplete(() {});
@@ -433,14 +432,14 @@ class GalleryItemController extends GetxController{
           .uploadFolderMediaApiCall(dataBody: formData)
           .then((value) {
         customLoader.hide();
-        Navigator.of(ctx).pop();
+
         isUploading.value  = false;
         resetPagination();
         hitApiToGetFolderItems(reset: true);
+        Get.back();
         toast(value.message ?? '');
       }).onError((error, stackTrace) {
         isUploading.value  = false;
-        Get.back();
         customLoader.hide();
         errorDialog(error.toString());
       }).whenComplete(() {});

@@ -381,15 +381,15 @@ class ChatUserListShimmer extends StatelessWidget {
     );
   }
 }
-
+bool getRandomBool() {
+  Random random = Random();
+  return random.nextBool();
+}
 
 class ChatHistoryShimmer extends StatelessWidget {
-   ChatHistoryShimmer({Key? key,required this.chatData}) : super(key: key);
-  ChatHisList chatData;
-  bool getRandomBool() {
-    Random random = Random();
-    return random.nextBool();
-  }
+   ChatHistoryShimmer({Key? key}) : super(key: key);
+
+
 
   @override
   Widget build(BuildContext context) {
@@ -427,7 +427,7 @@ class ChatHistoryShimmer extends StatelessWidget {
                         topLeft: Radius.circular(15),
                         topRight: Radius.circular(15),
                         bottomRight: Radius.circular(15))),
-                child: _messageTypeView(chatData, sentByMe: isSendbme),
+                child: _messageTypeView( sentByMe: isSendbme),
               ).marginOnly(left: (0), top: 0),
             ],
           ),
@@ -448,11 +448,11 @@ class ChatHistoryShimmer extends StatelessWidget {
     ).marginOnly(bottom: 20, left: 20);
   }
 
-   _messageTypeView(ChatHisList data, {required bool sentByMe}) {
+   _messageTypeView({required bool sentByMe}) {
      return Container(
        padding: EdgeInsets.symmetric(horizontal: 20),
 
-       child: Text(data.message ?? '',
+       child: Text("......",
            textAlign: TextAlign.start,
            style: BalooStyles.baloonormalTextStyle(
              color: Colors.black87,

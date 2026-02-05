@@ -20,7 +20,8 @@ class EditRoleScreen extends StatelessWidget {
       init: EditRoleController(),
       builder: (ctrl) {
         return Scaffold(
-          appBar: AppBar(
+          appBar: AppBar(      scrolledUnderElevation: 0,
+            surfaceTintColor: Colors.white,
             title: Text('Edit Role', style: BalooStyles.baloosemiBoldTextStyle()),
             toolbarHeight: isWide ? 64 : kToolbarHeight, // a bit taller on wide screens
           ),

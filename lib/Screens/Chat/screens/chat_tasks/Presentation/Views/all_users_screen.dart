@@ -163,8 +163,8 @@ class AllUserScreen extends GetView<AllUserController> {
     return AppBar(
       automaticallyImplyLeading: false,
       backgroundColor: Colors.white, // white color
-      elevation: 1, // remove shadow
-      scrolledUnderElevation: 0, // ✨ prevents color change on scroll
+      elevation: 1,
+      scrolledUnderElevation: 0,
       surfaceTintColor: Colors.white,
       leading: IconButton(
           onPressed: () {

@@ -194,7 +194,6 @@ class TaskScreen extends GetView<TaskController> {
             showShimmer: controller.showPostShimmer,
             shimmerWidget: shimmerlistView(
                 child: ChatHistoryShimmer(
-              chatData: ChatHisList(),
             )),
             child: groupListView(),
           ),

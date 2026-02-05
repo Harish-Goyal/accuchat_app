@@ -299,6 +299,8 @@ class CreateCompanyScreen extends GetView<CreateCompanyController> {
           return Scaffold(
             backgroundColor: const Color(0xFFF6F7F9),
             appBar: AppBar(
+              scrolledUnderElevation: 0,
+              surfaceTintColor: Colors.white,
               title: Text(
                 "Create Company",
                 style: BalooStyles.balooboldTitleTextStyle(),

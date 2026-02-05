@@ -65,9 +65,9 @@ class CompanyMembers extends GetView<CompanyMemberController> {
   AppBar _buildAppBar() {
     return AppBar(
       automaticallyImplyLeading: true,
-      backgroundColor: Colors.white, // white color
-      elevation: 1, // remove shadow
-      scrolledUnderElevation: 0, // ✨ prevents color change on scroll
+      backgroundColor: Colors.white,
+      elevation: 1,
+      scrolledUnderElevation: 0,
       surfaceTintColor: Colors.white,
       title: Obx(() {
         return controller.isSearching.value
@@ -105,7 +105,6 @@ class CompanyMembers extends GetView<CompanyMemberController> {
                       controller.onSearch('');
                       controller.searchController.clear();
                     }
-                    // controller.update();
                   },
                   icon: controller.isSearching.value
                       ? const Icon(CupertinoIcons.clear_circled_solid)
@@ -124,8 +123,9 @@ class CompanyMembers extends GetView<CompanyMemberController> {
               ? DataNotFoundText()
               : NotificationListener<ScrollNotification>(
                   onNotification: (ScrollNotification n) {
-                    if (n is! ScrollEndNotification)
-                      return false; // ✅ avoid spam
+                    if (n is! ScrollEndNotification) {
+                      return false;
+                    }
 
                     final m = n.metrics;
 
@@ -138,107 +138,19 @@ class CompanyMembers extends GetView<CompanyMemberController> {
                     return false;
                   },
                   child: ListView.separated(
-                    // shrinkWrap: true,
                     itemCount: controller.filteredList.length ?? 0,
                     physics: const AlwaysScrollableScrollPhysics(),
                     controller: controller.scrollController,
                     itemBuilder: (context, index) {
                       final memData = controller.filteredList[index];
                       final bool isWide = MediaQuery.of(context).size.width >=
-                          900; // web-aware inside the row
+                          900;
                       return SwipeTo(
                         iconOnLeftSwipe: Icons.delete_outline,
                         iconColor: Colors.red,
-                        onLeftSwipe: /*(((APIs.me.selectedCompany!.createdBy == user.id) ))
-                                ? (de) {
-                              if(user.role
-                                  != 'admin') {
-                                errorDialog("Not Allowed Delete!");
-                              }else{
-                                errorDialog("You cannot delete company here!");
-                              }
-                            }
-                                :*/
+                        onLeftSwipe:
                             (detail) async {
                           controller.removeCompanyMember(memData);
-                          /*final meId = controller.me?.userId;
-                final creatorId = controller.myCompany?.createdBy;
-                final targetId = memData?.userId;
-
-                // Basic null-guards
-                if (meId == null || creatorId == null || targetId == null) {
-                  toast("Something went wrong. Please try again.");
-                  return;
-                }
-
-                final isCreator = meId == creatorId;
-                final removingCreator = targetId == creatorId;
-                final removingSelf = targetId == meId;
-
-                // 1) Never allow removing the company creator
-                if (removingCreator) {
-                  toast("You cannot remove the company creator.");
-                  return;
-                }
-
-                // 2) Block creator from removing themself (if you want this rule)
-                if (isCreator && removingSelf) {
-                  toast("You are not allowed to remove yourself. Transfer ownership or delete the company.");
-                  return;
-                }
-
-                // 3) Only creator can remove members (adjust if you add roles later)
-                if (!isCreator) {
-                  // Option A: block non-creator from removing anyone (including self)
-                  toast("You don't have permission to remove members.");
-                  return;
-
-                  // Option B (if you want self-leave for non-creator):
-                  // if (removingSelf) {
-                  //   final confirmLeave = await showDialog(
-                  //     context: context,
-                  //     builder: (_) => AlertDialog(
-                  //       backgroundColor: Colors.white,
-                  //       title: const Text("Leave company"),
-                  //       content: const Text("Are you sure you want to leave this company?"),
-                  //       actions: [
-                  //         TextButton(onPressed: () => Navigator.pop(context, false), child: const Text("Cancel")),
-                  //         TextButton(onPressed: () => Navigator.pop(context, true), child: const Text("Leave")),
-                  //       ],
-                  //     ),
-                  //   );
-                  //   if (confirmLeave == true) {
-                  //     controller.hitAPIToRemoveMember(targetId);
-                  //   }
-                  //   return;
-                  // }
-                  // return;
-                }
-
-                // 4) Creator removing a normal member → confirm dialog
-                final who = (memData?.email == null || memData?.email == '' || memData?.email == 'null')
-                    ? memData?.phone
-                    : memData?.email;
-
-                final confirm = await showDialog(
-                  context: context,
-                  builder: (_) => AlertDialog(
-                    backgroundColor: Colors.white,
-                    title: Text("Remove $who"),
-                    content: const Text("Are you sure you want to remove this member?"),
-                    actions: [
-                      TextButton(onPressed: () => Navigator.pop(context, false), child: const Text("Cancel")),
-                      TextButton(
-                        onPressed: () => Navigator.pop(context, true),
-                        child: Text("Remove", style: BalooStyles.baloosemiBoldTextStyle(color: Colors.red)),
-                      ),
-                    ],
-                  ),
-                );
-
-                if (confirm == true) {
-                  controller.hitAPIToRemoveMember(targetId);
-                }*/
                         },
                         child: ListTile(
                           dense: true,
@@ -316,7 +228,7 @@ class CompanyMembers extends GetView<CompanyMemberController> {
                                 memData?.userName == null &&
                                         memData?.userCompany?.displayName ==
                                             null
-                                    ? SizedBox()
+                                    ? const SizedBox()
                                     : Text(
                                         memData?.phone != null
                                             ? memData?.phone ?? ''
@@ -334,34 +246,21 @@ class CompanyMembers extends GetView<CompanyMemberController> {
                               crossAxisAlignment: CrossAxisAlignment.end,
                               mainAxisSize: MainAxisSize.min,
                               children: [
-                                // (user.userId == APIs.me.id && user.userId != APIs.me.selectedCompany?.adminUserId)
-                                //  ? Text(
-                                //                     //   "You",
-                                //                     //   style: BalooStyles
-                                //                     //       .baloonormalTextStyle(),
-                                //                     // )
-                                //     :(user.userId == APIs.me.selectedCompany?.adminUserId)?Text(
-                                //   "Creator",
-                                //   style: BalooStyles
-                                //       .baloonormalTextStyle(color:appColorGreen),
-                                // ): const SizedBox(),
-
                                 Row(
                                   mainAxisSize: MainAxisSize.min,
                                   children: [
                                     TextButton(
                                         onPressed: () => _goToChat(memData),
                                         style: TextButton.styleFrom(
-                                          // backgroundColor: appColorGreen.withOpacity(.1), // Button background color
                                           foregroundColor: appColorGreen,
                                           padding: const EdgeInsets.symmetric(
                                               horizontal: 7.0,
                                               vertical:
-                                                  3.0), // reduce as needed
+                                                  3.0),
                                           minimumSize: const Size(0,
-                                              0), // optional: allows tighter sizing
+                                              0),
                                           tapTargetSize: MaterialTapTargetSize
-                                              .shrinkWrap, // optional: reduces touch target
+                                              .shrinkWrap,
                                         ),
                                         child: Image.asset(
                                           chatHome,
@@ -372,9 +271,9 @@ class CompanyMembers extends GetView<CompanyMemberController> {
                                     TextButton(
                                       onPressed: () => _goToTask(memData),
                                       style: TextButton.styleFrom(
-                                        padding: EdgeInsets.symmetric(
+                                        padding: const EdgeInsets.symmetric(
                                             horizontal: 6, vertical: 3),
-                                        minimumSize: Size(0, 0),
+                                        minimumSize: const Size(0, 0),
                                         tapTargetSize:
                                             MaterialTapTargetSize.shrinkWrap,
                                       ),
@@ -384,26 +283,6 @@ class CompanyMembers extends GetView<CompanyMemberController> {
                                   ],
                                 )
                               ]),
-                          /*trailing: IconButton(
-                          icon: Icon(Icons.delete, color: Colors.red),
-                          onPressed: () async {
-                            final confirm = await showDialog(
-                              context: context,
-                              builder: (_) => AlertDialog(
-                                title: Text("Remove ${user.name}?"),
-                                content: Text("Are you sure you want to remove this member?"),
-                                actions: [
-                                  TextButton(onPressed: () => Navigator.pop(context, false), child: Text("Cancel")),
-                                  TextButton(onPressed: () => Navigator.pop(context, true), child: Text("Remove")),
-                                ],
-                              ),
-                            );
-
-                            if (confirm == true) {
-                              await APIs.removeCompanyMember(user.id, companyId);
-                            }
-                          },
-                        ),*/
                         ),
                       );
                     },

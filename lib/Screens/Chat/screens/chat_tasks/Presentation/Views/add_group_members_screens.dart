@@ -9,6 +9,7 @@ import 'package:get/get.dart';
 import '../../../../../../Constants/assets.dart';
 import '../../../../../../main.dart';
 import '../../../../../../utils/networl_shimmer_image.dart';
+import '../../../../api/apis.dart';
 import '../Controllers/add_group_mem_controller.dart';
 
 
@@ -21,12 +22,12 @@ class AddGroupMembersScreen extends GetView<AddGroupMemController> {
     ThemeData themeData  = Theme.of(context);
 
     return GetBuilder<AddGroupMemController>(
-      init: AddGroupMemController()
+     /* init: AddGroupMemController()
         ..setData(
           all: controller.filteredList,
           group: controller.members,
           current: controller.myCompany?.userCompanies?.userCompanyId,
-        ),
+        ),*/
       builder: (controller) {
         return Scaffold(
           backgroundColor: Colors.grey.shade100,
@@ -83,12 +84,7 @@ class AddGroupMembersScreen extends GetView<AddGroupMemController> {
             final user = controller.filteredList[index];
             final isSelected = controller.selectedUserIds
                 .contains(user.userCompany?.userCompanyId);
-            final isMe =
-                controller.me?.userId == user.userId;
-
-            // ******************
-            // CARD UI WRAPPER
-            // ******************
+            final isMe = APIs.me.userId == user.userId;
             return Card(
               elevation: 1,
               margin: const EdgeInsets.only(bottom: 12),
@@ -171,12 +167,11 @@ class AddGroupMembersScreen extends GetView<AddGroupMemController> {
     );
   }
   AppBar _buildAppBar(){
-    return AppBar(
+    return AppBar(      scrolledUnderElevation: 0,
+      surfaceTintColor: Colors.white,
       // automaticallyImplyLeading: false,
       backgroundColor: Colors.white,   // white color
       elevation: 1,                    // remove shadow
-      scrolledUnderElevation: 0,       // ✨ prevents color change on scroll
-      surfaceTintColor: Colors.white,
       title: Obx(
               () {
             return controller.isSearching.value

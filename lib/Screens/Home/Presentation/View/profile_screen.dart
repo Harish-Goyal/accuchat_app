@@ -63,7 +63,8 @@ class ProfileScreen extends GetView<HProfileController> {
         child: Scaffold(
           backgroundColor: Colors.white,
 
-          appBar: AppBar(
+          appBar: AppBar(      scrolledUnderElevation: 0,
+            surfaceTintColor: Colors.white,
             backgroundColor: Colors.white,
             foregroundColor: Colors.white,
             shadowColor: Colors.white,

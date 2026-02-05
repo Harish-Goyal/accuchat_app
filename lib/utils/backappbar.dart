@@ -7,6 +7,8 @@ import 'helper_widget.dart';
 
 AppBar backAppBar({bool? centertitle,title,tilteWidget,context,Function()? onTap,backICon,List<Widget>? actionss}) {
   return AppBar(
+    scrolledUnderElevation: 0,
+    surfaceTintColor: Colors.white,
     backgroundColor: AppTheme.scaffoldBackgroundColor,
     centerTitle:centertitle?? true,
     elevation: 0,

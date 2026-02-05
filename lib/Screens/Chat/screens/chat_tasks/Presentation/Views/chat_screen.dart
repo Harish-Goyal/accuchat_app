@@ -40,6 +40,7 @@ import '../../../../../../utils/share_helper.dart';
 import '../../../../../../utils/text_style.dart';
 import '../../../../../Home/Models/pickes_file_item.dart';
 import '../../../../api/apis.dart';
+import '../Controllers/add_group_mem_controller.dart';
 import '../Controllers/save_in_accuchat_gallery_controller.dart';
 import '../../../../../Home/Presentation/Controller/socket_controller.dart';
 import '../../../../helper/dialogs.dart';
@@ -50,6 +51,7 @@ import '../Widgets/staggered_view.dart';
 import '../Controllers/gallery_view_controller.dart';
 import '../Widgets/media_view.dart';
 import '../dialogs/save_in_gallery_dialog.dart';
+import 'add_group_members_screens.dart';
 import 'images_gallery_page.dart';
 
 /// -------------------------
@@ -142,9 +144,15 @@ class _ChatScreenState extends State<ChatScreen> {
   void dispose() {
     // if you want to remove controller when leaving chat:
     // Get.delete<ChatScreenController>();
-
     speechC.stop(skipOnStopped: true);
     speechC.onStopped = null;
+    try {
+      controller.itemPositionsListener.itemPositions.removeListener(controller.onPositionsChanged);
+    } catch (_) {}
+
+    if (Get.isRegistered<ChatScreenController>()) {
+      Get.delete<ChatScreenController>(force: true);
+    }
     super.dispose();
   }
 
@@ -488,18 +496,16 @@ class _ChatScreenState extends State<ChatScreen> {
             showShimmer: controller.showPostShimmer,
             shimmerWidget: shimmerlistView(
                 child: ChatHistoryShimmer(
-              chatData: ChatHisList(),
             )),
             child: groupListView()
           ),
         ),
-        // vGap(80)
+
       ],
     );
   }
 
   groupListView() {
-
     return (controller.chatRows ?? []).isNotEmpty
         ? ScrollablePositionedList.builder(
         itemScrollController: controller.itemScrollController,
@@ -509,21 +515,16 @@ class _ChatScreenState extends State<ChatScreen> {
         padding: const EdgeInsets.only(bottom: 30),
         itemBuilder: (context, index) {
           final row = controller.chatRows[index];
-
           if (row is ChatHeaderRow) {
             return _createGroupHeader(row.date);
           }
-
-// message row
           final msgRow = row as ChatMessageRow;
           final element = msgRow.element;
           final msg = element.chatMessageItems;
-
           final chatId = msg.chatId ?? 0;
-
-          String formatatedTime = '';
+          String formatedTime = '';
           if (msg.sentOn != null && msg.sentOn!.isNotEmpty) {
-            formatatedTime = convertUtcToIndianTime(msg.sentOn!);
+            formatedTime = convertUtcToIndianTime(msg.sentOn!);
           }
 
           final isHighlighted = controller.highlightedChatId == chatId;
@@ -588,7 +589,7 @@ class _ChatScreenState extends State<ChatScreen> {
                                   ?.toString()
                           ? true
                           : false),
-                      formatedTime: formatatedTime),
+                      formatedTime: formatedTime),
                 ),
               );
             })
@@ -772,90 +773,92 @@ class _ChatScreenState extends State<ChatScreen> {
                             ),
                           )).paddingOnly(left: 8)
                       : const SizedBox(),
-                  Align(
-                    alignment:
-                        sentByMe ? Alignment.centerRight : Alignment.centerLeft,
-                    child: ConstrainedBox(
-                      constraints: BoxConstraints(
-                        maxWidth:  (kIsWeb ? 300 : Get.width*0.75),
-                      ),
-                      child: Column(
-                        crossAxisAlignment: sentByMe
-                            ? CrossAxisAlignment.end
-                            : CrossAxisAlignment.start,
-                        children: [
-                          InkWell(
-                            borderRadius: sentByMe
-                                ? BorderRadius.only(
-                                    topLeft: Radius.circular(
-                                        (data.media ?? []).isNotEmpty
-                                            ? 15
-                                            : 30),
-                                    topRight: Radius.circular(
-                                        (data.media ?? []).isNotEmpty
-                                            ? 15
-                                            : 30),
-                                    bottomLeft: Radius.circular(
-                                        (data.media ?? []).isNotEmpty
-                                            ? 15
-                                            : 30))
-                                : BorderRadius.only(
-                                    topLeft: Radius.circular(
-                                        (data.media ?? []).isNotEmpty
-                                            ? 15
-                                            : 30),
-                                    topRight: Radius.circular((data.media ?? []).isNotEmpty ? 15 : 30),
-                                    bottomRight: Radius.circular((data.media ?? []).isNotEmpty ? 15 : 30)),
-                            // mouseCursor: SystemMouseCursors.click,
-                            onDoubleTap: () {
-                              SystemChannels.textInput
-                                  .invokeMethod('TextInput.hide');
-                              if (!isTaskMode) {
-                                _showBottomSheet(sentByMe, data: data);
-                              }
-                            },
-                            child: Container(
-                              padding: EdgeInsets.symmetric(
-                                horizontal:
-                                    (data.media ?? []).isNotEmpty ? 12 : 15,
-                                vertical:
-                                    (data.media ?? []).isNotEmpty ? 0 : 10,
+                  Flexible(
+                    child: Align(
+                      alignment:
+                          sentByMe ? Alignment.centerRight : Alignment.centerLeft,
+                      child: ConstrainedBox(
+                        constraints: BoxConstraints(
+                          maxWidth:  (kIsWeb ? (data.media ?? []).isNotEmpty?300: 600 : Get.width*0.75),
+                        ),
+                        child: Column(
+                          crossAxisAlignment: sentByMe
+                              ? CrossAxisAlignment.end
+                              : CrossAxisAlignment.start,
+                          children: [
+                            InkWell(
+                              borderRadius: sentByMe
+                                  ? BorderRadius.only(
+                                      topLeft: Radius.circular(
+                                          (data.media ?? []).isNotEmpty
+                                              ? 15
+                                              : 30),
+                                      topRight: Radius.circular(
+                                          (data.media ?? []).isNotEmpty
+                                              ? 15
+                                              : 30),
+                                      bottomLeft: Radius.circular(
+                                          (data.media ?? []).isNotEmpty
+                                              ? 15
+                                              : 30))
+                                  : BorderRadius.only(
+                                      topLeft: Radius.circular(
+                                          (data.media ?? []).isNotEmpty
+                                              ? 15
+                                              : 30),
+                                      topRight: Radius.circular((data.media ?? []).isNotEmpty ? 15 : 30),
+                                      bottomRight: Radius.circular((data.media ?? []).isNotEmpty ? 15 : 30)),
+                              // mouseCursor: SystemMouseCursors.click,
+                              onDoubleTap: () {
+                                SystemChannels.textInput
+                                    .invokeMethod('TextInput.hide');
+                                if (!isTaskMode) {
+                                  _showBottomSheet(sentByMe, data: data);
+                                }
+                              },
+                              child: Container(
+                                padding: EdgeInsets.symmetric(
+                                  horizontal:
+                                      (data.media ?? []).isNotEmpty ? 12 : 15,
+                                  vertical:
+                                      (data.media ?? []).isNotEmpty ? 0 : 10,
+                                ),
+                                margin: sentByMe
+                                    ? const EdgeInsets.only(
+                                        left: 6, top: 10, right: 6)
+                                    : const EdgeInsets.only(
+                                        right: 6, top: 10, left: 6),
+                                decoration: BoxDecoration(
+                                    color: sentByMe
+                                        ? appColorGreen.withOpacity(.1)
+                                        : appColorPerple.withOpacity(.1),
+                                    border: Border.all(
+                                        color: sentByMe
+                                            ? appColorGreen
+                                            : appColorPerple),
+                                    borderRadius: sentByMe
+                                        ? BorderRadius.only(
+                                            topLeft: Radius.circular(
+                                                (data.media ?? []).isNotEmpty
+                                                    ? 15
+                                                    : 30),
+                                            topRight: Radius.circular(
+                                                (data.media ?? []).isNotEmpty
+                                                    ? 15
+                                                    : 30),
+                                            bottomLeft: Radius.circular(
+                                                (data.media ?? []).isNotEmpty
+                                                    ? 15
+                                                    : 30))
+                                        : BorderRadius.only(
+                                            topLeft: Radius.circular((data.media ?? []).isNotEmpty ? 15 : 30),
+                                            topRight: Radius.circular((data.media ?? []).isNotEmpty ? 15 : 30),
+                                            bottomRight: Radius.circular((data.media ?? []).isNotEmpty ? 15 : 30))),
+                                child: messageTypeView(data, sentByMe: sentByMe),
                               ),
-                              margin: sentByMe
-                                  ? const EdgeInsets.only(
-                                      left: 6, top: 10, right: 6)
-                                  : const EdgeInsets.only(
-                                      right: 6, top: 10, left: 6),
-                              decoration: BoxDecoration(
-                                  color: sentByMe
-                                      ? appColorGreen.withOpacity(.1)
-                                      : appColorPerple.withOpacity(.1),
-                                  border: Border.all(
-                                      color: sentByMe
-                                          ? appColorGreen
-                                          : appColorPerple),
-                                  borderRadius: sentByMe
-                                      ? BorderRadius.only(
-                                          topLeft: Radius.circular(
-                                              (data.media ?? []).isNotEmpty
-                                                  ? 15
-                                                  : 30),
-                                          topRight: Radius.circular(
-                                              (data.media ?? []).isNotEmpty
-                                                  ? 15
-                                                  : 30),
-                                          bottomLeft: Radius.circular(
-                                              (data.media ?? []).isNotEmpty
-                                                  ? 15
-                                                  : 30))
-                                      : BorderRadius.only(
-                                          topLeft: Radius.circular((data.media ?? []).isNotEmpty ? 15 : 30),
-                                          topRight: Radius.circular((data.media ?? []).isNotEmpty ? 15 : 30),
-                                          bottomRight: Radius.circular((data.media ?? []).isNotEmpty ? 15 : 30))),
-                              child: messageTypeView(data, sentByMe: sentByMe),
                             ),
-                          ),
-                        ],
+                          ],
+                        ),
                       ),
                     ),
                   ),
@@ -1274,17 +1277,20 @@ class _ChatScreenState extends State<ChatScreen> {
                 ? PopupMenuButton<String>(
                     color: Colors.white,
                     iconColor: Colors.black87,
-                    onSelected: (value) {
+                    onSelected: (value) async {
                       if (value == 'AddMember') {
                         if (kIsWeb) {
-                          Get.toNamed(
-                            "${AppRoutes.add_group_member}?groupChatId=${controller.user?.userId.toString()}",
-                          );
+                         openAllUserDialog(controller.user);
+
+                          // Get.toNamed(
+                          //   "${AppRoutes.add_group_member}?groupChatId=${controller.user?.userId.toString()}",
+                          // );
                         } else {
-                          Get.toNamed(
-                            AppRoutes.add_group_member,
-                            arguments: {'groupChat': controller.user},
-                          );
+                          openAllUserDialog(controller.user);
+                          // Get.toNamed(
+                          //   AppRoutes.add_group_member,
+                          //   arguments: {'groupChat': controller.user},
+                          // );
                         }
                       }
                       if (value == 'Exit') {
@@ -1355,6 +1361,40 @@ class _ChatScreenState extends State<ChatScreen> {
       ],
     );
   }
+
+
+
+  Future<void> openAllUserDialog(UserDataAPI? user) async {
+    if (Get.isRegistered<AddGroupMemController>()) {
+      Get.delete<AddGroupMemController>(force: true);
+    }
+
+    final c = Get.put(AddGroupMemController());
+
+    // ✅ pass the selected group/user directly
+    c.setGroupChat(user);
+
+    try {
+      await Get.dialog(
+        Dialog(
+          insetPadding: const EdgeInsets.all(12),
+          clipBehavior: Clip.antiAlias,
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+          child: SizedBox(
+            width: Get.width * 0.5,
+            height: Get.height * 0.8,
+            child: const AddGroupMembersScreen(),
+          ),
+        ),
+        barrierDismissible: true,
+      );
+    } finally {
+      if (Get.isRegistered<AddGroupMemController>()) {
+        Get.delete<AddGroupMemController>();
+      }
+    }
+  }
+
 
   bool isVisibleUpload = true;
 

@@ -2,6 +2,7 @@ import 'package:AccuChat/Constants/assets.dart';
 import 'package:AccuChat/Constants/colors.dart';
 import 'package:AccuChat/Screens/Home/Presentation/View/create_folder_dialog.dart';
 import 'package:AccuChat/utils/custom_container.dart';
+import 'package:AccuChat/utils/custom_flashbar.dart';
 import 'package:AccuChat/utils/helper_widget.dart';
 import 'package:AccuChat/utils/loading_indicator.dart';
 import 'package:AccuChat/utils/text_style.dart';
@@ -104,7 +105,8 @@ class GalleryTab extends GetView<GalleryController> {
   }
 
   AppBar _searchBarWidget() {
-    return AppBar(
+    return AppBar(      scrolledUnderElevation: 0,
+      surfaceTintColor: Colors.white,
       title: controller.isSearchingIcon
           ? TextField(
               controller: controller.searchCtrl,
@@ -358,37 +360,40 @@ class _GalleryGrid extends StatelessWidget {
       builder: (context, constraints) {
         final cross = (constraints.maxWidth ~/ 90).clamp(2, 8);
         return Obx(
-          () => GridView.builder(
-            // padding: const EdgeInsets.only(bottom: 12, top: 4),
-            controller: controller.scrollController,
-            physics: const AlwaysScrollableScrollPhysics(),
-            gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-              crossAxisCount: cross,
-              crossAxisSpacing: 10,
-              mainAxisSpacing: 10,
-              childAspectRatio: .9,
-            ),
-            itemCount: items.length + (controller.hasMore.value ? 1 : 0),
-            itemBuilder: (_, i) {
-              if (i == items.length) {
-                return const IndicatorLoading();
-              }
-              final node = items[i];
-              return _GalleryTile(
-                folder: node,
-                onTap:(){
-                  Get.to(()=>FolderItemsScreen(folderData: node),
-                    binding: BindingsBuilder(() {
-                      final tag = 'folder_${node.userGalleryId}';
-                      if (Get.isRegistered<GalleryItemController>(tag: tag)) {
-                        Get.delete<GalleryItemController>(tag: tag, force: true);
-                      }
-                      Get.lazyPut<GalleryItemController>(() => GalleryItemController(folderData: node), tag: tag);
+          () => RefreshIndicator(
+            onRefresh: () async => controller.refreshGallery(),
+            child: GridView.builder(
+              // padding: const EdgeInsets.only(bottom: 12, top: 4),
+              controller: controller.scrollController,
+              physics: const AlwaysScrollableScrollPhysics(),
+              gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+                crossAxisCount: cross,
+                crossAxisSpacing: 10,
+                mainAxisSpacing: 10,
+                childAspectRatio: .9,
+              ),
+              itemCount: items.length + (controller.hasMore.value ? 1 : 0),
+              itemBuilder: (_, i) {
+                if (i == items.length) {
+                  return const IndicatorLoading();
+                }
+                final node = items[i];
+                return _GalleryTile(
+                  folder: node,
+                  onTap:(){
+                    Get.to(()=>FolderItemsScreen(folderData: node),
+                      binding: BindingsBuilder(() {
+                        final tag = 'folder_${node.userGalleryId}';
+                        if (Get.isRegistered<GalleryItemController>(tag: tag)) {
+                          Get.delete<GalleryItemController>(tag: tag, force: true);
+                        }
+                        Get.lazyPut<GalleryItemController>(() => GalleryItemController(folderData: node), tag: tag);
 
-                    }),);
-                } ,
-              );
-            },
+                      }),);
+                  } ,
+                );
+              },
+            ),
           ),
         );
       },
@@ -533,6 +538,7 @@ class _GalleryTile extends StatelessWidget {
                   onSelected: (action) {
                     switch (action) {
                       case FolderMenuAction.rename:
+                        toast("Under Development!");
                         // controller.startRename(id: folder.userGalleryId??0, currentName: folder.folderName??'');
                         break;
                       case FolderMenuAction.delete:
@@ -541,18 +547,17 @@ class _GalleryTile extends StatelessWidget {
                         // },title: "Delete ${node.name} Folder(Permanently Deleted)");
                         showResponsiveConfirmationDialog(
                             onConfirm: () {
-                              controller
-                                  .hitApiToDeleteFolder(folder.userGalleryId);
+                              controller.hitApiToDeleteFolder(folder.userGalleryId);
                             },
                             title: "Confirm Delete",
                             subtitle:
                                 "Delete ${folder.folderName} (Permanently Deleted)");
                         break;
                       case FolderMenuAction.share:
-                        // onShare?.call(node);
+                        toast("Under Development!");
                         break;
                       case FolderMenuAction.sharew:
-                        // onShare?.call(node);
+                        toast("Under Development!");
                         break;
                     }
                   },

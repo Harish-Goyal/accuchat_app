@@ -18,7 +18,8 @@ class InvitationsScreen extends GetView<InvitationsController> {
   Widget build(BuildContext context) {
     return GetBuilder<InvitationsController>(builder: (controller) {
       return Scaffold(
-        appBar: AppBar(
+        appBar: AppBar(      scrolledUnderElevation: 0,
+          surfaceTintColor: Colors.white,
           title: Text(
             'Invitations',
             style: BalooStyles.balooboldTitleTextStyle(),

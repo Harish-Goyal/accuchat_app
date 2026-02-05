@@ -18,7 +18,8 @@ class InviteUserRoleScreen extends StatelessWidget {
       init: InviteUserRoleController(),
       builder: (controller) {
         return Scaffold(
-          appBar: AppBar(
+          appBar: AppBar(      scrolledUnderElevation: 0,
+            surfaceTintColor: Colors.white,
             title: Text(
               'Members',
               style: BalooStyles.baloosemiBoldTextStyle(),

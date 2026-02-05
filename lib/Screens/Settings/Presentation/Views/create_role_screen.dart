@@ -22,7 +22,8 @@ class CreateRoleScreen extends StatelessWidget {
       init: CreateRoleController(),
       builder: (controller) {
         return Scaffold(
-          appBar: AppBar(
+          appBar: AppBar(      scrolledUnderElevation: 0,
+              surfaceTintColor: Colors.white,
               title: Text(
             "Create Role",
             style: BalooStyles.baloosemiBoldTextStyle(),

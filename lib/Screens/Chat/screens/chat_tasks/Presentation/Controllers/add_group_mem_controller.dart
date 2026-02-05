@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'package:AccuChat/Screens/Chat/api/apis.dart';
 import 'package:AccuChat/Screens/Chat/screens/auth/models/get_uesr_Res_model.dart';
 import 'package:AccuChat/Screens/Chat/screens/chat_tasks/Presentation/Controllers/chat_screen_controller.dart';
 import 'package:AccuChat/main.dart';
@@ -20,15 +21,20 @@ class AddGroupMemController extends GetxController {
   void onInit() {
     super.onInit();
     scrollController = ScrollController();
-    scrollListener();
     _getCompany();
     getArguments();
-    _getMe();
+    scrollListener();
+  }
 
+  void setGroupChat(UserDataAPI? u) {
+    group = u;
+    update();
+    hitAPIToGetMembers();
 
   }
 
   getArguments() {
+
     if(kIsWeb){
       if (Get.parameters != null) {
          String? argUserId = Get.parameters['groupChatId'];
@@ -67,11 +73,7 @@ class AddGroupMemController extends GetxController {
 
   List<int> adminIds = [];
 
-  UserDataAPI? me = UserDataAPI();
-  _getMe() async {
-    me = await getUser();
-    update();
-  }
+
 
   CompanyData? myCompany = CompanyData();
   _getCompany() {
@@ -137,6 +139,12 @@ class AddGroupMemController extends GetxController {
   var filteredList = <UserDataAPI>[].obs;
   ComMemResModel comMemResModel = ComMemResModel();
   TextEditingController searchController = TextEditingController();
+  Future<void> ensureAllUsersLoaded() async {
+    if (filteredList.isNotEmpty) return;
+    isLoading = true; update();
+    await hitAPIToAllGetMember();
+    isLoading = false; update();
+  }
 
   hitAPIToAllGetMember({search}) async {
 
@@ -278,7 +286,7 @@ class AddGroupMemController extends GetxController {
   }) {
     allUsersList = all;
     members = group;
-    me?.userCompany?.companyId = current;
+    APIs.me.userCompany?.companyId = current;
     _compute();
   }
 
