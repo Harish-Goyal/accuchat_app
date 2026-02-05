@@ -24,7 +24,6 @@ import '../../../../../Home/Presentation/Controller/company_service.dart';
 import '../../../../../Home/Presentation/Controller/socket_controller.dart';
 import '../../../../api/apis.dart';
 import '../../../../helper/dialogs.dart';
-import '../../../../models/gallery_create.dart';
 import '../../../../models/message.dart';
 import '../../../../models/get_company_res_model.dart';
 import '../../../auth/models/get_uesr_Res_model.dart';
@@ -640,21 +639,44 @@ class ChatScreenController extends GetxController {
         is_group_chat: isGroupChat);
   }
 
+
   @override
   void onClose() {
     if (ChatPresence.activeChatId == user?.userCompany?.userCompanyId) {
       ChatPresence.activeChatId = null;
     }
 
+    // ✅ cancel timers
+    searchDelay?.cancel();
+    _pageDebounce?.cancel();
+
+    // ✅ remove pagination listener to avoid callbacks
+    try {
+      itemPositionsListener.itemPositions.removeListener(onPositionsChanged);
+    } catch (_) {}
+
+    // ✅ dispose controllers/focus nodes
+    textController.dispose();
+    seacrhCon.dispose();
+    updateMsgController.dispose();
+    messageParentFocus.dispose();
+
+    // ✅ dispose scroll controllers (you created them)
+    scrollController.dispose();
+    scrollController2.dispose();
+
     super.onClose();
   }
 
-  @override
-  void dispose() {
-    textController.dispose();
-    messageParentFocus.dispose();
-    super.dispose();
-  }
+/*  @override
+  void onClose() {
+    if (ChatPresence.activeChatId == user?.userCompany?.userCompanyId) {
+      ChatPresence.activeChatId = null;
+    }
+
+    super.onClose();
+  }*/
+
 
   getArguments() {
     if (kIsWeb) {

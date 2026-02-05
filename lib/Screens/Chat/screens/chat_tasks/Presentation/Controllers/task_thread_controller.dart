@@ -1,4 +1,3 @@
-import 'dart:io';
 import 'package:AccuChat/Screens/Chat/models/task_commets_res_model.dart';
 import 'package:AccuChat/Screens/Chat/models/task_res_model.dart';
 import 'package:AccuChat/Screens/Chat/screens/auth/models/get_uesr_Res_model.dart';
@@ -11,10 +10,7 @@ import 'package:get/get.dart';
 import '../../../../../../Services/APIs/post/post_api_service_impl.dart';
 import '../../../../../../utils/helper_widget.dart';
 import '../../../../../Home/Presentation/Controller/company_service.dart';
-import '../../../../api/apis.dart';
-import '../../../../models/chat_user.dart';
 import '../../../../models/get_company_res_model.dart';
-import '../../../../models/message.dart';
 
 class TaskThreadController extends GetxController {
   TaskData? taskMessage;

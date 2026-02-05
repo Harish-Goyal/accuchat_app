@@ -1,20 +1,6 @@
-import 'dart:async';
 
-import 'package:AccuChat/Screens/Authentication/AuthResponseModel/loginResModel.dart';
-import 'package:AccuChat/Services/APIs/auth_service/auth_api_services_impl.dart';
-import 'package:AccuChat/main.dart';
-import 'package:AccuChat/utils/custom_dialogue.dart';
-import 'package:AccuChat/utils/text_style.dart';
-import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:get/get.dart';
-import 'package:dio/dio.dart' as multi;
-import 'package:flutter/material.dart';
 
-import '../../../../Constants/strings.dart';
-import '../../../../Services/APIs/api_ends.dart';
-import '../../../../Services/APIs/local_keys.dart';
-import '../../../../routes/app_routes.dart';
-import '../../../../utils/custom_flashbar.dart';
 
 class SettingsController extends GetxController {
   String pvcContent = '''

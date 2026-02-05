@@ -1,15 +1,11 @@
 import 'dart:io';
-import 'dart:typed_data';
 import 'package:AccuChat/Services/APIs/api_ends.dart';
 import 'package:AccuChat/utils/helper_widget.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:get/get.dart';
-import 'package:http/http.dart' as http;
-import 'package:gal/gal.dart';
+
 import 'package:dio/dio.dart' as multi;
-import 'package:path/path.dart' as p;
 import 'package:permission_handler/permission_handler.dart';
-import 'dart:typed_data';
 
 import '../../../../models/chat_history_response_model.dart';
 

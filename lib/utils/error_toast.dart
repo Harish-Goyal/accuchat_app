@@ -78,8 +78,7 @@ class OverlayView {
 }
 
 class EdgeOverlay extends StatefulWidget {
-  // ignore: use_key_in_widget_constructors
-  const EdgeOverlay({
+  const EdgeOverlay({super.key,
     required this.description,
     required this.overlayDuration,
     required this.gravity,
@@ -91,7 +90,6 @@ class EdgeOverlay extends StatefulWidget {
   final Color backgroundColor;
 
   @override
-  // ignore: library_private_types_in_public_api
   _EdgeOverlayState createState() => _EdgeOverlayState();
 }
 
@@ -104,10 +102,8 @@ class _EdgeOverlayState extends State<EdgeOverlay>
   @override
   void initState() {
     super.initState();
-
     _controller = AnimationController(
         vsync: this, duration: const Duration(milliseconds: 750));
-
     if (widget.gravity == 1) {
       _positionTween =
           Tween<Offset>(begin: const Offset(0.0, -1.0), end: Offset.zero);
@@ -115,12 +111,9 @@ class _EdgeOverlayState extends State<EdgeOverlay>
       _positionTween = Tween<Offset>(
           begin: const Offset(0.0, 5.0), end: const Offset(0.0, 0));
     }
-
     _positionAnimation = _positionTween.animate(
         CurvedAnimation(parent: _controller, curve: Curves.fastOutSlowIn));
-
     _controller.forward();
-
     listenToAnimation();
   }
 

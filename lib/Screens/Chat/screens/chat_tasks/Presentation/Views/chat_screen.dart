@@ -23,7 +23,6 @@ import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:get/get.dart';
-import 'package:grouped_list/grouped_list.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:intl/intl.dart';
 import 'package:swipe_to/swipe_to.dart';
@@ -53,10 +52,6 @@ import '../Widgets/media_view.dart';
 import '../dialogs/save_in_gallery_dialog.dart';
 import 'add_group_members_screens.dart';
 import 'images_gallery_page.dart';
-
-/// -------------------------
-/// Responsive helpers (added)
-/// -------------------------
 class _NoGlowScrollBehavior extends ScrollBehavior {
   const _NoGlowScrollBehavior();
   @override
@@ -77,7 +72,7 @@ class _NoGlowScrollBehavior extends ScrollBehavior {
 double _maxChatWidth(BuildContext context) {
   final w = MediaQuery.of(context).size.width;
   if (!kIsWeb) return double.infinity;
-  // keep chat column pleasant on desktops
+
   if (w >= 1600) return 1600;
   if (w >= 1366) return 1300;
   if (w >= 1200) return 1200;
@@ -85,11 +80,11 @@ double _maxChatWidth(BuildContext context) {
 }
 
 double _maxContentWidth(double w) {
-  if (w >= 1400) return 920; // large desktop
-  if (w >= 1100) return 820; // desktop
-  if (w >= 900) return 720; // small desktop / landscape tablet
-  if (w >= 600) return 560; // portrait tablet
-  return w; // phones -> full width (preserves mobile UI)
+  if (w >= 1400) return 920;
+  if (w >= 1100) return 820;
+  if (w >= 900) return 720;
+  if (w >= 600) return 560;
+  return w;
 }
 
 EdgeInsets _shellHPadding(BuildContext context) {
@@ -104,16 +99,13 @@ EdgeInsets _shellHPadding(BuildContext context) {
 double _avatarSize(BuildContext context) {
   final h = MediaQuery.of(context).size.height;
   if (!kIsWeb) return h * .05;
-  return h.clamp(600, 1200) * .05; // scale safely on web heights
+  return h.clamp(600, 1200) * .05;
 }
 
 double _textScaleClamp(BuildContext context) {
   final t = MediaQuery.of(context).textScaleFactor;
-  // prevent giant scaling on browser zoom
   return t.clamp(0.9, 1.2);
 }
-
-final FocusNode _focusNode = FocusNode();
 
 class ChatScreen extends StatefulWidget {
   final UserDataAPI? user;
@@ -126,7 +118,6 @@ class ChatScreen extends StatefulWidget {
 }
 
 class _ChatScreenState extends State<ChatScreen> {
-  // SaveToGalleryController galleryController = Get.put(SaveToGalleryController());
   late ChatScreenController controller;
   final speechC = Get.put(SpeechControllerImpl());
 
@@ -136,14 +127,11 @@ class _ChatScreenState extends State<ChatScreen> {
     controller = Get.put(
       ChatScreenController(user: widget.user),
     );
-
   }
 
 
   @override
   void dispose() {
-    // if you want to remove controller when leaving chat:
-    // Get.delete<ChatScreenController>();
     speechC.stop(skipOnStopped: true);
     speechC.onStopped = null;
     try {
@@ -420,7 +408,7 @@ class _ChatScreenState extends State<ChatScreen> {
               speechC.setLanguage(langCode: speechC.selectedLang);
 
               if (speechC.isListening.value) {
-                speechC.stop(skipOnStopped: true); // ✅ append will happen on speech-end
+                speechC.stop(skipOnStopped: true);
               } else {
                 speechC.start();
               }
@@ -770,95 +758,92 @@ class _ChatScreenState extends State<ChatScreen> {
                             child: Image.asset(
                               forwardIcon,
                               height: 20,
-                            ),
-                          )).paddingOnly(left: 8)
+                            )
+                          )).paddingOnly(left: 0)
                       : const SizedBox(),
                   Flexible(
-                    child: Align(
-                      alignment:
-                          sentByMe ? Alignment.centerRight : Alignment.centerLeft,
-                      child: ConstrainedBox(
-                        constraints: BoxConstraints(
-                          maxWidth:  (kIsWeb ? (data.media ?? []).isNotEmpty?300: 600 : Get.width*0.75),
-                        ),
-                        child: Column(
-                          crossAxisAlignment: sentByMe
-                              ? CrossAxisAlignment.end
-                              : CrossAxisAlignment.start,
-                          children: [
-                            InkWell(
-                              borderRadius: sentByMe
-                                  ? BorderRadius.only(
-                                      topLeft: Radius.circular(
-                                          (data.media ?? []).isNotEmpty
-                                              ? 15
-                                              : 30),
-                                      topRight: Radius.circular(
-                                          (data.media ?? []).isNotEmpty
-                                              ? 15
-                                              : 30),
-                                      bottomLeft: Radius.circular(
-                                          (data.media ?? []).isNotEmpty
-                                              ? 15
-                                              : 30))
-                                  : BorderRadius.only(
-                                      topLeft: Radius.circular(
-                                          (data.media ?? []).isNotEmpty
-                                              ? 15
-                                              : 30),
-                                      topRight: Radius.circular((data.media ?? []).isNotEmpty ? 15 : 30),
-                                      bottomRight: Radius.circular((data.media ?? []).isNotEmpty ? 15 : 30)),
-                              // mouseCursor: SystemMouseCursors.click,
-                              onDoubleTap: () {
-                                SystemChannels.textInput
-                                    .invokeMethod('TextInput.hide');
-                                if (!isTaskMode) {
-                                  _showBottomSheet(sentByMe, data: data);
-                                }
-                              },
-                              child: Container(
-                                padding: EdgeInsets.symmetric(
-                                  horizontal:
-                                      (data.media ?? []).isNotEmpty ? 12 : 15,
-                                  vertical:
-                                      (data.media ?? []).isNotEmpty ? 0 : 10,
-                                ),
-                                margin: sentByMe
-                                    ? const EdgeInsets.only(
-                                        left: 6, top: 10, right: 6)
-                                    : const EdgeInsets.only(
-                                        right: 6, top: 10, left: 6),
-                                decoration: BoxDecoration(
-                                    color: sentByMe
-                                        ? appColorGreen.withOpacity(.1)
-                                        : appColorPerple.withOpacity(.1),
-                                    border: Border.all(
-                                        color: sentByMe
-                                            ? appColorGreen
-                                            : appColorPerple),
-                                    borderRadius: sentByMe
-                                        ? BorderRadius.only(
-                                            topLeft: Radius.circular(
-                                                (data.media ?? []).isNotEmpty
-                                                    ? 15
-                                                    : 30),
-                                            topRight: Radius.circular(
-                                                (data.media ?? []).isNotEmpty
-                                                    ? 15
-                                                    : 30),
-                                            bottomLeft: Radius.circular(
-                                                (data.media ?? []).isNotEmpty
-                                                    ? 15
-                                                    : 30))
-                                        : BorderRadius.only(
-                                            topLeft: Radius.circular((data.media ?? []).isNotEmpty ? 15 : 30),
-                                            topRight: Radius.circular((data.media ?? []).isNotEmpty ? 15 : 30),
-                                            bottomRight: Radius.circular((data.media ?? []).isNotEmpty ? 15 : 30))),
-                                child: messageTypeView(data, sentByMe: sentByMe),
+                    fit: FlexFit.loose,
+                    child: ConstrainedBox(
+                      constraints: BoxConstraints(
+                        maxWidth:  (kIsWeb ? (data.media ?? []).isNotEmpty?300: 600 : Get.width*0.75),
+                      ),
+                      child: Column(
+                        crossAxisAlignment: sentByMe
+                            ? CrossAxisAlignment.end
+                            : CrossAxisAlignment.start,
+                        children: [
+                          InkWell(
+                            borderRadius: sentByMe
+                                ? BorderRadius.only(
+                                    topLeft: Radius.circular(
+                                        (data.media ?? []).isNotEmpty
+                                            ? 15
+                                            : 30),
+                                    topRight: Radius.circular(
+                                        (data.media ?? []).isNotEmpty
+                                            ? 15
+                                            : 30),
+                                    bottomLeft: Radius.circular(
+                                        (data.media ?? []).isNotEmpty
+                                            ? 15
+                                            : 30))
+                                : BorderRadius.only(
+                                    topLeft: Radius.circular(
+                                        (data.media ?? []).isNotEmpty
+                                            ? 15
+                                            : 30),
+                                    topRight: Radius.circular((data.media ?? []).isNotEmpty ? 15 : 30),
+                                    bottomRight: Radius.circular((data.media ?? []).isNotEmpty ? 15 : 30)),
+                            // mouseCursor: SystemMouseCursors.click,
+                            onDoubleTap: () {
+                              SystemChannels.textInput
+                                  .invokeMethod('TextInput.hide');
+                              if (!isTaskMode) {
+                                _showBottomSheet(sentByMe, data: data);
+                              }
+                            },
+                            child: Container(
+                              padding: EdgeInsets.symmetric(
+                                horizontal:
+                                    (data.media ?? []).isNotEmpty ? 12 : 15,
+                                vertical:
+                                    (data.media ?? []).isNotEmpty ? 0 : 10,
                               ),
+                              margin: sentByMe
+                                  ? const EdgeInsets.only(
+                                      left: 6, top: 10, right: 6)
+                                  : const EdgeInsets.only(
+                                      right: 6, top: 10, left: 6),
+                              decoration: BoxDecoration(
+                                  color: sentByMe
+                                      ? appColorGreen.withOpacity(.1)
+                                      : appColorPerple.withOpacity(.1),
+                                  border: Border.all(
+                                      color: sentByMe
+                                          ? appColorGreen
+                                          : appColorPerple),
+                                  borderRadius: sentByMe
+                                      ? BorderRadius.only(
+                                          topLeft: Radius.circular(
+                                              (data.media ?? []).isNotEmpty
+                                                  ? 15
+                                                  : 30),
+                                          topRight: Radius.circular(
+                                              (data.media ?? []).isNotEmpty
+                                                  ? 15
+                                                  : 30),
+                                          bottomLeft: Radius.circular(
+                                              (data.media ?? []).isNotEmpty
+                                                  ? 15
+                                                  : 30))
+                                      : BorderRadius.only(
+                                          topLeft: Radius.circular((data.media ?? []).isNotEmpty ? 15 : 30),
+                                          topRight: Radius.circular((data.media ?? []).isNotEmpty ? 15 : 30),
+                                          bottomRight: Radius.circular((data.media ?? []).isNotEmpty ? 15 : 30))),
+                              child: messageTypeView(data, sentByMe: sentByMe),
                             ),
-                          ],
-                        ),
+                          ),
+                        ],
                       ),
                     ),
                   ),
@@ -872,7 +857,7 @@ class _ChatScreenState extends State<ChatScreen> {
                           icon: Image.asset(
                             forwardIcon,
                             height: 20,
-                          )).paddingOnly(right: 8)
+                          )).paddingOnly(right: 0)
                       : const SizedBox()
                 ],
               ),
@@ -938,6 +923,7 @@ class _ChatScreenState extends State<ChatScreen> {
                   mainAxisSize: MainAxisSize.min,
                   children: [
                     Flexible(
+                      fit: FlexFit.loose,
                       child: Text(
                               data.fromUser?.userId == APIs.me?.userId
                                   ? "You"
@@ -1552,21 +1538,16 @@ class _ChatScreenState extends State<ChatScreen> {
 
                                 return KeyEventResult.ignored;
                               },
-                              child: TextFormField(
+                              child: TextField(
                                 controller: controller.textController,
                                 autocorrect: true,
-                                focusNode: controller.messageParentFocus, // ✅ only here
-                                autofocus: false, // web me autofocus glitch karta hai
+                                focusNode: controller.messageParentFocus,
+                                autofocus: false,
                                 keyboardType: TextInputType.multiline,
                                 textInputAction: TextInputAction.newline,
                                 maxLines: null,
                                 minLines: 1,
-                                // onTap: () {
-                                //   // web reattach
-                                //   WidgetsBinding.instance.addPostFrameCallback((_) {
-                                //     controller.messageParentFocus.requestFocus();
-                                //   });
-                                // },
+
                                 decoration: InputDecoration(
                                   isDense: true,
                                   hintText: 'Type Something...',
@@ -1588,9 +1569,7 @@ class _ChatScreenState extends State<ChatScreen> {
                             InkWell(
                               onTap: () async {
                                  showUploadOptions(context);
-                                // WidgetsBinding.instance.addPostFrameCallback((_) {
-                                //   controller.messageParentFocus.requestFocus();
-                                // });
+
                               },
                               child: IconButtonWidget(Icons.upload_outlined, isIcon: true),
                             ),
@@ -1603,10 +1582,7 @@ class _ChatScreenState extends State<ChatScreen> {
                                   textController: controller.textController,
                                   onSend:(){
                                     Get.back();
-                                    // controller.messageParentFocus.unfocus();
-                                    // if (controller.messageParentFocus.canRequestFocus) {
-                                    //   controller.messageParentFocus.requestFocus();
-                                    // }
+
                                   } ,
                                   isMobile: false,
                                 );
@@ -2127,7 +2103,7 @@ class _ChatScreenState extends State<ChatScreen> {
 
               //edit option
 
-              if (data.message != "" && isMe && diffMinutes <= 15)
+              if ((data.message != ""|| data.message!=null)  && isMe && diffMinutes <= 15)
                 _OptionItem(
                     icon: Icon(Icons.edit, color: appColorGreen, size: 16),
                     name: 'Edit Message',
@@ -2263,11 +2239,8 @@ class _ChatScreenState extends State<ChatScreen> {
               backgroundColor: Colors.white,
               contentPadding: const EdgeInsets.only(
                   left: 24, right: 24, top: 20, bottom: 10),
-
               shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(20)),
-
-              //title
               title: Row(
                 children: [
                   Icon(
@@ -2283,8 +2256,7 @@ class _ChatScreenState extends State<ChatScreen> {
                 ],
               ),
 
-              //content
-              content: TextFormField(
+              content: TextField(
                 controller: controller.updateMsgController,
                 maxLines: null,
                 onChanged: (value) => message.message = value,
@@ -2316,14 +2288,12 @@ class _ChatScreenState extends State<ChatScreen> {
                               chatId: message.chatId,
                               toUcId: message.toUser?.userCompany
                                   ?.userCompanyId,
-                              message:
-                              controller.updateMsgController.text.trim());
+                              message: controller.updateMsgController.text.trim());
                           Get.back();
                         }else{
                           Get.back();
                           Dialogs.showSnackbar(context, "Message cannot be blank");
                         }
-
                       } catch (e) {
                         toast(e.toString());
                       }

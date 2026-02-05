@@ -9,15 +9,11 @@ import '../../../../../../utils/helper.dart';
 import '../../../../../../utils/networl_shimmer_image.dart';
 import '../../../../models/chat_history_response_model.dart';
 
-/// --- Responsive helpers ---
 double _bubbleMaxWidth(BuildContext context) {
   final w = MediaQuery.of(context).size.width;
-  // On web, keep chat bubble narrower for readability; on mobile, allow more width.
   if (kIsWeb) {
-    // cap between 520 and 720 px or 60% of width
     return math.min(650, math.max(520, w * 0.60));
   }
-  // mobile/tablet
   return w * 0.86;
 }
 
@@ -29,33 +25,21 @@ double _gridGapForWidth(double width) {
 }
 
 int _crossAxisForWidthAndCount(double width, int itemCount) {
-  // Keep your original intent (2–4 → grid) but scale columns on wider web layouts.
-  // For 2–4 items, we let it be 2 on phones, 3 on large web canvases for nicer tiling.
   if (itemCount <= 2) {
-    if (width >= 900) return 2; // keep square-ish previews on desktop
+    if (width >= 900) return 2;
     return 2;
   }
   if (itemCount <= 4) {
     if (width >= 1200) return 2;
-    // if (width >= 1400) return 3;
     if (width >= 900) return 2;
     return 2;
   }
-  // Fallback (not used by your current logic, but safe)
   if (width >= 1200) return 2;
-  // if (width >= 1400) return 4;
   if (width >= 900) return 2;
   return 2;
 }
 
-double _childAspectForWidth(double width) {
-  // Slightly wider tiles on big screens for visual balance
-  if (width >= 1200) return .9;
-  if (width >= 900) return 1;
-  return 1.0;
-}
 
-/// Simple wrapper to align and constrain chat media “bubbles” on wide screens
 class _BubbleWrapper extends StatelessWidget {
   final Widget child;
   final String fromId;
@@ -98,19 +82,19 @@ List<_ViewMedia> toViewMediaList({
 }
 
 class ChatMessageMedia extends StatelessWidget {
-  final ChatHisList chat;                 // your message row
+  final ChatHisList chat;
   final bool isGroupMessage;
-  final String myId;                      // APIs.me.id
-  final String fromId;                    // message.fromUser?.userId.toString() ...
-  final String? senderName;               // chat.fromUser?.userName
-  final String baseUrl;                   // ApiEnd.baseUrlMedia
-  final String defaultGallery;            // your image placeholder asset
+  final String myId;
+  final String fromId;
+  final String? senderName;
+  final String baseUrl;
+  final String defaultGallery;
 
   // Callbacks you already have:
   final void Function(String url)? onOpenDocument;
   final void Function(List<String> urls, int startIndex)? onOpenImageViewer;
-  final void Function(String url)? onOpenVideo;  // optional
-  final void Function(String url)? onOpenAudio;  // optional
+  final void Function(String url)? onOpenVideo;
+  final void Function(String url)? onOpenAudio;
 
   const ChatMessageMedia({
     super.key,
@@ -137,7 +121,6 @@ class ChatMessageMedia extends StatelessWidget {
     final vids   = vm.where((e) => e.type == ChatMediaType.VID).toList();
     final auds   = vm.where((e) => e.type == ChatMediaType.AUD).toList();
 
-    // ✅ Keep your Column, but wrap individual sections with _BubbleWrapper so width is constrained on web.
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
@@ -235,10 +218,8 @@ class _ImagesGrid extends StatelessWidget {
   Widget build(BuildContext context) {
     final count = items.length;
 
-    // 1 image → large preview
     if (count == 1) {
       final item = items.first;
-      // ✅ Constrain big images on web and keep nice aspect ratio
       final maxW = _bubbleMaxWidth(context);
       final gap = _gridGapForWidth(MediaQuery.of(context).size.width);
       return
@@ -264,7 +245,7 @@ class _ImagesGrid extends StatelessWidget {
                 ),
               ),
             )*/Transform.translate(
-              offset: Offset(0, kIsWeb?-13:-10),
+              offset: const Offset(0, kIsWeb?-13:-10),
               child: ConstrainedBox(
                 constraints: BoxConstraints(
                   maxWidth: _bubbleMaxWidth(context),
@@ -318,7 +299,7 @@ class _ImagesGrid extends StatelessWidget {
           itemBuilder: (context, index) {
             final item = items[index];
             return Transform.translate(
-              offset: Offset(0, kIsWeb?-13:-10),
+              offset: const Offset(0, kIsWeb?-13:-10),
               child: MouseRegion(
                   cursor: SystemMouseCursors.basic, // no hand cursor
                   child: GestureDetector(
@@ -380,7 +361,7 @@ class _FileTiles extends StatelessWidget {
 
           // ✅ nicer hover + pointer on web
           final tile = Transform.translate(
-            offset: Offset(0, kIsWeb?-13:-10),
+            offset: const Offset(0, kIsWeb?-13:-10),
             child: InkWell(
               onTap: () => onTap(item),
               child: Container(
@@ -414,7 +395,7 @@ class _FileTiles extends StatelessWidget {
                             children: [
                               const Text("Tap to view", style: TextStyle(fontSize: 12, color: Colors.grey)),
                               if (sizeText.isNotEmpty)
-                                Text(" • $sizeText", style: const TextStyle(fontSize: 12, color: Colors.grey)),
+                                const Text(" • $sizeText", style: TextStyle(fontSize: 12, color: Colors.grey)),
                             ],
                           ),
                         ],

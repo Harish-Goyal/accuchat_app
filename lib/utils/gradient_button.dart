@@ -41,12 +41,10 @@ class GradientButton extends StatelessWidget {
               width: width ?? MediaQuery.of(context).size.width,
               padding: EdgeInsets.symmetric(
                   vertical: vPadding ?? 14, horizontal:hPadding?? 15),
-              //alignment: Alignment.center,
               decoration: BoxDecoration(
                 gradient: gradient ??
                      buttonGradient,
                 borderRadius: BorderRadius.circular(30),
-                // border: Border.all(color: appColor)
               ),
               child: Row(
                 mainAxisSize: MainAxisSize.min,
@@ -60,7 +58,6 @@ class GradientButton extends StatelessWidget {
                   ),
                   hGap(5),
                   textWidget??Container()
-
                 ],
               ),
             )));

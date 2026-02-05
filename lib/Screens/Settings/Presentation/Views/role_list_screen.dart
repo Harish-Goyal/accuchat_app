@@ -12,12 +12,14 @@ import 'package:flutter/foundation.dart' show kIsWeb; // added for web checks
 import '../Controllers/role_list_controller.dart';
 
 class RoleListScreen extends GetView<RoleListController> {
+  const RoleListScreen({super.key});
+
 
   @override
   Widget build(BuildContext context) {
     final size = MediaQuery.of(context).size;
-    final bool isWide = size.width >= 1000; // responsive breakpoint
-    final double maxContentWidth = 1000;   // comfy width for web
+    final bool isWide = size.width >= 1000;
+    const double maxContentWidth = 1000;
 
     return GetBuilder<RoleListController>(
       init: RoleListController(),
@@ -28,11 +30,11 @@ class RoleListScreen extends GetView<RoleListController> {
             title:  Text('All Roles',style: BalooStyles.baloosemiBoldTextStyle(),
             ),
             centerTitle: true,
-            toolbarHeight: isWide ? 64 : kToolbarHeight, // a bit taller on wide screens
+            toolbarHeight: isWide ? 64 : kToolbarHeight,
           ),
           body: ctrl.isLoadingRoles
               ? const Center(child: IndicatorLoading())
-              : Center( // responsive wrapper begins
+              : Center(
             child: ConstrainedBox(
               constraints: BoxConstraints(
                 maxWidth: isWide ? maxContentWidth : double.infinity,
@@ -61,7 +63,6 @@ class RoleListScreen extends GetView<RoleListController> {
                             SlidableAction(
                               onPressed: (_) {
                                 ctrl.editRole(role);
-
                               },
                               backgroundColor: Colors.white,
                               foregroundColor: appColorGreen,
@@ -114,7 +115,7 @@ class RoleListScreen extends GetView<RoleListController> {
                                                 ),
 
                                                 child: Text(
-                                                    "${(role.userRole??'').toUpperCase()}",
+                                                    (role.userRole??'').toUpperCase(),
                                                     style: BalooStyles.baloosemiBoldTextStyle(color:appColorGreen)
                                                 ),
                                               ),
@@ -197,20 +198,16 @@ class RoleListScreen extends GetView<RoleListController> {
                                             ],
                                           ),
 
-                                          // 2️⃣ Override the divider color to hide it
                                           child: Theme(
                                             data: Theme.of(context).copyWith(dividerColor: Colors.transparent),
                                             child: ExpansionTile(
-                                              // Remove default internal padding if you like
                                               tilePadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 0),
                                               childrenPadding: const EdgeInsets.fromLTRB(5, 0, 5, 4),
-
-                                              // The header
                                               title: Row(
                                                 children: [
                                                   Icon(Icons.circle_rounded,color: appColorGreen,size: 12,),
                                                   hGap(5),
-                                                  Expanded( // prevent overflow on web
+                                                  Expanded(
                                                     child: Text(
                                                       place.toUpperCase(),
                                                       style: BalooStyles.baloonormalTextStyle(),
@@ -220,16 +217,11 @@ class RoleListScreen extends GetView<RoleListController> {
                                                   ),
                                                 ],
                                               ),
-
-                                              // Optional: change the trailing icon shape/color
-
-                                              // The grouped chips
                                               children: [
                                                 Align(
                                                   alignment: Alignment.centerLeft,
                                                   child: ConstrainedBox(
                                                     constraints: BoxConstraints(
-                                                      // keep chips readable on wide and prevent super-long lines
                                                       maxWidth: isWide ? (maxContentWidth - 64) : double.infinity,
                                                     ),
                                                     child: Wrap(

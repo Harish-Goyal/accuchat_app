@@ -1,4 +1,3 @@
-import 'get_company_roles_res_moel.dart';
 
 class NavPermissionResModel {
   bool? success;

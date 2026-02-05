@@ -14,7 +14,6 @@ import 'package:dio/dio.dart' as multi;
 class LoginController extends GetxController {
   late TextEditingController phoneController;
   late TextEditingController codeController;
-  // late OtpFieldController otpFieldController;
   late TextEditingController passwordController;
   late FocusNode phoneFocusNode;
   late FocusNode codeFocusNode;
@@ -29,7 +28,6 @@ class LoginController extends GetxController {
   int type = 0;
   int secondsRemaining = 30;
   bool enableResend = true;
-  // Timer? timer;
   bool obsecurePassword = true;
   bool isRememberMe = false;
   bool isChecked = false;
@@ -38,21 +36,16 @@ class LoginController extends GetxController {
   ImageProvider? logo;
   LoginResModel loginResponseModel = LoginResModel();
   UserData? userData = UserData();
-  // OTPResModel otpResModel = OTPResModel();
   String countryCodeVal = '+91';
 
   @override
   void onInit() {
-    // emailController = TextEditingController();
-    // passwordController = TextEditingController();
     phoneController = TextEditingController();
     passwordController = TextEditingController();
     codeController = TextEditingController();
     phoneFocusNode = FocusNode();
     passwordFocusNode = FocusNode();
     codeFocusNode = FocusNode();
-    // otpFieldController = OtpFieldController();
-    initRememberMe();
 
     super.onInit();
   }
@@ -64,14 +57,7 @@ class LoginController extends GetxController {
     update();
   }
 
-  initRememberMe() {
-    // RememberMeModal? rememberMeModal = getRememberMe();
-    // if (rememberMeModal != null) {
-    //   isRememberMe = true;
-    //   phoneController.text = rememberMeModal.email ?? "";
-    //   passwordController.text = rememberMeModal.password ?? "";
-    // }
-  }
+
 
   @override
   void onReady() {}
@@ -82,37 +68,6 @@ class LoginController extends GetxController {
     update();
   }
 
-  //login api
- /* hitAPIToLogin() async{
-    FocusManager.instance.primaryFocus!.unfocus();
-    customLoader.show();
-    var loginReq = multi.FormData.fromMap({
-      "auth_key": ApiEnd.authKEy,
-      "user_name": phoneController.text.trim(),
-      "password": passwordController.text.trim(),
-    });
-
-    Get.find<AuthApiServiceImpl>()
-        .loginApiCall(dataBody: loginReq)
-        .then((value) async {
-      customLoader.hide();
-      loginResponseModel = value;
-      userData = loginResponseModel.data;
-      saveUser(userData);
-      storage.write(isLoggedIn, true);
-      storage.write(LOCALKEY_token, loginResponseModel.accessToken ?? "");
-      storage.write(userId, loginResponseModel.userId ?? "");
-      storage.write(userName, loginResponseModel.data?.empName ?? "");
-      storage.write(empIdKey, loginResponseModel.data?.empId ?? "");
-      storage.write(isFirstTime, false);
-
-      Get.offAllNamed(AppRoutes.home);
-      // openBottomSheet();
-    }).onError((error, stackTrace) {
-      customLoader.hide();
-      errorDialog(error.toString());
-    });
-  }*/
 
   hitGoogleAPIToLogin(
       {firstName, lastName, email, profile, dob, address, phone}) {
@@ -154,7 +109,6 @@ class LoginController extends GetxController {
     FocusManager.instance.primaryFocus!.unfocus();
     var loginReq = {
       "phone_number": phoneController.text.trim().toLowerCase(),
-      // "phone_number":"$countryCodeVal${phoneController.text.trim().toLowerCase()}",
       "otp_number": otp
     };
 

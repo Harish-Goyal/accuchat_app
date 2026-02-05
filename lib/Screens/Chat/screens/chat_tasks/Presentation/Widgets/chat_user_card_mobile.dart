@@ -18,7 +18,6 @@ import '../../../auth/models/get_uesr_Res_model.dart';
 import '../../../../models/recent_chat_user_res_model.dart';
 import '../dialogs/profile_dialog.dart';
 
-//card to represent a single user in home screen
 class ChatUserCardMobile extends StatefulWidget with WidgetsBindingObserver {
   UserDataAPI? user;
 

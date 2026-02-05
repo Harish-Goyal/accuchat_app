@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:get/get.dart';
-
 import '../../../../Services/APIs/post/post_api_service_impl.dart';
 import '../../../../main.dart';
 import '../../../../utils/custom_flashbar.dart';
@@ -68,7 +67,6 @@ class CreateFolderDialogController extends GetxController {
 
   @override
   void onClose() {
-    // nameController.dispose();
     super.onClose();
   }
 }

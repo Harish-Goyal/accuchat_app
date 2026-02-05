@@ -2,7 +2,6 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 
 class MyDateUtil {
-  // for getting formatted time from milliSecondsSinceEpochs String
   static String getFormattedTime(
       {required BuildContext context, required String time}) {
     final date = DateTime.parse(time);
@@ -10,7 +9,6 @@ class MyDateUtil {
     return TimeOfDay.fromDateTime(date).format(context);
   }
 
-  // for getting formatted time for sent & read
   static String getMessageTime(
       {required BuildContext context, required String time}) {
     final DateTime sent = DateTime.fromMillisecondsSinceEpoch(int.parse(time));
@@ -28,7 +26,6 @@ class MyDateUtil {
         : '$formattedTime - ${sent.day} ${_getMonth(sent)} ${sent.year}';
   }
 
-  // get last message time (used in chat user card)
   static String getLastMessageTime({
     required BuildContext context,
     required String time,
@@ -37,41 +34,35 @@ class MyDateUtil {
     DateTime? sent;
 
     try {
-      // Safely parse ISO8601 or UTC string
       sent = DateTime.tryParse(time);
 
       if (sent == null) {
-        return ''; // return empty if parsing fails
+        return '';
       }
 
-      // Convert UTC → local time
       sent = sent.toLocal();
     } catch (e) {
-      return ''; // fallback in case of unexpected format
+      return '';
     }
 
     final DateTime now = DateTime.now();
 
-    // Same day
     if (now.day == sent.day &&
         now.month == sent.month &&
         now.year == sent.year) {
       return TimeOfDay.fromDateTime(sent).format(context);
     }
 
-    // Return formatted date
     return showYear
         ? '${sent.day} ${_getMonth(sent)} ${sent.year}'
         : '${sent.day} ${_getMonth(sent)}';
   }
 
-  //get formatted last active time of user in chat screen
   static String getLastActiveTime(
       {required BuildContext context, required String lastActive}) {
     final int i = int.tryParse(lastActive??'') ?? -1;
     var bigInt = BigInt.from(i);
 
-    //if time is not available then return below statement
     if (i == -1) return 'Last seen not available';
 
     DateTime time = DateTime.fromMillisecondsSinceEpoch(i);
@@ -93,7 +84,6 @@ class MyDateUtil {
     return 'Last seen on ${time.day} $month on $formattedTime';
   }
 
-  // get month name from month no. or index
   static String _getMonth(DateTime date) {
     switch (date.month) {
       case 1:

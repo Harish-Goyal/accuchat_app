@@ -1,7 +1,6 @@
 import 'package:AccuChat/Screens/Chat/screens/auth/Presentation/Controllers/landing_screen_controller.dart';
 import 'package:AccuChat/Services/APIs/local_keys.dart';
 import 'package:AccuChat/main.dart';
-import 'package:AccuChat/utils/custom_flashbar.dart';
 import 'package:AccuChat/utils/helper_widget.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
@@ -10,23 +9,17 @@ import '../../../../../../Constants/assets.dart';
 import '../../../../../../Constants/colors.dart';
 import '../../../../../../Constants/themes.dart';
 import '../../../../../../Services/APIs/api_ends.dart';
-import '../../../../../../Services/APIs/auth_service/auth_api_services_impl.dart';
 import '../../../../../../Services/storage_service.dart';
 import '../../../../../../routes/app_routes.dart';
 import '../../../../../../utils/custom_dialogue.dart';
 import '../../../../../../utils/gradient_button.dart';
 import '../../../../../../utils/networl_shimmer_image.dart';
-import '../../../../../../utils/shares_pref_web.dart';
 import '../../../../../../utils/text_style.dart';
 import '../../../../../Home/Presentation/Controller/company_service.dart';
 import '../../../../../Home/Presentation/View/home_screen.dart';
-import '../../../../api/apis.dart';
-import '../../../../api/session_alive.dart';
-import '../../../../models/company_model.dart';
-import '../../../../models/get_company_res_model.dart';
 
 class LandingPage extends GetView<LandingScreenController> {
-  LandingPage({Key? key}) : super(key: key);
+  const LandingPage({Key? key}) : super(key: key);
 
 
 

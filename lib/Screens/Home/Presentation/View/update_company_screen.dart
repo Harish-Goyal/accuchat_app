@@ -3,7 +3,6 @@ import 'package:AccuChat/Extension/text_field_extenstion.dart';
 import 'package:AccuChat/utils/gradient_button.dart';
 import 'package:AccuChat/utils/helper_widget.dart';
 import 'package:AccuChat/utils/networl_shimmer_image.dart';
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:get/get.dart';
@@ -22,7 +21,7 @@ import 'package:flutter/foundation.dart' show kIsWeb;
 
 
 class UpdateCompanyScreen extends GetView<UpdateCompanyController> {
-  UpdateCompanyScreen({super.key});
+  const UpdateCompanyScreen({super.key});
 
   @override
   Widget build(BuildContext context) {
@@ -96,13 +95,11 @@ class UpdateCompanyScreen extends GetView<UpdateCompanyController> {
                               ),
                               vGap(isWide ? 24 : 16),
 
-                              // Responsive layout: Row on wide, Column on narrow
                               isWide
                                   ? Row(
                                 crossAxisAlignment:
                                 CrossAxisAlignment.start,
                                 children: [
-                                  // Left: Logo block
                                   SizedBox(
                                     width: 300,
                                     child: _LogoPickerBlock(
@@ -112,8 +109,6 @@ class UpdateCompanyScreen extends GetView<UpdateCompanyController> {
                                     ),
                                   ),
                                   const SizedBox(width: 24),
-
-                                  // Right: Form fields as a two-column Wrap
                                   Expanded(
                                     child: Wrap(
                                       spacing: 18,
@@ -204,7 +199,6 @@ class UpdateCompanyScreen extends GetView<UpdateCompanyController> {
                                 crossAxisAlignment:
                                 CrossAxisAlignment.center,
                                 children: [
-                                  // Top: Logo block
                                   _LogoPickerBlock(
                                     controller: controller,
                                     avatarSize: avatarSize,
@@ -212,7 +206,6 @@ class UpdateCompanyScreen extends GetView<UpdateCompanyController> {
                                   ),
                                   vGap(18),
 
-                                  // Fields stack full width
                                   CustomTextField(
                                     hintText: "Company Name",
                                     labletext: "Company Name",
@@ -277,8 +270,6 @@ class UpdateCompanyScreen extends GetView<UpdateCompanyController> {
                               ),
 
                               vGap(isWide ? 28 : 22),
-
-                              // Actions row
                               isWide?  Row(
                                 mainAxisAlignment: MainAxisAlignment.end,
                                 children: [
@@ -291,7 +282,7 @@ class UpdateCompanyScreen extends GetView<UpdateCompanyController> {
                                         shape: RoundedRectangleBorder(
                                           borderRadius: BorderRadius.circular(10),
                                         ),
-                                        padding: EdgeInsets.symmetric(vertical: 8)
+                                        padding: const EdgeInsets.symmetric(vertical: 8)
                                       ),
                                       onPressed: () async {
                                         await controller.deleteCompany(context);
@@ -372,13 +363,10 @@ class UpdateCompanyScreen extends GetView<UpdateCompanyController> {
               padding: const EdgeInsets.only(top: 20, bottom: 20),
               children: [
                 vGap(10),
-                //pick profile picture label
                 Text('Select Your Company Logo',
                     textAlign: TextAlign.center,
                     style: BalooStyles.balooboldTitleTextStyle()),
-                //for adding some space
                 vGap(30),
-                //buttons
               kIsWeb?Column(
                 mainAxisSize: MainAxisSize.min,
                 children: [
@@ -391,10 +379,7 @@ class UpdateCompanyScreen extends GetView<UpdateCompanyController> {
                         borderRadius:
                         const BorderRadius.all(Radius.circular(24.0)),
                         onTap: () async {
-
                           pickImageSingleWeb();
-
-
                         },
                         child: Padding(
                           padding: const EdgeInsets.all(8.0),
@@ -415,7 +400,6 @@ class UpdateCompanyScreen extends GetView<UpdateCompanyController> {
               ):  Row(
                   mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                   children: [
-                    //pick from gallery button
                     Column(
                       mainAxisSize: MainAxisSize.min,
                       children: [
@@ -428,19 +412,14 @@ class UpdateCompanyScreen extends GetView<UpdateCompanyController> {
                               borderRadius:
                               const BorderRadius.all(Radius.circular(24.0)),
                               onTap: () async {
-
                                   final ImagePicker picker = ImagePicker();
-                                  // Pick an image
                                   final XFile? image = await picker.pickImage(
                                       source: ImageSource.camera,
                                       imageQuality: 100);
                                   if (image != null) {
                                     await _cropImage(image.path);
-                                    // for hiding bottom sheet
                                     Get.back();
                                   }
-
-
                               },
                               child: Padding(
                                 padding: const EdgeInsets.all(8.0),
@@ -460,7 +439,6 @@ class UpdateCompanyScreen extends GetView<UpdateCompanyController> {
                       ],
                     ),
 
-                    //take picture from camera button
                     Column(
                       mainAxisSize: MainAxisSize.min,
                       children: [
@@ -474,8 +452,6 @@ class UpdateCompanyScreen extends GetView<UpdateCompanyController> {
                               const BorderRadius.all(Radius.circular(24.0)),
                               onTap: () async {
                                 final ImagePicker picker = ImagePicker();
-
-                                // Pick an image
                                 final XFile? image = await picker.pickImage(
                                     source: ImageSource.gallery,
                                     imageQuality: 100);
@@ -518,8 +494,6 @@ class UpdateCompanyScreen extends GetView<UpdateCompanyController> {
     final img = await UniversalPicker.pickImageSingleWeb();
     if (img != null) {
       controller.filecompanyWeb = img;
-      print("controller.filecompanyLogoUrl");
-      print(controller.filecompanyWeb);
       Get.back();
 
     } else {
@@ -562,12 +536,8 @@ class UpdateCompanyScreen extends GetView<UpdateCompanyController> {
     );
     if (croppedFile != null) {
 
-      // customLoader.show();
-
-
       controller.filecompanyLogoUrl = croppedFile.path ?? '';
       controller.update();
-
       // await APIs.updateCompanyLogo(File(controller.filecompanyLogoUrl??''));
       // customLoader.hide();
       // Get.back();
@@ -576,8 +546,6 @@ class UpdateCompanyScreen extends GetView<UpdateCompanyController> {
   }
 }
 
-/// Small, reusable block for the logo + edit button.
-/// Keeps your original logic but makes it consistent & web-safe visually.
 class _LogoPickerBlock extends StatelessWidget {
   const _LogoPickerBlock({
     required this.controller,
@@ -600,7 +568,6 @@ class _LogoPickerBlock extends StatelessWidget {
 
     Widget image;
     if (hasLocalLogo && !kIsWeb) {
-      // NOTE: For web you may later switch to Image.memory with bytes.
       image = ClipRRect(
         borderRadius: BorderRadius.circular(avatarSize),
         child: Image.file(

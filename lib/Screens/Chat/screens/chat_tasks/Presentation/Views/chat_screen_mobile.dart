@@ -7,6 +7,7 @@ import 'package:AccuChat/Screens/Chat/screens/chat_tasks/Presentation/Controller
 import 'package:AccuChat/Services/APIs/api_ends.dart';
 import 'package:AccuChat/routes/app_routes.dart';
 import 'package:AccuChat/utils/custom_container.dart';
+import 'package:AccuChat/utils/loading_indicator.dart';
 import 'package:AccuChat/utils/networl_shimmer_image.dart';
 import 'package:AccuChat/Screens/voice_to_texx/speech_controller_factory.dart';
 import 'package:AccuChat/Constants/themes.dart';
@@ -163,7 +164,6 @@ class ChatScreenMobile extends GetView<ChatScreenController> {
           padding: _shellHPadding(Get.context!),
           child: Column(
             children: [
-
               Expanded(child: RepaintBoundary(child: chatMessageBuilder())),
               if (controller.replyToMessage != null)
                 _replyMessageWidgetCancel(username),
@@ -334,15 +334,15 @@ class ChatScreenMobile extends GetView<ChatScreenController> {
       mainAxisSize: MainAxisSize.min,
       children: [
         vGap(10),
-
         Expanded(
-          child: shimmerEffectWidget(
+          child:groupListView(),/* shimmerEffectWidget(
             showShimmer: controller.showPostShimmer,
             shimmerWidget: shimmerlistView(
                 child: ChatHistoryShimmer(
+
                 )),
             child: groupListView(),
-          ),
+          ),*/
         ),
         // vGap(80)
       ],
@@ -350,7 +350,7 @@ class ChatScreenMobile extends GetView<ChatScreenController> {
   }
 
   groupListView() {
-    return (controller.chatRows ?? []).isNotEmpty
+    return controller.showPostShimmer?const IndicatorLoading(): (controller.chatRows ?? []).isNotEmpty
         ? ScrollablePositionedList.builder(
         itemScrollController: controller.itemScrollController,
         itemPositionsListener: controller.itemPositionsListener,
@@ -1218,10 +1218,10 @@ class ChatScreenMobile extends GetView<ChatScreenController> {
           ),
         ),
 
-        controller.isSearching?SizedBox():  (controller.user?.userCompany?.isBroadcast==1 ||controller.user?.userCompany?.isGroup==1) ?SizedBox():  CustomTextButton(onTap: (){
+        controller.isSearching?const SizedBox():  (controller.user?.userCompany?.isBroadcast==1 ||controller.user?.userCompany?.isGroup==1) ?const SizedBox():  CustomTextButton(onTap: (){
           Get.toNamed(AppRoutes.tasks_li_r,arguments: {'user':controller.user});
         }, title: "Go to Task"),
-        controller.isSearching?SizedBox():  hGap(10),
+        controller.isSearching?const SizedBox():  hGap(10),
         IconButton(
             onPressed: () {
               controller.isSearching = !controller.isSearching;
@@ -1237,8 +1237,8 @@ class ChatScreenMobile extends GetView<ChatScreenController> {
                 CupertinoIcons.clear_circled_solid)
                 : Image.asset(searchPng,height:25,width:25)
         ).paddingOnly(top: 0, right: 0),
-        controller.isSearching?SizedBox():hGap(10),
-        controller.isSearching?SizedBox(): (controller.user?.userCompany?.isGroup == 1 ||
+        controller.isSearching?const SizedBox():hGap(10),
+        controller.isSearching?const SizedBox(): (controller.user?.userCompany?.isGroup == 1 ||
             controller.user?.userCompany?.isBroadcast == 1)
             ? PopupMenuButton<String>(
           color: Colors.white,
@@ -1456,12 +1456,31 @@ class ChatScreenMobile extends GetView<ChatScreenController> {
   }
 
   bool isVisibleUpload = true;
+  void _appendSpeechToInput() {
+    if (!Get.isRegistered<ChatScreenController>()) return;
+    if (controller.isClosed) return;
 
+    final text = speechC.getCombinedText().trim();
+    if (text.isEmpty) return;
+
+    final old = controller.textController.text.trim();
+    final combined = old.isEmpty ? text : '$old $text';
+
+    controller.textController.value = controller.textController.value.copyWith(
+      text: combined,
+      selection: TextSelection.collapsed(offset: combined.length),
+      composing: TextRange.empty,
+    );
+
+    speechC.finalText.value = '';
+    speechC.interimText.value = '';
+  }
   // bottom chat input field
   Widget _chatInput(BuildContext context) {
     // ✅ don't put controller every rebuild
 
-    void _appendSpeechToInput() {
+
+ /*   void _appendSpeechToInput() {
       final text = speechC.getCombinedText();
       if (text.isEmpty) return;
 
@@ -1474,7 +1493,7 @@ class ChatScreenMobile extends GetView<ChatScreenController> {
 
       speechC.finalText.value = '';
       speechC.interimText.value = '';
-    }
+    }*/
 
     void _hardFocusBack() {
       FocusManager.instance.primaryFocus?.unfocus();
@@ -2026,7 +2045,7 @@ class ChatScreenMobile extends GetView<ChatScreenController> {
   Widget _chatInputMobile(context) {
     return Container(
       // height: Get.height*.4,
-      padding: EdgeInsets.symmetric(
+      padding: const EdgeInsets.symmetric(
           vertical: 4, horizontal: 12),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.end,
@@ -2164,7 +2183,7 @@ class ChatScreenMobile extends GetView<ChatScreenController> {
                                   if (shiftPressed) return null;
 
                                   _sendMessage();
-                                  controller.messageParentFocus.requestFocus(); // keep focus after send
+                                  // controller.messageParentFocus.requestFocus(); // keep focus after send
                                   return null;
                                 },
                               ),
@@ -2180,10 +2199,10 @@ class ChatScreenMobile extends GetView<ChatScreenController> {
                                 child: Row(
                                   children: [
                                     Expanded(
-                                      child: TextFormField(
+                                      child: TextField(
                                         controller: controller.textController,
                                         focusNode: controller.messageParentFocus,
-                                        autofocus: true,
+                                        autofocus: false,
                                         keyboardType: TextInputType.multiline,
                                         textInputAction: TextInputAction.newline,
                                         maxLines: null,
@@ -2335,7 +2354,7 @@ class ChatScreenMobile extends GetView<ChatScreenController> {
           child: Wrap(
             children: [
               ListTile(
-                leading:  Icon(Icons.camera_alt_outlined,size: 20,),
+                leading:  const Icon(Icons.camera_alt_outlined,size: 20,),
                 title:  Text("Camera",style: BalooStyles.baloomediumTextStyle(),),
                 onTap: () async {
                   Get.back();
@@ -2354,7 +2373,7 @@ class ChatScreenMobile extends GetView<ChatScreenController> {
                 },
               ),
               ListTile(
-                leading:  Icon(Icons.photo_library_outlined,size: 20,),
+                leading:  const Icon(Icons.photo_library_outlined,size: 20,),
                 title:  Text("Gallery",style: BalooStyles.baloomediumTextStyle(),),
                 onTap: () async {
                   Get.back();
@@ -2371,7 +2390,7 @@ class ChatScreenMobile extends GetView<ChatScreenController> {
                 },
               ),
               ListTile(
-                leading:  Icon(Icons.picture_as_pdf_outlined,size: 20,),
+                leading:  const Icon(Icons.picture_as_pdf_outlined,size: 20,),
                 title:  Text("Document",style: BalooStyles.baloomediumTextStyle(),),
                 onTap: () {
                   Get.back();
@@ -2679,7 +2698,7 @@ class ChatScreenMobile extends GetView<ChatScreenController> {
                     } catch (e) {
                       toast('Something went wrong!');
                     }
-                  }):SizedBox(),
+                  }):const SizedBox(),
               /*_OptionItem(
                     icon:  Icon(Icons.document_scanner,
                         color: appColorYellow, size: 18),

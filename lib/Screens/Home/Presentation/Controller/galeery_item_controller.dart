@@ -1,9 +1,5 @@
 import 'package:get/get.dart';
 import 'dart:async';
-import 'dart:io';
-import 'dart:typed_data';
-import 'package:AccuChat/Screens/Chat/screens/chat_tasks/Presentation/Controllers/save_in_accuchat_gallery_controller.dart';
-import 'package:AccuChat/Screens/Home/Presentation/Controller/genere_controller.dart';
 import 'package:dio/dio.dart' as multi;
 import 'package:path/path.dart' as p;
 import 'package:file_picker/file_picker.dart';
@@ -11,24 +7,16 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:get/get.dart';
 import 'package:image_picker/image_picker.dart';
 import '../../../../Services/APIs/post/post_api_service_impl.dart';
 import '../../../../main.dart';
 import '../../../../utils/custom_flashbar.dart';
 import '../../../../utils/helper.dart';
-import '../../../../utils/helper_widget.dart';
-import '../../../Chat/helper/dialogs.dart';
-import '../../../Chat/models/gallery_node.dart';
 import '../../../Chat/models/get_company_res_model.dart';
-import '../../../Chat/screens/auth/models/get_uesr_Res_model.dart';
-import '../../../Chat/screens/chat_tasks/Presentation/dialogs/save_in_gallery_dialog.dart';
 import '../../Models/get_folder_items_res_model.dart';
 import '../../Models/get_folder_res_model.dart';
 import '../../Models/pickes_file_item.dart';
-import '../View/folder_items_view.dart';
 import 'company_service.dart';
-import '../../../../utils/helper.dart';
 
 class GalleryItemController extends GetxController{
   GalleryItemController({required this.folderData});

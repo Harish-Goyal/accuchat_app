@@ -1,10 +1,6 @@
-import 'package:AccuChat/Screens/Home/Presentation/Controller/home_controller.dart';
-import 'package:AccuChat/main.dart';
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:permission_handler/permission_handler.dart';
-
 import '../../../../Services/APIs/local_keys.dart';
 import '../../../../Services/APIs/post/post_api_service_impl.dart';
 import '../../../../routes/app_routes.dart';

@@ -387,7 +387,7 @@ bool getRandomBool() {
 }
 
 class ChatHistoryShimmer extends StatelessWidget {
-   ChatHistoryShimmer({Key? key}) : super(key: key);
+   const ChatHistoryShimmer({super.key});
 
 
 

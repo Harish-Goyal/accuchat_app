@@ -4,11 +4,8 @@ import 'package:AccuChat/utils/helper_widget.dart';
 import 'package:AccuChat/utils/text_style.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-
 import '../../../../Constants/colors.dart';
 import '../../../../utils/common_textfield.dart';
-import '../Controller/create_new_folder_dialog_controller.dart';
-import 'genre_view.dart';
 
 Future<String?> showCreateFolderDialog() async {
   final controller = Get.put(GalleryController());

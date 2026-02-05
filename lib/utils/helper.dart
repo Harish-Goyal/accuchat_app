@@ -209,8 +209,6 @@ Widget tillRowWidget({title, assetName}) {
       ).paddingOnly(top: 2),
       hGap(3),
       Expanded(
-        // width: Get.width*.81,
-        // color: Colors.blue,
           child: Text(title, style: BalooStyles.baloonormalTextStyle())),
     ],
   );
@@ -232,7 +230,6 @@ String formatTimeAMPM(DateTime date) {
 
 Widget titleRow({String? leadIcon, title, value,Color? leadColor,bool isExpanded=false,FontWeight? weight}) {
   return Row(
-    // mainAxisAlignment: MainAxisAlignment.spaceBetween,
     children: [
       isExpanded?   Row(
         children: [
@@ -336,18 +333,16 @@ Future<dio.MultipartFile> pickedToMultipart(PickedFileData f) async {
 
 String ext(String pathOrName) {
   final ext = p.extension(pathOrName).toLowerCase();
-  return ext.startsWith('.') ? ext.substring(1) : ext; // 'jpg'
+  return ext.startsWith('.') ? ext.substring(1) : ext;
 }
 
 MediaType mediaTypeForExt(String ext) {
-  // try package:mime first (optional)
-  final guessed = mime.lookupMimeType('x.$ext'); // trick to use ext
+  final guessed = mime.lookupMimeType('x.$ext');
   if (guessed != null && guessed.contains('/')) {
     final parts = guessed.split('/');
     return MediaType(parts.first, parts.last);
   }
 
-  // fallback mapping
   switch (ext) {
     case 'jpg':
     case 'jpeg':
@@ -388,7 +383,6 @@ MediaType mediaTypeForExt(String ext) {
 }
 
 String safeName(String name) {
-  // remove odd chars that may break multipart on some backends/CDNs
   return name.replaceAll(RegExp(r'[^\w\.\-\(\) ]+'), '_');
 }
 
@@ -398,33 +392,27 @@ enum TimeFilter { today, thisWeek, thisMonth }
 class DateRange {
   final String startDate;
   final String endDate;
-
   DateRange(this.startDate, this.endDate);
 }
 
 DateRange rangeFor(TimeFilter f, {DateTime? nowLocal}) {
-  final now = nowLocal ?? DateTime.now(); // device local time
+  final now = nowLocal ?? DateTime.now(); 
   final dateFormat = DateFormat('dd-MM-yyyy');
-
   final startOfToday = DateTime(now.year, now.month, now.day);
   final todayStr = dateFormat.format(startOfToday);
-
   if (f == TimeFilter.today) {
-    // start and end are the same date
     return DateRange(todayStr, todayStr);
   }
 
   if (f == TimeFilter.thisWeek) {
-    // Monday–Sunday week
-    final int weekday = startOfToday.weekday; // Mon=1 ... Sun=7
+    final int weekday = startOfToday.weekday;
     final fromLocal = startOfToday.subtract(Duration(days: weekday - 1));
-    final toLocal = fromLocal.add(const Duration(days: 6)); // Sunday
+    final toLocal = fromLocal.add(const Duration(days: 6));
     return DateRange(dateFormat.format(fromLocal), dateFormat.format(toLocal));
   }
 
-  // thisMonth
   final fromLocal = DateTime(now.year, now.month, 1);
-  final toLocal = DateTime(now.year, now.month + 1, 0); // last day of month
+  final toLocal = DateTime(now.year, now.month + 1, 0);
   return DateRange(dateFormat.format(fromLocal), dateFormat.format(toLocal));
 }
 

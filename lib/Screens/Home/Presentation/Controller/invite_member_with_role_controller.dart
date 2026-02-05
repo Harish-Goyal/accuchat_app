@@ -1,16 +1,11 @@
-import 'package:AccuChat/Screens/Chat/api/apis.dart';
-import 'package:AccuChat/Screens/Chat/models/get_company_res_model.dart';
 import 'package:flutter/cupertino.dart';
-import 'package:flutter/foundation.dart';
 import 'package:get/get.dart';
 
 import '../../../../Services/APIs/post/post_api_service_impl.dart';
 import '../../../../main.dart';
 import '../../../../routes/app_routes.dart';
 import '../../../../utils/custom_flashbar.dart';
-import '../../../Chat/helper/notification_service.dart';
 import '../../../Settings/Model/get_company_roles_res_moel.dart';
-import 'company_service.dart';
 class InviteUser {
   final String name;
   final String mobile;

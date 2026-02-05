@@ -149,7 +149,6 @@ class SettingsScreen extends StatelessWidget {
         Row(
 
               children: [
-                // Menu Options
                 Flexible(
                   child: ListTile(
                     title: Text(
@@ -193,7 +192,6 @@ class SettingsScreen extends StatelessWidget {
             ),
 
         vGap(15),
-        //TODO
 
       ],
     );

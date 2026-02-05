@@ -10,11 +10,13 @@ import '../../Model/get_nav_permission_res_model.dart';
 import '../Controllers/edit_role_controller.dart';
 
 class EditRoleScreen extends StatelessWidget {
+  const EditRoleScreen({super.key});
+
   @override
   Widget build(BuildContext context) {
     final size = MediaQuery.of(context).size;
-    final bool isWide = size.width >= 900; // responsive breakpoint
-    final double maxContentWidth = 900;    // comfy page width for web
+    final bool isWide = size.width >= 900;
+    const double maxContentWidth = 900;
 
     return GetBuilder<EditRoleController>(
       init: EditRoleController(),
@@ -23,11 +25,11 @@ class EditRoleScreen extends StatelessWidget {
           appBar: AppBar(      scrolledUnderElevation: 0,
             surfaceTintColor: Colors.white,
             title: Text('Edit Role', style: BalooStyles.baloosemiBoldTextStyle()),
-            toolbarHeight: isWide ? 64 : kToolbarHeight, // a bit taller on wide screens
+            toolbarHeight: isWide ? 64 : kToolbarHeight,
           ),
           body: ctrl.isLoading
               ? const Center(child: CircularProgressIndicator())
-              : Center( // responsive shell
+              : Center(
             child: ConstrainedBox(
               constraints: BoxConstraints(
                 maxWidth: isWide ? maxContentWidth : double.infinity,
@@ -53,29 +55,23 @@ class EditRoleScreen extends StatelessWidget {
                               vGap(20),
                               Text('Select Permissions', style: BalooStyles.baloonormalTextStyle()),
                               vGap(8),
-
                               InkWell(
                                 onTap: () {
                                   showDialog(
                                     context: context,
                                     builder: (_) => StatefulBuilder(
                                       builder: (ctx, setState) {
-
                                         final Map<String, List<NavigationItem>> grouped = {};
                                         for (var perm in ctrl.navPermissionData) {
                                           grouped
                                               .putIfAbsent(perm.navigationPlace!, () => [])
                                               .add(perm);
                                         }
-
-                                        // responsive dialog sizing
                                         final dialogMaxWidth = isWide ? 700.0 : double.maxFinite;
                                         final dialogMaxHeight = isWide ? (size.height * 0.75) : (size.height * 0.8);
-
                                         return AlertDialog(
                                           backgroundColor: Colors.white,
-
-                                          contentPadding: EdgeInsets.symmetric(horizontal: 10),
+                                          contentPadding: const EdgeInsets.symmetric(horizontal: 10),
                                           insetPadding: EdgeInsets.symmetric(
                                             horizontal: isWide ? 24 : 10,
                                             vertical: isWide ? 24 : 15,
@@ -83,25 +79,23 @@ class EditRoleScreen extends StatelessWidget {
                                           title: const Text('Select Permissions'),
                                           content: SizedBox(
                                             width: dialogMaxWidth,
-                                            height: dialogMaxHeight, // allow scrolling area on web
+                                            height: dialogMaxHeight,
                                             child: Scrollbar(
-                                              thumbVisibility: kIsWeb, // visible scrollbar on web
+                                              thumbVisibility: kIsWeb,
                                               child: ListView(
                                                 shrinkWrap: true,
                                                 padding: EdgeInsets.zero,
                                                 children: grouped.entries.map((entry) {
                                                   final place = entry.key;
                                                   final items = entry.value;
-                                                  // 2️⃣ Is every child in this group currently selected?
                                                   final allChecked = items.every((p) =>
                                                       ctrl.selectedPermissionsIds.contains(p.navigationItemId));
-
                                                   return Container(
                                                     margin: const EdgeInsets.symmetric(vertical: 6,horizontal: 5),
                                                     decoration: BoxDecoration(
                                                       color: Colors.white,
                                                       borderRadius: BorderRadius.circular(12),
-                                                      boxShadow: [
+                                                      boxShadow: const [
                                                         BoxShadow(
                                                           color: Colors.black12,
                                                           blurRadius: 6,
@@ -117,14 +111,11 @@ class EditRoleScreen extends StatelessWidget {
                                                             horizontal: 16, vertical: 8),
                                                         childrenPadding:
                                                         const EdgeInsets.fromLTRB(16, 0, 16, 12),
-
-                                                        // 3️⃣ Group-checkbox in the header
                                                         leading: Checkbox(
                                                           activeColor: appColorYellow,
                                                           value: allChecked,
                                                           onChanged: (checked) {
                                                             if (checked == true) {
-                                                              // select all in group
                                                               for (var p in items) {
                                                                 if (!ctrl.selectedPermissionsIds
                                                                     .contains(p.navigationItemId)) {
@@ -135,7 +126,6 @@ class EditRoleScreen extends StatelessWidget {
                                                                 }
                                                               }
                                                             } else {
-                                                              // deselect all in group
                                                               for (var p in items) {
                                                                 ctrl.selectedPermissionsIds!
                                                                     .remove(p.navigationItemId);
@@ -161,7 +151,6 @@ class EditRoleScreen extends StatelessWidget {
                                                           ],
                                                         ),
 
-                                                        // 4️⃣ Individual checkboxes
                                                         children: items.map((perm) {
                                                           final checked = ctrl.selectedPermissionsIds
                                                               .contains(perm.navigationItemId);

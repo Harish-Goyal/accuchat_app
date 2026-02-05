@@ -1,13 +1,7 @@
 import 'dart:convert';
-import 'dart:developer';
 import 'dart:io';
 import 'package:AccuChat/Screens/Chat/api/session_alive.dart';
-import 'package:AccuChat/Screens/Chat/screens/auth/Presentation/Views/accept_invite_screen.dart';
-import 'package:AccuChat/Screens/Chat/screens/auth/Presentation/Views/landing_screen.dart';
-import 'package:AccuChat/Screens/Chat/screens/auth/Presentation/Views/login_screen.dart';
 import 'package:AccuChat/Screens/Chat/screens/auth/models/get_uesr_Res_model.dart';
-import 'package:AccuChat/routes/app_routes.dart';
-import 'package:AccuChat/utils/custom_flashbar.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:device_info_plus/device_info_plus.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
@@ -18,16 +12,9 @@ import 'package:http/http.dart';
 import 'package:permission_handler/permission_handler.dart';
 import '../../../Extension/user_Ext.dart';
 import '../../../Services/APIs/auth_service/auth_api_services_impl.dart';
-import '../../../Services/APIs/local_keys.dart';
 import '../../../Services/APIs/post/post_api_service_impl.dart';
-import '../../../main.dart';
 import '../../Home/Presentation/Controller/company_service.dart';
-import '../../Home/Presentation/View/invite_member.dart';
-import '../helper/notification_service.dart';
-import '../models/chat_user.dart';
-import '../models/company_model.dart';
-import '../models/invite_model.dart';
-import '../models/message.dart';
+
 
 enum ChatType {
   oneToOne,
@@ -36,59 +23,14 @@ enum ChatType {
 }
 
 class APIs {
-  // for authentication
-  // static FirebaseAuth auth = FirebaseAuth.instance;
-
-  // for accessing cloud firestore database
   static FirebaseFirestore firestore = FirebaseFirestore.instance;
 
-/*  // for accessing firebase storage
-  // static FirebaseStorage storage = FirebaseStorage.instance;
-
-  // to return current user
-  // static User get user => auth.currentUser!;
-  static UserDataAPI? get user => getUser();
-
-  // static CompanyModel? selectedCompany;
-
-  // for storing self information
-  static UserDataAPI me = UserDataAPI(
-      userId: user?.userId,
-      userName: user?.userName,
-      phone: user?.email,
-      createdBy:user?.createdBy,
-      isAdmin: user?.isAdmin,
-      email: user?.email,
-      about:user?.about,
-      createdOn: user?.createdOn,
-      isActive: user?.isActive,
-      userImage: user?.userImage,
-      userKey: user?.userKey,
-      updatedOn: user?.updatedOn,
-      allowedCompanies: user?.allowedCompanies,
-      isDeleted: user?.isDeleted,
-      userCompany: user?.userCompany,
-      lastMessage: user?.lastMessage,
-      memberCount: user?.memberCount,
-      pendingCount: user?.pendingCount,
-      invitedBy: user?.invitedBy,
-      invitedOn: user?.invitedOn,
-      joinedOn: user?.joinedOn,
-      pushToken: user?.pushToken,
-  );*/
-  // ---- NEW: everything reads from Session ----
   static Session get _session => Get.find<Session>();
 
-  /// Old: `static UserDataAPI? get user => getUser();`
-  /// New: live user (nullable)
   static UserDataAPI? get user => _session.user;
 
-  /// Keep your existing usage: `APIs.me.userName`
-  /// But make it a *getter* that returns the *current* user,
-  /// falling back to an empty safe object (never null).
   static UserDataAPI get me => _session.user ?? UserDataAPIEmpty.empty();
 
-  /// If you want reactive UI with Obx:
   static Rxn<UserDataAPI> get meRx => _session.rxUser;
 
   /// Easy way to force refresh from server anywhere:
@@ -99,43 +41,11 @@ class APIs {
   static void patchMe(UserDataAPI updated) => _session.patchUserLocally(updated);
 
 
-
-/*  static String getConversationIDTask(String id1, String id2) =>
-      id1.hashCode <= id2.hashCode ? '${id1}_$id2' : '${id2}_$id1';*/
-
-  // for accessing firebase messaging (Push Notification)
   static FirebaseMessaging fMessaging = FirebaseMessaging.instance;
-
-  // for getting firebase messaging token
-/*  static Future<void> getFirebaseMessagingToken() async {
-    await fMessaging.requestPermission(alert: true,
-      badge: true,
-      sound: true,);
-    await fMessaging.getToken().then((t) async {
-      if (t != null) {
-        me.pushToken = t;
-        debugPrint("push token==============");
-        debugPrint(me.pushToken);
-        hitAPIToPushRegister(me.pushToken);
-      }
-    });
-   *//* // for handling foreground messages
-    FirebaseMessaging.onMessage.listen((RemoteMessage message) {
-      log('Got a message whilst in the foreground!');
-      log('Message data: ${message.data}');
-
-      if (message.notification != null) {
-        log('Message also contained a notification: ${message.notification}');
-      }
-    });*//*
-  }*/
-
 
   static Future<String?>? _pendingToken;
 
-  // You already call this in your verify flow. Keep doing that.
   static Future<void> getFirebaseMessagingToken() async {
-    // If a fetch is already running, await it instead of starting a new one.
     if (_pendingToken != null) {
       final existing = await _pendingToken!;
       if (existing != null && existing.isNotEmpty) {
@@ -145,7 +55,6 @@ class APIs {
       return;
     }
 
-    // ========= Permissions per platform =========
     if (kIsWeb) {
       final s = await fMessaging.requestPermission(alert: true, badge: true, sound: true);
       if (s.authorizationStatus == AuthorizationStatus.denied) return;
@@ -168,7 +77,6 @@ class APIs {
       await fMessaging.setAutoInitEnabled(true);
     }
 
-    // ========= Token fetch with backoff & hard-failure handling =========
     _pendingToken = _getTokenWithBackoff();
     try {
       final token = await _pendingToken!;
@@ -177,11 +85,9 @@ class APIs {
         hitAPIToPushRegister(token);
       }
     } finally {
-      // Allow future fetches if needed
       _pendingToken = null;
     }
 
-    // Keep server in sync when FCM rotates the token
     FirebaseMessaging.instance.onTokenRefresh.listen((t) {
       if (t.isNotEmpty) {
         me.pushToken = t;
@@ -198,21 +104,17 @@ class APIs {
     for (int attempt = 1; attempt <= maxAttempts; attempt++) {
       try {
         if (kIsWeb) {
-          // Add your VAPID key here if you use web
           return await fMessaging.getToken(/* vapidKey: 'YOUR_VAPID' */);
         } else {
           return await fMessaging.getToken();
         }
       } catch (e) {
         final msg = e.toString();
-        // Retry only for transient cases like SERVICE_NOT_AVAILABLE / IOException
         final isTransient = msg.contains('SERVICE_NOT_AVAILABLE') ||
             msg.contains('IOException') ||
             msg.contains('SERVICE_NOT_READY');
 
         if (!isTransient || attempt == maxAttempts) {
-          // Hard failure: don’t loop forever. Likely no Play Services / misconfig / permanently blocked.
-          // You could show a one-time hint to the user here if needed.
           break;
         }
         await Future.delayed(Duration(milliseconds: delayMs));
@@ -228,7 +130,6 @@ class APIs {
   }
   static var deviceName, deviceType, deviceID;
 
-  // To getting device type (Android or IOS)
   static getDeviceData() async {
     DeviceInfoPlugin info = DeviceInfoPlugin();
     if (Platform.isAndroid) {
@@ -267,24 +168,17 @@ class APIs {
           ? "web"
           : Platform.isAndroid
           ? "android"
-          : 'ios', //android,ios,web
+          : 'ios',
       "device_id": deviceID,
-      // "device_name": deviceName,
     };
      Get.find<PostApiServiceImpl>()
         .registerPushTokenApiCall(dataBody: dataBody)
         .then((value) async {})
         .onError((error, stackTrace) {
-      // errorDialog(error.toString());
     });
   }
 
   static Future<String?> getTargetToken({String? email, String? phone}) async {
-    // if ((email == null || email == 'null' || email.isEmpty) &&
-    //     (phone == null || phone == 'null' || phone.isEmpty)) {
-    //   print("❌ Error: Provide either email or phone");
-    //   return null;
-    // }
 
     Query<Map<String, dynamic>> query = FirebaseFirestore.instance.collection('users');
 
@@ -312,13 +206,10 @@ class APIs {
       final body = {
         "to": chatUser.pushToken ,
         "notification": {
-          "title": me.userCompany?.displayName??'', //our name should be send
+          "title": me.userCompany?.displayName??'',
           "body": msg,
           "android_channel_id": "chats"
         },
-        // "data": {
-        //   "some_data": "User ID: ${me.id}",
-        // },
       };
 
       var res = await post(Uri.parse('https://fcm.googleapis.com/fcm/send'),
@@ -328,10 +219,9 @@ class APIs {
             'key=BJt_tuDwKCr6OR8Gibo9KMKsJfSjB3rje9fn7Q31qGPyxAi9SKF11kf8HYOd__Zo7Wubg_xgbhkZzykxRojmN9g'
           },
           body: jsonEncode(body));
-      // log('Response status: ${res.statusCode}');
-      // log('Response body: ${res.body}');
+
     } catch (e) {
-      //log('\nsendPushNotificationE: $e');
+
     }
   }
 

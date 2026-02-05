@@ -1,6 +1,5 @@
 import 'package:AccuChat/Constants/assets.dart';
 import 'package:AccuChat/Constants/colors.dart';
-import 'package:AccuChat/Screens/Chat/screens/auth/models/get_uesr_Res_model.dart';
 import 'package:AccuChat/Screens/Chat/screens/chat_tasks/Presentation/Views/task_chat_screen.dart';
 import 'package:AccuChat/Screens/Home/Presentation/Controller/company_members_controller.dart';
 import 'package:AccuChat/Screens/Home/Presentation/Controller/home_controller.dart';
@@ -14,23 +13,15 @@ import 'package:get/get.dart';
 import 'package:swipe_to/swipe_to.dart';
 import 'package:flutter/foundation.dart' show kIsWeb;
 import '../../../../routes/app_routes.dart';
-import '../../../../utils/animated_badge.dart';
 import '../../../../utils/data_not_found.dart';
 import '../../../../utils/helper_widget.dart';
 import '../../../../utils/networl_shimmer_image.dart';
-import '../../../Chat/api/apis.dart';
-import '../../../Chat/screens/chat_tasks/Presentation/Controllers/chat_home_controller.dart';
-import '../../../Chat/screens/chat_tasks/Presentation/Controllers/chat_screen_controller.dart';
-import '../../../Chat/screens/chat_tasks/Presentation/Controllers/task_controller.dart';
-import '../../../Chat/screens/chat_tasks/Presentation/Controllers/task_home_controller.dart';
 import '../../../Chat/screens/chat_tasks/Presentation/Views/chat_screen.dart';
 import '../../../Chat/screens/chat_tasks/Presentation/dialogs/profile_dialog.dart';
 
 class CompanyMembers extends GetView<CompanyMemberController> {
   CompanyMembers({super.key});
 
-  // DashboardController dcController =
-  //     Get.put<DashboardController>(DashboardController());
   DateTime _lastCall = DateTime.fromMillisecondsSinceEpoch(0);
 
   bool canFetch() {
@@ -43,8 +34,8 @@ class CompanyMembers extends GetView<CompanyMemberController> {
   @override
   Widget build(BuildContext context) {
     final size = MediaQuery.of(context).size;
-    final bool isWide = size.width >= 900; // responsive breakpoint
-    final double maxContentWidth = 900; // center content on large screens
+    final bool isWide = size.width >= 900;
+    const double maxContentWidth = 900;
 
     return Scaffold(
       appBar: _buildAppBar(),
@@ -126,9 +117,7 @@ class CompanyMembers extends GetView<CompanyMemberController> {
                     if (n is! ScrollEndNotification) {
                       return false;
                     }
-
                     final m = n.metrics;
-
                     if (m.extentAfter < 200 &&
                         !controller.isLoading.value &&
                         controller.hasMore &&
@@ -172,7 +161,7 @@ class CompanyMembers extends GetView<CompanyMemberController> {
                                   child: CircleAvatar(
                                       radius: isWide
                                           ? 22
-                                          : 20, // slightly larger on wide
+                                          : 20,
                                       backgroundColor:
                                           appColorGreen.withOpacity(.1),
                                       child: Icon(

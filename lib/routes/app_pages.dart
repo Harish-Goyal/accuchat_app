@@ -38,7 +38,6 @@ import '../Screens/Home/Presentation/View/show_company_members.dart';
 import '../Screens/Settings/Presentation/Views/role_list_screen.dart';
 import '../Screens/splash/binding/binding.dart';
 import '../Screens/splash/presentation/views/splash_screen.dart';
-import '../main.dart';
 import '../utils/notification_redirects.dart';
 import 'app_routes.dart';
 
@@ -48,7 +47,7 @@ class AppPages {
     if (!kIsWeb)
       GetPage(
         name: AppRoutes.splash,
-        page: () => SplashScreen(),
+        page: () => const SplashScreen(),
         bindings: [SplashBinding()],
       ),
     GetPage(
@@ -72,7 +71,7 @@ class AppPages {
     ),
     GetPage(
       name: AppRoutes.create_company,
-      page: () => CreateCompanyScreen(),
+      page: () => const CreateCompanyScreen(),
       bindings: [CreateCompanyBinding()],
     ),
     GetPage(
@@ -87,7 +86,7 @@ class AppPages {
     ),
     GetPage(
       name: AppRoutes.invite_member,
-      page: () => InviteMembersScreen(),
+      page: () => const InviteMembersScreen(),
       bindings: [InviteMemBinding()],
     ),
     GetPage(
@@ -97,7 +96,7 @@ class AppPages {
     ),
     GetPage(
       name: AppRoutes.invitations_r,
-      page: () => InvitationsScreen(),
+      page: () => const InvitationsScreen(),
       bindings: [InvitationsBinding()],
     ),
     GetPage(
@@ -112,7 +111,7 @@ class AppPages {
     ),
     GetPage(
       name: AppRoutes.member_sr,
-      page: () => GroupMembersScreen(),
+      page: () => const GroupMembersScreen(),
       bindings: [GrBrMemberBinding()],
     ),
     GetPage(
@@ -122,7 +121,7 @@ class AppPages {
     ),
     GetPage(
       name: AppRoutes.add_broadcasts_member,
-      page: () => AddBroadcastsMembersScreen(),
+      page: () => const AddBroadcastsMembersScreen(),
       bindings: [AddBroadcastsMemBinding()],
     ),
     GetPage(
@@ -157,7 +156,7 @@ class AppPages {
     ),
     GetPage(
       name: AppRoutes.task_threads,
-      page: () => TaskThreadScreen(),
+      page: () => const TaskThreadScreen(),
       bindings: [TaskThreadBinding()],
     ),
 
@@ -168,7 +167,7 @@ class AppPages {
     ),
     GetPage(
       name: AppRoutes.view_profile,
-      page: () => ViewProfileScreen(),
+      page: () => const ViewProfileScreen(),
       bindings: [ViewProfileBinding()],
     ),
     GetPage(
@@ -203,7 +202,7 @@ class AppPages {
     ),
     GetPage(
       name: AppRoutes.verify_otp,
-      page: () => VerifyOtpScreen(),
+      page: () => const VerifyOtpScreen(),
       bindings: [VerifyOTPBinding()],
     ),
   ];

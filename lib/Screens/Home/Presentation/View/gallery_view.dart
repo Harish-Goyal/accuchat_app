@@ -1,5 +1,6 @@
 import 'package:AccuChat/Constants/assets.dart';
 import 'package:AccuChat/Constants/colors.dart';
+import 'package:AccuChat/Screens/Home/Presentation/Controller/home_controller.dart';
 import 'package:AccuChat/Screens/Home/Presentation/View/create_folder_dialog.dart';
 import 'package:AccuChat/utils/custom_container.dart';
 import 'package:AccuChat/utils/custom_flashbar.dart';
@@ -51,25 +52,23 @@ class GalleryTab extends GetView<GalleryController> {
               GetBuilder<GalleryController>(
                 builder: (c) {
                   return WillPopScope(
-                    onWillPop: () async {
-                      final consumed = c.goUp();
-                      return !consumed;
+                    onWillPop: ()  {
+                      Get.find<DashboardController>().updateIndex(0);
+                      return Future.value(true);
                     },
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.stretch,
                       children: [
-                        // _searchBar(),
-
                         if (!c.isSearching)
                           Row(
                             children: [
                               Expanded(
                                 child: _GalleryHeader(
-                                  isRoot: c.isRoot,
-                                  breadcrumbs: c.breadcrumbs ?? [],
-                                  onBack: c.goUp,
-                                  onRootTap: c.goToRoot,
-                                  onCrumbTap: c.goToCrumb,
+                                  isRoot: true,
+                                  breadcrumbs:[],
+                                  onBack:(){return true;},
+                                  onRootTap: (){},
+                                  onCrumbTap: (v){},
                                 ),
                               ),
                               IconButton(

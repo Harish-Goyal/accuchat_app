@@ -1,5 +1,3 @@
-import 'dart:math';
-import 'package:AccuChat/Screens/Home/Presentation/Controller/gallery_controller.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:get/get.dart';
@@ -11,7 +9,6 @@ import '../../../../../Home/Models/pickes_file_item.dart';
 import '../../../../../Home/Presentation/Controller/company_service.dart';
 import '../../../../models/gallery_create.dart';
 import '../../../../models/get_company_res_model.dart';
-import '../Widgets/create_custom_folder.dart';
 
 
 class SaveToGalleryController extends GetxController {

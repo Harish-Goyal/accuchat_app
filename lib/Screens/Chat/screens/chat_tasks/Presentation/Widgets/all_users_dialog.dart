@@ -1,19 +1,14 @@
-import 'package:AccuChat/Constants/app_theme.dart';
 import 'package:AccuChat/Constants/assets.dart';
 import 'package:AccuChat/Screens/Chat/models/task_res_model.dart';
 import 'package:AccuChat/Screens/Chat/screens/chat_tasks/Presentation/Controllers/all_user_controller.dart';
 import 'package:AccuChat/Services/APIs/api_ends.dart';
 import 'package:AccuChat/utils/networl_shimmer_image.dart';
-import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import '../../../../../../Constants/colors.dart';
 import '../../../../../../utils/helper_widget.dart';
 import '../../../../../../utils/text_style.dart';
-import '../../../../api/apis.dart';
-import '../../../../models/chat_user.dart';
-import '../Views/chat_screen.dart';
 
 class AllUserScreenDialog extends GetView<AllUserController> {
    AllUserScreenDialog({super.key,this.users});
@@ -32,10 +27,10 @@ class AllUserScreenDialog extends GetView<AllUserController> {
 
   @override
   Widget build(BuildContext context) {
-    return Center(   // <-- NEW
-      child: ConstrainedBox(   // <-- NEW
+    return Center(
+      child: ConstrainedBox(
         constraints: const BoxConstraints(
-          maxWidth: 450,      // WEB me width control
+          maxWidth: 450,
         ),
         child:  Container(
                 margin: const EdgeInsets.symmetric(horizontal: 10, vertical: 10),
@@ -48,7 +43,6 @@ class AllUserScreenDialog extends GetView<AllUserController> {
                     children: [
                      Obx(()=> Row(
                           mainAxisSize: MainAxisSize.min,
-                  
                           children: [
                             controller.isSearching.value
                                 ? Expanded(
@@ -73,7 +67,7 @@ class AllUserScreenDialog extends GetView<AllUserController> {
                                   )
                                 : Expanded(
                                     flex: 4,
-                                    child: Text(
+                                    child: const Text(
                                       'Forwarded to',
                                       style: TextStyle(
                                           color: Colors.black,
@@ -86,7 +80,6 @@ class AllUserScreenDialog extends GetView<AllUserController> {
                                   onPressed: () {
                                     controller.isSearching.value = !controller.isSearching.value;
                                     controller.isSearching.refresh();
-                  
                                     if(!controller.isSearching.value){
                                       controller.searchText = '';
                                       controller.onSearch('');
@@ -107,17 +100,12 @@ class AllUserScreenDialog extends GetView<AllUserController> {
                         height: MediaQuery.of(context).size.height * 0.8,
                         child: Obx((){
                           final selectedIds = users?.map((m) => m.userCompanyId).toSet();
-                  
-                          // final listToShow = controller.searchQuery.isEmpty
-                          //     ? controller.userList
-                          //     : controller.filteredList;
-                  
                           final listToShow =(users??[]).isEmpty?controller.filteredList: controller.filteredList.where(
                                 (u) => !selectedIds!.contains(u.userCompany?.userCompanyId??0),
                           ).toList();
                           return NotificationListener<ScrollNotification>(
                             onNotification: (ScrollNotification n) {
-                              if (n is! ScrollEndNotification) return false; // ✅ avoid spam
+                              if (n is! ScrollEndNotification) return false;
                   
                               final m = n.metrics;
                   
@@ -176,7 +164,7 @@ class AllUserScreenDialog extends GetView<AllUserController> {
                                         ),
                   
                                         vGap(4),
-                                        memData?.userName==null && memData?.userCompany?.displayName==null?SizedBox():  Text(
+                                        memData?.userName==null && memData?.userCompany?.displayName==null?const SizedBox():  Text(
                                           memData?.phone != null
                                               ?memData?.phone ?? ''
                                               : memData?.email ?? '',
@@ -187,13 +175,6 @@ class AllUserScreenDialog extends GetView<AllUserController> {
                                       ],
                                     ),
                                     onTap: () {
-                                      /* Navigator.push(
-                                        context,
-                                        MaterialPageRoute(
-                                          builder: (_) => ChatScreen(user: listToShow[i]),
-                                        ),
-                                      );
-                                        */
                                       Navigator.pop(context, listToShow[i]);
                                     },
                                   );

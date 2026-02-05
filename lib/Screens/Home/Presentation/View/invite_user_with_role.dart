@@ -12,6 +12,8 @@ import '../../../../utils/gradient_button.dart';
 import '../Controller/invite_member_with_role_controller.dart';
 
 class InviteUserRoleScreen extends StatelessWidget {
+  const InviteUserRoleScreen({super.key});
+
   @override
   Widget build(BuildContext context) {
     return GetBuilder<InviteUserRoleController>(
@@ -36,12 +38,12 @@ class InviteUserRoleScreen extends StatelessWidget {
                     children: [
                       TextButton(
                         onPressed: controller.selectAllRoles,
-                        child: Text('Select All'),
+                        child: const Text('Select All'),
                       ),
                       const SizedBox(width: 12),
                       TextButton(
                         onPressed: controller.deselectAllRoles,
-                        child: Text('Deselect All'),
+                        child: const Text('Deselect All'),
                       ),
                     ],
                   ),
@@ -50,7 +52,7 @@ class InviteUserRoleScreen extends StatelessWidget {
                   height: Get.height * .7,
                   child: ListView.builder(
                     shrinkWrap: true,
-                    physics: BouncingScrollPhysics(),
+                    physics: const BouncingScrollPhysics(),
                     itemCount: controller.users.length,
                     itemBuilder: (context, index) {
                       final user = controller.users[index];
@@ -259,7 +261,7 @@ class InviteUserRoleScreen extends StatelessWidget {
                   gradient:
                       controller.users.any((user) => user.isSelected ?? true)
                           ? buttonGradient
-                          : LinearGradient(colors: [
+                          : const LinearGradient(colors: [
                               Colors.grey,
                               Colors.grey,
                             ]),

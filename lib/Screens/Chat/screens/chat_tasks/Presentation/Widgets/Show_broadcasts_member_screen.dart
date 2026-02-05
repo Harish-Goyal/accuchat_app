@@ -34,7 +34,6 @@ class _BroadcastsMembersScreenState extends State<BroadcastsMembersScreen> {
   @override
   void initState() {
     super.initState();
-    // _currentUid = FirebaseAuth.instance.currentUser?.uid;
     _groupNameController.text = widget.chat.name??'';
     _fetchGroupMembers();
   }
@@ -137,7 +136,7 @@ class _BroadcastsMembersScreenState extends State<BroadcastsMembersScreen> {
                     children: [
                       Icon(Icons.delete_outline,color: AppTheme.redErrorColor,),
                       hGap(5),
-                      Text('Delete Broadcasts'),
+                      const Text('Delete Broadcasts'),
                     ],
                   ),
                 ),
@@ -193,7 +192,7 @@ class _BroadcastsMembersScreenState extends State<BroadcastsMembersScreen> {
                 final isSelf = user.id == _currentUid;
 
                 return ListTile(
-                  contentPadding: EdgeInsets.symmetric(vertical: 0,horizontal: 15),
+                  contentPadding: const EdgeInsets.symmetric(vertical: 0,horizontal: 15),
                   leading:
                   SizedBox(
                     width: 55,

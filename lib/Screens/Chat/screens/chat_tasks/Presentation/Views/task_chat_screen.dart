@@ -235,30 +235,6 @@ class TaskScreen extends GetView<TaskController> {
                 onRightSwipe: (detail) {
                   controller.openTaskThreadSmart(
                       context: context, groupElement: element);
-                  // Get.find<SocketController>().joinTaskEmitter(taskId: element.taskMsg.taskId??0);
-                  //
-                  // // Set the message being replied to
-                  // controller.refIdis = element.taskMsg.taskId;
-                  // controller.userIDSender = element.taskMsg.fromUser?.userId;
-                  // controller.userNameReceiver =
-                  //     element.taskMsg.toUser?.userName ?? '';
-                  // controller.userNameSender =
-                  //     element.taskMsg.fromUser?.userName ?? '';
-                  // controller.userIDReceiver = element.taskMsg.toUser?.userId;
-                  // // controller.replyToMessage = element.taskMsg;
-                  //
-                  // controller.update();
-                  //
-                  // if(kIsWeb){
-                  //   Get.toNamed("${AppRoutes.task_threads}?currentUserId=${controller.user?.userId.toString()}&taskMsgId=${element.taskMsg.taskId.toString()}"
-                  //     );
-                  //
-                  // }else{
-                  //   Get.toNamed(AppRoutes.task_threads,
-                  //       arguments: {
-                  //         'taskMsg':  element.taskMsg, 'currentUser': controller.user!
-                  //       });
-                  // }
                 },
                 child: _chatMessageTile(element,
                     data: element.taskMsg,
@@ -308,154 +284,152 @@ class TaskScreen extends GetView<TaskController> {
     formatedTime,
     required BuildContext contexts,
   }) {
-    return GestureDetector(
-      behavior: HitTestBehavior.opaque, // makes the whole area tappable
-
-      onDoubleTap: () {
-        SystemChannels.textInput.invokeMethod('TextInput.hide');
-        _showBottomSheet(sentByMe, element, data: data);
-      },
-      child: Stack(
-        clipBehavior: Clip.none,
-        children: [
-          Column(
-            crossAxisAlignment:
-                sentByMe ? CrossAxisAlignment.end : CrossAxisAlignment.start,
-            children: [
-              Align(
-                alignment: sentByMe ? Alignment.centerRight : Alignment.centerLeft,
-                child: Row(
-                  mainAxisSize: MainAxisSize.min,
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    (sentByMe)
-                        ? IconButton(
-                            onPressed: () {
-                              controller.handleForward(taskData: data);
-                            },
-                            icon: Transform(
-                                alignment: Alignment.center,
-                                transform: Matrix4.rotationY(math.pi),
-                                child: Image.asset(
-                                  forwardIcon,
-                                  height: 20,
-                                ))).paddingOnly(left: 10)
-                        : const SizedBox(),
-                    Align(
-                        alignment: sentByMe
-                            ? Alignment.centerRight
-                            : Alignment.centerLeft,
-                      child:
-                        ConstrainedBox(
-                          constraints: BoxConstraints(
-                            maxWidth: Get.width * (kIsWeb ? 0.36: 0.6)),
-                        child: Column(
-                          mainAxisSize: MainAxisSize.min,
-                          crossAxisAlignment: sentByMe
-                              ? CrossAxisAlignment.end
-                              : CrossAxisAlignment.start,
-                          children: [
-                            Container(
-                              padding: const EdgeInsets.symmetric(
-                                horizontal: 15,
-                                vertical: 15,
-                              ),
-                              margin: sentByMe
-                                  ? const EdgeInsets.only(left: 15, top: 0)
-                                  : const EdgeInsets.only(right: 15, top: 0),
-                              decoration: BoxDecoration(
-                                  color:
-                                      getTaskStatusColor(data.currentStatus?.name)
-                                          .withOpacity(.1),
-                                  border: Border.all(
-                                      color: getTaskStatusColor(
-                                          data.currentStatus?.name)),
-                                  //making borders curved
-                                  borderRadius: sentByMe
-                                      ? const BorderRadius.only(
-                                          topLeft: Radius.circular(30),
-                                          topRight: Radius.circular(30),
-                                          bottomLeft: Radius.circular(30))
-                                      : const BorderRadius.only(
-                                          topLeft: Radius.circular(30),
-                                          topRight: Radius.circular(30),
-                                          bottomRight: Radius.circular(30))),
-                              child: _taskCard(message: data, element: element),
-                            ).marginOnly(left: (0), top: 8),
-                          ],
-                        ),
-                      ),
-                    ),
-                    (!sentByMe)
-                        ? IconButton(
-                            onPressed: () {
-                              controller.handleForward(taskData: data);
-                            },
-                            icon: Image.asset(
-                              forwardIcon,
-                              height: 20,
-                            )).paddingOnly(right: 10)
-                        : const SizedBox()
-                  ],
-                ),
-              ),
-              vGap(3),
-              if ((StorageService.checkFirstTimeTask()) && isTaskMode)
-                AnimatedOpacity(
-                  opacity: 1.0,
-                  duration: const Duration(milliseconds: 2000),
-                  child: Padding(
-                    padding: const EdgeInsets.only(left: 0.0, top: 4),
-                    child: Text(
-                      "👆Tap to update status",
-                      style: TextStyle(
-                        fontSize: 12,
-                        color: appColorGreen,
-                        fontStyle: FontStyle.italic,
+    return Stack(
+      clipBehavior: Clip.none,
+      children: [
+        Column(
+          crossAxisAlignment:
+              sentByMe ? CrossAxisAlignment.end : CrossAxisAlignment.start,
+          children: [
+            Align(
+              alignment: sentByMe ? Alignment.centerRight : Alignment.centerLeft,
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  (sentByMe)
+                      ? IconButton(
+                          onPressed: () {
+                            controller.handleForward(taskData: data);
+                          },
+                          icon: Transform(
+                              alignment: Alignment.center,
+                              transform: Matrix4.rotationY(math.pi),
+                              child: Image.asset(
+                                forwardIcon,
+                                height: 20,
+                              ))).paddingOnly(left: 10)
+                      : const SizedBox(),
+                  Align(
+                      alignment: sentByMe
+                          ? Alignment.centerRight
+                          : Alignment.centerLeft,
+                    child:
+                      ConstrainedBox(
+                        constraints: BoxConstraints(
+                          maxWidth: Get.width * (kIsWeb ? 0.36: 0.6)),
+                      child: InkWell(
+                        borderRadius:sentByMe
+                            ? const BorderRadius.only(
+                            topLeft: Radius.circular(30),
+                            topRight: Radius.circular(30),
+                            bottomLeft: Radius.circular(30))
+                            : const BorderRadius.only(
+                            topLeft: Radius.circular(30),
+                            topRight: Radius.circular(30),
+                            bottomRight: Radius.circular(30)),
+                        onDoubleTap: () {
+                          SystemChannels.textInput.invokeMethod('TextInput.hide');
+                          _showBottomSheet(sentByMe, element, data: data);
+                        },
+                        child: Container(
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 15,
+                            vertical: 15,
+                          ),
+                          margin: sentByMe
+                              ? const EdgeInsets.only(left: 15, top: 0)
+                              : const EdgeInsets.only(right: 15, top: 0),
+                          decoration: BoxDecoration(
+                              color:
+                                  getTaskStatusColor(data.currentStatus?.name)
+                                      .withOpacity(.1),
+                              border: Border.all(
+                                  color: getTaskStatusColor(
+                                      data.currentStatus?.name)),
+                              borderRadius: sentByMe
+                                  ? const BorderRadius.only(
+                                      topLeft: Radius.circular(30),
+                                      topRight: Radius.circular(30),
+                                      bottomLeft: Radius.circular(30))
+                                  : const BorderRadius.only(
+                                      topLeft: Radius.circular(30),
+                                      topRight: Radius.circular(30),
+                                      bottomRight: Radius.circular(30))),
+                          child: _taskCard(message: data, element: element),
+                        ).marginOnly(left: (0), top: 8),
                       ),
                     ),
                   ),
-                ).paddingSymmetric(horizontal:0),
-              Row(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Text(
-                    formatedTime ?? '',
-                    textAlign: TextAlign.start,
-                    style: BalooStyles.baloonormalTextStyle(
-                        color: Colors.grey, size: 13),
-                  ).marginOnly(left: 0, right: 15),
+                  (!sentByMe)
+                      ? IconButton(
+                          onPressed: () {
+                            controller.handleForward(taskData: data);
+                          },
+                          icon: Image.asset(
+                            forwardIcon,
+                            height: 20,
+                          )).paddingOnly(right: 10)
+                      : const SizedBox()
                 ],
               ),
-              vGap(15),
-            ],
-          ),
-          Positioned(
-              right: sentByMe ? 22 : null,
-              left: sentByMe ? null : 22,
-              top: -4,
-              child: GestureDetector(
-                // borderRadius: BorderRadius.circular(12),
-                onTapUp: (details){
-                  _showStatusPopup(
-                    isME: sentByMe,
-                    task: data,
-                    contextt: contexts, // use the local BuildContext
-                    globalPos: details.globalPosition, // from TapUpDetails
-                  );
-                },
-                child: Container(
-                  padding: const EdgeInsets.symmetric(vertical: 5,horizontal: 12 ),
-                  decoration: BoxDecoration(
-                    borderRadius: BorderRadius.circular(12),
-                    color: getTaskStatusColor(data.currentStatus?.name?.capitalizeFirst)
+            ),
+            vGap(3),
+            if ((StorageService.checkFirstTimeTask()) && isTaskMode)
+              AnimatedOpacity(
+                opacity: 1.0,
+                duration: const Duration(milliseconds: 2000),
+                child: Padding(
+                  padding: const EdgeInsets.only(left: 0.0, top: 4),
+                  child: Text(
+                    "👆Tap to update status",
+                    style: TextStyle(
+                      fontSize: 12,
+                      color: appColorGreen,
+                      fontStyle: FontStyle.italic,
+                    ),
                   ),
-                  child: Text(data.currentStatus?.name??'',style: BalooStyles.baloonormalTextStyle(color: Colors.white,size: 13),),
                 ),
+              ).paddingSymmetric(horizontal:0),
+            Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Text(
+                  formatedTime ?? '',
+                  textAlign: TextAlign.start,
+                  style: BalooStyles.baloonormalTextStyle(
+                      color: Colors.grey, size: 13),
+                ).marginOnly(left: 0, right: 15),
+              ],
+            ),
+            vGap(15),
+          ],
+        ),
+        Positioned(
+            right: sentByMe ? 22 : null,
+            left: sentByMe ? null : 22,
+            top: -4,
+            child: GestureDetector(
+              // borderRadius: BorderRadius.circular(12),
+              onTapUp: (details){
+                _showStatusPopup(
+                  isME: sentByMe,
+                  task: data,
+                  contextt: contexts, // use the local BuildContext
+                  globalPos: details.globalPosition, // from TapUpDetails
+                );
+              },
+              child: Container(
+                padding: const EdgeInsets.symmetric(vertical: 5,horizontal: 12 ),
+                decoration: BoxDecoration(
+                  borderRadius: BorderRadius.circular(12),
+                  color: getTaskStatusColor(data.currentStatus?.name?.capitalizeFirst)
+                ),
+                child: Text(data.currentStatus?.name??'',style: BalooStyles.baloonormalTextStyle(color: Colors.white,size: 13),),
               ),
-              ),
-        ],
-      ),
+            ),
+            ),
+      ],
     );
   }
 
@@ -1172,7 +1146,7 @@ class TaskScreen extends GetView<TaskController> {
   Widget _chatInput() {
     return Container(
       // height: Get.height*.4,
-      padding: EdgeInsets.symmetric(
+      padding: const EdgeInsets.symmetric(
           vertical: 8, horizontal: 12),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.end,
@@ -1196,7 +1170,7 @@ class TaskScreen extends GetView<TaskController> {
                     child: Column(
                       children: [
                         ConstrainedBox(
-                          constraints: BoxConstraints(
+                          constraints: const BoxConstraints(
                               maxHeight: 48, minHeight: 48),
                           child: Container(
                             // color: Colors.red,
@@ -2527,7 +2501,7 @@ class TaskScreen extends GetView<TaskController> {
     );
 
     if (selectedDateTime.isBefore(now)) {
-      Get.snackbar("Invalid Time", "You cannot select past time!",duration: Duration(seconds: 6));
+      Get.snackbar("Invalid Time", "You cannot select past time!",duration: const Duration(seconds: 6));
       return;
     }
 

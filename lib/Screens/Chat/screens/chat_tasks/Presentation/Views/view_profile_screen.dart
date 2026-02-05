@@ -6,20 +6,15 @@ import 'package:AccuChat/Screens/Chat/screens/chat_tasks/Presentation/Views/prof
 import 'package:AccuChat/utils/helper_widget.dart';
 import 'package:AccuChat/utils/networl_shimmer_image.dart';
 import 'package:AccuChat/utils/text_style.dart';
-import 'package:cached_network_image/cached_network_image.dart';
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-
 import '../../../../../../Services/APIs/api_ends.dart';
 import '../../../../../../main.dart';
 import '../../../../../../routes/app_routes.dart';
 import '../../../../helper/my_date_util.dart';
-import '../../../../models/chat_user.dart';
 import '../Widgets/profile_zoom.dart';
 import '../dialogs/profile_dialog.dart';
 
-//view profile screen -- to view profile of user
 class ViewProfileScreen extends GetView<ViewProfileController> {
   const ViewProfileScreen({super.key});
 
@@ -30,7 +25,6 @@ class ViewProfileScreen extends GetView<ViewProfileController> {
 
 
       return GestureDetector(
-        // for hiding keyboard
         onTap: () => FocusScope.of(context).unfocus(),
         child: Scaffold(
             //app bar

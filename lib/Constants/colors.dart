@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 
  Color appColor = const Color(0xFFffaf2c);
- // Color appColor = const Color(0xFF1c61a6);
  Color lightAppColor = const Color(0xFFFC8F48);
  Color appColorYellow = const Color(0xFFffaf2c);
  Color appColorPerple = const Color(0xFFa068f0);
@@ -9,25 +8,12 @@ import 'package:flutter/material.dart';
 
 
  Color lightCreamColor = const Color(0xFFF6E9E0);
- // Color gradientColor1 = HexColor.fromHex('#2EBB8 F');
- // Color gradientColor2 = HexColor.fromHex('#F1F8FE');
- // Color gradientColor3 = HexColor.fromHex('#FF8125');
- // Color gradientColor4= HexColor.fromHex('#FFFFFF');
  Color gradientColor1 = const Color(0xFF2EBB8F);
  Color gradientColor2 = const Color(0xFFF1F8FE);
  Color gradientColor3 =const Color(0xFFFF8125);
  Color gradientColor4=const Color(0xFFFFFFFF);
 
-
-
  Color creamButtonColor=const Color(0xFFFBF8F5);
- // Color blueGradientColor = HexColor.fromHex('#44CDB5');
-
-
-
-
-
- // Color appColor =Color(0xF0E58D49);
  Color whiteColor = Colors.white;
  Color blackColor = Colors.black;
 const Color blueColor = Color.fromRGBO(10, 96, 132, 1.0);
@@ -94,5 +80,4 @@ const COLOR_pinkM = MaterialColor(
  LinearGradient buttonGradient = LinearGradient(colors: [
 appColorGreen,
 appColorYellow,
-// appColorPerple
 ]);

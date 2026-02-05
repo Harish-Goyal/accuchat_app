@@ -1,18 +1,14 @@
 import 'package:AccuChat/Screens/Chat/screens/chat_tasks/Presentation/Controllers/all_user_controller.dart';
 import 'package:AccuChat/Screens/Chat/screens/chat_tasks/Presentation/Controllers/chat_screen_controller.dart';
-import 'package:AccuChat/Screens/Chat/screens/chat_tasks/Presentation/Controllers/chats_broadcasts_controller.dart';
 import 'package:AccuChat/Screens/Chat/screens/chat_tasks/Presentation/Controllers/create_broadcats_controller.dart';
 import 'package:AccuChat/Screens/Chat/screens/chat_tasks/Presentation/Controllers/task_controller.dart';
 import 'package:AccuChat/Screens/Chat/screens/chat_tasks/Presentation/Controllers/task_thread_controller.dart';
 import 'package:AccuChat/Screens/Chat/screens/chat_tasks/Presentation/Controllers/view_profile_controller.dart';
 import 'package:get/get.dart';
-import '../../../../Home/Presentation/Controller/socket_controller.dart';
-import '../../../api/apis.dart';
 import '../Presentation/Controllers/add_broadcard_mem_controller.dart';
 import '../Presentation/Controllers/add_group_mem_controller.dart';
 import '../Presentation/Controllers/chat_home_controller.dart';
 import '../Presentation/Controllers/members_gr_br_controller.dart';
-import '../Presentation/Controllers/save_in_accuchat_gallery_controller.dart';
 import '../Presentation/Controllers/task_home_controller.dart';
 
 class AddBroadcastsMemBinding extends Bindings {
@@ -78,12 +74,7 @@ class TaskScreenBinding extends Bindings {
   }
 }
 
-class ChatBroadcastBinding extends Bindings {
-  @override
-  void dependencies() {
-    Get.put<ChatsBroadcastsController>(ChatsBroadcastsController());
-  }
-}
+
 
 class CreateBroadcastBinding extends Bindings {
   @override
@@ -99,6 +90,7 @@ class TaskThreadBinding extends Bindings {
         fenix: true);
   }
 }
+
 class ViewProfileBinding extends Bindings {
   @override
   void dependencies() {

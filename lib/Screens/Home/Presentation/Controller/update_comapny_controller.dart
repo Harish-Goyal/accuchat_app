@@ -1,9 +1,6 @@
-import 'package:AccuChat/Screens/Chat/models/company_model.dart';
 import 'package:AccuChat/Screens/Chat/screens/chat_tasks/Presentation/Controllers/chat_home_controller.dart';
 import 'package:AccuChat/Screens/Home/Presentation/Controller/compnaies_controller.dart';
-import 'package:AccuChat/Screens/Home/Presentation/Controller/home_controller.dart';
 import 'package:AccuChat/routes/app_routes.dart';
-import 'package:AccuChat/utils/shares_pref_web.dart';
 import 'package:AccuChat/utils/web_file_picekr.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/foundation.dart';
@@ -12,11 +9,9 @@ import 'package:flutter/services.dart';
 import 'package:get/get.dart';
 import 'package:http_parser/http_parser.dart';
 import 'package:mime/mime.dart';
-
 import '../../../../Constants/themes.dart';
 import '../../../../Services/APIs/local_keys.dart';
 import '../../../../Services/APIs/post/post_api_service_impl.dart';
-import '../../../../Services/storage_service.dart';
 import '../../../../main.dart';
 import '../../../../utils/custom_flashbar.dart';
 import '../../../../utils/helper_widget.dart';
@@ -24,7 +19,6 @@ import '../../../../utils/text_style.dart';
 import '../../../Chat/api/apis.dart';
 import '../../../Chat/models/get_company_res_model.dart';
 import 'package:dio/dio.dart' as multi;
-
 import '../../../Chat/screens/auth/models/get_uesr_Res_model.dart';
 import 'company_service.dart';
 

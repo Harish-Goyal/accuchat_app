@@ -1,22 +1,17 @@
-import 'package:AccuChat/Screens/Chat/models/company_model.dart';
 import 'package:AccuChat/Screens/Chat/screens/auth/Presentation/Controllers/accept_invite_controller.dart';
 import 'package:AccuChat/Services/APIs/api_ends.dart';
 import 'package:AccuChat/utils/data_not_found.dart';
 import 'package:AccuChat/utils/text_style.dart';
-
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-
 import '../../../../../../Constants/colors.dart';
 import '../../../../../../utils/custom_container.dart';
 import '../../../../../../utils/custom_dialogue.dart';
 import '../../../../../../utils/helper_widget.dart';
-import '../../../../../../utils/loading_indicator.dart';
 import '../../../../../../utils/networl_shimmer_image.dart';
-import '../../../../models/invite_model.dart';
 
 class AcceptInvitationScreen extends GetView<AcceptInviteController> {
-  AcceptInvitationScreen({super.key});
+  const AcceptInvitationScreen({super.key});
 
   @override
   Widget build(BuildContext context) {

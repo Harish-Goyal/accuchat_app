@@ -1,26 +1,15 @@
-import 'package:AccuChat/Screens/Chat/models/company_model.dart';
 import 'package:AccuChat/Screens/Chat/models/get_company_res_model.dart';
 import 'package:AccuChat/Services/APIs/post/post_api_service_impl.dart';
-import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:get/get.dart';
-
-import '../../../../../../Services/APIs/local_keys.dart';
 import '../../../../../../Services/storage_service.dart';
 import '../../../../../../main.dart';
 import '../../../../../../routes/app_routes.dart';
 import '../../../../../../utils/custom_flashbar.dart';
 import '../../../../../Home/Presentation/Controller/company_service.dart';
 import '../../../../api/apis.dart';
-import '../../../../helper/notification_service.dart';
-import '../../../../models/chat_user.dart';
-import '../../../../models/invite_model.dart';
 import '../../models/pending_invites_res_model.dart';
 
 class AcceptInviteController extends GetxController {
-  // CompanyData company = CompanyData();
-
 
   bool isLoading = false;
   // var inviteId;

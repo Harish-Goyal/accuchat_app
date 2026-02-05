@@ -1,23 +1,14 @@
 import 'dart:async';
-
-import 'package:AccuChat/Screens/Chat/models/recent_chat_user_res_model.dart';
-import 'package:AccuChat/Screens/Chat/screens/chat_tasks/Presentation/Controllers/task_controller.dart';
 import 'package:flutter/foundation.dart';
 import 'package:get/get.dart';
-import 'package:AccuChat/Screens/Home/Presentation/Controller/home_controller.dart';
-import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:dio/dio.dart' as multi;
-import 'package:http_parser/http_parser.dart';
-import '../../../../../../Services/APIs/local_keys.dart';
 import '../../../../../../Services/APIs/post/post_api_service_impl.dart';
 import '../../../../../../main.dart';
 import '../../../../../../utils/custom_flashbar.dart';
 import '../../../../../Home/Presentation/Controller/company_service.dart';
-import '../../../../api/apis.dart';
-import '../../../../models/chat_user.dart';
 import '../../../../models/group_res_model.dart';
 import '../../../../models/get_company_res_model.dart';
 import '../../../../models/recent_task_user_Res.dart';

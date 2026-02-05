@@ -2,8 +2,6 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:pinch_zoom/pinch_zoom.dart';
-
-import '../../../../../../Constants/colors.dart';
 import '../../../../../../Constants/themes.dart';
 import '../../../../../../utils/backappbar.dart';
 import '../../../../../../utils/networl_shimmer_image.dart';
@@ -27,7 +25,6 @@ class ProfileZoom extends StatelessWidget {
             child: Container(
               color: AppTheme.appColor.withOpacity(.1),
               height: Get.height*.47,
-              // width: Get.width,
               child:imagePath.startsWith("http")? CustomCacheNetworkImage(imagePath??'',boxFit: BoxFit.contain):Image.file(File(imagePath)),
             ),
           ),

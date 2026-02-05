@@ -1,11 +1,8 @@
 import 'package:AccuChat/Screens/Chat/models/get_company_res_model.dart';
-import 'package:AccuChat/Screens/Settings/Model/get_company_roles_res_moel.dart';
 import 'package:AccuChat/Screens/Settings/Model/get_nav_permission_res_model.dart';
-import 'package:AccuChat/Services/APIs/local_keys.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:get/get.dart';
-
 import '../../../../Services/APIs/post/post_api_service_impl.dart';
 import '../../../../main.dart';
 import '../../../../utils/custom_flashbar.dart';
@@ -58,8 +55,6 @@ class CreateRoleController extends GetxController {
     });
   }
 
-
-
   createRoleApi() async {
     SystemChannels.textInput.invokeMethod('TextInput.hide');
     customLoader.show();
@@ -85,8 +80,6 @@ class CreateRoleController extends GetxController {
     }).whenComplete(() {});
   }
 
-
-
   void onSubmit() {
     if (roleNameController.text.isEmpty || selectedPermission == null) {
       Get.snackbar('Validation Error', 'Please fill all fields',
@@ -94,7 +87,6 @@ class CreateRoleController extends GetxController {
       return;
     }
 
-    // Submit the data to API
     final payload = {
       'role_name': roleNameController.text,
       'permission': selectedPermission,
@@ -126,7 +118,6 @@ class CreateRoleController extends GetxController {
     update();
   }
 
-  // Remove via chip delete icon
   void removePermission(String perm) {
     selectedPermissions.remove(perm);
     update();

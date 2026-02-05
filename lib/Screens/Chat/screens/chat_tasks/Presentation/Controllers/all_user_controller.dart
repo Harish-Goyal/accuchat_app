@@ -15,19 +15,7 @@ import '../../../auth/models/get_uesr_Res_model.dart';
 
 class AllUserController extends GetxController{
   AllUserController();
-  // int page =1;
   String? isRecent ='true';
-  // void onSearch(String query) {
-  //   searchQuery = query.toLowerCase();
-  //   filteredList = userList.where((item) {
-  //     return (item.displayName??'').toLowerCase().contains(searchQuery) ||
-  //         (item.email??'').toLowerCase().contains(searchQuery)||
-  //         (item.phone??'').toLowerCase().contains(searchQuery)
-  //     ;
-  //   }).toList();
-  //
-  //   update();
-  // }
 
   getArguments(){
     if (kIsWeb) {

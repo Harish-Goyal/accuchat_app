@@ -1,7 +1,6 @@
 
 import 'package:AccuChat/Screens/Chat/screens/auth/Presentation/Controllers/verify_otp_controller.dart';
 import 'package:AccuChat/utils/backappbar.dart';
-import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:get/get.dart';

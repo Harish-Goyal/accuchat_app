@@ -41,7 +41,7 @@ class LocalNotificationService {
       initSettings,
       onDidReceiveNotificationResponse: (NotificationResponse response) {
         final payload = response.payload;
-        onSelect(payload); // payload passed here
+        onSelect(payload);
       },
     );
 
@@ -60,21 +60,15 @@ class LocalNotificationService {
           '🔔 FCM received: sender=$senderId, receiver=$receiverId, me=$meId');
       debugPrint('🔔 Notification Data =${data}');
 
-      // 1️⃣ Skip if self not logged in properly
       if (meId == null || meId.isEmpty) return;
-
-      // 2️⃣ Skip if missing sender info
       if (senderId.isEmpty) return;
-
-      // 3️⃣ Skip if message is from self OR to self
       if (senderId == meId || receiverId == meId && senderId == meId) {
         return;
       }
 
-      // ✅ Safe to show notification
       final senderName = (data['display_name'] ?? '').toString().trim();
       final messageText =
-          (data['title'] ?? '').toString(); // your payload uses "title" as text
+          (data['title'] ?? '').toString();
       final companyId = data['user_company']['company_id'];
       final channelId = data['channel_id'] ?? '';
 
@@ -82,7 +76,6 @@ class LocalNotificationService {
         title: senderName.isNotEmpty ? senderName : title,
         body: messageText,
         channelId: channelId,
-        // put useful navigation data in payload (to open chat on tap)
         payload: jsonEncode({
           'type': data['type'],
           'sender_id': senderId,
@@ -98,14 +91,11 @@ class LocalNotificationService {
       type = data['messageType'];
       debugPrint('🔔 Notification Data onMessageOpenedApp =${message.data}');
       debugPrint('🔔 Notification tapped. Type: $type');
-
       UserDataAPI remoteUser = UserDataAPI();
       final normalized = Map<String, dynamic>.from(message.data);
-
       if(type=='CHAT_SEND'||type=='TASK_SEND'||type=='SEND_TASK_COMMENT'){
         remoteUser = UserDataAPI.fromJson(normalized);
       }
-
       _handleTapByType(type, remoteUser.userCompany?.companyId, user: remoteUser);
     });
   }
@@ -121,7 +111,6 @@ class LocalNotificationService {
         return;
       } else {
         getCompanyByIdApi(companyId:companyId,user: user,type: 'TASK_SEND');
-
       }
     } else if (type == 'CHAT_SEND') {
       if (companyId == APIs.me.userCompany?.companyId) {

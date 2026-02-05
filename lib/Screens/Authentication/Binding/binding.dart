@@ -7,7 +7,6 @@ class AuthenticationBinding extends Bindings {
   @override
   void dependencies() {
     Get.put<LoginController>(LoginController());
-    // Get.lazyPut<LoginController>(() => LoginController());
     Get.lazyPut<OtpVerifiedController>(() => OtpVerifiedController());
   }
 }

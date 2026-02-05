@@ -7,7 +7,6 @@ abstract class SpeechController extends GetxController {
   RxString get interimText;
   RxString get finalText;
 
-
   bool get isSupported;
 
   String get selectedLang;

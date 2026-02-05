@@ -1,7 +1,4 @@
-import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:get/get.dart';
-
-import '../../../../api/apis.dart';
 import '../../../../models/chat_user.dart';
 
 class AddBroadcastMemController extends GetxController{

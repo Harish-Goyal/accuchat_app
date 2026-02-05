@@ -2,7 +2,6 @@ import 'dart:async';
 import 'dart:io';
 import 'dart:typed_data';
 import 'package:AccuChat/Screens/Chat/screens/chat_tasks/Presentation/Controllers/save_in_accuchat_gallery_controller.dart';
-import 'package:AccuChat/Screens/Home/Presentation/Controller/genere_controller.dart';
 import 'package:dio/dio.dart' as multi;
 import 'package:path/path.dart' as p;
 import 'package:file_picker/file_picker.dart';
@@ -30,17 +29,15 @@ import 'galeery_item_controller.dart';
 
 class IndexedNode {
   final GalleryNode node;
-  final List<GalleryNode> path; // ancestors from root to parent
+  final List<GalleryNode> path;
   IndexedNode({required this.node, required this.path});
 }
 
 class GalleryController extends GetxController
     with GetSingleTickerProviderStateMixin {
   late TabController tabController;
-  //folder tile
   final RxInt renamingId = 0.obs;
 
-  // controllers & focus per node
   final Map<String, TextEditingController> _textCtrls = {};
   final Map<String, FocusNode> _focusNodes = {};
 
@@ -59,7 +56,6 @@ class GalleryController extends GetxController
     final c = textCtrlFor(id, currentName);
     c.text = currentName;
 
-    // focus + select all
     Future.microtask(() {
       final fn = focusNodeFor(id);
       fn.requestFocus();
@@ -82,87 +78,10 @@ class GalleryController extends GetxController
     renamingId.value = 0;
   }
 
-  Future<void> renameFolder(String id, String name) async {
-    // // await api.renameFolder(id, name);
-    // // update in list
-    // final idx = items.indexWhere((e) => e.id == id);
-    // if (idx != -1) {
-    //   items[idx].name = name;
-    //    // if folders is RxList
-    // }
-  }
-
-  void cancelRename() {
-    renamingId.value = 0;
-  }
-
-
-  // Stack of opened folders (root == empty)
-
-  // List<GalleryNode> get items => _stack.isEmpty ? root : _stack.last.children;
-  bool get isRoot => true;
-  List<FolderData> get breadcrumbs => List.unmodifiable([]);
-
-  void openFolder(FolderData folder) {
-    if ((folder.folderName != null || folder.folderName != '')) return;
-    (folderList ?? []).add(folder);
-    update();
-  }
-
-  bool goUp() {
-    if ((folderList ?? []).isNotEmpty) {
-      (folderList ?? []).removeLast();
-      update();
-      return true;
-    }
-    return false;
-  }
-
-  void goToRoot() {
-    if ((folderList ?? []).isNotEmpty) {
-      (folderList ?? []).clear();
-      update();
-    }
-  }
-
-  void goToCrumb(int index) {
-    // index inclusive within stack (0..last)
-    if (index < 0 || index >= (folderList ?? []).length) return;
-    (folderList ?? []).removeRange(index + 1, (folderList ?? []).length);
-    update();
-  }
-
-  // Replace with your preview/viewer
-  void openLeaf(GalleryNode node) {
-    Get.snackbar('Open', node.name ?? '',
-        snackPosition: SnackPosition.BOTTOM, duration: Duration(seconds: 6));
-  }
 
   final TextEditingController searchCtrl = TextEditingController();
   String query = '';
-  final List<IndexedNode> index = [];
 
-  // Build a flat index for global search
-  void _buildIndex() {
-    index.clear();
-    void walk(List<FolderData> nodes, List<FolderData> path) {
-      // for (final n in nodes) {
-      //   index.add(IndexedNode(node: n, path: List.unmodifiable(path)));
-      //   if (n.isFolder) {
-      //     walk(n.children, [...path, n]);
-      //   }
-      // }
-    }
-    walk((folderList ?? []), const []);
-  }
-
-  // List<IndexedNode> get searchResults {
-  //   final q = query.trim().toLowerCase();
-  //   if (q.isEmpty) return const [];
-  //   return index
-  //       .where((e) => (e.node.name ?? '').toLowerCase().contains(q))
-  //       .toList();
-  // }
 
   bool get isSearching => query.trim().isNotEmpty;
   bool isSearchingIcon = false;
@@ -171,24 +90,6 @@ class GalleryController extends GetxController
     update();
   }
 
-  // Navigate to a found node's location
-  void openSearchResult(IndexedNode hit) {
-    // Move to the folder that contains the node (if any)
-    // (folderList??[])
-    //   ..clear()
-    //   ..addAll(hit.path.where((p) => p.isFolder));
-    // update();
-    // final node = hit.node;
-    // if (node.isFolder) {
-    //   // If result is a folder, open into it
-    //   openFolder(node);
-    // } else {
-    //   // If result is a file, keep current folder (its parent) and open the leaf
-    //   openLeaf(node);
-    // }
-  }
-
-  // Override lifecycle to wire search + build index
   @override
   void onInit() {
     super.onInit();
@@ -202,7 +103,6 @@ class GalleryController extends GetxController
     resetPagination();
     hitApiToGetFolder(reset: true);
     scrollListener();
-    _buildIndex();
     searchCtrl.addListener(() => onSearchChanged(searchCtrl.text));
   }
 
@@ -212,11 +112,11 @@ class GalleryController extends GetxController
     myCompany = svc.selected;
     update();
   }
-//Create folder
 
+
+//Create folder
   void refreshGallery() async {
   hitApiToGetFolder(reset: true);
-   // homeController.update();
   }
 
   final TextEditingController nameController = TextEditingController();
@@ -355,10 +255,8 @@ class GalleryController extends GetxController
 
       final pos = scrollController.position;
 
-      // ✅ If not scrollable yet, don't paginate
       if (pos.maxScrollExtent <= 0) return;
 
-      // ✅ Trigger when user is near bottom
       const threshold = 200.0;
       final nearBottom = pos.extentAfter < threshold;
 
@@ -410,38 +308,6 @@ class GalleryController extends GetxController
     }
   }
 
-/*  hitApiToGetFolder() async {
-    SystemChannels.textInput.invokeMethod('TextInput.hide');
-    if (page.value == 1) {
-      isLoading.value = true;
-      folderList?.clear();
-    }
-    isPageLoading.value = true;
-    Get.find<PostApiServiceImpl>()
-        .getFolderApiCall(
-            ucId: myCompany?.userCompanies?.userCompanyId, page: page)
-        .then((value) async {
-      isLoading.value = false;
-      getFolderRes = value;
-      if (value.data?.rows != null && (value.data?.rows ?? []).isNotEmpty) {
-        if (page.value == 1) {
-          folderList.assignAll(getFolderRes.data?.rows ?? []);
-        } else {
-          folderList.addAll(getFolderRes.data?.rows ?? []);
-        }
-
-        page++; // next page
-      } else {
-        hasMore.value = false;
-        isPageLoading.value = false;
-      }
-      isLoading.value = false;
-      isPageLoading.value = false;
-    }).onError((error, stackTrace) {
-      isLoading.value = false;
-      isPageLoading.value = false;
-    });
-  }*/
 
 //Create folder
 
@@ -474,7 +340,6 @@ class GalleryController extends GetxController
       if (!scrollController.hasClients) return;
       final pos = scrollController.position;
 
-      // still not scrollable, but more data exists => prefetch next page
       if (pos.maxScrollExtent <= 0 && hasMore.value && !isPageLoading.value) {
         hitApiToGetFolder();
       }
@@ -486,7 +351,6 @@ class GalleryController extends GetxController
   List<Map<String, dynamic>> attachedFiles = [];
   List<XFile> images = [];
   final List<PlatformFile> webDocs = [];
-  //Upload media
   Future<void> uploadDocumentsApiCall({bool isDirect=false,required List<PickedFileItem> files, void Function(int sent, int total)? onProgress, folderName, keywords, mediaTitle,FolderData? folder}) async {
     if (files.isEmpty) {
       toast('Please select at least one document');
@@ -582,7 +446,6 @@ class GalleryController extends GetxController
     bool isDirect=false,
     required List<PickedFileItem> images,
   }) async {
-    // Hide keyboard
     SystemChannels.textInput.invokeMethod('TextInput.hide');
 
     if (images.isEmpty) {
@@ -592,7 +455,6 @@ class GalleryController extends GetxController
 
     try {
       isUploading.value = true;
-      // Build Multipart for each XFile (supports web+mobile)
       final mediaFiles = <multi.MultipartFile>[];
       for (final x in images) {
         multi.MultipartFile mf;
@@ -628,10 +490,6 @@ class GalleryController extends GetxController
         'file_path': mediaFiles, // array of docs
       };
 
-      // // If you later need reply fields:
-      // if (replyToId != null) fields['reply_to_id'] = replyToId;
-      // if (replyText?.trim().isNotEmpty == true) fields['reply_to_text'] = replyText!.trim();
-
       final formData = multi.FormData.fromMap(fields);
 
       Get.find<PostApiServiceImpl>()
@@ -640,8 +498,6 @@ class GalleryController extends GetxController
         Navigator.of(ctx).pop();
         isUploading.value  = false;
         customLoader.hide();
-        // resetPagination();
-        // hitApiToGetFolder();
         Get.to(()=>FolderItemsScreen(folderData: folder),
           binding: BindingsBuilder(() {
             final tag = 'folder_${folder?.userGalleryId}';
@@ -650,10 +506,6 @@ class GalleryController extends GetxController
             }
             Get.put(GalleryItemController(folderData: folder), tag: tag);
           }),);
-        // if(!isDirect){
-        //   final con = Get.find<GalleryController>();
-        //   con.hitApiToGetFolderItems(folder!);
-        // }
 
         toast(value.message ?? '');
       }).onError((error, stackTrace) {
@@ -715,7 +567,6 @@ class GalleryController extends GetxController
     for (final f in files) {
       final String name = f.name;
       final Uint8List bytes = f.bytes!;
-      // best effort mime guess
       final String mime = _guessImageMime(name);
       xfiles.add(XFile.fromData(
         bytes,

@@ -7,9 +7,8 @@ class PendingInvitesCard extends StatefulWidget {
   final List<String> companyNames;
   final VoidCallback? onTap;
 
-  /// Optional: override brand colors if needed
-  final Color primary; // 0xFFffaf2c
-  final Color accent;  // 0xFF08c189
+  final Color primary;
+  final Color accent;
 
   const PendingInvitesCard({
     super.key,
@@ -26,9 +25,9 @@ class PendingInvitesCard extends StatefulWidget {
 
 class _PendingInvitesCardState extends State<PendingInvitesCard>
     with TickerProviderStateMixin {
-  late final AnimationController _glowCtrl;     // for breathing shadow + sheen
-  late final AnimationController _rotateCtrl;   // for subtle rotating highlight
-  late final AnimationController _badgeCtrl;    // for pulsing count badge
+  late final AnimationController _glowCtrl;
+  late final AnimationController _rotateCtrl;
+  late final AnimationController _badgeCtrl;
 
   @override
   void initState() {
@@ -68,8 +67,6 @@ class _PendingInvitesCardState extends State<PendingInvitesCard>
     }
     final remaining = widget.companyNames.length - 1;
     return "from ${widget.companyNames.first} +$remaining more";
-    // Alternative using total invites:
-    // return "from ${widget.companyNames.first} and others";
   }
 
   @override
@@ -78,16 +75,14 @@ class _PendingInvitesCardState extends State<PendingInvitesCard>
     final c2 = widget.accent;
     final cardRadius = 20.0;
 
-    // breathing shadow value (0..1)
     final glow = CurvedAnimation(parent: _glowCtrl, curve: Curves.easeInOut);
-
     return GestureDetector(
       onTap: widget.onTap,
       child: AnimatedBuilder(
         animation: Listenable.merge([_glowCtrl, _rotateCtrl]),
         builder: (context, _) {
-          final shadowBlur = 18 + (glow.value * 12); // 18..30
-          final shadowSpread = 1 + (glow.value * 1.5); // 1..2.5
+          final shadowBlur = 18 + (glow.value * 12);
+          final shadowSpread = 1 + (glow.value * 1.5);
 
           return Container(
             height:100,
@@ -123,7 +118,6 @@ class _PendingInvitesCardState extends State<PendingInvitesCard>
             child: Stack(
               fit: StackFit.expand,
               children: [
-                // Subtle animated sheen sweeping diagonally
                 Transform.rotate(
                   angle: _rotateCtrl.value * 2 * math.pi,
                   child: Align(
@@ -145,34 +139,10 @@ class _PendingInvitesCardState extends State<PendingInvitesCard>
                   ),
                 ),
 
-                // Moving diagonal light streak
-                /*Positioned.fill(
-                  child: FractionallySizedBox(
-                    alignment: Alignment(-1.0 + (_glowCtrl.value * 2), 0.0),
-                    widthFactor: 0.28,
-                    child: Container(
-                      decoration: BoxDecoration(
-                        gradient: LinearGradient(
-                          begin: Alignment.topCenter,
-                          end: Alignment.bottomCenter,
-                          colors: [
-                            Colors.white.withOpacity(0.01),
-                            Colors.white.withOpacity(0.12),
-                            Colors.white.withOpacity(0.01),
-                          ],
-                          stops: const [0.2, 2.8, 2.0],
-                        ),
-                      ),
-                    ),
-                  ),
-                ),*/
-
-                // Content
                 Padding(
                   padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
                   child: Row(
                     children: [
-                      // Leading icon with subtle pulse ring
                       Stack(
                         clipBehavior: Clip.none,
                         children: [
@@ -198,7 +168,6 @@ class _PendingInvitesCardState extends State<PendingInvitesCard>
                               ),
                             ),
                           ),
-                          // Count badge
                           Positioned(
                             right: -4,
                             top: -4,
@@ -232,7 +201,6 @@ class _PendingInvitesCardState extends State<PendingInvitesCard>
 
                       const SizedBox(width: 14),
 
-                      // Texts
                       Expanded(
                         child: Column(
                           mainAxisAlignment: MainAxisAlignment.center,
@@ -262,7 +230,6 @@ class _PendingInvitesCardState extends State<PendingInvitesCard>
 
                             const SizedBox(height: 10),
 
-                            // CTA chip
                             Container(
                               decoration: BoxDecoration(
                                 color: Colors.white.withOpacity(0.18),
@@ -280,8 +247,8 @@ class _PendingInvitesCardState extends State<PendingInvitesCard>
                                     "View invites",
                                     style:  BalooStyles.baloosemiBoldTextStyle(color: Colors.white,size: 13),
                                   ),
-                                  SizedBox(width: 6),
-                                  Icon(
+                                  const SizedBox(width: 6),
+                                  const Icon(
                                     Icons.chevron_right_rounded,
                                     color: Colors.white,
                                     size: 20,
@@ -296,7 +263,6 @@ class _PendingInvitesCardState extends State<PendingInvitesCard>
                   ),
                 ),
 
-                // Ink ripple feel on tap (optional)
                 Positioned.fill(
                   child: Material(
                     type: MaterialType.transparency,

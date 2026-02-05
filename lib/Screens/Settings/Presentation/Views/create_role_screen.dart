@@ -16,6 +16,8 @@ import '../Controllers/create_role_controller.dart';
 
 class CreateRoleScreen extends StatelessWidget {
   final formKey = GlobalKey<FormState>();
+
+  CreateRoleScreen({super.key});
   @override
   Widget build(BuildContext context) {
     return GetBuilder<CreateRoleController>(
@@ -40,15 +42,10 @@ class CreateRoleScreen extends StatelessWidget {
                           CustomTextField(
                             hintText: "Enter role name",
                             controller: controller.roleNameController,
-                            // textInputType: TextInputType.,
-
                             focusNode: FocusNode(),
                             onFieldSubmitted: (String? value) {
-                              // FocusScope.of(Get.context!)
-                              //     .requestFocus(controller.passwordFocusNode);
                             },
                             labletext: "Role Name",
-
                             validator: (value) {
                               return value?.isEmptyField(messageTitle: "Role Name");
                             },
@@ -76,14 +73,12 @@ class CreateRoleScreen extends StatelessWidget {
                                               bool selectAll = controller.selectedPermissions.length != controller.navPermissionData.length;
                                               controller.selectedPermissions.clear();
                                               controller.selectedPermissionsIds.clear();
-
                                               if (selectAll) {
                                                 for (var perm in controller.navPermissionData) {
                                                   controller.selectedPermissions.add(perm.navigationItem ?? '');
                                                   controller.selectedPermissionsIds.add(perm.navigationItemId ?? 0);
                                                 }
                                               }
-
                                               setState(() {});
                                             },
                                             icon: Icon(Icons.select_all,color: appColorGreen,),
@@ -100,7 +95,7 @@ class CreateRoleScreen extends StatelessWidget {
                                                 ? DataNotFoundText()
                                                 : ListView(
                                               shrinkWrap: true,
-                                              padding: EdgeInsets.symmetric(vertical: 10,horizontal: 0),
+                                              padding: const EdgeInsets.symmetric(vertical: 10,horizontal: 0),
                                               children: controller
                                                   .navPermissionData
                                                   .map((perm) {
@@ -248,7 +243,6 @@ class CreateRoleScreen extends StatelessWidget {
                                                     ),
                                                   ],
                                                 )
-                                                // Text(STRING_logoutHeading,style: BalooStyles.baloomediumTextStyle(),),
                                               ],
                                             ),
                                             onOkTap: () {},
@@ -299,7 +293,6 @@ class CreateRoleScreen extends StatelessWidget {
                             controller.isPerNotSelected = true;
                           }
                         }
-
                       }),
                       vGap(80)
                     ],

@@ -1,9 +1,7 @@
 import 'dart:async';
 import 'package:get/get.dart';
-// import 'package:otp_text_field/otp_field.dart';
 
 class OtpVerifiedController extends GetxController {
-  // late OtpFieldController otpFieldController;
   String otp = "";
   String email = "";
   bool isFromForgotScreen = true;
@@ -22,9 +20,6 @@ class OtpVerifiedController extends GetxController {
   }
   @override
   void onInit() {
-    // otpFieldController = OtpFieldController();
-    // isFromForgotScreen = Get.arguments[RoutesArgument.isFromForgotScreen];
-    // email = Get.arguments[RoutesArgument.emailKey];
     super.onInit();
     timer = Timer.periodic(const Duration(seconds: 1), (_) {
       if (secondsRemaining != 0) {
@@ -46,46 +41,6 @@ class OtpVerifiedController extends GetxController {
     update();
   }
 
-  // hitOtpAPI({otp}) {
-  //   customLoader.show();
-  //   FocusManager.instance.primaryFocus!.unfocus();
-  //   Map<String,dynamic> data = {
-  //     "otp_number": otp,
-  //     "email_id": emailId
-  //   };
-  //   Get.find<AuthApiServiceImpl>().sendOtpApiCall(dataBody: data, secretKey: storage.read(user_key)).then((value) async {
-  //     customLoader.hide();
-  //     toast(value.message);
-  //     if(value.statusCode==200) {
-  //       Get.toNamed(AppRoutes.resetPassword, arguments: {'email': emailId});
-  //     }
-  //   }).onError((error, stackTrace) {
-  //     customLoader.hide();
-  //     toast(error);
-  //   }
-  //   );
-  // }
-  //
-  // hitApiToResentOtpPass(){
-  //   customLoader.show();
-  //   Map<String,dynamic>  data= {
-  //     "email_id":emailId
-  //   };
-  //   Get.find<AuthApiServiceImpl>().forgotPassApiCall(secretKey: storage.read(user_key),dataBody: data).then((value) {
-  //     customLoader.hide();
-  //     // successModel=value;
-  //     toast(value.optNumber.toString()??'');
-  //     update();
-  //   }).onError((error, stackTrace) {
-  //     customLoader.hide();
-  //     toast(error.toString());
-  //   });
-  // }
-  //
-  // hitResendOtpAPI() {
-  //   customLoader.show();
-  //   FocusManager.instance.primaryFocus!.unfocus();
-  //  }
 
   @override
   void onClose() {

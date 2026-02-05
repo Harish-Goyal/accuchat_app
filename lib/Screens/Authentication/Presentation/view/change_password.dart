@@ -11,7 +11,7 @@ import '../../../../Constants/assets.dart';
 import '../../../../utils/common_textfield.dart';
 
 class ChangePasswordScreen extends GetView<ChangePassController> {
-    ChangePasswordScreen({Key? key}) : super(key: key);
+    ChangePasswordScreen({super.key});
    final formChangePassKey = GlobalKey<FormState>();
    @override
    Widget build(BuildContext context) {
@@ -68,7 +68,7 @@ class ChangePasswordScreen extends GetView<ChangePassController> {
              validator: (value) {
                return value?.isEmptyField(messageTitle:"Old Password" );
              },
-             prefix: Icon(Icons.lock),
+             prefix: const Icon(Icons.lock),
              suffix: IconButton(
                  onPressed: () {
                    controller.showOrHidePasswordVisibility();
@@ -95,7 +95,7 @@ class ChangePasswordScreen extends GetView<ChangePassController> {
              validator: (value) {
                return value?.isEmptyField(messageTitle:"New Password" );
              },
-             prefix: Icon(Icons.lock),
+             prefix: const Icon(Icons.lock),
              suffix: IconButton(
                  onPressed: () {
                    controller.showOrHidePasswordVisibility2();
@@ -122,7 +122,7 @@ class ChangePasswordScreen extends GetView<ChangePassController> {
              validator: (value) {
                return value?.validateConfirmPassword(password: controller.conPasswordController.text,newpassword: controller.newPassController.text);
              },
-             prefix: Icon(Icons.lock),
+             prefix: const Icon(Icons.lock),
              suffix: IconButton(
                  onPressed: () {
                    controller.showOrHidePasswordVisibility3();

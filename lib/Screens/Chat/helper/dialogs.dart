@@ -5,12 +5,8 @@ import 'package:get/get.dart';
 
 class Dialogs {
   static void showSnackbar(BuildContext context, String msg) {
-    // ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-    //     content: Text(msg,style: BalooStyles.baloonormalTextStyle(),),
-    //     backgroundColor: Colors.white,
-    //     behavior: SnackBarBehavior.floating));
 
-    Get.snackbar("Alert", msg, backgroundColor: appColorGreen,colorText: Colors.white,duration: Duration(seconds: 6));
+    Get.snackbar("Notification", msg, backgroundColor: Colors.grey.shade100,colorText: Colors.white,duration: Duration(seconds: 3));
   }
 
   static void showProgressBar(BuildContext context) {

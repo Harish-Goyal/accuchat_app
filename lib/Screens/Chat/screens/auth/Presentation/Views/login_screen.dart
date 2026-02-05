@@ -19,18 +19,14 @@ class LoginScreenG extends GetView<LoginGController> {
   final _formKey = GlobalKey<FormState>();
   @override
   Widget build(BuildContext context) {
-    //initializing media query (for getting device screen size)
-    // mq = MediaQuery.of(context).size;
 
     return Scaffold(
-      //app bar
       appBar: AppBar(      scrolledUnderElevation: 0,
         surfaceTintColor: Colors.white,
         automaticallyImplyLeading: false,
         title: const Text('Welcome to AccuChat'),
       ),
 
-      //body
       body: GetBuilder<LoginGController>(
         builder: (controller) {
           return SafeArea(

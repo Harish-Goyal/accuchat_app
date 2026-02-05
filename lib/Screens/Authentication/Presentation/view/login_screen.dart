@@ -8,7 +8,6 @@ import 'package:get/get.dart';
 import '../../../../Constants/assets.dart';
 import '../../../../utils/common_textfield.dart';
 import '../../../../utils/helper_widget.dart';
-import '../../../../Constants/themes.dart';
 import '../controller/loginController.dart';
 
 class LoginScreen extends GetView<LoginController> {

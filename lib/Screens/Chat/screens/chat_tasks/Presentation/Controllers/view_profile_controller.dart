@@ -3,13 +3,11 @@ import 'package:AccuChat/main.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-
 import '../../../../../../Services/APIs/post/post_api_service_impl.dart';
 import '../../../../../../utils/custom_flashbar.dart';
 import '../../../../../../utils/helper_widget.dart';
 import '../../../../../Home/Presentation/Controller/company_service.dart';
 import '../../../../models/all_media_res_model.dart';
-import '../../../../models/chat_user.dart';
 import '../../../../models/get_company_res_model.dart';
 
 

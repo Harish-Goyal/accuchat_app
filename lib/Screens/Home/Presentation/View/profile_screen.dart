@@ -22,47 +22,40 @@ import '../Controller/home_controller.dart';
 import '../../../Settings/Presentation/Views/settings_screen.dart';
 import '../../../../main.dart';
 
-// profile screen -- to show signed in user info
 class ProfileScreen extends GetView<HProfileController> {
   ProfileScreen({super.key});
 
   final _formKey = GlobalKey<FormState>();
 
-  /// Breakpoints & sizing (desktop/tablet only; mobile untouched)
   double _maxContentWidth(double w) {
-    if (w >= 1400) return 920; // large desktop
-    if (w >= 1100) return 820; // desktop
-    if (w >= 900) return 720;  // small desktop / landscape tablet
-    if (w >= 600) return 560;  // portrait tablet
-    return w; // phones -> full width (preserves mobile UI)
+    if (w >= 1400) return 920;
+    if (w >= 1100) return 820;
+    if (w >= 900) return 720;
+    if (w >= 600) return 560;
+    return w;
   }
 
   EdgeInsets _pagePadding(BuildContext context) {
     final w = MediaQuery.of(context).size.width;
     if (w >= 900) return const EdgeInsets.symmetric(horizontal: 24, vertical: 12);
     if (w >= 600) return const EdgeInsets.symmetric(horizontal: 16, vertical: 12);
-    // phones use your original padding based on mq
     return EdgeInsets.symmetric(horizontal: mq.width * .05);
   }
 
   double _avatarSize(BuildContext context) {
     final w = MediaQuery.of(context).size.width;
-    // Original used mq.height * .18; keep that for phones
     final fallback = mq.height * .18;
-    if (w < 600) return fallback; // mobile untouched
-    // On wider screens, clamp the size so it doesn’t explode
-    return 140.0; // nice desktop/tablet size
+    if (w < 600) return fallback;
+    return 140.0;
   }
 
   @override
   Widget build(BuildContext context) {
     return GetBuilder<HProfileController>(builder: (controller) {
       return GestureDetector(
-        // for hiding keyboard
         onTap: () => FocusScope.of(context).unfocus(),
         child: Scaffold(
           backgroundColor: Colors.white,
-
           appBar: AppBar(      scrolledUnderElevation: 0,
             surfaceTintColor: Colors.white,
             backgroundColor: Colors.white,
@@ -90,18 +83,16 @@ class ProfileScreen extends GetView<HProfileController> {
           ),
 
           body: controller.isLoading
-              ? IndicatorLoading()
+              ? const IndicatorLoading()
               : Form(
             key: _formKey,
             child: LayoutBuilder(
               builder: (context, constraints) {
                 final maxW = _maxContentWidth(constraints.maxWidth);
-
                 return Center(
                   child: ConstrainedBox(
                     constraints: BoxConstraints(
                       maxWidth: maxW,
-                      // keep minWidth small so phones are unaffected
                       minWidth: 280,
                     ),
                     child: Padding(
@@ -109,18 +100,12 @@ class ProfileScreen extends GetView<HProfileController> {
                       child: SingleChildScrollView(
                         child: Column(
                           children: [
-                            // for adding some space
                             SizedBox(width: mq.width, height: mq.height * .01),
-
-                            // user profile picture
                             _ProfileAvatar(
                               controller: controller,
                               size: _avatarSize(context),
                             ),
-
                             SizedBox(height: mq.height * .03),
-
-                            // Form fields block (kept same; only constrained by parent width)
                             Column(
                               children: [
                                 CustomTextField(
@@ -156,10 +141,8 @@ class ProfileScreen extends GetView<HProfileController> {
                               ],
                             ).marginSymmetric(horizontal: 5),
 
-                            // spacing
                             SizedBox(height: mq.height * .05),
 
-                            // update profile button
                             GradientButton(
                               name: "Update",
                               onTap: () {
@@ -171,7 +154,6 @@ class ProfileScreen extends GetView<HProfileController> {
                               },
                             ),
 
-                            // Settings section (kept same)
                             const SizedBox(height: 16),
                             SettingsScreen(),
 

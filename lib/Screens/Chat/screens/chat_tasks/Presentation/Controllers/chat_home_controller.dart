@@ -16,13 +16,10 @@ import '../../../../../../routes/app_routes.dart';
 import '../../../../../../utils/custom_flashbar.dart';
 import '../../../../../Home/Models/get_pending_sent_invites_res_model.dart';
 import '../../../../../Home/Presentation/Controller/company_service.dart';
-import '../../../../api/apis.dart';
 import '../../../../helper/dialogs.dart';
-import '../../../../models/chat_user.dart';
 import '../../../../models/group_res_model.dart';
 import '../../../../models/get_company_res_model.dart';
 import '../../../auth/models/get_uesr_Res_model.dart';
-import 'chat_screen_controller.dart';
 
 
 class ChatHomeController extends GetxController{

@@ -1,8 +1,6 @@
 import 'package:AccuChat/Constants/assets.dart';
 import 'package:AccuChat/Screens/Chat/screens/chat_tasks/Presentation/Controllers/all_user_controller.dart';
-import 'package:AccuChat/Screens/Chat/screens/chat_tasks/Presentation/Views/task_chat_screen.dart';
 import 'package:AccuChat/Services/APIs/api_ends.dart';
-import 'package:AccuChat/routes/app_routes.dart';
 import 'package:AccuChat/utils/loading_indicator.dart';
 import 'package:AccuChat/utils/networl_shimmer_image.dart';
 import 'package:AccuChat/utils/text_style.dart';
@@ -11,10 +9,8 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import '../../../../../../Constants/colors.dart';
-import '../../../../../../main.dart';
 import '../../../../../../utils/helper_widget.dart';
 import '../../../auth/models/get_uesr_Res_model.dart';
-import 'chat_screen.dart';
 
 class AllUserScreen extends GetView<AllUserController> {
   AllUserScreen({super.key});

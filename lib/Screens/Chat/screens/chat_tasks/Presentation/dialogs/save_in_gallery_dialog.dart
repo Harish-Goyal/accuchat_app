@@ -1,11 +1,8 @@
 import 'dart:io';
 import 'package:AccuChat/Extension/text_field_extenstion.dart';
-import 'package:AccuChat/Screens/Chat/helper/dialogs.dart';
-import 'package:AccuChat/Screens/Chat/screens/auth/models/get_uesr_Res_model.dart';
 import 'package:AccuChat/Screens/Home/Presentation/Controller/gallery_controller.dart';
 import 'package:AccuChat/Screens/Home/Presentation/Controller/genere_controller.dart';
 import 'package:AccuChat/utils/loading_indicator.dart';
-import 'package:file_picker/file_picker.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';

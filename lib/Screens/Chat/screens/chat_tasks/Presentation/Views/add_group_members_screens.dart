@@ -22,21 +22,12 @@ class AddGroupMembersScreen extends GetView<AddGroupMemController> {
     ThemeData themeData  = Theme.of(context);
 
     return GetBuilder<AddGroupMemController>(
-     /* init: AddGroupMemController()
-        ..setData(
-          all: controller.filteredList,
-          group: controller.members,
-          current: controller.myCompany?.userCompanies?.userCompanyId,
-        ),*/
+
       builder: (controller) {
         return Scaffold(
           backgroundColor: Colors.grey.shade100,
           appBar: _buildAppBar(),
           body: _mainBody(),
-
-          // ******************************
-          // SAME FAB (NO CHANGE)
-          // ******************************
           floatingActionButton: FloatingActionButton.extended(
             onPressed: controller.selectedUserIds.isNotEmpty
                 ? () {

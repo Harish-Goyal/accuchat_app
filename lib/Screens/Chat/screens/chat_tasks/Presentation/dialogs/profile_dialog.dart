@@ -2,18 +2,13 @@ import 'package:AccuChat/Constants/assets.dart';
 import 'package:AccuChat/Services/APIs/api_ends.dart';
 import 'package:AccuChat/routes/app_routes.dart';
 import 'package:AccuChat/utils/networl_shimmer_image.dart';
-import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-
 import '../../../../../../Constants/colors.dart';
 import '../../../../../../main.dart';
-import '../../../../models/chat_user.dart';
 import '../../../auth/models/get_uesr_Res_model.dart';
-import '../../../../models/recent_chat_user_res_model.dart';
-import '../Views/view_profile_screen.dart';
 import '../Widgets/profile_zoom.dart';
 
 class ProfileDialog extends StatelessWidget {

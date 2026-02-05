@@ -329,21 +329,7 @@ class TaskThreadScreen extends GetView<TaskThreadController> {
         Row(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // (data.commentText != null &&
-            //     (data.media ?? []).isNotEmpty &&
-            //     sentByMe)
-            //     ? IconButton(
-            //     onPressed: () {
-            //       // controller.handleForward(chatId: data.chatId);
-            //     },
-            //     icon: Transform(
-            //         alignment: Alignment.center,
-            //         transform: Matrix4.rotationX(math.pi),
-            //         child: Image.asset(
-            //           forwardIcon,
-            //           height: 25,
-            //         ))).paddingOnly(left: 10)
-            //     : SizedBox(),
+
             Expanded(
               child: Column(
                 mainAxisSize: MainAxisSize.min,

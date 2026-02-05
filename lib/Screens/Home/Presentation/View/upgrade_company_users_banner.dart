@@ -7,10 +7,10 @@ import '../../../../utils/helper_widget.dart';
 import 'buy_users_dialog.dart';
 
 class UpgradeUsersBanner extends StatefulWidget {
-  final int currentUsers;     // e.g., 30
-  final int includedUsers;    // default: 20 (per company free seats)
-  final int softLimit;        // optional visual target, e.g., 20 for free tier
-  final VoidCallback? onTap;  // to override opening dialog (optional)
+  final int currentUsers;
+  final int includedUsers;
+  final int softLimit;
+  final VoidCallback? onTap;
 
   const UpgradeUsersBanner({
     super.key,
@@ -35,7 +35,7 @@ class _UpgradeUsersBannerState extends State<UpgradeUsersBanner>
     _ac = AnimationController(
       vsync: this,
       duration: const Duration(seconds: 6),
-    )..repeat(); // drives the flowing gradient + subtle sparkles
+    )..repeat();
   }
 
   @override
@@ -47,19 +47,15 @@ class _UpgradeUsersBannerState extends State<UpgradeUsersBanner>
   double get _progress {
     final base = widget.includedUsers;
     if (base <= 0) return 1;
-    // show progress relative to included users; cap to 1.0+
     return (widget.currentUsers / base).clamp(0, 2).toDouble();
   }
 
   Future<void> _openDialog() async {
     if (widget.onTap != null) return widget.onTap!.call();
 
-    // Default action: open your existing dialog
     await showDialog(
       context: context,
       builder: (_) => const BuyCompanyPackDialog(),
-      // Or show your BuyMultipleCompaniesDialog if you prefer
-      // builder: (_) => const BuyMultipleCompaniesDialog(),
     );
   }
 
@@ -67,7 +63,6 @@ class _UpgradeUsersBannerState extends State<UpgradeUsersBanner>
   Widget build(BuildContext context) {
     final bool isOverLimit = widget.currentUsers > widget.includedUsers;
     final int extra = math.max(0, widget.currentUsers - widget.includedUsers);
-
     return MouseRegion(
       onEnter: (_) => setState(() => _hover = true),
       onExit: (_) => setState(() => _hover = false),
@@ -137,11 +132,9 @@ class _UpgradeUsersBannerState extends State<UpgradeUsersBanner>
                     _AnimatedProgressBar(
                       controller: _ac,
                       value: _progress.clamp(0, 1),
-                      // will show “over” state if > 1
                       over: _progress > 1.0,
                     ),
                     vGap(8),
-                    // Footer row: hint + CTA
                     Row(
                       children: [
                         Expanded(
@@ -171,7 +164,6 @@ class _UpgradeUsersBannerState extends State<UpgradeUsersBanner>
   }
 }
 
-/// Shimmering gradient background with subtle animated sparkles
 class _AnimatedGradientCard extends StatelessWidget {
   final Widget child;
   final AnimationController controller;
@@ -213,7 +205,6 @@ class _AnimatedGradientCard extends StatelessWidget {
   }
 }
 
-/// Soft sparkles moving across the card
 class _SparklePainter extends CustomPainter {
   final double t;
   _SparklePainter(this.t);
@@ -223,7 +214,6 @@ class _SparklePainter extends CustomPainter {
     final rnd = math.Random(7);
     final paint = Paint()..color = Colors.white.withOpacity(0.20);
 
-    // 10 drifting sparkles
     for (int i = 0; i < 10; i++) {
       final baseX = size.width * (rnd.nextDouble());
       final baseY = size.height * (rnd.nextDouble());
@@ -238,7 +228,6 @@ class _SparklePainter extends CustomPainter {
   bool shouldRepaint(covariant _SparklePainter oldDelegate) => true;
 }
 
-/// Progress bar with animated shimmer
 class _AnimatedProgressBar extends StatelessWidget {
   final AnimationController controller;
   final double value; // 0..1
@@ -276,9 +265,9 @@ class _AnimatedProgressBar extends StatelessWidget {
             AnimatedBuilder(
               animation: controller,
               builder: (_, __) {
-                final x = (controller.value * 1.2) - 0.1; // -0.1..1.1
+                final x = (controller.value * 1.2) - 0.1;
                 return Align(
-                  alignment: Alignment(x * 2 - 1, 0), // -1..+1
+                  alignment: Alignment(x * 2 - 1, 0),
                   child: Container(
                     width: 40,
                     decoration: BoxDecoration(
@@ -301,7 +290,6 @@ class _AnimatedProgressBar extends StatelessWidget {
   }
 }
 
-/// Small translucent capsule
 class _BadgeChip extends StatelessWidget {
   final String text;
   final Color bg;
@@ -324,7 +312,6 @@ class _BadgeChip extends StatelessWidget {
   }
 }
 
-/// CTA pill button with subtle pulse on hover/tap
 class _PillButton extends StatefulWidget {
   final VoidCallback onTap;
   final String label;

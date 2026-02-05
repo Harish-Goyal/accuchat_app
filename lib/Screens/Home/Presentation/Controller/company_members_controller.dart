@@ -1,16 +1,13 @@
 import 'dart:async';
-
 import 'package:AccuChat/Screens/Home/Presentation/Controller/compnaies_controller.dart';
 import 'package:AccuChat/main.dart';
 import 'package:AccuChat/utils/custom_flashbar.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-
 import '../../../../Services/APIs/local_keys.dart';
 import '../../../../Services/APIs/post/post_api_service_impl.dart';
 import '../../../../utils/text_style.dart';
-import '../../../Chat/api/apis.dart';
 import '../../../Chat/models/invite_model.dart';
 import '../../../Chat/models/get_company_res_model.dart';
 import '../../../Chat/screens/auth/models/get_uesr_Res_model.dart';
@@ -23,7 +20,6 @@ class CompanyMemberController extends GetxController{
 
   var companyId;
   var companyName;
-  // List<Members> members=[];
 
   @override
   void onInit() {
@@ -37,12 +33,9 @@ class CompanyMemberController extends GetxController{
   getArguments(){
     if (kIsWeb) {
       companyId = Get.parameters['companyId'];
-      //company members api
-      // members = Get.parameters['members'];
       companyName = Get.parameters['companyName'];
     } else if(Get.arguments!=null){
       companyId = Get.arguments['companyId'];
-      // members = Get.arguments['members'];
       companyName = Get.arguments['companyName'];
     }
   }
@@ -114,7 +107,6 @@ class CompanyMemberController extends GetxController{
         if (scrollController.position.pixels >=
             scrollController.position.maxScrollExtent - 100 &&
             !isPageLoading && hasMore) {
-          // resetPaginationForNewChat();
           hitAPIToGetMember();
         }
       });
@@ -196,7 +188,6 @@ class CompanyMemberController extends GetxController{
     final creatorId = myCompany?.createdBy;
     final targetId = memData?.userId;
 
-    // Basic null-guards
     if (meId == null || creatorId == null || targetId == null) {
       toast("Something went wrong. Please try again.");
       return;
@@ -206,21 +197,17 @@ class CompanyMemberController extends GetxController{
     final removingCreator = targetId == creatorId;
     final removingSelf = targetId == meId;
 
-    // 1) Never allow removing the company creator
     if (removingCreator) {
       toast("You cannot remove the company creator.");
       return;
     }
 
-    // 2) Block creator from removing themself (if you want this rule)
     if (isCreator && removingSelf) {
       toast("You are not allowed to remove yourself. Transfer ownership or delete the company.");
       return;
     }
 
-    // 3) Only creator can remove members (adjust if you add roles later)
     if (!isCreator) {
-      // Option A: block non-creator from removing anyone (including self)
       toast("You don't have permission to remove members.");
       return;
 

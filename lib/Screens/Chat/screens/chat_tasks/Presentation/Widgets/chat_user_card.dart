@@ -1,32 +1,23 @@
 import 'package:AccuChat/Constants/colors.dart';
-import 'package:AccuChat/Constants/themes.dart';
 import 'package:AccuChat/Screens/Chat/screens/chat_tasks/Presentation/Controllers/chat_home_controller.dart';
 import 'package:AccuChat/Screens/Chat/screens/chat_tasks/Presentation/Controllers/chat_screen_controller.dart';
 import 'package:AccuChat/Screens/Chat/screens/chat_tasks/Presentation/Controllers/task_controller.dart';
 import 'package:AccuChat/Screens/Chat/screens/chat_tasks/Presentation/Controllers/task_home_controller.dart';
-import 'package:AccuChat/Screens/Home/Presentation/Controller/home_controller.dart';
 import 'package:AccuChat/Services/APIs/api_ends.dart';
 import 'package:AccuChat/routes/app_routes.dart';
-import 'package:AccuChat/utils/helper_widget.dart';
 import 'package:AccuChat/utils/text_style.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-
-import '../../../../../../Constants/app_theme.dart';
 import '../../../../../../Constants/assets.dart';
 import '../../../../../../utils/networl_shimmer_image.dart';
-import '../../../../../Home/Presentation/Controller/socket_controller.dart';
 import '../../../../api/apis.dart';
 import '../../../../helper/my_date_util.dart';
 import '../../../../../../main.dart';
-import '../../../../models/chat_user.dart';
-import '../../../../models/message.dart';
 import '../../../auth/models/get_uesr_Res_model.dart';
 import '../../../../models/recent_chat_user_res_model.dart';
 import '../dialogs/profile_dialog.dart';
 
-//card to represent a single user in home screen
 class ChatUserCard extends StatefulWidget with WidgetsBindingObserver {
   UserDataAPI? user;
 
@@ -38,7 +29,6 @@ class ChatUserCard extends StatefulWidget with WidgetsBindingObserver {
 
 class _ChatUserCardState extends State<ChatUserCard>
     with WidgetsBindingObserver {
-  // last message info (if null --> no message)
   RecentChatUserList? _message;
 
   @override

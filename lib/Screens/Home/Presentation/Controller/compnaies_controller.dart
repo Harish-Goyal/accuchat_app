@@ -1,6 +1,5 @@
 import 'package:AccuChat/Screens/Chat/screens/auth/models/get_uesr_Res_model.dart';
 import 'package:AccuChat/Screens/Home/Presentation/Controller/company_service.dart';
-import 'package:AccuChat/Screens/Home/Presentation/Controller/socket_controller.dart';
 import 'package:AccuChat/utils/custom_flashbar.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
