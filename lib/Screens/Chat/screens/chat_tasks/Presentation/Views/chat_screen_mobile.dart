@@ -1330,8 +1330,6 @@ class ChatScreenMobile extends GetView<ChatScreenController> {
     }
 
     final c = Get.put(AddGroupMemController());
-
-    // ✅ pass the selected group/user directly
     c.setGroupChat(user);
 
     try {
@@ -1375,7 +1373,6 @@ class ChatScreenMobile extends GetView<ChatScreenController> {
   _micButton(Function() appendSpeechToInput){
     return  Obx(() {
       final listening = speechC.isListening.value;
-
       return Builder(
         builder: (micContext) {
           return InkWell(
@@ -1456,61 +1453,36 @@ class ChatScreenMobile extends GetView<ChatScreenController> {
   }
 
   bool isVisibleUpload = true;
-  void _appendSpeechToInput() {
-    if (!Get.isRegistered<ChatScreenController>()) return;
-    if (controller.isClosed) return;
 
-    final text = speechC.getCombinedText().trim();
-    if (text.isEmpty) return;
-
-    final old = controller.textController.text.trim();
-    final combined = old.isEmpty ? text : '$old $text';
-
-    controller.textController.value = controller.textController.value.copyWith(
-      text: combined,
-      selection: TextSelection.collapsed(offset: combined.length),
-      composing: TextRange.empty,
-    );
-
-    speechC.finalText.value = '';
-    speechC.interimText.value = '';
-  }
-  // bottom chat input field
   Widget _chatInput(BuildContext context) {
-    // ✅ don't put controller every rebuild
-
-
- /*   void _appendSpeechToInput() {
+  void appendSpeechToInput() {
       final text = speechC.getCombinedText();
       if (text.isEmpty) return;
-
       final old = controller.textController.text.trim();
       controller.textController.text = old.isEmpty ? text : '$old $text';
-
       controller.textController.selection = TextSelection.fromPosition(
         TextPosition(offset: controller.textController.text.length),
       );
-
       speechC.finalText.value = '';
       speechC.interimText.value = '';
-    }*/
-
-    void _hardFocusBack() {
-      FocusManager.instance.primaryFocus?.unfocus();
-      WidgetsBinding.instance.addPostFrameCallback((_) {
-        if (controller.messageParentFocus.canRequestFocus) {
-          controller.messageParentFocus.requestFocus();
-        }
-      });
     }
+
+    // void _hardFocusBack() {
+    //   FocusManager.instance.primaryFocus?.unfocus();
+    //   WidgetsBinding.instance.addPostFrameCallback((_) {
+    //     if (controller.messageParentFocus.canRequestFocus) {
+    //       controller.messageParentFocus.requestFocus();
+    //     }
+    //   });
+    // }
 
     void _send() {
       if (kIsWeb && speechC.isListening.value) {
         speechC.stop(skipOnStopped:true);
-        _appendSpeechToInput();
+        appendSpeechToInput();
       }
       _sendMessage();
-      _hardFocusBack();
+      // _hardFocusBack();
     }
 
     return Container(
@@ -1557,8 +1529,8 @@ class ChatScreenMobile extends GetView<ChatScreenController> {
                         InkWell(
                           onTap: () {
                             speechC.stop(skipOnStopped:true);
-                            _appendSpeechToInput();
-                            _hardFocusBack();
+                            appendSpeechToInput();
+                            // _hardFocusBack();
                           },
                           child: Container(
                             padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
@@ -1576,112 +1548,107 @@ class ChatScreenMobile extends GetView<ChatScreenController> {
                 }),
 
                 // ✅ Input Row (field + icons)
-                GestureDetector(
-                  behavior: HitTestBehavior.translucent,
-                  onTap: _hardFocusBack, // web reattach fix
-                  child: ConstrainedBox(
-                    constraints: BoxConstraints(maxHeight: Get.height * .3, minHeight: 30),
-                    child: Container(
-                      margin: const EdgeInsets.symmetric(vertical: 4),
-                      decoration: BoxDecoration(
-                        borderRadius: BorderRadius.circular(8),
-                        border: Border.all(color: AppTheme.appColor.withOpacity(.2)),
-                      ),
-                      child: Row(
-                        children: [
-                          Expanded(
-                            // ✅ Focus wrapper WITHOUT focusNode (prevents cycle)
-                            child: Focus(
-                              skipTraversal: true,
-                              onKeyEvent: (node, event) {
-                                if (!kIsWeb) return KeyEventResult.ignored;
-                                if (event is! KeyDownEvent) return KeyEventResult.ignored;
+                ConstrainedBox(
+                  constraints: BoxConstraints(maxHeight: Get.height * .3, minHeight: 30),
+                  child: Container(
+                    margin: const EdgeInsets.symmetric(vertical: 4),
+                    decoration: BoxDecoration(
+                      borderRadius: BorderRadius.circular(8),
+                      border: Border.all(color: AppTheme.appColor.withOpacity(.2)),
+                    ),
+                    child: Row(
+                      children: [
+                        Expanded(
+                          // ✅ Focus wrapper WITHOUT focusNode (prevents cycle)
+                          child: Focus(
+                            // skipTraversal: true,
+                            onKeyEvent: (node, event) {
+                              if (!kIsWeb) return KeyEventResult.ignored;
+                              if (event is! KeyDownEvent) return KeyEventResult.ignored;
 
-                                if (event.logicalKey == LogicalKeyboardKey.enter) {
-                                  final keys = HardwareKeyboard.instance.logicalKeysPressed;
-                                  final shiftPressed =
-                                      keys.contains(LogicalKeyboardKey.shiftLeft) ||
-                                          keys.contains(LogicalKeyboardKey.shiftRight);
+                              if (event.logicalKey == LogicalKeyboardKey.enter) {
+                                final keys = HardwareKeyboard.instance.logicalKeysPressed;
+                                final shiftPressed =
+                                    keys.contains(LogicalKeyboardKey.shiftLeft) ||
+                                        keys.contains(LogicalKeyboardKey.shiftRight);
 
-                                  if (shiftPressed) return KeyEventResult.ignored; // newline
+                                if (shiftPressed) return KeyEventResult.ignored; // newline
 
-                                  _sendMessage();
+                                _sendMessage();
 
-                                  // ✅ hard reattach focus (web)
-                                  FocusManager.instance.primaryFocus?.unfocus();
-                                  WidgetsBinding.instance.addPostFrameCallback((_) {
-                                    controller.messageParentFocus.requestFocus();
-                                  });
+                                // ✅ hard reattach focus (web)
+                                // FocusManager.instance.primaryFocus?.unfocus();
+                                // WidgetsBinding.instance.addPostFrameCallback((_) {
+                                //   controller.messageParentFocus.requestFocus();
+                                // });
 
-                                  return KeyEventResult.handled;
-                                }
+                                return KeyEventResult.handled;
+                              }
 
-                                return KeyEventResult.ignored;
+                              return KeyEventResult.ignored;
+                            },
+                            child: TextFormField(
+                              controller: controller.textController,
+                              focusNode: controller.messageParentFocus, // ✅ only here
+                              autofocus: !kIsWeb, // web me autofocus glitch karta hai
+                              keyboardType: TextInputType.multiline,
+                              textInputAction: TextInputAction.newline,
+                              maxLines: null,
+                              minLines: 1,
+                              onTap: () {
+                                // web reattach
+                                // WidgetsBinding.instance.addPostFrameCallback((_) {
+                                //   controller.messageParentFocus.requestFocus();
+                                // });
                               },
-                              child: TextFormField(
-                                controller: controller.textController,
-                                focusNode: controller.messageParentFocus, // ✅ only here
-                                autofocus: !kIsWeb, // web me autofocus glitch karta hai
-                                keyboardType: TextInputType.multiline,
-                                textInputAction: TextInputAction.newline,
-                                maxLines: null,
-                                minLines: 1,
-                                onTap: () {
-                                  // web reattach
-                                  WidgetsBinding.instance.addPostFrameCallback((_) {
-                                    controller.messageParentFocus.requestFocus();
-                                  });
-                                },
-                                decoration: InputDecoration(
-                                  isDense: true,
-                                  hintText: 'Type Something...',
-                                  hintStyle: BalooStyles.baloonormalTextStyle(),
-                                  contentPadding: const EdgeInsets.symmetric(horizontal: 8),
-                                  border: InputBorder.none,
-                                  focusedBorder: InputBorder.none,
-                                  enabledBorder: InputBorder.none,
-                                  errorBorder: InputBorder.none,
+                              decoration: InputDecoration(
+                                isDense: true,
+                                hintText: 'Type Something...',
+                                hintStyle: BalooStyles.baloonormalTextStyle(),
+                                contentPadding: const EdgeInsets.symmetric(horizontal: 8),
+                                border: InputBorder.none,
+                                focusedBorder: InputBorder.none,
+                                enabledBorder: InputBorder.none,
+                                errorBorder: InputBorder.none,
 
-                                ),
                               ),
                             ),
                           ),
+                        ),
 
-                          if (kIsWeb) _micButton(_appendSpeechToInput),
+                        if (kIsWeb) _micButton(appendSpeechToInput),
 
-                          if (!isTaskMode)
-                            InkWell(
-                              onTap: () async {
-                                showUploadOptions(context);
-                                WidgetsBinding.instance.addPostFrameCallback((_) {
-                                  controller.messageParentFocus.requestFocus();
-                                });
-                              },
-                              child: IconButtonWidget(Icons.upload_outlined, isIcon: true),
-                            ),
+                        if (!isTaskMode)
+                          InkWell(
+                            onTap: () async {
+                              showUploadOptions(context);
+                              // WidgetsBinding.instance.addPostFrameCallback((_) {
+                              //   controller.messageParentFocus.requestFocus();
+                              // });
+                            },
+                            child: IconButtonWidget(Icons.upload_outlined, isIcon: true),
+                          ),
 
-                          if (!isTaskMode)
-                            InkWell(
-                              onTap: () async {
-                                openWhatsAppEmojiPicker(
-                                  context: context,
-                                  textController: controller.textController,
-                                  onSend:() {
-                                    WidgetsBinding.instance.addPostFrameCallback((_) {
-                                      controller.messageParentFocus.requestFocus();
-                                    });
-                                  } ,
-                                  isMobile: false,
-                                );
+                        if (!isTaskMode)
+                          InkWell(
+                            onTap: () async {
+                              openWhatsAppEmojiPicker(
+                                context: context,
+                                textController: controller.textController,
+                                onSend:() {
+                                  // WidgetsBinding.instance.addPostFrameCallback((_) {
+                                  //   controller.messageParentFocus.requestFocus();
+                                  // });
+                                } ,
+                                isMobile: false,
+                              );
 
-                              },
-                              child: IconButtonWidget(emojiPng),
-                            ),
-                        ],
-                      ),
+                            },
+                            child: IconButtonWidget(emojiPng),
+                          ),
+                      ],
                     ),
-                  )
-                  ,
+                  ),
                 ),
               ],
             ),

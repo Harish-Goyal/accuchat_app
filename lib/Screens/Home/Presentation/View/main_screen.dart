@@ -25,16 +25,16 @@ class AccuChatDashboard extends StatefulWidget {
 
 
 class _AccuChatDashboardState extends State<AccuChatDashboard> {
-  ChatHomeController? homec;
+  // ChatHomeController? homec;
 
 
   @override
   void initState() {
-    if (Get.isRegistered<ChatHomeController>()) {
-      homec = Get.find<ChatHomeController>();
-    } else {
-      homec = Get.put(ChatHomeController());
-    }
+    // if (Get.isRegistered<ChatHomeController>()) {
+    //   homec = Get.find<ChatHomeController>();
+    // } else {
+    //   homec = Get.put(ChatHomeController());
+    // }
     super.initState();
   }
   @override
@@ -128,6 +128,12 @@ class _AccuChatDashboardState extends State<AccuChatDashboard> {
                 }*/
 
                 if (index == 0) {
+                  ChatHomeController? homec;
+                  if (Get.isRegistered<ChatHomeController>()) {
+                    homec = Get.find<ChatHomeController>();
+                  } else {
+                    homec = Get.put(ChatHomeController());
+                  }
                 if (Get.isRegistered<ChatScreenController>()) {
                   final chatc = Get.find<ChatScreenController>();
                   chatc.replyToMessage = null;
@@ -139,7 +145,7 @@ class _AccuChatDashboardState extends State<AccuChatDashboard> {
 
                     chatc.update();
                     chatc.showPostShimmer = true;
-                    chatc.resetPaginationForNewChat();
+                    // chatc.resetPaginationForNewChat();
 
                     chatc.openConversation(homec?.selectedChat.value);
                     if (homec?.selectedChat.value?.pendingCount != 0) {
@@ -158,7 +164,7 @@ class _AccuChatDashboardState extends State<AccuChatDashboard> {
                       chatc.replyToMessage = null;
                       homec?.selectedChat.value = user;
                       chatc.user =homec?.selectedChat.value;
-                      // chatc.openConversation(homec.selectedChat.value);
+                      chatc.openConversation(homec?.selectedChat.value);
                       if (homec?.selectedChat.value?.pendingCount != 0) {
                         chatc.markAllVisibleAsReadOnOpen(
                             APIs.me?.userCompany?.userCompanyId,
@@ -176,19 +182,19 @@ class _AccuChatDashboardState extends State<AccuChatDashboard> {
 
                 if (index == 1) {
                   if (kIsWeb) unregisterImage();
-                  final homec = Get.find<TaskHomeController>();
+                  final taskhomec = Get.find<TaskHomeController>();
                   if (Get.isRegistered<TaskController>()) {
                     final chatc = Get.find<TaskController>();
                     chatc.replyToMessage = null;
-                    if (homec.filteredList.isNotEmpty) {
-                      final user = homec?.filteredList[0];
-                      homec?.selectedChat.value = user;
-                      chatc.user =homec?.selectedChat.value;
+                    if (taskhomec.filteredList.isNotEmpty) {
+                      final user = taskhomec?.filteredList[0];
+                      taskhomec?.selectedChat.value = user;
+                      chatc.user = taskhomec?.selectedChat.value;
                       chatc.textController.clear();
                       chatc.update();
                       chatc.showPostShimmer = true;
-                      chatc.resetPaginationForNewChat();
-                      chatc.openConversation(homec?.selectedChat.value);
+                      // chatc.resetPaginationForNewChat();
+                      chatc.openConversation(taskhomec?.selectedChat.value);
                       // homec.selectedChat.value = homec.filteredList[0];
                       // chatc.user = homec.selectedChat.value;
                       // chatc.showPostShimmer = true;
@@ -200,14 +206,29 @@ class _AccuChatDashboardState extends State<AccuChatDashboard> {
                     print("un=registered");
                     // Future.delayed(const Duration(milliseconds: 500), () {
                     //   if (homec.filteredList.isNotEmpty) {
-                        final  chatc =  Get.put(TaskController(user: homec.filteredList[0]));
+                        final  chatc =  Get.put(TaskController(user: taskhomec.filteredList[0]));
                         // chatc.replyToMessage = null;
                         // homec.selectedChat.value = homec.filteredList[0];
                         // chatc.user = homec.selectedChat.value;
                         // // chatc.showPostShimmer = true;
                         // // chatc.resetPaginationForNewChat();
                         // //
-                        chatc.openConversation(homec.selectedChat.value);
+                    if (taskhomec.filteredList.isNotEmpty) {
+                      final user = taskhomec?.filteredList[0];
+                      taskhomec?.selectedChat.value = user;
+                      chatc.user =user;
+                      chatc.textController.clear();
+                      chatc.update();
+                      chatc.showPostShimmer = true;
+                      // chatc.resetPaginationForNewChat();
+                      chatc.openConversation(taskhomec?.selectedChat.value);
+                      // homec.selectedChat.value = homec.filteredList[0];
+                      // chatc.user = homec.selectedChat.value;
+                      // chatc.showPostShimmer = true;
+                      // chatc.openConversation(homec.selectedChat.value);
+                      // homec.selectedChat.refresh();
+                      // chatc.update();
+                    }
 
                         // homec.selectedChat.refresh();
                       // }
@@ -292,7 +313,7 @@ class _AccuChatDashboardState extends State<AccuChatDashboard> {
                               right: -10,
                               child: BottomNavBudge(
                                   budgeCount:
-                                  "${homec?.selectedChat.value?.pendingCount ?? ''}"))
+                                  "${Get.find<ChatHomeController>()?.selectedChat.value?.pendingCount ?? ''}"))
                               : const SizedBox()
                         ],
                       ),
@@ -330,7 +351,7 @@ class _AccuChatDashboardState extends State<AccuChatDashboard> {
                               right: -10,
                               child: BottomNavBudge(
                                   budgeCount:
-                                  "${homec?.selectedChat.value?.pendingCount ?? ''}"))
+                                  "${Get.find<ChatHomeController>()?.selectedChat.value?.pendingCount ?? ''}"))
                               : const SizedBox()
                         ],
                       ),
