@@ -132,7 +132,7 @@ class _ChatScreenState extends State<ChatScreen> {
 
   @override
   void dispose() {
-    speechC.stop(skipOnStopped: true);
+    // speechC.stop(skipOnStopped: true);
     speechC.onStopped = null;
     try {
       controller.itemPositionsListener.itemPositions.removeListener(controller.onPositionsChanged);
@@ -141,6 +141,7 @@ class _ChatScreenState extends State<ChatScreen> {
     if (Get.isRegistered<ChatScreenController>()) {
       Get.delete<ChatScreenController>(force: true);
     }
+
     super.dispose();
   }
 
@@ -401,7 +402,7 @@ class _ChatScreenState extends State<ChatScreen> {
           return InkWell(
             onTap: () {
               if (!speechC.isSupported) {
-                Get.snackbar('Not supported', 'Voice-to-text is not supported in this browser.');
+                Dialogs.showSnackbar(Get.context!, 'Voice-to-text is not supported in this browser.');
                 return;
               }
 
@@ -517,59 +518,107 @@ class _ChatScreenState extends State<ChatScreen> {
 
           final isHighlighted = controller.highlightedChatId == chatId;
           final userid = APIs.me?.userId;
+          final data = element.chatMessageItems;
               return AnimatedContainer(
                 duration: const Duration(milliseconds: 250),
                 color: isHighlighted ? appColorGreen.withOpacity(.3) : null,
                 child: SwipeTo(
+                  key: ValueKey(element.chatMessageItems.chatId),
                   iconColor: appColorGreen,
                   onRightSwipe: element.chatMessageItems.isActivity == 1
                       ? (v) {}
-                      : (detail) {
-                                final media = element.chatMessageItems.media;
-                                if (media == null || media.isEmpty) {
-                                  controller.refIdis = element.chatMessageItems.chatId;
-                                  controller.userIDSender = element.chatMessageItems.fromUser?.userId;
-                                  controller.userNameReceiver = element.chatMessageItems.toUser?.userCompany?.displayName ?? '';
-                                  controller.userNameSender = element.chatMessageItems.fromUser?.userCompany?.displayName ?? '';
-                                  controller.userIDReceiver = element.chatMessageItems.toUser?.userId;
-                                  controller.replyToMessage = element.chatMessageItems;
-                                  controller.update();
-                                  controller.messageParentFocus.unfocus();
-                                  if (controller.messageParentFocus.canRequestFocus) {
-                                    controller.messageParentFocus.requestFocus();
-                                  }
-                                  Get.back();
-                                } else {
-                                  final firstMedia = media.first;
-                                  controller.refIdis = element.chatMessageItems.chatId;
-                                  controller.userIDSender = element.chatMessageItems.fromUser?.userId;
-                                  controller.userNameReceiver = element.chatMessageItems.toUser?.userCompany?.displayName ?? '';
-                                  controller.userNameSender = element.chatMessageItems.fromUser?.userCompany?.displayName ?? '';
-                                  controller.userIDReceiver = element.chatMessageItems.toUser?.userId;
-                                  controller.replyToImage = firstMedia.orgFileName;
-                                  final isDoc = firstMedia.mediaType?.mediaCode == "DOC";
-                                  final msg = isDoc
-                                      ? (firstMedia.orgFileName ?? '')
-                                      : "${ApiEnd.baseUrlMedia}${firstMedia.fileName ?? ''}";
-                                  controller.replyToMessage = ChatHisList(
-                                    chatId: element.chatMessageItems.chatId,
-                                    fromUser: element.chatMessageItems.fromUser,
-                                    toUser: element.chatMessageItems.toUser,
-                                    message: msg,
-                                    replyToId: element.chatMessageItems.chatId,
-                                    replyToText: firstMedia.orgFileName,
-                                    replyToMedia: msg,
-                                  );
-                                  controller.update();
-                                  controller.messageParentFocus.unfocus();
-                                  if (controller.messageParentFocus.canRequestFocus) {
-                                    controller.messageParentFocus.requestFocus();
-                                  }
-                                  Get.back();
-                                }
+                      : (detail) async {
+                    final lockedData = data;
+                    final media = lockedData.media;
+                    if (media == null || media.isEmpty) {
+                      controller.refIdis = lockedData.chatId;
+                      controller.userIDSender = lockedData.fromUser?.userId;
+                      controller.userNameReceiver = lockedData.toUser?.userCompany?.displayName ?? '';
+                      controller.userNameSender =lockedData.fromUser?.userCompany?.displayName ?? '';
+                      controller.userIDReceiver = lockedData.toUser?.userId;
+                      controller.replyToMessage = lockedData;
+                      controller.update();
+                        controller.messageParentFocus.unfocus();
+                        if (controller.messageParentFocus.canRequestFocus) {
+                          controller.messageParentFocus.requestFocus();
+                        }
+
+                    } else {
+                      final firstMedia = media.first;
+                      controller.refIdis = lockedData.chatId;
+                      controller.userIDSender = lockedData.fromUser?.userId;
+                      controller.userNameReceiver = lockedData.toUser?.userCompany?.displayName ?? '';
+                      controller.userNameSender = lockedData.fromUser?.userCompany?.displayName ?? '';
+                      controller.userIDReceiver = lockedData.toUser?.userId;
+                      controller.replyToImage = firstMedia.orgFileName;
+                      final isDoc = firstMedia.mediaType?.mediaCode == "DOC";
+                      final msg = isDoc
+                          ? (firstMedia.orgFileName ?? '')
+                          : "${ApiEnd.baseUrlMedia}${firstMedia.fileName ?? ''}";
+                      controller.replyToMessage = ChatHisList(
+                        chatId: lockedData.chatId,
+                        fromUser: lockedData.fromUser,
+                        toUser: lockedData.toUser,
+                        message: msg,
+                        replyToId: lockedData.chatId,
+                        replyToText: firstMedia.orgFileName,
+                        replyToMedia:msg,
+                      );
+                      controller.update();
+                      controller.messageParentFocus.unfocus();
+                      if (controller.messageParentFocus.canRequestFocus) {
+
+                        controller.messageParentFocus.requestFocus();
+                    }
+                    }
+                  },
+
+                      // (detail) {
+                      //           final media = element.chatMessageItems.media;
+                      //           if (media == null || media.isEmpty) {
+                      //             controller.refIdis = element.chatMessageItems.chatId;
+                      //             controller.userIDSender = element.chatMessageItems.fromUser?.userId;
+                      //             controller.userNameReceiver = element.chatMessageItems.toUser?.userCompany?.displayName ?? '';
+                      //             controller.userNameSender = element.chatMessageItems.fromUser?.userCompany?.displayName ?? '';
+                      //             controller.userIDReceiver = element.chatMessageItems.toUser?.userId;
+                      //             controller.replyToMessage = element.chatMessageItems;
+                      //             controller.update();
+                      //             controller.messageParentFocus.unfocus();
+                      //             if (controller.messageParentFocus.canRequestFocus) {
+                      //               controller.messageParentFocus.requestFocus();
+                      //             }
+                      //             Get.back();
+                      //           } else {
+                      //             final firstMedia = media.first;
+                      //             controller.refIdis = element.chatMessageItems.chatId;
+                      //             controller.userIDSender = element.chatMessageItems.fromUser?.userId;
+                      //             controller.userNameReceiver = element.chatMessageItems.toUser?.userCompany?.displayName ?? '';
+                      //             controller.userNameSender = element.chatMessageItems.fromUser?.userCompany?.displayName ?? '';
+                      //             controller.userIDReceiver = element.chatMessageItems.toUser?.userId;
+                      //             controller.replyToImage = firstMedia.orgFileName;
+                      //             final isDoc = firstMedia.mediaType?.mediaCode == "DOC";
+                      //             final msg = isDoc
+                      //                 ? (firstMedia.orgFileName ?? '')
+                      //                 : "${ApiEnd.baseUrlMedia}${firstMedia.fileName ?? ''}";
+                      //             controller.replyToMessage = ChatHisList(
+                      //               chatId: element.chatMessageItems.chatId,
+                      //               fromUser: element.chatMessageItems.fromUser,
+                      //               toUser: element.chatMessageItems.toUser,
+                      //               message: msg,
+                      //               replyToId: element.chatMessageItems.chatId,
+                      //               replyToText: firstMedia.orgFileName,
+                      //               replyToMedia: msg,
+                      //             );
+                      //             controller.update();
+                      //             controller.messageParentFocus.unfocus();
+                      //             if (controller.messageParentFocus.canRequestFocus) {
+                      //               controller.messageParentFocus.requestFocus();
+                      //             }
+                      //             Get.back();
+                      //           }
 
 
-                        },
+                        // },
                   child: _chatMessageTile(
                       data: element.chatMessageItems,
                       sentByMe: (userid?.toString() ==
@@ -1008,6 +1057,7 @@ class _ChatScreenState extends State<ChatScreen> {
                 onOpenImageViewer: (mediaurls, startIndex) {
                   // push your gallery view
                   // Get.to(() => ImageViewer(urls: urls, initialIndex: startIndex));
+                  print("opened========");
                   Get.to(
                     () => GalleryViewerPage(
                       onReply: () {

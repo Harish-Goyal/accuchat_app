@@ -646,36 +646,10 @@ class ChatScreenController extends GetxController {
       ChatPresence.activeChatId = null;
     }
 
-    // ✅ cancel timers
     searchDelay?.cancel();
     _pageDebounce?.cancel();
-
-    // ✅ remove pagination listener to avoid callbacks
-    try {
-      itemPositionsListener.itemPositions.removeListener(onPositionsChanged);
-    } catch (_) {}
-
-    // ✅ dispose controllers/focus nodes
-    textController.dispose();
-    seacrhCon.dispose();
-    updateMsgController.dispose();
-    messageParentFocus.dispose();
-
-    // ✅ dispose scroll controllers (you created them)
-    scrollController.dispose();
-    scrollController2.dispose();
-
     super.onClose();
   }
-
-/*  @override
-  void onClose() {
-    if (ChatPresence.activeChatId == user?.userCompany?.userCompanyId) {
-      ChatPresence.activeChatId = null;
-    }
-
-    super.onClose();
-  }*/
 
 
   getArguments() {
@@ -774,32 +748,6 @@ class ChatScreenController extends GetxController {
   bool showPostShimmer = true;
   bool isPageLoading = false;
 
-  ScrollController scrollController = ScrollController();
-  ScrollController scrollController2 = ScrollController();
-
-  scrollListener() {
-    if (kIsWeb) {
-      scrollController.addListener(() {
-        if (scrollController.position.pixels >=
-                scrollController.position.maxScrollExtent - 100 &&
-            !isPageLoading &&
-            hasMore) {
-          // resetPaginationForNewChat();
-          hitAPIToGetChatHistory("scrollListener");
-        }
-      });
-    } else {
-      scrollController2.addListener(() {
-        if (scrollController2.position.pixels <=
-                scrollController2.position.minScrollExtent + 50 &&
-            !isPageLoading &&
-            hasMore) {
-          // resetPaginationForNewChat();
-          hitAPIToGetChatHistory("scrollListenermobile");
-        }
-      });
-    }
-  }
 
   void resetPaginationForNewChat() {
     page = 1;
@@ -923,32 +871,11 @@ class ChatScreenController extends GetxController {
     });
   }*/
 
-  MediaType _mediaTypeForPath(String path) {
-    final mime = lookupMimeType(path) ?? 'application/octet-stream';
-    final parts = mime.split('/');
-    return MediaType(parts.first, parts.length > 1 ? parts[1] : 'octet-stream');
-  }
-
-// Returns a filesystem path from XFile/File/String
-  String _pathOf(dynamic item) {
-    if (item is String) return item;
-    if (item is File) return item.path;
-    // XFile has .path as well
-    try {
-      final path = (item as dynamic).path as String;
-      return path;
-    } catch (_) {
-      throw ArgumentError('Unsupported image item type: ${item.runtimeType}');
-    }
-  }
 
   Future<void> receivePickedDocuments(List<PlatformFile> files) async {
     webDocs.clear();
     webDocs.addAll(files);
     update();
-
-    // If your upload API expects Multipart on web:
-    // Build multipart payloads from PlatformFile.bytes and names, then:
     uploadDocumentsApiCall(
       files: files,
       onProgress: (sent, total) {
@@ -1033,7 +960,7 @@ class ChatScreenController extends GetxController {
     }
   }*/
   Future<void> uploadMediaApiCall({
-    required String type, // e.g., ChatMediaType.IMAGE.name
+    required String type,
     int? replyToId,
     String? replyText,
     void Function(int sent, int total)? onProgress,
@@ -1480,7 +1407,7 @@ class ChatScreenController extends GetxController {
 
     // Safety: don’t forward to yourself
     final targetUcId = selectedUser.userCompany?.userCompanyId;
-    if (targetUcId != null &&
+/*    if (targetUcId != null &&
         APIs.me?.userCompany?.userCompanyId != null &&
         targetUcId == APIs.me?.userCompany?.userCompanyId) {
       Get.snackbar('Oops', 'You cannot forward a message to yourself.',
@@ -1488,13 +1415,13 @@ class ChatScreenController extends GetxController {
           colorText: Colors.black,
           duration: Duration(seconds: 6));
       return;
-    }
+    }*/
 
     // Route by type
     if (selectedUser.userCompany?.isGroup == 1) {
       // GROUP
       socket.sendMessage(
-        groupId: targetUcId ?? 0, // group UCID from selector
+        groupId: targetUcId ?? 0,
         type: "group",
         isGroup: 1,
         companyId: selectedUser.userCompany?.companyId,
@@ -1618,8 +1545,7 @@ class ChatScreenController extends GetxController {
   void _toast(String msg) {
     // Plug your toast/snackbar here
     // e.g., Get.snackbar('Info', msg); or your existing toast()
-    Get.snackbar('AccuChat', msg,
-        snackPosition: SnackPosition.BOTTOM, duration: Duration(seconds: 6));
+    Dialogs.showSnackbar(Get.context!, msg);
   }
 }
 

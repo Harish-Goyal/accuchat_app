@@ -138,19 +138,16 @@ class _AccuChatDashboardState extends State<AccuChatDashboard> {
                   final chatc = Get.find<ChatScreenController>();
                   chatc.replyToMessage = null;
                   if (homec!.filteredList.isNotEmpty) {
-                    final user = homec?.filteredList[0];
-                    homec?.selectedChat.value = user;
-                    chatc.user =homec?.selectedChat.value;
+                    final user = homec.filteredList[0];
+                    homec.selectedChat.value = user;
+                    chatc.user =homec.selectedChat.value;
                     chatc.textController.clear();
-
                     chatc.update();
                     chatc.showPostShimmer = true;
-                    // chatc.resetPaginationForNewChat();
-
-                    chatc.openConversation(homec?.selectedChat.value);
-                    if (homec?.selectedChat.value?.pendingCount != 0) {
+                    chatc.openConversation(chatc.user);
+                    if (homec.selectedChat.value?.pendingCount != 0) {
                       chatc.markAllVisibleAsReadOnOpen(
-                          APIs.me?.userCompany?.userCompanyId,
+                          APIs.me.userCompany?.userCompanyId,
                           chatc.user?.userCompany?.userCompanyId,
                           chatc.user?.userCompany?.isGroup == 1 ? 1 : 0);
                     }
@@ -158,16 +155,16 @@ class _AccuChatDashboardState extends State<AccuChatDashboard> {
                   }
                 } else {
                     if (homec!.filteredList.isNotEmpty) {
-                      final user = homec?.filteredList[0];
+                      final user = homec.filteredList[0];
                     final chatc =Get.put(ChatScreenController(user: user));
                       chatc.showPostShimmer = true;
                       chatc.replyToMessage = null;
-                      homec?.selectedChat.value = user;
-                      chatc.user =homec?.selectedChat.value;
-                      chatc.openConversation(homec?.selectedChat.value);
-                      if (homec?.selectedChat.value?.pendingCount != 0) {
+                      homec.selectedChat.value = user;
+                      chatc.user =homec.selectedChat.value;
+                      chatc.openConversation(chatc.user);
+                      if (homec.selectedChat.value?.pendingCount != 0) {
                         chatc.markAllVisibleAsReadOnOpen(
-                            APIs.me?.userCompany?.userCompanyId,
+                            APIs.me.userCompany?.userCompanyId,
                             chatc.user?.userCompany?.userCompanyId,
                             chatc.user?.userCompany?.isGroup == 1 ? 1 : 0);
                       }
@@ -187,14 +184,14 @@ class _AccuChatDashboardState extends State<AccuChatDashboard> {
                     final chatc = Get.find<TaskController>();
                     chatc.replyToMessage = null;
                     if (taskhomec.filteredList.isNotEmpty) {
-                      final user = taskhomec?.filteredList[0];
-                      taskhomec?.selectedChat.value = user;
-                      chatc.user = taskhomec?.selectedChat.value;
+                      final user = taskhomec.filteredList[0];
+                      taskhomec.selectedChat.value = user;
+                      chatc.user = taskhomec.selectedChat.value;
                       chatc.textController.clear();
                       chatc.update();
                       chatc.showPostShimmer = true;
                       // chatc.resetPaginationForNewChat();
-                      chatc.openConversation(taskhomec?.selectedChat.value);
+                      chatc.openConversation(taskhomec.selectedChat.value);
                       // homec.selectedChat.value = homec.filteredList[0];
                       // chatc.user = homec.selectedChat.value;
                       // chatc.showPostShimmer = true;
@@ -203,10 +200,12 @@ class _AccuChatDashboardState extends State<AccuChatDashboard> {
                       // chatc.update();
                     }
                   } else {
-                    print("un=registered");
                     // Future.delayed(const Duration(milliseconds: 500), () {
-                    //   if (homec.filteredList.isNotEmpty) {
-                        final  chatc =  Get.put(TaskController(user: taskhomec.filteredList[0]));
+                      if (taskhomec.filteredList.isNotEmpty) {
+                        final chatc = Get.put(
+                          TaskController(user: taskhomec.filteredList[0]),
+                          tag: "task_${taskhomec.filteredList[0].userId ?? 'mobile'}",
+                        );
                         // chatc.replyToMessage = null;
                         // homec.selectedChat.value = homec.filteredList[0];
                         // chatc.user = homec.selectedChat.value;
@@ -214,14 +213,13 @@ class _AccuChatDashboardState extends State<AccuChatDashboard> {
                         // // chatc.resetPaginationForNewChat();
                         // //
                     if (taskhomec.filteredList.isNotEmpty) {
-                      final user = taskhomec?.filteredList[0];
-                      taskhomec?.selectedChat.value = user;
+                      final user = taskhomec.filteredList[0];
+                      taskhomec.selectedChat.value = user;
                       chatc.user =user;
                       chatc.textController.clear();
+                      chatc.page =1;
                       chatc.update();
-                      chatc.showPostShimmer = true;
-                      // chatc.resetPaginationForNewChat();
-                      chatc.openConversation(taskhomec?.selectedChat.value);
+                      chatc.openConversation(taskhomec.selectedChat.value);
                       // homec.selectedChat.value = homec.filteredList[0];
                       // chatc.user = homec.selectedChat.value;
                       // chatc.showPostShimmer = true;
@@ -231,7 +229,7 @@ class _AccuChatDashboardState extends State<AccuChatDashboard> {
                     }
 
                         // homec.selectedChat.refresh();
-                      // }
+                      }
                     // });
                   }
                   // homec.page = 1;

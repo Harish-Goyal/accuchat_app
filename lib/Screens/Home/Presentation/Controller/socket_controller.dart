@@ -327,7 +327,6 @@ class SocketController extends GetxController with WidgetsBindingObserver {
       registerUpdateRecentTaskUserListenerMobile();
     }
 
-    // task listener
     socket?.off('send_task_listener');
     socket?.on('send_task_listener', (messages) {
       debugPrint("Listing task......4");
@@ -351,9 +350,8 @@ class SocketController extends GetxController with WidgetsBindingObserver {
         if(Get.isRegistered<DashboardController>()){
           dashCon = Get.find<DashboardController>();
         }
-// allow only when the message belongs to CURRENT OPEN CHAT
         final isMessageForThisChat =
-            (msgFrom == selectedUserId && msgTo == meId) || // selectedUser → me
+            (msgFrom == selectedUserId && msgTo == meId) ||
                 (msgFrom == meId && msgTo == selectedUserId);
         if (isMessageForThisChat) {
           TaskData chatMessageItems = TaskData(

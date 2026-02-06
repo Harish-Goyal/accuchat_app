@@ -1,4 +1,5 @@
 import 'package:AccuChat/Constants/assets.dart';
+import 'package:AccuChat/Constants/colors.dart';
 import 'package:AccuChat/Screens/Chat/screens/auth/models/get_uesr_Res_model.dart';
 import 'package:AccuChat/Screens/Chat/screens/chat_tasks/Presentation/Controllers/chat_screen_controller.dart';
 import 'package:AccuChat/utils/helper_widget.dart';
@@ -30,6 +31,7 @@ class GalleryViewerPage extends GetView<GalleryViewerController> {
       builder: (c) {
         return Scaffold(
           backgroundColor: Colors.white,
+
           appBar: AppBar(      scrolledUnderElevation: 0,
             surfaceTintColor: Colors.white,
             backgroundColor: Colors.white,
@@ -54,7 +56,7 @@ class GalleryViewerPage extends GetView<GalleryViewerController> {
                         await ShareHelper.shareNetworkFile(
                          c.urls[c.index],
                           text: "From AccuChat",
-                          fileName: c.urls[c.index], // optional if you store it
+                          fileName: c.urls[c.index],
                         );
                         // await ShareHelper.shareNetworkFile(
                         //   "${ApiEnd.baseUrlMedia}${c.urls[c.index]}",
@@ -76,7 +78,6 @@ class GalleryViewerPage extends GetView<GalleryViewerController> {
                       chatC.userNameSender =
                           c.chathis?.fromUser?.userCompany?.displayName ?? '';
                       chatC.userIDReceiver = c.chathis?.toUser?.userId;
-
                       chatC.replyToMessage = ChatHisList(
                         chatId: c.chathis?.chatId,
                         fromUser: c.chathis?.fromUser,
@@ -88,7 +89,6 @@ class GalleryViewerPage extends GetView<GalleryViewerController> {
                         replyToMedia: c.urls[c.index],
                         // replyToT0ext:getFileNameFromUrl(c.urls[c.index]),
                       );
-
                       chatC.update();
                       c.update();
                       Get.back();
@@ -185,29 +185,31 @@ class GalleryViewerPage extends GetView<GalleryViewerController> {
   _mainBody() {
     return Stack(
       children: [
-        PhotoViewGallery.builder(
-          pageController: _pageController,
-          itemCount: controller.urls.length,
-          backgroundDecoration: const BoxDecoration(color: Colors.black),
-          builder: (context, index) {
-            final url = controller.urls[index];
-            return PhotoViewGalleryPageOptions(
-              imageProvider: CachedNetworkImageProvider(url),
-              heroAttributes: PhotoViewHeroAttributes(tag: url),
-              minScale: PhotoViewComputedScale.contained,
-              maxScale: PhotoViewComputedScale.covered * 3.0,
-              errorBuilder: (context, error, stackTrace) => Center(
-                child: Image.asset(appIcon, fit: BoxFit.contain),
-              ),
-            );
-          },
-          onPageChanged: (i) => controller.setIndex(i),
-          loadingBuilder: (_, __) => const Center(
-            child: CircularProgressIndicator(),
+        Container(
+          decoration: BoxDecoration(borderRadius: BorderRadius.circular(12),border: Border.all(color: greyText)),
+          child: PhotoViewGallery.builder(
+            pageController: _pageController,
+            itemCount: controller.urls.length,
+            backgroundDecoration:  BoxDecoration(color: Colors.white,border: Border.all(color: greyText)),
+            builder: (context, index) {
+              final url = controller.urls[index];
+              return  PhotoViewGalleryPageOptions(
+                imageProvider: CachedNetworkImageProvider(url),
+                heroAttributes: PhotoViewHeroAttributes(tag: url),
+                minScale: PhotoViewComputedScale.contained,
+                maxScale: PhotoViewComputedScale.covered,
+                errorBuilder: (context, error, stackTrace) => Center(
+                  child: Image.asset(appIcon, fit: BoxFit.contain),
+                ),
+              );
+            },
+            onPageChanged: (i) => controller.setIndex(i),
+            loadingBuilder: (_, __) => const Center(
+              child: CircularProgressIndicator(),
+            ),
           ),
         ),
 
-        // Small bottom toast for status
         if (controller.toast != null)
           Positioned(
             left: 16,

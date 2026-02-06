@@ -7,6 +7,7 @@ import '../../../../../../utils/custom_flashbar.dart';
 import '../../../../../Home/Models/get_folder_res_model.dart';
 import '../../../../../Home/Models/pickes_file_item.dart';
 import '../../../../../Home/Presentation/Controller/company_service.dart';
+import '../../../../helper/dialogs.dart';
 import '../../../../models/gallery_create.dart';
 import '../../../../models/get_company_res_model.dart';
 
@@ -203,10 +204,7 @@ class SaveToGalleryController extends GetxController {
 
   void onTapSaveToFolder(BuildContext context, user) async {
      Get.back();
-     Get.snackbar('Saved', 'Item saved w2',
-         snackPosition: SnackPosition.BOTTOM,
-         backgroundColor: Colors.white,
-         colorText: Colors.black87,duration: Duration(seconds: 6));
+     Dialogs.showSnackbar(Get.context!, 'Item saved w2');
   }
 
   void loadFolders({int? parentId}) {

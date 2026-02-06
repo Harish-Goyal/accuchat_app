@@ -1,6 +1,5 @@
 import 'dart:async';
 import 'dart:io';
-import 'package:AccuChat/Screens/Chat/api/apis.dart';
 import 'package:AccuChat/Screens/Chat/models/chat_his_res_model.dart';
 import 'package:AccuChat/Screens/Chat/models/chat_history_response_model.dart';
 import 'package:AccuChat/Screens/Chat/models/task_res_model.dart';
@@ -27,6 +26,7 @@ import '../../../../../../utils/helper.dart';
 import '../../../../../Home/Presentation/Controller/company_service.dart';
 import '../../../../../Home/Presentation/Controller/socket_controller.dart';
 import '../../../../../Settings/Model/get_nav_permission_res_model.dart';
+import '../../../../helper/dialogs.dart';
 import '../../../../models/get_company_res_model.dart';
 import '../../../../models/task_status_res_model.dart';
 import '../../../auth/models/get_uesr_Res_model.dart';
@@ -100,7 +100,7 @@ class TaskController extends GetxController {
         if( Get.parameters['user']==null){
           final String? argUserId = Get.parameters['userId'];
           if (argUserId != null) {
-            getUserByIdApi(userId: int.parse(argUserId ?? ''));
+            getUserByIdApi(userId: int.parse(argUserId));
           }
         } else {
           getUserByIdApi(userId: user?.userId);
@@ -137,10 +137,8 @@ class TaskController extends GetxController {
   void openConversation(UserDataAPI? useriii) {
     user = useriii;
     _getCompany();
-    Future.delayed(const Duration(milliseconds: 500), () {
       resetPaginationForNewChat();
       hitAPIToGetTaskHistory();
-    });
     hitAPIToGetTaskStatus();
 
   }
@@ -1049,22 +1047,6 @@ class TaskController extends GetxController {
     }*//*
   }*/
 
-// Helper: build ISO deadline from selected date/time, or fall back to existing
-  String? _deadlineIsoOrExisting(TaskData task) {
-    if (selectedDate != null && selectedTime != null) {
-      final dt = DateTime(
-        selectedDate!.year, selectedDate!.month, selectedDate!.day,
-        selectedTime!.hour, selectedTime!.minute,
-      );
-      // Use UTC or keep local; pick what your server expects
-      return dt.toIso8601String();          // or: dt.toUtc().toIso8601String();
-    }
-    // fallback to existing task deadline if it exists
-    final d = task.deadline;
-    if (d is String && d.isNotEmpty) return d;
-    // if (d is DateTime) return d.toIso8601String(); // or toUtc()
-    return null;
-  }
 
   String convertUtcToIndianTime(String utcTimeString) {
     // Parse UTC string
@@ -1165,7 +1147,7 @@ class TaskController extends GetxController {
         .getTaskHistoryApiCall(
             userComId: user?.userCompany?.userCompanyId,
             page: page,
-            statusId:statusId!=null? statusId:'',
+            statusId:statusId ?? '',
       searchText: search,
       fromDate: fromDate,
       toDate: toDate
@@ -1316,15 +1298,6 @@ class TaskController extends GetxController {
 
     if (result != null && result.files.single.path != null) {
       File file = File(result.files.single.path!);
-      var ext = file.path.split('.').last;
-      final fileName =
-          'DOC_${DateTime.now().millisecondsSinceEpoch}_${result.files.single.name}';
-      /* final ref = FirebaseStorage.instance.ref().child('media/tasks/$fileName');
-
-      await ref.putFile(
-          file, SettableMetadata(contentType: 'application/$ext'));
-      final url = await ref.getDownloadURL();*/
-
       attachedFiles
           .add({'url': file, 'type': 'doc', 'name': result.files.single.name});
       update();
@@ -1347,11 +1320,8 @@ class TaskController extends GetxController {
     taskItems =(userNav??[])
         .where((nav) => nav.navigationPlace == task_details_key && nav.isActive == 1)
         .toList()
-    // sort by your configured order
       ..sort((a, b) => (a.sortingOrder??0).compareTo(b.sortingOrder??0));
 
-    print("uhrugheruhgu");
-    print(taskItems.map((v)=>v.toJson()));
 
   }
 
@@ -1420,7 +1390,6 @@ class TaskController extends GetxController {
     cameraVideo() async {
       pFile = await ImagePicker.platform.pickVideo(
           source: ImageSource.camera, maxDuration: const Duration(seconds: 30));
-      print(pFile);
       if (pFile != null) {
         file = File(pFile.path);
         isUploading = true;
@@ -1540,12 +1509,12 @@ class TaskController extends GetxController {
 
     // Safety: don’t forward to yourself
     final targetUcId = selectedUser.userCompany?.userCompanyId;
-    if (targetUcId != null &&
-        APIs.me.userCompany?.userCompanyId != null &&
-        targetUcId ==  APIs.me.userCompany?.userCompanyId) {
-      Get.snackbar('Oops', 'You cannot forward a message to yourself.',backgroundColor: Colors.white,colorText: Colors.black,duration: Duration(seconds: 6));
-      return;
-    }
+    // if (targetUcId != null &&
+    //     APIs.me.userCompany?.userCompanyId != null &&
+    //     targetUcId ==  APIs.me.userCompany?.userCompanyId) {
+    //   Get.snackbar('Oops', 'You cannot forward a message to yourself.',backgroundColor: Colors.white,colorText: Colors.black,duration: Duration(seconds: 6));
+    //   return;
+    // }
     // DIRECT — use UCID, NOT userId
     socket.forwardTaskMessage(
         taskID: taskData.taskId,
@@ -1624,8 +1593,9 @@ class TaskController extends GetxController {
     final now = DateTime.now();
     final duration = selectedDateTime.difference(now);
 
-    if (duration.isNegative)
+    if (duration.isNegative) {
       return "Oops! The selected time is in the past. Please choose a valid future time.";
+    }
 
     final hrs = duration.inHours;
     final mins = duration.inMinutes.remainder(60);
@@ -1747,19 +1717,9 @@ class TaskController extends GetxController {
     return false;
   }*/
 
-  String _inferExtFromUrl(String url) {
-    final path = Uri.tryParse(url)?.path.toLowerCase() ?? '';
-    if (path.endsWith('.png')) return '.png';
-    if (path.endsWith('.webp')) return '.webp';
-    if (path.endsWith('.jpeg')) return '.jpeg';
-    if (path.endsWith('.jpg')) return '.jpg';
-    return '.jpg';
-  }
 
   void _toast(String msg) {
-    // Plug your toast/snackbar here
-    // e.g., Get.snackbar('Info', msg); or your existing toast()
-    Get.snackbar('AccuChat', msg, snackPosition: SnackPosition.BOTTOM,duration: Duration(seconds: 6));
+    Dialogs.showSnackbar(Get.context!, msg);
   }
 }
 

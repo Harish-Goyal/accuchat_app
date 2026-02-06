@@ -111,7 +111,10 @@ class CompanyMembers extends GetView<CompanyMemberController> {
       () => controller.isLoading.value
           ? const IndicatorLoading()
           : (controller.filteredList ?? []).isEmpty
-              ? DataNotFoundText()
+              ? SizedBox(
+        height: 80,
+        width: 80,
+          child: DataNotFoundText())
               : NotificationListener<ScrollNotification>(
                   onNotification: (ScrollNotification n) {
                     if (n is! ScrollEndNotification) {
@@ -135,6 +138,7 @@ class CompanyMembers extends GetView<CompanyMemberController> {
                       final bool isWide = MediaQuery.of(context).size.width >=
                           900;
                       return SwipeTo(
+                        key: ValueKey(memData.userId),
                         iconOnLeftSwipe: Icons.delete_outline,
                         iconColor: Colors.red,
                         onLeftSwipe:

@@ -28,6 +28,7 @@ import '../../../../../../utils/helper_widget.dart';
 import '../../../../../../utils/product_shimmer_widget.dart';
 import '../../../../../Home/Presentation/Controller/socket_controller.dart';
 import '../../../../../voice_to_texx/speech_controller_factory.dart';
+import '../../../../helper/dialogs.dart';
 import '../../../../models/chat_history_response_model.dart';
 import '../../../../api/apis.dart';
 
@@ -284,18 +285,20 @@ class TaskThreadScreenWeb extends GetView<TaskThreadController> {
 
                   formatatedTime = convertUtcToIndianTime(timeString);
                 }
-
+                final data = element.comments;
                 var userid = APIs.me.userId;
                 return SwipeTo(
+                  key: ValueKey(element.comments.taskCommentId),
                   iconColor: appColorGreen,
                   onRightSwipe: (detail) {
+                    final lockedData =data;
                     // Set the message being replied to
-                    controller.refIdis = element.comments.taskCommentId;
-                    controller.userIDSender = element.comments.fromUser?.userId;
-                    controller.userNameReceiver = element.comments.toUser?.userCompany?.displayName ?? '';
-                    controller.userNameSender = element.comments.fromUser?.userCompany?.displayName ?? '';
-                    controller.userIDReceiver = element.comments.toUser?.userId;
-                    controller.replyToMessage = element.comments;
+                    controller.refIdis = lockedData.taskCommentId;
+                    controller.userIDSender = lockedData.fromUser?.userId;
+                    controller.userNameReceiver = lockedData.toUser?.userCompany?.displayName ?? '';
+                    controller.userNameSender = lockedData.fromUser?.userCompany?.displayName ?? '';
+                    controller.userIDReceiver = lockedData.toUser?.userId;
+                    controller.replyToMessage = lockedData;
                     controller.update();
                   },
                   child: _chatMessageTile(
@@ -1083,7 +1086,7 @@ class TaskThreadScreenWeb extends GetView<TaskThreadController> {
           return InkWell(
             onTap: () {
               if (!speechC.isSupported) {
-                Get.snackbar('Not supported', 'Voice-to-text is not supported in this browser.');
+                Dialogs.showSnackbar(Get.context!,'Voice-to-text is not supported in this browser.');
                 return;
               }
 

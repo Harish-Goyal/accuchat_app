@@ -116,7 +116,7 @@ class InvitationsScreen extends GetView<InvitationsController> {
                       },
                     )
                   : Center(
-                      child: SizedBox(height: 200, child: DataNotFoundText()))),
+                      child: SizedBox(height: 150, child: DataNotFoundText()))),
         ),
       );
     });

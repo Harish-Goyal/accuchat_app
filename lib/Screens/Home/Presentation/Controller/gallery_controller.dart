@@ -20,6 +20,7 @@ import '../../../Chat/helper/dialogs.dart';
 import '../../../Chat/models/gallery_node.dart';
 import '../../../Chat/models/get_company_res_model.dart';
 import '../../../Chat/screens/auth/models/get_uesr_Res_model.dart';
+import '../../../Chat/screens/chat_tasks/Presentation/Widgets/all_users_dialog.dart';
 import '../../../Chat/screens/chat_tasks/Presentation/dialogs/save_in_gallery_dialog.dart';
 import '../../Models/get_folder_res_model.dart';
 import '../../Models/pickes_file_item.dart';
@@ -777,5 +778,14 @@ class GalleryController extends GetxController
     update();
   }
 
+  Future<void> handleOnShareWithinAccuchat({context}) async {
+    final selectedUser = await showDialog<UserDataAPI>(
+      context: Get.context!,
+      builder: (_) => AllUserScreenDialog(),
+    );
+    if (selectedUser == null) return;
+    Dialogs.showSnackbar(context, "Under development");
+
+  }
 
 }

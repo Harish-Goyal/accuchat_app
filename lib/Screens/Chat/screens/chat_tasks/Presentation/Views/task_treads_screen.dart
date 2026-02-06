@@ -274,20 +274,23 @@ class TaskThreadScreen extends GetView<TaskThreadController> {
             }
 
             var userid = APIs.me.userId;
+            final data  =element.comments;
             return SwipeTo(
+              key: ValueKey(element.comments.taskCommentId),
               iconColor: appColorGreen,
               onRightSwipe: (detail) {
+                final lockedData = data;
                 // Set the message being replied to
-                controller.refIdis = element.comments.taskCommentId;
+                controller.refIdis = lockedData.taskCommentId;
                 controller.userIDSender =
-                    element.comments.fromUser?.userId;
+                    lockedData.fromUser?.userId;
                 controller.userNameReceiver =
-                    element.comments.toUser?.userCompany?.displayName ?? '';
+                    lockedData.toUser?.userCompany?.displayName ?? '';
                 controller.userNameSender =
-                    element.comments.fromUser?.userCompany?.displayName ?? '';
+                    lockedData.fromUser?.userCompany?.displayName ?? '';
                 controller.userIDReceiver =
-                    element.comments.toUser?.userId;
-                controller.replyToMessage = element.comments;
+                    lockedData.toUser?.userId;
+                controller.replyToMessage = lockedData;
 
                 controller.update();
 

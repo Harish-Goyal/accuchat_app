@@ -19,6 +19,7 @@ import '../../../../../../utils/custom_flashbar.dart';
 import '../../../../../../utils/shares_pref_web.dart';
 import '../../../../../Home/Presentation/Controller/company_service.dart';
 import '../../../../api/apis.dart';
+import '../../../../helper/dialogs.dart';
 import '../../../../models/get_company_res_model.dart';
 
 class VerifyOtpController extends GetxController{
@@ -134,8 +135,7 @@ class VerifyOtpController extends GetxController{
           .then((value) async {
         customLoader.hide();
         otpSent = true;
-        Get.snackbar("Resent", value.message??'',
-            backgroundColor: Colors.white, colorText: Colors.black);
+        Dialogs.showSnackbar(Get.context!, value.message??'');
 
         update();
       }).onError((error, stackTrace) {
@@ -146,8 +146,8 @@ class VerifyOtpController extends GetxController{
 
       startCooldown(); // restart 60s timer
     } catch (e) {
-      Get.snackbar('Error', e.toString(),
-          snackPosition: SnackPosition.BOTTOM, duration: const Duration(seconds: 6));
+      Dialogs.showSnackbar(Get.context! ,e.toString(),
+          );
     } finally {
       isSending.value = false;
     }

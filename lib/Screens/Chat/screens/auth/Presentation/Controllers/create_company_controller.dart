@@ -40,7 +40,7 @@ class CreateCompanyController extends GetxController {
 
   // Placeholder for file picker result
   String? companyLogoUrl;
-
+  Uint8List? companyLogoBytes;
   bool isLoading = false;
 
 
@@ -126,6 +126,20 @@ class CreateCompanyController extends GetxController {
       });
 
       // Attach logo only if a real file path is present
+      if (kIsWeb) {
+        if (companyLogoBytes != null && companyLogoBytes!.isNotEmpty) {
+          form.files.add(
+            MapEntry(
+              "logo",
+              multi.MultipartFile.fromBytes(
+                companyLogoBytes!,
+                filename: "company_logo.jpg",
+                contentType: MediaType("image", "jpeg"),
+              ),
+            ),
+          );
+        }
+      } else {
       if ((companyLogoUrl ?? '').isNotEmpty) {
         form.files.add(MapEntry(
           "logo",
@@ -135,6 +149,7 @@ class CreateCompanyController extends GetxController {
             contentType: MediaType("image", "jpeg"),
           ),
         ));
+      }
       }
 
       final api = Get.find<PostApiServiceImpl>();
@@ -201,7 +216,7 @@ class CreateCompanyController extends GetxController {
     addressController.clear();
     websiteController.clear();
     companyLogoUrl = '';
-
+    companyLogoBytes = null;
   }
 
 

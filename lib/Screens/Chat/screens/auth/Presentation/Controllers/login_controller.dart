@@ -1,3 +1,4 @@
+import 'package:AccuChat/Screens/Chat/helper/dialogs.dart';
 import 'package:AccuChat/routes/app_routes.dart';
 import 'package:flutter/foundation.dart';
 import 'package:get/get.dart';
@@ -61,8 +62,7 @@ class LoginGController extends GetxController {
         .then((value) async {
       customLoader.hide();
       otpSent = true;
-      Get.snackbar("Otp Sent", value.message??'',
-          backgroundColor: Colors.white, colorText: Colors.black);
+      Dialogs.showSnackbar(Get.context!,"Otp Sent");
       if(kIsWeb) {
         Get.toNamed(
           "${AppRoutes.verify_otp}?emailOrPhone=${phoneController.text.trim()}",

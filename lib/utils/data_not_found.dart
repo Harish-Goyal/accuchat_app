@@ -5,25 +5,22 @@ import '../Constants/assets.dart';
 import '../Constants/themes.dart';
 
 class DataNotFoundText extends StatelessWidget {
-   DataNotFoundText({super.key,this.texts,this.url});
+   DataNotFoundText({super.key,this.texts});
 
   String? texts;
-
-  String? url ='';
 
   @override
   Widget build(BuildContext context) {
     return Container(
         padding: const EdgeInsets.symmetric(horizontal: 15, vertical: 15),
-        decoration: BoxDecoration(
-          color: AppTheme.appColor.withOpacity(.2),
-          borderRadius: const BorderRadius.only(
+        decoration: const BoxDecoration(
+          // color: AppTheme.appColor.withOpacity(.2),
+          borderRadius: BorderRadius.only(
               topLeft: Radius.circular(15),
               topRight: Radius.circular(15),
               // bottomLeft: Radius.circular(15),
               bottomRight: Radius.circular(15)),
-          image: DecorationImage(image: NetworkImage(url??''))
         ),
-        child: Image.asset(noDataFoundPng,height: 150,width: 150,));
+        child: Image.asset(noDataFoundPng));
   }
 }

@@ -5,6 +5,8 @@ import 'package:AccuChat/Screens/voice_to_texx/speach_abstract.dart';
 import 'package:get/get.dart';
 import 'package:js/js.dart';
 
+import '../Chat/helper/dialogs.dart';
+
 @JS('__speech__')
 external _SpeechBridge? get _speech;
 
@@ -47,7 +49,6 @@ class SpeechControllerImpl  extends SpeechController{
   @override
   void onInit() {
     super.onInit();
-
     _subResult = html.window.on['speech-result'].listen((event) {
       final e = event as html.CustomEvent;
       final detail = e.detail as dynamic;
@@ -64,7 +65,7 @@ class SpeechControllerImpl  extends SpeechController{
       final e = event as html.CustomEvent;
       final err = (e.detail ?? 'speech_error').toString();
       stop();
-      Get.snackbar('Voice input error', err);
+      Dialogs.showSnackbar(Get.context!, err);
     });
 
     _subEnd = html.window.on['speech-end'].listen((_) {
@@ -87,7 +88,7 @@ class SpeechControllerImpl  extends SpeechController{
   @override
   void toggle() {
     if (!isSupported) {
-      Get.snackbar('Not supported', 'Voice-to-text is not supported in this browser.');
+      Dialogs.showSnackbar(Get.context!, 'Voice-to-text is not supported in this browser.');
       return;
     }
     if (isListening.value) stop(); else start();

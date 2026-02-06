@@ -82,7 +82,7 @@ class TaskHomeScreen extends GetView<TaskHomeController> {
                                           CrossAxisAlignment.start,
                                       children: [
                                         Text(
-                                          'Chats',
+                                          'Tasks',
                                           style: BalooStyles
                                               .balooboldTitleTextStyle(
                                                   color: AppTheme.appColor,
@@ -246,7 +246,6 @@ class TaskHomeScreen extends GetView<TaskHomeController> {
                                       );
                               }),*/
                       actions: [
-                        //search user button
                         kIsWeb
                             ? IconButton(
                                 onPressed: () async {
@@ -407,9 +406,7 @@ class TaskHomeScreen extends GetView<TaskHomeController> {
   }
 
   Future<UserDataAPI?> openAllUserDialog() async {
-    // create controller before opening dialog (this is your "binding")
     final c = Get.put(AllUserController());
-
     try {
       final user = await Get.dialog<UserDataAPI>(
         Dialog(
@@ -542,6 +539,7 @@ class TaskHomeScreen extends GetView<TaskHomeController> {
                         itemBuilder: (context, index) {
                           final item = controller.filteredList[index];
                           return SwipeTo(
+                              key: ValueKey(item.userId),
                               iconOnLeftSwipe: Icons.delete_outline,
                               iconColor: Colors.red,
                               onLeftSwipe: (detail) async {

@@ -7,6 +7,7 @@ import 'package:get/get.dart';
 import 'package:dio/dio.dart' as multi;
 import 'package:permission_handler/permission_handler.dart';
 
+import '../../../../helper/dialogs.dart';
 import '../../../../models/chat_history_response_model.dart';
 
 class GalleryViewerController extends GetxController {
@@ -157,7 +158,7 @@ class GalleryViewerController extends GetxController {
   void _toast(String msg) {
     // Plug your toast/snackbar here
     // e.g., Get.snackbar('Info', msg); or your existing toast()
-    Get.snackbar('AccuChat', msg, snackPosition: SnackPosition.BOTTOM,duration: Duration(seconds: 6));
+    Dialogs.showSnackbar(Get.context!, msg);
   }
   @override
   void onClose() {

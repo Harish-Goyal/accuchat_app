@@ -451,21 +451,31 @@ class CreateCompanyScreen extends GetView<CreateCompanyController> {
                             child: Column(
                               crossAxisAlignment: CrossAxisAlignment.center,
                               children: [
-                                AnimatedDefaultTextStyle(child: Text(
+                                 Text(
                                   "Create Your Company",
-                                ), style:  BalooStyles.baloomediumTextStyle(color: appColorYellow,size: 20), duration: Duration(seconds: 1))
+                                 style:  BalooStyles.baloomediumTextStyle(color: appColorYellow,size: 20))
                                 ,
                                 vGap(12),
-                                if (controller.companyLogoUrl?.isNotEmpty == true)
-                                  ClipRRect(
-                                    borderRadius: BorderRadius.circular(100),
-                                    child: Image.file(
-                                      File(controller.companyLogoUrl!),
-                                      width: 120,
-                                      height: 120,
-                                      fit: BoxFit.cover,
-                                    ),
-                                  ),
+                                ClipRRect(
+                                  borderRadius: BorderRadius.circular(100),
+                                  child: kIsWeb
+                                      ? (controller.companyLogoBytes == null
+                                      ? const SizedBox.shrink()
+                                      : Image.memory(
+                                    controller.companyLogoBytes!,
+                                    width: 120,
+                                    height: 120,
+                                    fit: BoxFit.cover,
+                                  ))
+                                      : (controller.companyLogoUrl == null
+                                      ? const SizedBox.shrink()
+                                      : Image.file(
+                                    File(controller.companyLogoUrl!),
+                                    width: 120,
+                                    height: 120,
+                                    fit: BoxFit.cover,
+                                  )),
+                                ),
                                 vGap(20),
 
                                 // Form fields
@@ -555,6 +565,25 @@ class CreateCompanyScreen extends GetView<CreateCompanyController> {
     );
   }
 
+  Future<void> pickCompanyLogo() async {
+    final c = Get.find<CreateCompanyController>();
+
+    final image = await ImagePicker().pickImage(
+      source: ImageSource.gallery,
+      imageQuality: 90,
+    );
+    if (image == null) return;
+
+    if (kIsWeb) {
+      // ✅ Web: bytes only
+      c.companyLogoBytes = await image.readAsBytes();
+      c.update();
+      return;
+    }
+
+  }
+
+
   void _showBottomSheet() {
     showModalBottomSheet(
       context: Get.context!,
@@ -579,7 +608,7 @@ class CreateCompanyScreen extends GetView<CreateCompanyController> {
                 style: BalooStyles.balooboldTitleTextStyle(),
               ),
               vGap(30),
-              Row(
+              /*Row(
                 mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                 children: [
                   // Camera
@@ -650,12 +679,87 @@ class CreateCompanyScreen extends GetView<CreateCompanyController> {
                     ],
                   ),
                 ],
+              ),*/
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                children: [
+                  if (!kIsWeb) // ✅ camera only on mobile
+                    Column(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        CustomContainer(
+                          radius: 36,
+                          color: AppTheme.appColor.withOpacity(.2),
+                          childWidget: Material(
+                            color: Colors.transparent,
+                            child: InkWell(
+                              borderRadius: const BorderRadius.all(Radius.circular(24)),
+                              onTap: () async {
+                                final image = await ImagePicker().pickImage(
+                                  source: ImageSource.camera,
+                                  imageQuality: 100,
+                                );
+                                if (image != null) {
+                                  await _cropImage(image.path);
+                                  controller.update();
+                                  Get.back();
+                                }
+                              },
+                              child: const Padding(
+                                padding: EdgeInsets.all(8.0),
+                                child: Icon(Icons.camera_alt, size: 22),
+                              ),
+                            ),
+                          ),
+                        ),
+                        vGap(10),
+                        Text('Camera', style: BalooStyles.baloonormalTextStyle()),
+                      ],
+                    ),
+
+                  // ✅ Gallery works on web + mobile
+                  Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      CustomContainer(
+                        radius: 36,
+                        color: AppTheme.appColor.withOpacity(.2),
+                        childWidget: Material(
+                          color: Colors.transparent,
+                          child: InkWell(
+                            borderRadius: const BorderRadius.all(Radius.circular(24)),
+                            onTap:()=>pickCompanyLogo(),
+                            child: const Padding(
+                              padding: EdgeInsets.all(8.0),
+                              child: Icon(Icons.image, size: 22),
+                            ),
+                          ),
+                        ),
+                      ),
+                      vGap(10),
+                      Text('Gallery', style: BalooStyles.baloonormalTextStyle()),
+                    ],
+                  ),
+                ],
               ),
             ],
           ),
         );
       },
     );
+  }
+  Future<void> _handlePickedImage(XFile image) async {
+    final controller = Get.find<CreateCompanyController>();
+
+    if (kIsWeb) {
+      // ✅ No crop on web (avoid web cropper issues)
+      controller.companyLogoUrl = image.path; // usually blob:url -> preview with Image.network
+      controller.update();
+      return;
+    }
+
+    // ✅ Mobile: crop
+    await _cropImage(image.path);
   }
 
   Future _cropImage(String pickedFile) async {

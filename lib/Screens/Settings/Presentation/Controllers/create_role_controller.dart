@@ -6,6 +6,7 @@ import 'package:get/get.dart';
 import '../../../../Services/APIs/post/post_api_service_impl.dart';
 import '../../../../main.dart';
 import '../../../../utils/custom_flashbar.dart';
+import '../../../Chat/helper/dialogs.dart';
 import '../../../Home/Presentation/Controller/company_service.dart';
 
 class CreateRoleController extends GetxController {
@@ -82,8 +83,7 @@ class CreateRoleController extends GetxController {
 
   void onSubmit() {
     if (roleNameController.text.isEmpty || selectedPermission == null) {
-      Get.snackbar('Validation Error', 'Please fill all fields',
-          snackPosition: SnackPosition.BOTTOM,duration: Duration(seconds: 6));
+      Dialogs.showSnackbar(Get.context!, 'Please fill all fields');
       return;
     }
 
@@ -92,8 +92,7 @@ class CreateRoleController extends GetxController {
       'permission': selectedPermission,
     };
 
-    Get.snackbar('Success', 'Role created successfully',
-        snackPosition: SnackPosition.BOTTOM);
+    Dialogs.showSnackbar(Get.context!, 'Role created successfully');
     roleNameController.clear();
     selectedPermission = null;
     update();

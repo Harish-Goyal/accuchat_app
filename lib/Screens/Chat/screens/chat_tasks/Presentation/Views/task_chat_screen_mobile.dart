@@ -42,6 +42,7 @@ import '../../../../../../utils/product_shimmer_widget.dart';
 import '../../../../../../utils/text_button.dart';
 import '../../../../../../utils/text_style.dart';
 import '../../../../../Home/Presentation/Controller/socket_controller.dart';
+import '../../../../helper/dialogs.dart';
 import '../../../../models/task_res_model.dart';
 import '../Controllers/task_controller.dart';
 import '../../../../api/apis.dart';
@@ -224,9 +225,12 @@ class TaskScreenMobile extends GetView<TaskController> {
                 }
 
                 var userid = APIs.me?.userId;
+                final data = element.taskMsg;
                 return SwipeTo(
+                  key: ValueKey(data.taskId),
                   iconColor: appColorGreen,
                   onRightSwipe: (detail) {
+                    final locked = data;
                     controller.openTaskThreadSmart(
                         context: context, groupElement: element);
                     // Get.find<SocketController>().joinTaskEmitter(taskId: element.taskMsg.taskId??0);
@@ -2349,7 +2353,7 @@ class TaskScreenMobile extends GetView<TaskController> {
     );
 
     if (selectedDateTime.isBefore(now)) {
-      Get.snackbar("Invalid Time", "You cannot select past time!",duration: const Duration(seconds: 6));
+      Dialogs.showSnackbar(Get.context!, "You cannot select past time!");
       return;
     }
 

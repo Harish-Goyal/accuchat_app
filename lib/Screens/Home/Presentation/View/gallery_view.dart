@@ -4,6 +4,7 @@ import 'package:AccuChat/Screens/Home/Presentation/Controller/home_controller.da
 import 'package:AccuChat/Screens/Home/Presentation/View/create_folder_dialog.dart';
 import 'package:AccuChat/utils/custom_container.dart';
 import 'package:AccuChat/utils/custom_flashbar.dart';
+import 'package:AccuChat/utils/data_not_found.dart';
 import 'package:AccuChat/utils/helper_widget.dart';
 import 'package:AccuChat/utils/loading_indicator.dart';
 import 'package:AccuChat/utils/text_style.dart';
@@ -150,8 +151,6 @@ class GalleryTab extends GetView<GalleryController> {
   Widget _beautifiedTabBar() {
     return Container(
       width: Get.width,
-      // alignment: Alignment.centerLeft,
-      // margin: const EdgeInsets.fromLTRB(16, 8, 16, 4),
       padding: const EdgeInsets.fromLTRB(16, 8, 16, 8),
       decoration: BoxDecoration(
         borderRadius: BorderRadius.circular(14),
@@ -199,12 +198,11 @@ class GalleryTab extends GetView<GalleryController> {
       padding: const EdgeInsets.only(right: 12, left: 12, bottom: 80),
       child: controller.isSearching
           ? Obx(() {
-              final items = controller.searchResults; // List<GlobalSearchItem>
+              final items = controller.searchResults;
               return GalleryGlobalSearchResults(
                 items: items ?? [],
                 buildFileUrl: buildFileUrl,
                 onOpenFolder: (folderName) {
-                  // open FolderItemsScreen(folderName: folderName)
                   controller.isSearchingIcon = false;
                   controller.searchCtrl.clear();
                   controller.searchResults?.clear();
@@ -214,7 +212,6 @@ class GalleryTab extends GetView<GalleryController> {
                   controller.isSearchingIcon = false;
                   controller.searchCtrl.clear();
                   controller.searchResults?.clear();
-                  // open preview screen
                   Get.to(()=>FolderItemsScreen(folderData: media),
                     binding: BindingsBuilder(() {
                       final tag = 'folder_${media.userGalleryId}';
@@ -227,13 +224,15 @@ class GalleryTab extends GetView<GalleryController> {
               );
             })
           : Obx(() => controller.isLoading.value
-              ? IndicatorLoading()
-              : _GalleryGrid(
-                  items: controller.folderList ?? [], // Folder items
+              ? const IndicatorLoading()
+              :controller.folderList.isNotEmpty? _GalleryGrid(
+                  items: controller.folderList ?? [],
                   onFolderTap: (v) {},
                   onLeafTap: (v) {},
                   controller: controller,
-                )),
+                ):AspectRatio(
+          aspectRatio: .1,
+          child: DataNotFoundText())),
     );
   }
 }
@@ -553,7 +552,7 @@ class _GalleryTile extends StatelessWidget {
                                 "Delete ${folder.folderName} (Permanently Deleted)");
                         break;
                       case FolderMenuAction.share:
-                        toast("Under Development!");
+                        controller.handleOnShareWithinAccuchat(context: context);
                         break;
                       case FolderMenuAction.sharew:
                         toast("Under Development!");

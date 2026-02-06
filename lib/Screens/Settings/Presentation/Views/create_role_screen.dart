@@ -92,7 +92,10 @@ class CreateRoleScreen extends StatelessWidget {
                                             width: double.maxFinite,
                                             child: controller
                                                 .navPermissionData.isEmpty
-                                                ? DataNotFoundText()
+                                                ? SizedBox(
+                                              height: 80,
+                                                width: 80,
+                                                child: DataNotFoundText())
                                                 : ListView(
                                               shrinkWrap: true,
                                               padding: const EdgeInsets.symmetric(vertical: 10,horizontal: 0),
