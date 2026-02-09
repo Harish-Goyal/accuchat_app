@@ -46,9 +46,35 @@ class SpeechControllerImpl  extends SpeechController{
   }
   @override
   VoidCallback? onStopped;
+
+  String _lastFinalChunk = "";
+
   @override
   void onInit() {
     super.onInit();
+    _subResult = html.window.on['speech-result'].listen((event) {
+      final e = event as html.CustomEvent;
+      final detail = e.detail as dynamic;
+
+      final interim = (detail['interim'] ?? '').toString();
+      final gotFinal = (detail['final'] ?? '').toString();
+
+      // interim always latest
+      interimText.value = interim;
+
+      // final: only add if it's new (prevents duplicates)
+      final chunk = gotFinal.trim();
+      if (chunk.isNotEmpty && chunk != _lastFinalChunk) {
+        _lastFinalChunk = chunk;
+
+        final combined = (finalText.value.isEmpty)
+            ? chunk
+            : '${finalText.value} $chunk';
+
+        finalText.value = combined.trim();
+      }
+    });
+/*
     _subResult = html.window.on['speech-result'].listen((event) {
       final e = event as html.CustomEvent;
       final detail = e.detail as dynamic;
@@ -57,25 +83,47 @@ class SpeechControllerImpl  extends SpeechController{
       final gotFinal = (detail['final'] ?? '').toString();
 
       if (gotFinal.trim().isNotEmpty) {
-        finalText.value = (finalText.value + ' ' + gotFinal).trim();
+        finalText.value = ('${finalText.value} $gotFinal').trim();
       }
     });
+*/
 
     _subError = html.window.on['speech-error'].listen((event) {
       final e = event as html.CustomEvent;
       final err = (e.detail ?? 'speech_error').toString();
-      stop();
+
+      stop(skipOnStopped: true);   // stops + clears buffers now
+      _skipNextOnStopped = false;  // safety
+
       Dialogs.showSnackbar(Get.context!, err);
     });
 
+
     _subEnd = html.window.on['speech-end'].listen((_) {
       isListening.value = false;
-      interimText.value = '';
+
+      // ✅ clear buffers on end
+      clearSpeechBuffer();
+
+      // ✅ if stop() asked to skip callback, skip once and reset flag
+      if (_skipNextOnStopped) {
+        _skipNextOnStopped = false;
+        return;
+      }
+
       onStopped?.call();
     });
 
+
     // add
 
+  }
+
+  @override
+  void clearSpeechBuffer() {
+    interimText.value = '';
+    finalText.value = '';
+    _lastFinalChunk = '';
   }
 
   @override
@@ -84,7 +132,7 @@ class SpeechControllerImpl  extends SpeechController{
     _speech!.setLang(langCode);
   }
 
-  String combinedText() => (finalText.value + ' ' + interimText.value).trim();
+  String combinedText() => ('${finalText.value} ${interimText.value}').trim();
   @override
   void toggle() {
     if (!isSupported) {
@@ -103,15 +151,19 @@ class SpeechControllerImpl  extends SpeechController{
   }
 
   @override
-  void stop({bool skipOnStopped = false}) {   // ✅ change signature
+  void stop({bool skipOnStopped = false}) {
     if (!isSupported) return;
 
-    _skipNextOnStopped = skipOnStopped;       // ✅ set flag
+    _skipNextOnStopped = skipOnStopped;
 
     isListening.value = false;
-    interimText.value = '';
-    _speech!.stop();
+
+    // ✅ IMPORTANT: clear both interim + final so old text doesn't come back
+    clearSpeechBuffer();
+
+    _speech?.stop();
   }
+
 /*  @override
   void stop() {
     if (!isSupported) return;
@@ -122,7 +174,16 @@ class SpeechControllerImpl  extends SpeechController{
   */
 
   @override
-  String getCombinedText() => (finalText.value + ' ' + interimText.value).trim();
+  String getCombinedText() {
+    final f = finalText.value.trim();
+    final i = interimText.value.trim();
+
+    if (f.isEmpty) return i;
+    if (i.isEmpty) return f;
+    return '$f $i'.trim();
+  }
+
+  // String getCombinedText() => ('${finalText.value} ${interimText.value}').trim();
 
   @override
   void onClose() {

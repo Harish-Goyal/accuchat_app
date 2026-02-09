@@ -5,6 +5,7 @@ import 'package:AccuChat/utils/text_button.dart';
 import 'package:AccuChat/Screens/voice_to_texx/speech_controller_factory.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter_linkify/flutter_linkify.dart';
+import 'package:get_storage/get_storage.dart';
 import 'package:scrollable_positioned_list/scrollable_positioned_list.dart';
 import 'package:share_plus/share_plus.dart';
 import 'package:url_launcher/url_launcher.dart';
@@ -52,6 +53,7 @@ import '../Widgets/media_view.dart';
 import '../dialogs/save_in_gallery_dialog.dart';
 import 'add_group_members_screens.dart';
 import 'images_gallery_page.dart';
+
 class _NoGlowScrollBehavior extends ScrollBehavior {
   const _NoGlowScrollBehavior();
   @override
@@ -120,22 +122,65 @@ class ChatScreen extends StatefulWidget {
 class _ChatScreenState extends State<ChatScreen> {
   late ChatScreenController controller;
   final speechC = Get.put(SpeechControllerImpl());
+  late Worker _speechWorker;
+  bool _blockSpeechToInput = false; // send/clear time block
+  String _lastApplied = "";
+
+  void applyLiveToFieldSafely(String live) {
+    if (_blockSpeechToInput) return;
+    if (live == _lastApplied) return;
+    _lastApplied = live;
+
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted) return;
+      controller.textController.value = TextEditingValue(
+        text: live,
+        selection: TextSelection.collapsed(offset: live.length),
+      );
+    });
+  }
+
+
 
   @override
   void initState() {
     super.initState();
+    _speechWorker = everAll(
+      [speechC.isListening, speechC.interimText], // <-- see section 2
+          (_) {
+        if (!kIsWeb) return;
+        if (_blockSpeechToInput) return;
+        if (!speechC.isListening.value) return;
+
+        final live = speechC.getCombinedText(); // or speechC.liveText.value
+        if (live == _lastApplied) return;
+
+        _lastApplied = live;
+
+        // ✅ IMPORTANT: update after frame (prevents renderEditable null crash)
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          if (!mounted) return;
+
+          controller.textController.value = TextEditingValue(
+            text: live,
+            selection: TextSelection.collapsed(offset: live.length),
+          );
+        });
+      },
+    );
     controller = Get.put(
       ChatScreenController(user: widget.user),
     );
   }
 
-
   @override
   void dispose() {
     // speechC.stop(skipOnStopped: true);
+    _speechWorker.dispose();
     speechC.onStopped = null;
     try {
-      controller.itemPositionsListener.itemPositions.removeListener(controller.onPositionsChanged);
+      controller.itemPositionsListener.itemPositions
+          .removeListener(controller.onPositionsChanged);
     } catch (_) {}
 
     if (Get.isRegistered<ChatScreenController>()) {
@@ -147,93 +192,80 @@ class _ChatScreenState extends State<ChatScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return GetBuilder<ChatScreenController>(
-        builder: (controller) {
-          return GestureDetector(
-            onTap: () => FocusScope.of(context).unfocus(),
+    return GetBuilder<ChatScreenController>(builder: (controller) {
+      return GestureDetector(
+        onTap: () => FocusScope.of(context).unfocus(),
+        child: SafeArea(
+          child: WillPopScope(
+            onWillPop: () {
+              Get.find<ChatHomeController>().hitAPIToGetRecentChats(page: 1);
+              return Future.value(true);
+            },
             child: SafeArea(
-              child: WillPopScope(
-                onWillPop: () {
-                  Get.find<ChatHomeController>()
-                      .hitAPIToGetRecentChats(page: 1);
-                  return Future.value(true);
-                },
-                child: SafeArea(
-                  child: Scaffold(
-                    appBar: _appBarWidget(),
-                    backgroundColor: const Color.fromARGB(255, 234, 248, 255),
-                    body: _mainBody(context),
-                  ),
-                ),
+              child: Scaffold(
+                appBar: _appBarWidget(),
+                backgroundColor: const Color.fromARGB(255, 234, 248, 255),
+                body: _mainBody(context),
               ),
             ),
-          );
-        });
+          ),
+        ),
+      );
+    });
   }
 
-  AppBar _appBarWidget(){
+  AppBar _appBarWidget() {
     return AppBar(
       backgroundColor: Colors.white, // white color
       elevation: 1, // remove shadow
-      scrolledUnderElevation:
-      0, // ✨ prevents color change on scroll
+      scrolledUnderElevation: 0, // ✨ prevents color change on scroll
       surfaceTintColor: Colors.white,
       automaticallyImplyLeading: false,
       flexibleSpace: MediaQuery(
         // ✅ clamp text scale for web
-        data: MediaQuery.of(Get.context!).copyWith(
-            textScaleFactor: _textScaleClamp(Get.context!)),
+        data: MediaQuery.of(Get.context!)
+            .copyWith(textScaleFactor: _textScaleClamp(Get.context!)),
         child: _appBar(),
       ),
     );
   }
 
-  Widget _mainBody(context){
+  Widget _mainBody(context) {
     return ScrollConfiguration(
       behavior: const _NoGlowScrollBehavior(),
       child: Center(
         child: ConstrainedBox(
-          constraints:
-          BoxConstraints(maxWidth: _maxChatWidth(Get.context!)),
+          constraints: BoxConstraints(maxWidth: _maxChatWidth(Get.context!)),
           child: Padding(
             padding: _shellHPadding(Get.context!),
             child: Column(
               children: [
-                Expanded(
-                    child: RepaintBoundary(
-                        child: chatMessageBuilder())),
-
-                if (controller.replyToMessage != null)
-                  _replyToMessageWidget(),
+                Expanded(child: RepaintBoundary(child: chatMessageBuilder())),
+                if (controller.replyToMessage != null) _replyToMessageWidget(),
                 if (controller.isUploading)
                   const Align(
                       alignment: Alignment.centerRight,
                       child: Padding(
-                          padding: EdgeInsets.symmetric(
-                              vertical: 8, horizontal: 20),
-                          child: CircularProgressIndicator(
-                              strokeWidth: 2))),
-
+                          padding:
+                              EdgeInsets.symmetric(vertical: 8, horizontal: 20),
+                          child: CircularProgressIndicator(strokeWidth: 2))),
                 (controller.uploadProgress > 0 &&
-                    controller.uploadProgress < 100)
+                        controller.uploadProgress < 100)
                     ? Column(
-                  children: [
-                    LinearProgressIndicator(
-                      value: controller.uploadProgress /
-                          100, // 0.0 → 1.0
-                      backgroundColor: Colors.grey[300],
-                      color: Colors.blue,
-                      minHeight: 6,
-                    ),
-                    const SizedBox(height: 4),
-                    Text(
-                        "${controller.uploadProgress.toStringAsFixed(0)}%"),
-                  ],
-                )
+                        children: [
+                          LinearProgressIndicator(
+                            value: controller.uploadProgress / 100, // 0.0 → 1.0
+                            backgroundColor: Colors.grey[300],
+                            color: Colors.blue,
+                            minHeight: 6,
+                          ),
+                          const SizedBox(height: 4),
+                          Text(
+                              "${controller.uploadProgress.toStringAsFixed(0)}%"),
+                        ],
+                      )
                     : const SizedBox.shrink(),
-
                 _chatInput(context),
-
               ],
             ),
           ),
@@ -242,16 +274,18 @@ class _ChatScreenState extends State<ChatScreen> {
     );
   }
 
-  Widget _replyToMessageWidget(){
-    final  username =controller.user?.userCompany?.displayName!=null?controller.user?.userCompany?.displayName ?? '':controller.user?.userName!=null?controller.user?.userName?? '':controller.user?.phone?? '';
+  Widget _replyToMessageWidget() {
+    final username = controller.user?.userCompany?.displayName != null
+        ? controller.user?.userCompany?.displayName ?? ''
+        : controller.user?.userName != null
+            ? controller.user?.userName ?? ''
+            : controller.user?.phone ?? '';
     return Container(
       padding: const EdgeInsets.all(2),
-      margin: const EdgeInsets.only(
-          bottom: 0, left: 10, right: 63),
+      margin: const EdgeInsets.only(bottom: 0, left: 10, right: 63),
       decoration: BoxDecoration(
         color: Colors.white54,
-        border: Border.all(
-            color: appColorGreen, width: .4),
+        border: Border.all(color: appColorGreen, width: .4),
         borderRadius: BorderRadius.circular(8),
       ),
       child: Row(
@@ -269,96 +303,64 @@ class _ChatScreenState extends State<ChatScreen> {
           Expanded(
             child: Row(
               mainAxisSize: MainAxisSize.min,
-              mainAxisAlignment:
-              MainAxisAlignment.spaceBetween,
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
                 Flexible(
                   child: Column(
-                    crossAxisAlignment:
-                    CrossAxisAlignment.start,
+                    crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
-                        controller.replyToMessage?.fromUser?.userId == APIs.me?.userId ? 'You' : username,
+                        controller.replyToMessage?.fromUser?.userId ==
+                                APIs.me?.userId
+                            ? 'You'
+                            : username,
                         maxLines: 1,
-                        overflow:
-                        TextOverflow.ellipsis,
-                        style: themeData
-                            .textTheme.bodySmall
-                            ?.copyWith(
-                            color: greyText),
+                        overflow: TextOverflow.ellipsis,
+                        style: themeData.textTheme.bodySmall
+                            ?.copyWith(color: greyText),
                       ),
                     ],
-                  ).paddingSymmetric(
-                      horizontal: 4),
+                  ).paddingSymmetric(horizontal: 4),
                 ),
                 Text(
                   " : ",
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
-                  style: themeData
-                      .textTheme.bodySmall
-                      ?.copyWith(
-                      color: appColorYellow),
+                  style: themeData.textTheme.bodySmall
+                      ?.copyWith(color: appColorYellow),
                 ),
-
-             isDocument(controller
-                    .replyToMessage
-                    ?.message??'')? Text(
-                  controller.replyToMessage
-                      ?.replyToText ??
-                      '',
-                  maxLines: 2,
-                  overflow:
-                  TextOverflow
-                      .ellipsis,
-                  style: themeData
-                      .textTheme
-                      .bodySmall
-                      ?.copyWith(
-                      color:
-                      greyText),
-                ):
-
-             controller.isImageOrVideo(controller
-                 .replyToMessage
-                 ?.message??'')? Container(
-                  width: 50,
-                  height: 50,
-                  decoration: BoxDecoration(
-                      borderRadius:
-                      BorderRadius
-                          .circular(8),
-                      border: Border.all(
-                          color:
-                          appColorGreen,
-                          width: .3)),
-                  child: CustomCacheNetworkImage(
-                    controller
-                        .replyToMessage
-                        ?.message??'',
-                    width: 50,
-                    height: 50,
-                    radiusAll: 8,
-                    borderColor:
-                    appColorGreen,
-                    boxFit: BoxFit.cover,
-                  )
-                ):Text(
-               controller.replyToMessage
-                   ?.message ??
-                   '',
-               maxLines: 2,
-               overflow:
-               TextOverflow
-                   .ellipsis,
-               style: themeData
-                   .textTheme
-                   .bodySmall
-                   ?.copyWith(
-                   color:
-                   greyText),
-             )
-
+                isDocument(controller.replyToMessage?.message ?? '')
+                    ? Text(
+                        controller.replyToMessage?.replyToText ?? '',
+                        maxLines: 2,
+                        overflow: TextOverflow.ellipsis,
+                        style: themeData.textTheme.bodySmall
+                            ?.copyWith(color: greyText),
+                      )
+                    : controller.isImageOrVideo(
+                            controller.replyToMessage?.message ?? '')
+                        ? Container(
+                            width: 50,
+                            height: 50,
+                            decoration: BoxDecoration(
+                                borderRadius: BorderRadius.circular(8),
+                                border: Border.all(
+                                    color: appColorGreen, width: .3)),
+                            child: CustomCacheNetworkImage(
+                              controller.replyToMessage?.message ?? '',
+                              width: 50,
+                              height: 50,
+                              radiusAll: 8,
+                              borderColor: appColorGreen,
+                              boxFit: BoxFit.cover,
+                            ))
+                        : Text(
+                            controller.replyToMessage?.message ?? '',
+                            maxLines: 2,
+                            overflow: TextOverflow.ellipsis,
+                            style: themeData.textTheme.bodySmall
+                                ?.copyWith(color: greyText),
+                          )
               ],
             ),
           ),
@@ -377,56 +379,79 @@ class _ChatScreenState extends State<ChatScreen> {
     );
   }
 
-  _changeLanguage(){
-   return PopupMenuButton<String>(
-     color: Colors.white,
+  _changeLanguage() {
+    return PopupMenuButton<String>(
+      color: Colors.white,
       tooltip: 'Voice language',
       onSelected: (v) {
         speechC.updateSelectedLang(v);
         controller.update();
       },
-      itemBuilder: (_) =>  [
-        PopupMenuItem(value: 'en-IN', child: Text('English',style: BalooStyles.baloonormalTextStyle(),)),
-        PopupMenuItem(value: 'hi-IN', child: Text('Hindi',style: BalooStyles.baloonormalTextStyle())),
+      itemBuilder: (_) => [
+        PopupMenuItem(
+            value: 'en-IN',
+            child: Text(
+              'English',
+              style: BalooStyles.baloonormalTextStyle(),
+            )),
+        PopupMenuItem(
+            value: 'hi-IN',
+            child: Text('Hindi', style: BalooStyles.baloonormalTextStyle())),
       ],
-      child:  Image.asset(translationPng, height: 20,color:speechC.selectedLang=="hi-IN"? appColorGreen:appColorYellow,),
+      child: Image.asset(
+        translationPng,
+        height: 20,
+        color: speechC.selectedLang == "hi-IN" ? appColorGreen : appColorYellow,
+      ),
     );
   }
 
-  _micButton(Function() appendSpeechToInput){
-    return  Obx(() {
+  Widget _micButton(VoidCallback appendSpeechToInput) {
+    return Obx(() {
       final listening = speechC.isListening.value;
-      speechC.onStopped ??= appendSpeechToInput;
+
       return Builder(
         builder: (micContext) {
           return InkWell(
             onTap: () {
               if (!speechC.isSupported) {
-                Dialogs.showSnackbar(Get.context!, 'Voice-to-text is not supported in this browser.');
+                Dialogs.showSnackbar(
+                  Get.context!,
+                  'Voice-to-text is not supported in this browser.',
+                );
                 return;
               }
 
               speechC.setLanguage(langCode: speechC.selectedLang);
 
               if (speechC.isListening.value) {
+                // ✅ stop and then manually apply speech once
                 speechC.stop(skipOnStopped: true);
+                appendSpeechToInput();
               } else {
+                // ✅ start: clear old buffers so old words never reappear
+                speechC.clearSpeechBuffer();
                 speechC.start();
               }
             },
-
             onLongPress: () async {
-              if (speechC.isListening.value) speechC.stop(skipOnStopped:true );
+              if (speechC.isListening.value) {
+                speechC.stop(skipOnStopped: true);
+                appendSpeechToInput();
+              }
 
-              final RenderBox button = micContext.findRenderObject() as RenderBox;
+              final RenderBox button =
+              micContext.findRenderObject() as RenderBox;
               final RenderBox overlay =
               Overlay.of(micContext).context.findRenderObject() as RenderBox;
 
-              final RelativeRect position = RelativeRect.fromRect(
+              final position = RelativeRect.fromRect(
                 Rect.fromPoints(
                   button.localToGlobal(Offset.zero, ancestor: overlay),
-                  button.localToGlobal(button.size.bottomRight(Offset.zero),
-                      ancestor: overlay),
+                  button.localToGlobal(
+                    button.size.bottomRight(Offset.zero),
+                    ancestor: overlay,
+                  ),
                 ),
                 Offset.zero & overlay.size,
               );
@@ -435,9 +460,17 @@ class _ChatScreenState extends State<ChatScreen> {
                 context: micContext,
                 position: position,
                 color: Colors.white,
-                items:  [
-                  PopupMenuItem(value: 'en-IN', child: Text('English',style: BalooStyles.baloonormalTextStyle(),)),
-                  PopupMenuItem(value: 'hi-IN', child: Text('Hindi',style: BalooStyles.baloonormalTextStyle())),
+                items: [
+                  PopupMenuItem(
+                    value: 'en-IN',
+                    child: Text('English',
+                        style: BalooStyles.baloonormalTextStyle()),
+                  ),
+                  PopupMenuItem(
+                    value: 'hi-IN',
+                    child: Text('Hindi',
+                        style: BalooStyles.baloonormalTextStyle()),
+                  ),
                 ],
               );
 
@@ -445,7 +478,6 @@ class _ChatScreenState extends State<ChatScreen> {
                 speechC.updateSelectedLang(selected);
               }
             },
-
             borderRadius: BorderRadius.circular(8),
             child: Container(
               padding: const EdgeInsets.all(5),
@@ -470,10 +502,9 @@ class _ChatScreenState extends State<ChatScreen> {
           );
         },
       );
-    })
-    ;
-
+    });
   }
+
 
   Widget chatMessageBuilder() {
     return Column(
@@ -482,14 +513,10 @@ class _ChatScreenState extends State<ChatScreen> {
         vGap(10),
         Expanded(
           child: shimmerEffectWidget(
-            showShimmer: controller.showPostShimmer,
-            shimmerWidget: shimmerlistView(
-                child: ChatHistoryShimmer(
-            )),
-            child: groupListView()
-          ),
+              showShimmer: controller.showPostShimmer,
+              shimmerWidget: shimmerlistView(child: ChatHistoryShimmer()),
+              child: groupListView()),
         ),
-
       ],
     );
   }
@@ -497,28 +524,28 @@ class _ChatScreenState extends State<ChatScreen> {
   groupListView() {
     return (controller.chatRows ?? []).isNotEmpty
         ? ScrollablePositionedList.builder(
-        itemScrollController: controller.itemScrollController,
-        itemPositionsListener: controller.itemPositionsListener,
-        itemCount: controller.chatRows.length,
-        reverse: true,
-        padding: const EdgeInsets.only(bottom: 30),
-        itemBuilder: (context, index) {
-          final row = controller.chatRows[index];
-          if (row is ChatHeaderRow) {
-            return _createGroupHeader(row.date);
-          }
-          final msgRow = row as ChatMessageRow;
-          final element = msgRow.element;
-          final msg = element.chatMessageItems;
-          final chatId = msg.chatId ?? 0;
-          String formatedTime = '';
-          if (msg.sentOn != null && msg.sentOn!.isNotEmpty) {
-            formatedTime = convertUtcToIndianTime(msg.sentOn!);
-          }
+            itemScrollController: controller.itemScrollController,
+            itemPositionsListener: controller.itemPositionsListener,
+            itemCount: controller.chatRows.length,
+            reverse: true,
+            padding: const EdgeInsets.only(bottom: 30),
+            itemBuilder: (context, index) {
+              final row = controller.chatRows[index];
+              if (row is ChatHeaderRow) {
+                return _createGroupHeader(row.date);
+              }
+              final msgRow = row as ChatMessageRow;
+              final element = msgRow.element;
+              final msg = element.chatMessageItems;
+              final chatId = msg.chatId ?? 0;
+              String formatedTime = '';
+              if (msg.sentOn != null && msg.sentOn!.isNotEmpty) {
+                formatedTime = convertUtcToIndianTime(msg.sentOn!);
+              }
 
-          final isHighlighted = controller.highlightedChatId == chatId;
-          final userid = APIs.me?.userId;
-          final data = element.chatMessageItems;
+              final isHighlighted = controller.highlightedChatId == chatId;
+              final userid = APIs.me?.userId;
+              final data = element.chatMessageItems;
               return AnimatedContainer(
                 duration: const Duration(milliseconds: 250),
                 color: isHighlighted ? appColorGreen.withOpacity(.3) : null,
@@ -528,97 +555,107 @@ class _ChatScreenState extends State<ChatScreen> {
                   onRightSwipe: element.chatMessageItems.isActivity == 1
                       ? (v) {}
                       : (detail) async {
-                    final lockedData = data;
-                    final media = lockedData.media;
-                    if (media == null || media.isEmpty) {
-                      controller.refIdis = lockedData.chatId;
-                      controller.userIDSender = lockedData.fromUser?.userId;
-                      controller.userNameReceiver = lockedData.toUser?.userCompany?.displayName ?? '';
-                      controller.userNameSender =lockedData.fromUser?.userCompany?.displayName ?? '';
-                      controller.userIDReceiver = lockedData.toUser?.userId;
-                      controller.replyToMessage = lockedData;
-                      controller.update();
-                        controller.messageParentFocus.unfocus();
-                        if (controller.messageParentFocus.canRequestFocus) {
-                          controller.messageParentFocus.requestFocus();
-                        }
+                          final lockedData = data;
+                          final media = lockedData.media;
+                          if (media == null || media.isEmpty) {
+                            controller.refIdis = lockedData.chatId;
+                            controller.userIDSender =
+                                lockedData.fromUser?.userId;
+                            controller.userNameReceiver =
+                                lockedData.toUser?.userCompany?.displayName ??
+                                    '';
+                            controller.userNameSender =
+                                lockedData.fromUser?.userCompany?.displayName ??
+                                    '';
+                            controller.userIDReceiver =
+                                lockedData.toUser?.userId;
+                            controller.replyToMessage = lockedData;
+                            controller.update();
+                            controller.messageParentFocus.unfocus();
+                            if (controller.messageParentFocus.canRequestFocus) {
+                              controller.messageParentFocus.requestFocus();
+                            }
+                          } else {
+                            final firstMedia = media.first;
+                            controller.refIdis = lockedData.chatId;
+                            controller.userIDSender =
+                                lockedData.fromUser?.userId;
+                            controller.userNameReceiver =
+                                lockedData.toUser?.userCompany?.displayName ??
+                                    '';
+                            controller.userNameSender =
+                                lockedData.fromUser?.userCompany?.displayName ??
+                                    '';
+                            controller.userIDReceiver =
+                                lockedData.toUser?.userId;
+                            controller.replyToImage = firstMedia.orgFileName;
+                            final isDoc =
+                                firstMedia.mediaType?.mediaCode == "DOC";
+                            final msg = isDoc
+                                ? (firstMedia.orgFileName ?? '')
+                                : "${ApiEnd.baseUrlMedia}${firstMedia.fileName ?? ''}";
+                            controller.replyToMessage = ChatHisList(
+                              chatId: lockedData.chatId,
+                              fromUser: lockedData.fromUser,
+                              toUser: lockedData.toUser,
+                              message: msg,
+                              replyToId: lockedData.chatId,
+                              replyToText: firstMedia.orgFileName,
+                              replyToMedia: msg,
+                            );
+                            controller.update();
+                            controller.messageParentFocus.unfocus();
+                            if (controller.messageParentFocus.canRequestFocus) {
+                              controller.messageParentFocus.requestFocus();
+                            }
+                          }
+                        },
 
-                    } else {
-                      final firstMedia = media.first;
-                      controller.refIdis = lockedData.chatId;
-                      controller.userIDSender = lockedData.fromUser?.userId;
-                      controller.userNameReceiver = lockedData.toUser?.userCompany?.displayName ?? '';
-                      controller.userNameSender = lockedData.fromUser?.userCompany?.displayName ?? '';
-                      controller.userIDReceiver = lockedData.toUser?.userId;
-                      controller.replyToImage = firstMedia.orgFileName;
-                      final isDoc = firstMedia.mediaType?.mediaCode == "DOC";
-                      final msg = isDoc
-                          ? (firstMedia.orgFileName ?? '')
-                          : "${ApiEnd.baseUrlMedia}${firstMedia.fileName ?? ''}";
-                      controller.replyToMessage = ChatHisList(
-                        chatId: lockedData.chatId,
-                        fromUser: lockedData.fromUser,
-                        toUser: lockedData.toUser,
-                        message: msg,
-                        replyToId: lockedData.chatId,
-                        replyToText: firstMedia.orgFileName,
-                        replyToMedia:msg,
-                      );
-                      controller.update();
-                      controller.messageParentFocus.unfocus();
-                      if (controller.messageParentFocus.canRequestFocus) {
+                  // (detail) {
+                  //           final media = element.chatMessageItems.media;
+                  //           if (media == null || media.isEmpty) {
+                  //             controller.refIdis = element.chatMessageItems.chatId;
+                  //             controller.userIDSender = element.chatMessageItems.fromUser?.userId;
+                  //             controller.userNameReceiver = element.chatMessageItems.toUser?.userCompany?.displayName ?? '';
+                  //             controller.userNameSender = element.chatMessageItems.fromUser?.userCompany?.displayName ?? '';
+                  //             controller.userIDReceiver = element.chatMessageItems.toUser?.userId;
+                  //             controller.replyToMessage = element.chatMessageItems;
+                  //             controller.update();
+                  //             controller.messageParentFocus.unfocus();
+                  //             if (controller.messageParentFocus.canRequestFocus) {
+                  //               controller.messageParentFocus.requestFocus();
+                  //             }
+                  //             Get.back();
+                  //           } else {
+                  //             final firstMedia = media.first;
+                  //             controller.refIdis = element.chatMessageItems.chatId;
+                  //             controller.userIDSender = element.chatMessageItems.fromUser?.userId;
+                  //             controller.userNameReceiver = element.chatMessageItems.toUser?.userCompany?.displayName ?? '';
+                  //             controller.userNameSender = element.chatMessageItems.fromUser?.userCompany?.displayName ?? '';
+                  //             controller.userIDReceiver = element.chatMessageItems.toUser?.userId;
+                  //             controller.replyToImage = firstMedia.orgFileName;
+                  //             final isDoc = firstMedia.mediaType?.mediaCode == "DOC";
+                  //             final msg = isDoc
+                  //                 ? (firstMedia.orgFileName ?? '')
+                  //                 : "${ApiEnd.baseUrlMedia}${firstMedia.fileName ?? ''}";
+                  //             controller.replyToMessage = ChatHisList(
+                  //               chatId: element.chatMessageItems.chatId,
+                  //               fromUser: element.chatMessageItems.fromUser,
+                  //               toUser: element.chatMessageItems.toUser,
+                  //               message: msg,
+                  //               replyToId: element.chatMessageItems.chatId,
+                  //               replyToText: firstMedia.orgFileName,
+                  //               replyToMedia: msg,
+                  //             );
+                  //             controller.update();
+                  //             controller.messageParentFocus.unfocus();
+                  //             if (controller.messageParentFocus.canRequestFocus) {
+                  //               controller.messageParentFocus.requestFocus();
+                  //             }
+                  //             Get.back();
+                  //           }
 
-                        controller.messageParentFocus.requestFocus();
-                    }
-                    }
-                  },
-
-                      // (detail) {
-                      //           final media = element.chatMessageItems.media;
-                      //           if (media == null || media.isEmpty) {
-                      //             controller.refIdis = element.chatMessageItems.chatId;
-                      //             controller.userIDSender = element.chatMessageItems.fromUser?.userId;
-                      //             controller.userNameReceiver = element.chatMessageItems.toUser?.userCompany?.displayName ?? '';
-                      //             controller.userNameSender = element.chatMessageItems.fromUser?.userCompany?.displayName ?? '';
-                      //             controller.userIDReceiver = element.chatMessageItems.toUser?.userId;
-                      //             controller.replyToMessage = element.chatMessageItems;
-                      //             controller.update();
-                      //             controller.messageParentFocus.unfocus();
-                      //             if (controller.messageParentFocus.canRequestFocus) {
-                      //               controller.messageParentFocus.requestFocus();
-                      //             }
-                      //             Get.back();
-                      //           } else {
-                      //             final firstMedia = media.first;
-                      //             controller.refIdis = element.chatMessageItems.chatId;
-                      //             controller.userIDSender = element.chatMessageItems.fromUser?.userId;
-                      //             controller.userNameReceiver = element.chatMessageItems.toUser?.userCompany?.displayName ?? '';
-                      //             controller.userNameSender = element.chatMessageItems.fromUser?.userCompany?.displayName ?? '';
-                      //             controller.userIDReceiver = element.chatMessageItems.toUser?.userId;
-                      //             controller.replyToImage = firstMedia.orgFileName;
-                      //             final isDoc = firstMedia.mediaType?.mediaCode == "DOC";
-                      //             final msg = isDoc
-                      //                 ? (firstMedia.orgFileName ?? '')
-                      //                 : "${ApiEnd.baseUrlMedia}${firstMedia.fileName ?? ''}";
-                      //             controller.replyToMessage = ChatHisList(
-                      //               chatId: element.chatMessageItems.chatId,
-                      //               fromUser: element.chatMessageItems.fromUser,
-                      //               toUser: element.chatMessageItems.toUser,
-                      //               message: msg,
-                      //               replyToId: element.chatMessageItems.chatId,
-                      //               replyToText: firstMedia.orgFileName,
-                      //               replyToMedia: msg,
-                      //             );
-                      //             controller.update();
-                      //             controller.messageParentFocus.unfocus();
-                      //             if (controller.messageParentFocus.canRequestFocus) {
-                      //               controller.messageParentFocus.requestFocus();
-                      //             }
-                      //             Get.back();
-                      //           }
-
-
-                        // },
+                  // },
                   child: _chatMessageTile(
                       data: element.chatMessageItems,
                       sentByMe: (userid?.toString() ==
@@ -736,11 +773,9 @@ class _ChatScreenState extends State<ChatScreen> {
   }
 */
 
-
   Widget _createGroupHeader(DateTime date) {
     final isToday = DateUtils.isSameDay(date, DateTime.now());
-    final dateText =
-    isToday ? "Today" : DateFormat.yMMMd().format(date);
+    final dateText = isToday ? "Today" : DateFormat.yMMMd().format(date);
     return Container(
       color: Colors.transparent,
       child: Row(
@@ -761,8 +796,6 @@ class _ChatScreenState extends State<ChatScreen> {
       ),
     );
   }
-
-
 
   Widget _chatMessageTile(
       {required ChatHisList data, required bool sentByMe, formatedTime}) {
@@ -802,19 +835,22 @@ class _ChatScreenState extends State<ChatScreen> {
                             controller.handleForward(chatId: data.chatId);
                           },
                           icon: Transform(
-                            alignment: Alignment.center,
-                            transform: Matrix4.rotationY(math.pi),
-                            child: Image.asset(
-                              forwardIcon,
-                              height: 20,
-                            )
-                          )).paddingOnly(left: 0)
+                              alignment: Alignment.center,
+                              transform: Matrix4.rotationY(math.pi),
+                              child: Image.asset(
+                                forwardIcon,
+                                height: 20,
+                              ))).paddingOnly(left: 0)
                       : const SizedBox(),
                   Flexible(
                     fit: FlexFit.loose,
                     child: ConstrainedBox(
                       constraints: BoxConstraints(
-                        maxWidth:  (kIsWeb ? (data.media ?? []).isNotEmpty?300: 600 : Get.width*0.75),
+                        maxWidth: (kIsWeb
+                            ? (data.media ?? []).isNotEmpty
+                                ? 300
+                                : 600
+                            : Get.width * 0.75),
                       ),
                       child: Column(
                         crossAxisAlignment: sentByMe
@@ -936,7 +972,7 @@ class _ChatScreenState extends State<ChatScreen> {
   }
 
   messageTypeView(ChatHisList data, {required bool sentByMe}) {
-    final isEmojiMsg = isEmojiOnlyMessage(data.message??'');
+    final isEmojiMsg = isEmojiOnlyMessage(data.message ?? '');
     return Container(
       key: ValueKey('msg-${data.chatId}'),
       child: Column(
@@ -947,8 +983,9 @@ class _ChatScreenState extends State<ChatScreen> {
               ? ReplyMessageWidget(
                       isCancel: false,
                       sentByMe: sentByMe,
-                      onReplu: (){
-                        final int? replyId = data.replyToId; // confirm field name
+                      onReplu: () {
+                        final int? replyId =
+                            data.replyToId; // confirm field name
                         if (replyId != null) {
                           controller.jumpToRepliedMessage(replyId);
                         }
@@ -959,12 +996,11 @@ class _ChatScreenState extends State<ChatScreen> {
                       empName: data.isGroupChat == 1
                           ? data.fromUser?.userCompany?.displayName ?? ''
                           : data.fromUser?.userId.toString() ==
-                          APIs.me?.userId?.toString()
+                                  APIs.me?.userId?.toString()
                               ? data.fromUser?.userCompany?.displayName ?? ''
                               : data.toUser?.userCompany?.displayName ?? '',
                       message: data.replyToText ?? '',
-                      orignalMsg: data.replyToMedia ?? ''
-          )
+                      orignalMsg: data.replyToMedia ?? '')
                   .paddingOnly(bottom: 4)
               : const SizedBox(),
           controller.user?.userCompany?.isGroup == 1
@@ -985,10 +1021,10 @@ class _ChatScreenState extends State<ChatScreen> {
                                           ? (data.fromUser?.userName ?? '')
                                           : (data.fromUser?.phone ?? ''),
                               style: BalooStyles.baloonormalTextStyle(
-                                  color: data.fromUser?.userId ==
-                                      APIs.me?.userId
-                                      ? Colors.green
-                                      : Colors.purple),
+                                  color:
+                                      data.fromUser?.userId == APIs.me?.userId
+                                          ? Colors.green
+                                          : Colors.purple),
                               textAlign: TextAlign.end,
                               maxLines: 1,
                               overflow: TextOverflow.ellipsis)
@@ -1012,13 +1048,10 @@ class _ChatScreenState extends State<ChatScreen> {
                       overflow: TextOverflow.ellipsis)
                   .marginOnly(
                   top: 8,
-
                 )
               : const SizedBox(),
           data.message != '' || data.message != null
-              ?
-
-          DefaultSelectionStyle(
+              ? DefaultSelectionStyle(
                   selectionColor: appColorPerple.withOpacity(0.3),
                   cursorColor: appColorPerple,
                   child: SelectableLinkify(
@@ -1029,7 +1062,7 @@ class _ChatScreenState extends State<ChatScreen> {
                     },
                     style: BalooStyles.baloonormalTextStyle(
                       color: Colors.black87,
-                      size:isEmojiMsg?50: 15,
+                      size: isEmojiMsg ? 50 : 15,
                     ),
                     linkStyle: BalooStyles.baloonormalTextStyle(
                       color: Colors.blue,
@@ -1043,55 +1076,51 @@ class _ChatScreenState extends State<ChatScreen> {
               : const SizedBox(),
           ((data.media ?? []).isNotEmpty)
               ? ChatMessageMedia(
-                chat: data,
-                isGroupMessage: data.isGroupChat == 1 ? true : false,
-                myId: (APIs.me?.userId ?? 0).toString(),
-                fromId: (data.fromUser?.userId ?? 0).toString(),
-                senderName: data.fromUser?.userCompany?.displayName != null
-                    ? data.fromUser?.userCompany?.displayName ?? ''
-                    : data.fromUser?.userName ?? '',
-                baseUrl: ApiEnd.baseUrlMedia,
-                defaultGallery: defaultGallery,
-                onOpenDocument: (url) =>
-                    openDocumentFromUrl(url), // your existing function
-                onOpenImageViewer: (mediaurls, startIndex) {
-                  // push your gallery view
-                  // Get.to(() => ImageViewer(urls: urls, initialIndex: startIndex));
-                  print("opened========");
-                  Get.to(
-                    () => GalleryViewerPage(
-                      onReply: () {
-                        Get.back();
-                        controller.refIdis = data.chatId;
-                        controller.userIDSender = data.fromUser?.userId;
-                        controller.userNameReceiver =
-                            data.toUser?.userCompany?.displayName ?? '';
-                        controller.userNameSender =
-                            data.fromUser?.userCompany?.displayName ?? '';
-                        controller.userIDReceiver = data.toUser?.userId;
-                        controller.replyToMessage = data;
-                        controller.replyToImage =
-                            data.media?[startIndex].orgFileName ?? '';
-                      },
-
-                    ),
-                    binding: BindingsBuilder(() {
-                      Get.put(GalleryViewerController(
-                          urls: mediaurls,
-                          index: startIndex,
-                          chathis: data));
-                    }),
-                    fullscreenDialog: true,
-                    transition: Transition.fadeIn,
-                  );
-                },
-                onOpenVideo: (url) {
-                  // open video player route/sheet if available
-                },
-                onOpenAudio: (url) {
-                  // open audio player route/sheet if available
-                },
-              )
+                  chat: data,
+                  isGroupMessage: data.isGroupChat == 1 ? true : false,
+                  myId: (APIs.me?.userId ?? 0).toString(),
+                  fromId: (data.fromUser?.userId ?? 0).toString(),
+                  senderName: data.fromUser?.userCompany?.displayName != null
+                      ? data.fromUser?.userCompany?.displayName ?? ''
+                      : data.fromUser?.userName ?? '',
+                  baseUrl: ApiEnd.baseUrlMedia,
+                  defaultGallery: defaultGallery,
+                  onOpenDocument: (url) =>
+                      openDocumentFromUrl(url), // your existing function
+                  onOpenImageViewer: (mediaurls, startIndex) {
+                    // push your gallery view
+                    // Get.to(() => ImageViewer(urls: urls, initialIndex: startIndex));
+                    Get.to(
+                      () => GalleryViewerPage(
+                        onReply: () {
+                          Get.back();
+                          controller.refIdis = data.chatId;
+                          controller.userIDSender = data.fromUser?.userId;
+                          controller.userNameReceiver =
+                              data.toUser?.userCompany?.displayName ?? '';
+                          controller.userNameSender =
+                              data.fromUser?.userCompany?.displayName ?? '';
+                          controller.userIDReceiver = data.toUser?.userId;
+                          controller.replyToMessage = data;
+                          controller.replyToImage =
+                              data.media?[startIndex].orgFileName ?? '';
+                        },
+                      ),
+                      binding: BindingsBuilder(() {
+                        Get.put(GalleryViewerController(
+                            urls: mediaurls, index: startIndex, chathis: data));
+                      }),
+                      fullscreenDialog: true,
+                      transition: Transition.fadeIn,
+                    );
+                  },
+                  onOpenVideo: (url) {
+                    // open video player route/sheet if available
+                  },
+                  onOpenAudio: (url) {
+                    // open audio player route/sheet if available
+                  },
+                )
               : const SizedBox(),
         ],
       ),
@@ -1316,7 +1345,7 @@ class _ChatScreenState extends State<ChatScreen> {
                     onSelected: (value) async {
                       if (value == 'AddMember') {
                         if (kIsWeb) {
-                         openAllUserDialog(controller.user);
+                          openAllUserDialog(controller.user);
 
                           // Get.toNamed(
                           //   "${AppRoutes.add_group_member}?groupChatId=${controller.user?.userId.toString()}",
@@ -1398,8 +1427,6 @@ class _ChatScreenState extends State<ChatScreen> {
     );
   }
 
-
-
   Future<void> openAllUserDialog(UserDataAPI? user) async {
     if (Get.isRegistered<AddGroupMemController>()) {
       Get.delete<AddGroupMemController>(force: true);
@@ -1415,7 +1442,8 @@ class _ChatScreenState extends State<ChatScreen> {
         Dialog(
           insetPadding: const EdgeInsets.all(12),
           clipBehavior: Clip.antiAlias,
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+          shape:
+              RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
           child: SizedBox(
             width: Get.width * 0.5,
             height: Get.height * 0.8,
@@ -1431,57 +1459,81 @@ class _ChatScreenState extends State<ChatScreen> {
     }
   }
 
-
   bool isVisibleUpload = true;
+  void _appendSpeechToInput() {
+    final text = speechC.getCombinedText().trim();
+    if (text.isEmpty) return;
+
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted) return;
+
+      // ✅ only set if TextField still exists
+      if (!controller.textController.hasListeners) return;
+
+      controller.textController.value = TextEditingValue(
+        text: text,
+        selection: TextSelection.collapsed(offset: text.length),
+        composing: TextRange.empty,
+      );
+
+      // ✅ clear speech buffers so they can't re-push old words
+      speechC.clearSpeechBuffer();
+
+      // keep focus stable on web
+      if (kIsWeb) controller.resetMessageFocus();
+    });
+  }
+
+
+  void _send() {
+    if (_blockSpeechToInput) return;
+    _blockSpeechToInput = true;
+
+    try {
+      if (kIsWeb && speechC.isListening.value) {
+        final finalCombined = speechC.getCombinedText().trim();
+        speechC.stop(skipOnStopped: true);
+        speechC.clearSpeechBuffer();
+
+        if (finalCombined.isNotEmpty) {
+          controller.textController.text = finalCombined;
+          controller.textController.selection =
+              TextSelection.collapsed(offset: finalCombined.length);
+        }
+      }
+
+      final msg = controller.textController.text.trim();
+      if (msg.isEmpty) return;
+
+      _sendMessage(msg);
+
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (!mounted) return;
+        controller.textController.clear();
+        _lastApplied = "";
+        if (kIsWeb) controller.resetMessageFocus();
+      });
+    } finally {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        _blockSpeechToInput = false;
+      });
+    }
+  }
+
+
+
+  void _hardFocusBack() {
+    FocusManager.instance.primaryFocus?.unfocus();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (controller.messageParentFocus.canRequestFocus) {
+        controller.messageParentFocus.requestFocus();
+      }
+    });
+  }
 
   // bottom chat input field
   Widget _chatInput(BuildContext context) {
     // ✅ don't put controller every rebuild
-
-
-    void _appendSpeechToInput() {
-      final text = speechC.getCombinedText().trim();
-      if (text.isEmpty) return;
-
-      WidgetsBinding.instance.addPostFrameCallback((_) {
-        // if your screen/controller got closed, skip
-        if (!controller.textController.hasListeners) return;
-
-        final old = controller.textController.text.trim();
-        final combined = old.isEmpty ? text : '$old $text';
-
-        controller.textController.value = controller.textController.value.copyWith(
-          text: combined,
-          selection: TextSelection.collapsed(offset: combined.length),
-          composing: TextRange.empty,
-        );
-
-        speechC.finalText.value = '';
-        speechC.interimText.value = '';
-      });
-
-    }
-
-    // void _hardFocusBack() {
-    //   FocusManager.instance.primaryFocus?.unfocus();
-    //   WidgetsBinding.instance.addPostFrameCallback((_) {
-    //     if (controller.messageParentFocus.canRequestFocus) {
-    //       controller.messageParentFocus.requestFocus();
-    //     }
-    //   });
-    // }
-
-    void _send() {
-      if (kIsWeb && speechC.isListening.value) {
-        speechC.stop(skipOnStopped: true);  // ✅ don't let speech-end append
-        _appendSpeechToInput();             // ✅ append once
-        // _hardFocusBack();
-        // speechC.stop();
-        // _appendSpeechToInput();
-      }
-      _sendMessage();
-      // _hardFocusBack();
-    }
 
     return Container(
       padding: const EdgeInsets.symmetric(vertical: 0, horizontal: 5),
@@ -1490,13 +1542,12 @@ class _ChatScreenState extends State<ChatScreen> {
         children: [
           _changeLanguage(),
           hGap(10),
-
           Expanded(
             child: Column(
               mainAxisSize: MainAxisSize.min,
               children: [
                 // ✅ Listening strip
-                Obx(() {
+                /*   Obx(() {
                   if (!kIsWeb || !speechC.isListening.value) {
                     return const SizedBox.shrink();
                   }
@@ -1505,10 +1556,12 @@ class _ChatScreenState extends State<ChatScreen> {
                   return Container(
                     width: double.infinity,
                     margin: const EdgeInsets.only(bottom: 6),
-                    padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+                    padding:
+                        const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
                     decoration: BoxDecoration(
                       borderRadius: BorderRadius.circular(8),
-                      border: Border.all(color: AppTheme.appColor.withOpacity(.15)),
+                      border:
+                          Border.all(color: AppTheme.appColor.withOpacity(.15)),
                       color: AppTheme.appColor.withOpacity(.04),
                     ),
                     child: Row(
@@ -1531,127 +1584,80 @@ class _ChatScreenState extends State<ChatScreen> {
                             // _hardFocusBack();
                           },
                           child: Container(
-                            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                            padding: const EdgeInsets.symmetric(
+                                horizontal: 10, vertical: 6),
                             decoration: BoxDecoration(
                               borderRadius: BorderRadius.circular(8),
                               color: Colors.red.withOpacity(.10),
-                              border: Border.all(color: Colors.red.withOpacity(.25)),
+                              border: Border.all(
+                                  color: Colors.red.withOpacity(.25)),
                             ),
-                            child: const Text('Stop', style: TextStyle(color: Colors.red)),
+                            child: const Text('Stop',
+                                style: TextStyle(color: Colors.red)),
                           ),
                         )
                       ],
                     ),
                   );
-                }),
+                }),*/
 
                 // ✅ Input Row (field + icons)
                 GestureDetector(
                   behavior: HitTestBehavior.translucent,
                   // onTap: _hardFocusBack, // web reattach fix
                   child: ConstrainedBox(
-                    constraints: BoxConstraints(maxHeight: Get.height * .3, minHeight: 30),
+                    constraints: BoxConstraints(
+                        maxHeight: Get.height * .3, minHeight: 30),
                     child: Container(
                       margin: const EdgeInsets.symmetric(vertical: 4),
                       decoration: BoxDecoration(
                         borderRadius: BorderRadius.circular(8),
-                        border: Border.all(color: AppTheme.appColor.withOpacity(.2)),
+                        border: Border.all(
+                            color: AppTheme.appColor.withOpacity(.2)),
                       ),
                       child: Row(
                         children: [
                           Expanded(
-                            // ✅ Focus wrapper WITHOUT focusNode (prevents cycle)
-                            child: Focus(
-                              // skipTraversal: true,
-                              onKeyEvent: (node, event) {
-                                if (!kIsWeb) return KeyEventResult.ignored;
-                                if (event is! KeyDownEvent) return KeyEventResult.ignored;
-
-                                if (event.logicalKey == LogicalKeyboardKey.enter) {
-                                  final keys = HardwareKeyboard.instance.logicalKeysPressed;
-                                  final shiftPressed =
-                                      keys.contains(LogicalKeyboardKey.shiftLeft) ||
-                                          keys.contains(LogicalKeyboardKey.shiftRight);
-
-                                  if (shiftPressed) return KeyEventResult.ignored; // newline
-
-                                  _sendMessage();
-
-                                  // ✅ hard reattach focus (web)
-                                  // FocusManager.instance.primaryFocus?.unfocus();
-                                  // WidgetsBinding.instance.addPostFrameCallback((_) {
-                                  //   controller.messageParentFocus.requestFocus();
-                                  // });
-
-                                  return KeyEventResult.handled;
+                              // ✅ Focus wrapper WITHOUT focusNode (prevents cycle)
+                              child: Obx(() {
+                                if (kIsWeb && speechC.isListening.value && !_blockSpeechToInput) {
+                                  applyLiveToFieldSafely(speechC.getCombinedText());
                                 }
-
-                                return KeyEventResult.ignored;
-                              },
-                              child: TextField(
-                                controller: controller.textController,
-                                autocorrect: true,
-                                focusNode: controller.messageParentFocus,
-                                autofocus: false,
-                                keyboardType: TextInputType.multiline,
-                                textInputAction: TextInputAction.newline,
-                                maxLines: null,
-                                minLines: 1,
-
-                                decoration: InputDecoration(
-                                  isDense: true,
-                                  hintText: 'Type Something...',
-                                  hintStyle: BalooStyles.baloonormalTextStyle(),
-                                  contentPadding: const EdgeInsets.symmetric(horizontal: 8),
-                                  border: InputBorder.none,
-                                  focusedBorder: InputBorder.none,
-                                  enabledBorder: InputBorder.none,
-                                  errorBorder: InputBorder.none,
-
-                                ),
-                              ),
-                            ),
+                                return _buildTextField();
+                              })
                           ),
-
                           if (kIsWeb) _micButton(_appendSpeechToInput),
-
                           if (!isTaskMode)
                             InkWell(
                               onTap: () async {
-                                 showUploadOptions(context);
-
+                                showUploadOptions(context);
                               },
-                              child: IconButtonWidget(Icons.upload_outlined, isIcon: true),
+                              child: IconButtonWidget(Icons.upload_outlined,
+                                  isIcon: true),
                             ),
-
                           if (!isTaskMode)
                             InkWell(
                               onTap: () async {
                                 openWhatsAppEmojiPicker(
                                   context: context,
                                   textController: controller.textController,
-                                  onSend:(){
+                                  onSend: () {
                                     Get.back();
-
-                                  } ,
+                                  },
                                   isMobile: false,
                                 );
-
                               },
                               child: IconButtonWidget(emojiPng),
                             ),
                         ],
                       ),
                     ),
-                  )
-                  ,
+                  ),
                 ),
               ],
             ),
           ),
-
           hGap(6),
-
           InkWell(
             onTap: _send,
             child: Container(
@@ -1668,12 +1674,145 @@ class _ChatScreenState extends State<ChatScreen> {
     );
   }
 
-  _sendMessage() {
+  Widget _textfield(){
+    return   Focus(
+      // skipTraversal: true,
+      onKeyEvent: (node, event) {
+        if (!kIsWeb) return KeyEventResult.ignored;
+        if (event is! KeyDownEvent)
+          return KeyEventResult.ignored;
+
+        if (event.logicalKey ==
+            LogicalKeyboardKey.enter) {
+          final keys = HardwareKeyboard
+              .instance.logicalKeysPressed;
+          final shiftPressed = keys.contains(
+              LogicalKeyboardKey.shiftLeft) ||
+              keys.contains(
+                  LogicalKeyboardKey.shiftRight);
+
+          if (shiftPressed)
+            return KeyEventResult.ignored; // newline
+
+          // _sendMessage();
+
+          // ✅ hard reattach focus (web)
+          // FocusManager.instance.primaryFocus?.unfocus();
+          // WidgetsBinding.instance.addPostFrameCallback((_) {
+          //   controller.messageParentFocus.requestFocus();
+          // });
+
+          return KeyEventResult.handled;
+        }
+
+        return KeyEventResult.ignored;
+      },
+      child: TextField(
+        controller: controller.textController,
+        autocorrect: true,
+        focusNode: controller.messageParentFocus,
+        autofocus: false,
+        keyboardType: TextInputType.multiline,
+        textInputAction: TextInputAction.newline,
+        maxLines: null,
+        minLines: 1,
+        onTap: () {
+          controller.resetMessageFocus();
+        },
+        decoration: InputDecoration(
+          isDense: true,
+          hintText: 'Type Something...',
+          hintStyle: BalooStyles.baloonormalTextStyle(),
+          contentPadding:
+          const EdgeInsets.symmetric(horizontal: 8),
+          border: InputBorder.none,
+          focusedBorder: InputBorder.none,
+          enabledBorder: InputBorder.none,
+          errorBorder: InputBorder.none,
+        ),
+      ),
+    );
+  }
+
+  Widget _buildTextField() {
+    return Focus(
+      onKeyEvent: (node, event) {
+        if (!kIsWeb) return KeyEventResult.ignored;
+        if (event is! KeyDownEvent) return KeyEventResult.ignored;
+
+        if (event.logicalKey == LogicalKeyboardKey.enter) {
+          final keys = HardwareKeyboard.instance.logicalKeysPressed;
+          final shiftPressed =
+              keys.contains(LogicalKeyboardKey.shiftLeft) ||
+                  keys.contains(LogicalKeyboardKey.shiftRight);
+
+          // Shift+Enter => newline
+          if (shiftPressed) return KeyEventResult.ignored;
+
+          // ✅ If mic is listening, stop it first and freeze final text
+          if (speechC.isListening.value) {
+            final finalText = speechC.getCombinedText().trim();
+
+            // stop mic (don't let onStopped fire)
+            speechC.stop(skipOnStopped: true);
+
+            // clear speech buffers so it can't re-push old words
+            speechC.clearSpeechBuffer();
+
+            // put final speech into input (optional but usually desired)
+            if (finalText.isNotEmpty) {
+              controller.textController.value = TextEditingValue(
+                text: finalText,
+                selection: TextSelection.collapsed(offset: finalText.length),
+                composing: TextRange.empty,
+              );
+            }
+          }
+
+          final msg = controller.textController.text.trim();
+          if (msg.isNotEmpty) {
+            _sendMessage(msg); // your send that accepts String
+            controller.textController.clear();
+          }
+
+          controller.resetMessageFocus();
+          return KeyEventResult.handled;
+        }
+
+        return KeyEventResult.ignored;
+      },
+
+      child: TextField(
+        controller: controller.textController,
+        focusNode: controller.messageParentFocus,
+        keyboardType: TextInputType.multiline,
+        textInputAction: TextInputAction.newline,
+        maxLines: null,
+        minLines: 1,
+        onTap: () {
+          controller.resetMessageFocus();
+        },
+        decoration: InputDecoration(
+          isDense: true,
+          hintText: 'Type Something...',
+          hintStyle: BalooStyles.baloonormalTextStyle(),
+          contentPadding:
+          const EdgeInsets.symmetric(horizontal: 8),
+          border: InputBorder.none,
+          focusedBorder: InputBorder.none,
+          enabledBorder: InputBorder.none,
+          errorBorder: InputBorder.none,
+        ),
+      ),
+    );
+  }
+
+  _sendMessage(String msg) {
     if (controller.textController.text.isNotEmpty) {
       if (controller.user?.userCompany?.isGroup == 1) {
         Get.find<SocketController>().sendMessage(
           receiverId: controller.user?.userId ?? 0,
-          message: controller.textController.text.trim(),
+          message: msg,
           groupId: controller.user?.userCompany?.userCompanyId ?? 0,
           type: "group",
           isGroup: 1,
@@ -1681,39 +1820,33 @@ class _ChatScreenState extends State<ChatScreen> {
           alreadySave: false,
           replyToId: controller.replyToMessage?.chatId,
         );
-        controller.textController.clear();
-        controller.replyToMessage = null;
-
-        controller.update();
       } else if (controller.user?.userCompany?.isBroadcast == 1) {
         Get.find<SocketController>().sendMessage(
           receiverId: controller.user?.userId ?? 0,
-          message: controller.textController.text.trim(),
+          message: msg,
           brID: controller.user?.userCompany?.userCompanyId ?? 0,
           isGroup: 0,
           type: "broadcast",
           companyId: controller.user?.userCompany?.companyId,
           alreadySave: false,
         );
-        controller.textController.clear();
-        controller.replyToMessage = null;
-        controller.update();
       } else {
         Get.find<SocketController>().sendMessage(
             receiverId: controller.user?.userId ?? 0,
-            message: controller.textController.text.trim(),
+            message: msg,
             isGroup: 0,
             type: "direct",
             companyId: controller.user?.userCompany?.companyId,
             alreadySave: false,
             replyToId: controller.replyToMessage?.chatId,
             replyToText: controller.replyToImage);
-        controller.textController.clear();
-        controller.replyToMessage = null;
+
         controller.replyToImage = null;
-        controller.update();
+
       }
-      isVisibleUpload =true;
+      controller.textController.clear();
+      controller.replyToMessage = null;
+      isVisibleUpload = true;
       controller.update();
       // APIs.updateTypingStatus(false);
     }
@@ -1870,8 +2003,6 @@ class _ChatScreenState extends State<ChatScreen> {
 
   /// ====== HELPERS (WEB) ======
 
-
-
   int maxBytes = 15 * 1024 * 1024;
 
   Future<List<PlatformFile>> _pickWebDocs() async {
@@ -2000,7 +2131,8 @@ class _ChatScreenState extends State<ChatScreen> {
                           : const SizedBox()
                       : const SizedBox(),
 
-              (((data.media ?? []).isNotEmpty && data.media?.length == 1) ||data.message!='')
+              (((data.media ?? []).isNotEmpty && data.media?.length == 1) ||
+                      data.message != '')
                   ? _OptionItem(
                       icon: Icon(Icons.reply, color: appColorGreen, size: 16),
                       name: 'Reply',
@@ -2009,8 +2141,10 @@ class _ChatScreenState extends State<ChatScreen> {
                         if (media == null || media.isEmpty) {
                           controller.refIdis = data.chatId;
                           controller.userIDSender = data.fromUser?.userId;
-                          controller.userNameReceiver = data.toUser?.userCompany?.displayName ?? '';
-                          controller.userNameSender =data.fromUser?.userCompany?.displayName ?? '';
+                          controller.userNameReceiver =
+                              data.toUser?.userCompany?.displayName ?? '';
+                          controller.userNameSender =
+                              data.fromUser?.userCompany?.displayName ?? '';
                           controller.userIDReceiver = data.toUser?.userId;
                           controller.replyToMessage = data;
                           controller.update();
@@ -2023,11 +2157,14 @@ class _ChatScreenState extends State<ChatScreen> {
                           final firstMedia = media.first;
                           controller.refIdis = data.chatId;
                           controller.userIDSender = data.fromUser?.userId;
-                          controller.userNameReceiver = data.toUser?.userCompany?.displayName ?? '';
-                          controller.userNameSender = data.fromUser?.userCompany?.displayName ?? '';
+                          controller.userNameReceiver =
+                              data.toUser?.userCompany?.displayName ?? '';
+                          controller.userNameSender =
+                              data.fromUser?.userCompany?.displayName ?? '';
                           controller.userIDReceiver = data.toUser?.userId;
                           controller.replyToImage = firstMedia.orgFileName;
-                          final isDoc = firstMedia.mediaType?.mediaCode == "DOC";
+                          final isDoc =
+                              firstMedia.mediaType?.mediaCode == "DOC";
                           final msg = isDoc
                               ? (firstMedia.orgFileName ?? '')
                               : "${ApiEnd.baseUrlMedia}${firstMedia.fileName ?? ''}";
@@ -2038,7 +2175,7 @@ class _ChatScreenState extends State<ChatScreen> {
                             message: msg,
                             replyToId: data.chatId,
                             replyToText: firstMedia.orgFileName,
-                            replyToMedia:msg,
+                            replyToMedia: msg,
                           );
                           controller.update();
                           controller.messageParentFocus.unfocus();
@@ -2050,7 +2187,7 @@ class _ChatScreenState extends State<ChatScreen> {
                       })
                   : const SizedBox(),
 
-             /* (data.message!='')
+              /* (data.message!='')
                   ? _OptionItem(
                       icon: Icon(Icons.reply, color: appColorGreen, size: 16),
                       name: 'Reply',
@@ -2101,47 +2238,54 @@ class _ChatScreenState extends State<ChatScreen> {
                       })
                   : const SizedBox(),*/
 
-              ((data.media ?? []).isNotEmpty && data.media?.length == 1)?
-              _OptionItem(
-                    icon:  Icon(Icons.document_scanner,
-                        color: appColorYellow, size: 16),
-                    name: 'Save to Smart Gallery',
-                    onTap: () async {
-                      final mediachat  = data.media?.first;
-                      try {
-                        Get.back();
-                        final saveC = Get.isRegistered<SaveToGalleryController>()
-                            ? Get.find<SaveToGalleryController>()
-                            : Get.put(SaveToGalleryController());
+              ((data.media ?? []).isNotEmpty && data.media?.length == 1)
+                  ? _OptionItem(
+                      icon: Icon(Icons.document_scanner,
+                          color: appColorYellow, size: 16),
+                      name: 'Save to Smart Gallery',
+                      onTap: () async {
+                        final mediachat = data.media?.first;
+                        try {
+                          Get.back();
+                          final saveC =
+                              Get.isRegistered<SaveToGalleryController>()
+                                  ? Get.find<SaveToGalleryController>()
+                                  : Get.put(SaveToGalleryController());
 
-                        await saveC.hitApiToGetFolder();
-                        // openSaveToGallerySheet(fileId: "12", sourceType: "chat", sourceId: "09",defaultName: "chat_0998782377");
-                        final picked=  [PickedFileItem(
-                          name: mediachat?.orgFileName??'',
-                          // byte: image.bytes,         // web always, mobile if withData true
-                          path: "${ApiEnd.baseUrlMedia}${mediachat?.fileName}",          // mobile path
-                          kind: PickedKind.image,
-                          url: "${ApiEnd.baseUrlMedia}${mediachat?.fileName}",
-                        )];
-                        saveC.docNameController.text = mediachat?.orgFileName??'';
+                          await saveC.hitApiToGetFolder();
+                          // openSaveToGallerySheet(fileId: "12", sourceType: "chat", sourceId: "09",defaultName: "chat_0998782377");
+                          final picked = [
+                            PickedFileItem(
+                              name: mediachat?.orgFileName ?? '',
+                              // byte: image.bytes,         // web always, mobile if withData true
+                              path:
+                                  "${ApiEnd.baseUrlMedia}${mediachat?.fileName}", // mobile path
+                              kind: PickedKind.image,
+                              url:
+                                  "${ApiEnd.baseUrlMedia}${mediachat?.fileName}",
+                            )
+                          ];
+                          saveC.docNameController.text =
+                              mediachat?.orgFileName ?? '';
 
-                        Get.dialog(
-                          SaveToCustomFolderDialog(
-                            user: widget.user,
-                            filesImages: picked,
-                            isImage: true,
-                            isFromChat: true,
-                            chatId: mediachat?.chatMediaId,
-                            multi:false,
-                            isDirect: true, folderData: null,
-                          ),
-                          barrierDismissible: false,
-                        );
-
-                      } catch (e) {
-                        toast('Something went wrong!');
-                      }
-                    }):const SizedBox(),
+                          Get.dialog(
+                            SaveToCustomFolderDialog(
+                              user: widget.user,
+                              filesImages: picked,
+                              isImage: true,
+                              isFromChat: true,
+                              chatId: mediachat?.chatMediaId,
+                              multi: false,
+                              isDirect: true,
+                              folderData: null,
+                            ),
+                            barrierDismissible: false,
+                          );
+                        } catch (e) {
+                          toast('Something went wrong!');
+                        }
+                      })
+                  : const SizedBox(),
 
               //separator or divider
               if (isMe)
@@ -2153,7 +2297,9 @@ class _ChatScreenState extends State<ChatScreen> {
 
               //edit option
 
-              if ((data.message != ""|| data.message!=null)  && isMe && diffMinutes <= 15)
+              if ((data.message != "" || data.message != null) &&
+                  isMe &&
+                  diffMinutes <= 15)
                 _OptionItem(
                     icon: Icon(Icons.edit, color: appColorGreen, size: 16),
                     name: 'Edit Message',
@@ -2175,8 +2321,7 @@ class _ChatScreenState extends State<ChatScreen> {
                     */
 
               // delete option
-              if (APIs.me?.userId == controller.myCompany?.createdBy &&
-                  isMe)
+              if (APIs.me?.userId == controller.myCompany?.createdBy && isMe)
                 _OptionItem(
                     icon: const Icon(Icons.delete_forever,
                         color: Colors.red, size: 16),
@@ -2194,7 +2339,9 @@ class _ChatScreenState extends State<ChatScreen> {
                               : null);
                     }),
 
-              (data.message != null || ((data.media?.isNotEmpty ?? true) &&data.media?.length==1 ))
+              (data.message != null ||
+                      ((data.media?.isNotEmpty ?? true) &&
+                          data.media?.length == 1))
                   ? _OptionItem(
                       icon: Icon(Icons.share, color: appColorGreen, size: 16),
                       name: 'Share on WhatsApp',
@@ -2202,12 +2349,12 @@ class _ChatScreenState extends State<ChatScreen> {
                         if (kIsWeb) {
                           final msg = data.message ?? '';
 
-                          if(msg!='') {
+                          if (msg != '') {
                             ShareHelper.shareOnWhatsApp(msg);
-                          }else{
-                            ShareHelper.shareOnWhatsApp("${ApiEnd.baseUrlMedia}${data.media?.first.fileName??''}");
+                          } else {
+                            ShareHelper.shareOnWhatsApp(
+                                "${ApiEnd.baseUrlMedia}${data.media?.first.fileName ?? ''}");
                           }
-
                         }
                       })
                   : const SizedBox()
@@ -2273,10 +2420,10 @@ class _ChatScreenState extends State<ChatScreen> {
     // ... your normal bubble
     return _chatMessageTile(
         data: msg,
-        sentByMe: (APIs.me?.userId.toString() ==
-                msg.fromUser?.userId?.toString()
-            ? true
-            : false),
+        sentByMe:
+            (APIs.me?.userId.toString() == msg.fromUser?.userId?.toString()
+                ? true
+                : false),
         formatedTime: formatatedTime);
   }
 
@@ -2333,16 +2480,20 @@ class _ChatScreenState extends State<ChatScreen> {
                 CustomTextButton(
                     onTap: () {
                       try {
-                        if (controller.updateMsgController.text.trim().isNotEmpty) {
+                        if (controller.updateMsgController.text
+                            .trim()
+                            .isNotEmpty) {
                           Get.find<SocketController>().updateChatMessage(
                               chatId: message.chatId,
-                              toUcId: message.toUser?.userCompany
-                                  ?.userCompanyId,
-                              message: controller.updateMsgController.text.trim());
+                              toUcId:
+                                  message.toUser?.userCompany?.userCompanyId,
+                              message:
+                                  controller.updateMsgController.text.trim());
                           Get.back();
-                        }else{
+                        } else {
                           Get.back();
-                          Dialogs.showSnackbar(context, "Message cannot be blank");
+                          Dialogs.showSnackbar(
+                              context, "Message cannot be blank");
                         }
                       } catch (e) {
                         toast(e.toString());

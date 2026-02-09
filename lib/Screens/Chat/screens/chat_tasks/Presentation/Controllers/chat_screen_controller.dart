@@ -44,6 +44,8 @@ class ChatScreenController extends GetxController {
   List<Map<String, String>> uploadedAttachments = [];
   List<ChatHisResModel> msgList = [];
   final textController = TextEditingController();
+  bool sending = false;
+  String lastSpeechApplied = "";
   FocusNode messageParentFocus = FocusNode();
   // FocusNode messageInputFocus=FocusNode();
   ChatHisList? replyToMessage;
@@ -1368,6 +1370,17 @@ class ChatScreenController extends GetxController {
       isUploading = false;
       update();
     }
+  }
+
+  void resetMessageFocus() {
+    messageParentFocus.unfocus();
+
+    // next frame me focus attach karo
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (messageParentFocus.canRequestFocus) {
+        messageParentFocus.requestFocus();
+      }
+    });
   }
 
   Future<void> handleForward({required chatId}) async {

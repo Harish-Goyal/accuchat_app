@@ -21,4 +21,9 @@ class SpeechControllerImpl extends SpeechController {
   @override void toggle() => start();
 
   @override String getCombinedText() => '';
+
+  @override
+  void clearSpeechBuffer() {
+    // TODO: implement clearSpeechBuffer
+  }
 }

@@ -11,6 +11,7 @@ abstract class SpeechController extends GetxController {
 
   String get selectedLang;
   void updateSelectedLang(String v);
+  void clearSpeechBuffer();
 
   void setLanguage({required String langCode});
   void start();
