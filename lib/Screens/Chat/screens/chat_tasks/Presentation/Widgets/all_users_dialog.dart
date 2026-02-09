@@ -46,7 +46,7 @@ class AllUserScreenDialog extends GetView<AllUserController> {
                           children: [
                             controller.isSearching.value
                                 ? Expanded(
-                                    flex: 4,
+
                                     child: TextField(
                                       controller: controller.searchController,
                                       cursorColor: appColorGreen,
@@ -66,7 +66,6 @@ class AllUserScreenDialog extends GetView<AllUserController> {
                                     ).marginSymmetric(vertical: 10),
                                   )
                                 : Expanded(
-                                    flex: 4,
                                     child: const Text(
                                       'Forwarded to',
                                       style: TextStyle(
@@ -75,8 +74,7 @@ class AllUserScreenDialog extends GetView<AllUserController> {
                                           fontSize: 18),
                                     ).paddingOnly(left: 8, top: 10),
                                   ),
-                            Expanded(
-                              child: IconButton(
+                             IconButton(
                                   onPressed: () {
                                     controller.isSearching.value = !controller.isSearching.value;
                                     controller.isSearching.refresh();
@@ -91,8 +89,8 @@ class AllUserScreenDialog extends GetView<AllUserController> {
                                         ? CupertinoIcons.clear_circled_solid
                                         : Icons.search,
                                     color: colorGrey,
-                                  ).paddingOnly(top: 10, right: 10)),
-                            ),
+                                  )),
+
                           ],
                         ),
                       ),
@@ -126,7 +124,7 @@ class AllUserScreenDialog extends GetView<AllUserController> {
                                 return
                                   ListTile(
                                     leading: SizedBox(
-                                      width: 50,
+                                      width: 45,
                                       child: CustomCacheNetworkImage(
                                         "${ApiEnd.baseUrlMedia}${listToShow[i]
                                             .userImage ?? ''}",
@@ -151,12 +149,12 @@ class AllUserScreenDialog extends GetView<AllUserController> {
                                         Text(
                                           memData.userId ==
                                               controller.me?.userId
-                                              ? "Me":   memData?.userName != null ? memData
-                                              ?.userName ?? '' : memData
-                                              ?.userCompany?.displayName != null
-                                              ? memData?.userCompany
+                                              ? "Me":   memData.userName != null ? memData
+                                              .userName ?? '' : memData
+                                              .userCompany?.displayName != null
+                                              ? memData.userCompany
                                               ?.displayName ?? ''
-                                              : memData?.phone ?? '',
+                                              : memData.phone ?? '',
                                           style: BalooStyles
                                               .baloosemiBoldTextStyle(),
                                           maxLines: 1,
@@ -164,10 +162,10 @@ class AllUserScreenDialog extends GetView<AllUserController> {
                                         ),
                   
                                         vGap(4),
-                                        memData?.userName==null && memData?.userCompany?.displayName==null?const SizedBox():  Text(
-                                          memData?.phone != null
-                                              ?memData?.phone ?? ''
-                                              : memData?.email ?? '',
+                                        memData.userName==null && memData.userCompany?.displayName==null?const SizedBox():  Text(
+                                          memData.phone != null
+                                              ?memData.phone ?? ''
+                                              : memData.email ?? '',
                                           style: BalooStyles.balooregularTextStyle(),
                                           maxLines: 1,
                                           overflow: TextOverflow.ellipsis,

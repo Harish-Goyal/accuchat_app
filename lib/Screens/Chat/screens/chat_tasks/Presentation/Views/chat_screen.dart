@@ -123,7 +123,7 @@ class _ChatScreenState extends State<ChatScreen> {
   late ChatScreenController controller;
   final speechC = Get.put(SpeechControllerImpl());
   late Worker _speechWorker;
-  bool _blockSpeechToInput = false; // send/clear time block
+  bool _blockSpeechToInput = false;
   String _lastApplied = "";
 
   void applyLiveToFieldSafely(String live) {
@@ -146,18 +146,16 @@ class _ChatScreenState extends State<ChatScreen> {
   void initState() {
     super.initState();
     _speechWorker = everAll(
-      [speechC.isListening, speechC.interimText], // <-- see section 2
+      [speechC.isListening, speechC.interimText],
           (_) {
         if (!kIsWeb) return;
         if (_blockSpeechToInput) return;
         if (!speechC.isListening.value) return;
 
-        final live = speechC.getCombinedText(); // or speechC.liveText.value
+        final live = speechC.getCombinedText();
         if (live == _lastApplied) return;
 
         _lastApplied = live;
-
-        // ✅ IMPORTANT: update after frame (prevents renderEditable null crash)
         WidgetsBinding.instance.addPostFrameCallback((_) {
           if (!mounted) return;
 
@@ -1609,7 +1607,7 @@ class _ChatScreenState extends State<ChatScreen> {
                     constraints: BoxConstraints(
                         maxHeight: Get.height * .3, minHeight: 30),
                     child: Container(
-                      margin: const EdgeInsets.symmetric(vertical: 4),
+                      margin: const EdgeInsets.symmetric(vertical: 8),
                       decoration: BoxDecoration(
                         borderRadius: BorderRadius.circular(8),
                         border: Border.all(
@@ -1661,7 +1659,7 @@ class _ChatScreenState extends State<ChatScreen> {
           InkWell(
             onTap: _send,
             child: Container(
-              padding: const EdgeInsets.all(12),
+              padding: const EdgeInsets.all(10),
               decoration: BoxDecoration(
                 borderRadius: BorderRadius.circular(8),
                 color: appColorGreen,

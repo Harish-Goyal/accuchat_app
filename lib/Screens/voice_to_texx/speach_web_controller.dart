@@ -17,6 +17,7 @@ class _SpeechBridge {
   external void start();
   external void stop();
   external void setLang(String lang);
+  external bool blocked();
 }
 
 class SpeechControllerImpl  extends SpeechController{
@@ -144,6 +145,11 @@ class SpeechControllerImpl  extends SpeechController{
   @override
   void start() {
     if (!isSupported) return;
+    if (_speech!.blocked()) {
+      isListening.value = false;
+      Dialogs.showSnackbar(Get.context!, 'Microphone permission is blocked. Please allow it in browser settings.');
+      return;
+    }
     finalText.value = '';
     interimText.value = '';
     isListening.value = true;
@@ -153,14 +159,9 @@ class SpeechControllerImpl  extends SpeechController{
   @override
   void stop({bool skipOnStopped = false}) {
     if (!isSupported) return;
-
     _skipNextOnStopped = skipOnStopped;
-
     isListening.value = false;
-
-    // ✅ IMPORTANT: clear both interim + final so old text doesn't come back
     clearSpeechBuffer();
-
     _speech?.stop();
   }
 
@@ -188,7 +189,7 @@ class SpeechControllerImpl  extends SpeechController{
   @override
   void onClose() {
     _disposed = true;
-    onStopped = null;                 // ✅ super important
+    onStopped = null;
     _subResult?.cancel();
     _subError?.cancel();
     _subEnd?.cancel();

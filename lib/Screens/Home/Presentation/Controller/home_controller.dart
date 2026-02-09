@@ -100,7 +100,7 @@ class DashboardController extends GetxController with WidgetsBindingObserver {
        Get.put<SocketController>( SocketController(), permanent: true);
 
     } catch (_) {}
-    try { Get.lazyPut(() => DashboardController(), fenix: true); } catch (_) {}
+    // try { Get.lazyPut(() => DashboardController(), fenix: true); } catch (_) {}
     try { Get.lazyPut(() =>ChatHomeController(), fenix: true); } catch (_) {}
     try { Get.lazyPut(() => TaskHomeController(), fenix: true); } catch (_) {}
     try { Get.lazyPut(() => GalleryController(), fenix: true); } catch (_) {}

@@ -97,35 +97,6 @@ class _AccuChatDashboardState extends State<AccuChatDashboard> {
                 }
                 // Get.toNamed(AppRoutes.home);
                 isTaskMode = index == 1;
-               /* if (index == 0) {
-                  var homec;
-                  if (!Get.isRegistered<ChatHomeController>()) {
-                    homec= Get.put(ChatHomeController(), permanent: true);
-                  } else{
-                    homec = Get.find<ChatHomeController>();
-                  }
-                  var chatc;
-                  if (!Get.isRegistered<ChatScreenController>()) {
-                    chatc =  Get.put(ChatScreenController(user: controller.user), permanent: true);
-                  }else{
-                    chatc = Get.find<ChatScreenController>();
-                  }
-                  chatc.replyToMessage = null;
-
-                  // ✅ ONLY AUTO-SELECT if nothing selected yet
-                  if (homec.selectedChat.value == null && homec.filteredList.isNotEmpty) {
-                    final user = homec.filteredList[0];
-                    homec.selectedChat.value = user;
-                    chatc.user = user;
-                    chatc.textController.clear();
-                    chatc.showPostShimmer = true;
-                    chatc.openConversation(user);
-                  }
-
-                  homec.update();
-                  homec.selectedChat.refresh();
-                  chatc.update();
-                }*/
 
                 if (index == 0) {
                   ChatHomeController? homec;
@@ -173,8 +144,7 @@ class _AccuChatDashboardState extends State<AccuChatDashboard> {
                     }
 
                 }
-                // homec.page = 1;
-                // homec.hitAPIToGetRecentChats();
+
               }
 
                 if (index == 1) {
@@ -190,28 +160,16 @@ class _AccuChatDashboardState extends State<AccuChatDashboard> {
                       chatc.textController.clear();
                       chatc.update();
                       chatc.showPostShimmer = true;
-                      // chatc.resetPaginationForNewChat();
                       chatc.openConversation(taskhomec.selectedChat.value);
-                      // homec.selectedChat.value = homec.filteredList[0];
-                      // chatc.user = homec.selectedChat.value;
-                      // chatc.showPostShimmer = true;
-                      // chatc.openConversation(homec.selectedChat.value);
-                      // homec.selectedChat.refresh();
-                      // chatc.update();
+
                     }
                   } else {
-                    // Future.delayed(const Duration(milliseconds: 500), () {
                       if (taskhomec.filteredList.isNotEmpty) {
                         final chatc = Get.put(
                           TaskController(user: taskhomec.filteredList[0]),
                           tag: "task_${taskhomec.filteredList[0].userId ?? 'mobile'}",
                         );
-                        // chatc.replyToMessage = null;
-                        // homec.selectedChat.value = homec.filteredList[0];
-                        // chatc.user = homec.selectedChat.value;
-                        // // chatc.showPostShimmer = true;
-                        // // chatc.resetPaginationForNewChat();
-                        // //
+
                     if (taskhomec.filteredList.isNotEmpty) {
                       final user = taskhomec.filteredList[0];
                       taskhomec.selectedChat.value = user;
@@ -220,20 +178,9 @@ class _AccuChatDashboardState extends State<AccuChatDashboard> {
                       chatc.page =1;
                       chatc.update();
                       chatc.openConversation(taskhomec.selectedChat.value);
-                      // homec.selectedChat.value = homec.filteredList[0];
-                      // chatc.user = homec.selectedChat.value;
-                      // chatc.showPostShimmer = true;
-                      // chatc.openConversation(homec.selectedChat.value);
-                      // homec.selectedChat.refresh();
-                      // chatc.update();
                     }
-
-                        // homec.selectedChat.refresh();
                       }
-                    // });
                   }
-                  // homec.page = 1;
-                  // homec.hitAPIToGetRecentChats();
                 }
 
                 if (index == 2) {

@@ -62,25 +62,46 @@
     const recognition = new SpeechRecognition();
     recognition.continuous = true;
     recognition.interimResults = true;
-    recognition.lang = 'en-IN'; // change to 'hi-IN' for Hindi
+    recognition.lang = 'en-IN';
+
+    // ---- internal state ----
+    let permissionBlocked = false;     // user denied mic
+    let lastStartAt = 0;
+    const START_COOLDOWN_MS = 1200;    // prevents rapid re-start loops
+
+    function now() { return Date.now(); }
+
+    function safeStart() {
+      if (permissionBlocked) return; // don't re-prompt forever
+      const t = now();
+      if (t - lastStartAt < START_COOLDOWN_MS) return; // cooldown
+      lastStartAt = t;
+
+      try {
+        recognition.start();
+        window.__speech__.isListening = true;
+      } catch (e) {
+        // start() can throw if called while already started; ignore
+      }
+    }
+
+    function safeStop() {
+      try {
+        recognition.stop();
+      } catch (e) {}
+      window.__speech__.isListening = false;
+    }
 
     window.__speech__ = {
       isListening: false,
-      start: function () {
-        try {
-          recognition.start();
-          window.__speech__.isListening = true;
-        } catch (e) {}
-      },
-      stop: function () {
-        try {
-          recognition.stop();
-          window.__speech__.isListening = false;
-        } catch (e) {}
-      },
-      setLang: function (lang) {
-        recognition.lang = lang || 'en-IN';
-      }
+      // expose permission state to Flutter
+      blocked: function () { return permissionBlocked; },
+      // only call start from an explicit user action in Flutter if possible
+      start: function () { safeStart(); },
+      stop: function () { safeStop(); },
+      setLang: function (lang) { recognition.lang = lang || 'en-IN'; },
+      // call this ONLY when the user explicitly taps "Try again"
+      resetPermissionBlock: function () { permissionBlocked = false; }
     };
 
     recognition.onresult = function (event) {
@@ -93,22 +114,33 @@
         else interim += transcript;
       }
 
-      // Send to Flutter via a CustomEvent
       window.dispatchEvent(new CustomEvent('speech-result', {
         detail: { interim: interim, final: finalText }
       }));
     };
 
     recognition.onerror = function (e) {
-      window.dispatchEvent(new CustomEvent('speech-error', { detail: e.error || 'speech_error' }));
+      const err = (e && (e.error || e.message)) ? (e.error || e.message) : 'speech_error';
+
+      // IMPORTANT: these mean the user blocked mic permission
+      if (err === 'not-allowed' || err === 'permission-denied' || err === 'service-not-allowed') {
+        permissionBlocked = true;
+        safeStop();
+      }
+
+      window.dispatchEvent(new CustomEvent('speech-error', { detail: err }));
     };
 
     recognition.onend = function () {
       window.__speech__.isListening = false;
       window.dispatchEvent(new CustomEvent('speech-end'));
+
+      // Do NOT auto-restart here if permission is blocked.
+      // If your Flutter code currently restarts on 'speech-end', guard it using __speech__.blocked().
     };
   })();
 </script>
+
 <script>
   window.addEventListener("paste", async (event) => {
     if (!event.clipboardData) return;

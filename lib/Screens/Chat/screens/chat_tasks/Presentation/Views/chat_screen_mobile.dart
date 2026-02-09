@@ -1412,6 +1412,7 @@ class ChatScreenMobile extends GetView<ChatScreenController> {
 
               if (selected != null) {
                 speechC.updateSelectedLang(selected);
+                controller.update();
               }
             },
 
@@ -1634,7 +1635,6 @@ class ChatScreenMobile extends GetView<ChatScreenController> {
                                 } ,
                                 isMobile: false,
                               );
-
                             },
                             child: IconButtonWidget(emojiPng),
                           ),
@@ -1645,13 +1645,11 @@ class ChatScreenMobile extends GetView<ChatScreenController> {
               ],
             ),
           ),
-
           hGap(6),
-
           InkWell(
             onTap: _send,
             child: Container(
-              padding: const EdgeInsets.all(12),
+              padding: const EdgeInsets.all(10),
               decoration: BoxDecoration(
                 borderRadius: BorderRadius.circular(8),
                 color: appColorGreen,
@@ -2228,7 +2226,7 @@ class ChatScreenMobile extends GetView<ChatScreenController> {
               _sendMessage();
             },
             child: Container(
-              padding: const EdgeInsets.all(12),
+              padding: const EdgeInsets.all(10),
               decoration: BoxDecoration(
                 borderRadius: BorderRadius.circular(8),
                 color: appColorGreen,

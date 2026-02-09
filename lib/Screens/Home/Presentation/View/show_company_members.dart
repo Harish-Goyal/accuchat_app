@@ -153,8 +153,8 @@ class CompanyMembers extends GetView<CompanyMemberController> {
                               : VisualDensity.standard, // tighter on web
                           contentPadding: const EdgeInsets.symmetric(
                               horizontal: 10, vertical: 0),
-                          leading: memData?.userImage == '' ||
-                                  memData?.userImage == null
+                          leading: memData.userImage == '' ||
+                                  memData.userImage == null
                               ? InkWell(
                                   onTap: () {
                                     showDialog(
