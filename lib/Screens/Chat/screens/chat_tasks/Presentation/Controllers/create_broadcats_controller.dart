@@ -28,8 +28,7 @@ class CreateBroadcastsController extends GetxController{
     scrollController = ScrollController();
     scrollListener();
     _getCompany();
-    _getMe();
-    
+
     Future.delayed(Duration(milliseconds: 600),()=>hitAPIToGetMember() );
   }
 
@@ -41,11 +40,7 @@ class CreateBroadcastsController extends GetxController{
     update();
   }
 
-  UserDataAPI? me = UserDataAPI();
-  _getMe(){
-    me = getUser();
-    update();
-  }
+
 
   bool isLoading = false;
 

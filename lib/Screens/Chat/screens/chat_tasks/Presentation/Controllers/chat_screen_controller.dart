@@ -313,12 +313,16 @@ class ChatScreenController extends GetxController {
     // scrollListener();
     if (Get.isRegistered<ChatHomeController>()) {
       Get.find<ChatHomeController>().isOnRecentList.value = false;
-      if (kIsWeb) {
-        user = Get.find<ChatHomeController>().selectedChat.value;
-        // _initScroll();
-      }
+      // if (kIsWeb) {
+      //   user = Get.find<ChatHomeController>().selectedChat.value;
+      //   // _initScroll();
+      // }
     }
 
+    if (kIsWeb) {
+      user = Get.find<ChatHomeController>().selectedChat.value;
+      // _initScroll();
+    }
 
 
 
@@ -695,10 +699,9 @@ class ChatScreenController extends GetxController {
   void openConversation(UserDataAPI? useriii) {
     user = useriii;
 
-    Future.delayed(const Duration(milliseconds: 500), () {
+    Future.delayed(const Duration(milliseconds: 200), () async {
       resetPaginationForNewChat();
-      hitAPIToGetChatHistory("openConversation");
-      // messageInputFocus.requestFocus();
+      await hitAPIToGetChatHistory("openConversation");
       if (user?.userCompany?.isGroup == 1 ||
           user?.userCompany?.isBroadcast == 1) {
         hitAPIToGetMembers(user);
@@ -716,7 +719,6 @@ class ChatScreenController extends GetxController {
   _getCompany() async {
     if (Get.isRegistered<CompanyService>()) {
       final svc = CompanyService.to;
-      // await svc.ready;
       myCompany = svc.selected;
       update();
     } else {}
@@ -760,7 +762,7 @@ class ChatScreenController extends GetxController {
     update();
   }
 
-  hitAPIToGetChatHistory(p, {String? searchQuery}) async {
+  Future<void> hitAPIToGetChatHistory(p, {String? searchQuery}) async {
     if (isPageLoading || !hasMore) return;
     if (page == 1) {
       showPostShimmer = true;
@@ -1399,8 +1401,9 @@ class ChatScreenController extends GetxController {
       if (/*Get.currentRoute == AppRoutes.chats_li_r &&*/
           Get.isRegistered<ChatScreenController>()) {
         Get.find<ChatHomeController>().selectedChat.value = selectedUser;
+        final _tag = "chat_${selectedUser.userId ?? 'mobile'}";
         final con = Get.find<ChatScreenController>(
-            tag: "chat_${selectedUser.userId ?? 'mobile'}");
+            tag:_tag);
         con.openConversation(selectedUser);
       } else {
         toast("Something went wrong please refresh and try again");

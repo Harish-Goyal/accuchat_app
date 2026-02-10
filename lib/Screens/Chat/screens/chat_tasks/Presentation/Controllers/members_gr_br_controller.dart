@@ -113,7 +113,8 @@ class GrBrMembersController extends GetxController{
       groupNameController.clear();
       toast(value.message??'');
       groupOrBr = groupResModel.data;
-      final chatc =Get.find<ChatScreenController>();
+      final _tag = "chat_${groupOrBr?.userId ?? 'mobile'}";
+      final chatc =Get.find<ChatScreenController>(tag: _tag);
       final chath =Get.find<ChatHomeController>();
       chath.hitAPIToGetRecentChats(page: 1);
       chatc.user?.userCompany?.displayName = groupOrBr?.userCompany?.displayName;
@@ -144,7 +145,8 @@ class GrBrMembersController extends GetxController{
         .addMemberToGrBrApiCall(dataBody: req)
         .then((value) async {
       customLoader.hide();
-      Get.find<ChatScreenController>().hitAPIToGetMembers(groupOrBr);
+      final _tag = "chat_${groupOrBr?.userId ?? 'mobile'}";
+      Get.find<ChatScreenController>(tag: _tag).hitAPIToGetMembers(groupOrBr);
       hitAPIToGetMembers();
       update();
     }).onError((error, stackTrace) {

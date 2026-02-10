@@ -27,12 +27,9 @@ class StorageService {
       if (kIsWeb) {
         _prefs ??= await SharedPreferences.getInstance();
       } else {
-        // Only init once
         if (!GetStorage().hasData(_boxName)) {
           await GetStorage.init(_boxName);
         } else {
-          // still OK to proceed; GetStorage.init is idempotent-ish,
-          // but we guard anyway
         }
         _box ??= GetStorage(_boxName);
       }
@@ -42,7 +39,6 @@ class StorageService {
     }
   }
 
-  // --- Token helpers ---
   static Future<void> saveToken(String token) async {
     if (kIsWeb) {
       await _prefs!.setString(LOCALKEY_token, token);
@@ -146,7 +142,6 @@ class StorageService {
         : (_box?.read<bool>(isFirstTime) ?? false);
   }
 
-  // Generic JSON helpers if needed
   static Future<void> writeJson(String key, Map<String, dynamic> json) async {
     final s = jsonEncode(json);
     if (kIsWeb) {
@@ -164,7 +159,6 @@ class StorageService {
 
 
 
-  /// Write a list of JSON maps
   static Future<void> writeJsonList(String key, List<Map<String, dynamic>> list) async {
     final s = jsonEncode(list);
     if (kIsWeb) {
@@ -174,7 +168,6 @@ class StorageService {
     }
   }
 
-  /// Read a list of JSON maps
   static List<Map<String, dynamic>>? readJsonList(String key) {
     final s = kIsWeb ? _prefs?.getString(key) : _box?.read<String>(key);
     if (s == null) return null;

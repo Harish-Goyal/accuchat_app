@@ -40,11 +40,13 @@ class SpeechControllerImpl  extends SpeechController{
 
   @override
   String selectedLang = 'en-IN';
+
   @override
   void updateSelectedLang(String v) {
     selectedLang = v;
     update();
   }
+
   @override
   VoidCallback? onStopped;
 
@@ -56,7 +58,6 @@ class SpeechControllerImpl  extends SpeechController{
     _subResult = html.window.on['speech-result'].listen((event) {
       final e = event as html.CustomEvent;
       final detail = e.detail as dynamic;
-
       final interim = (detail['interim'] ?? '').toString();
       final gotFinal = (detail['final'] ?? '').toString();
 

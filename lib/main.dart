@@ -25,15 +25,10 @@ import 'Services/notification_web_mobile.dart';
 import 'Services/storage_service.dart';
 import 'Services/subscription/billing_controller.dart';
 import 'Services/subscription/billing_service.dart';
-import 'Services/web_push_listen.dart';
 import 'firebase_options.dart';
 
-
-// 9882896000
-// 9882996003
 CustomLoader customLoader = CustomLoader();
 var log = Logger();
-// GetStorage storage = GetStorage();
 
 late Size mq;
 bool isConnected = true;
@@ -47,17 +42,10 @@ class GlobalVariable {
       GlobalKey<NavigatorState>();
 }
 
-// (kept as-is)
-// DashboardController dashboardController = Get.put(DashboardController(),permanent: true);
-
-// ---------------------------------------------
-// NEW: one-shot boot guard (so we don't run twice)
 Future<void>? _bootOnce;
-// ---------------------------------------------
 
 Future<void> main() async {
   Get.put(NoNetworkController(), permanent: true);
-  // (kept) system UI style
   SystemChrome.setSystemUIOverlayStyle(const SystemUiOverlayStyle(
     statusBarColor: Colors.white,
     statusBarIconBrightness: Brightness.dark,
@@ -70,11 +58,9 @@ Future<void> main() async {
     options: DefaultFirebaseOptions.currentPlatform,
   );
 
-  // 🔥 Register background handler BEFORE runApp
   FirebaseMessaging.onBackgroundMessage(
     firebaseMessagingBackgroundHandler,
   );
-  // (kept) Your deferred inits
   final Future<void> firebaseInit = _initializeFirebase();
   final Future<void> notifInit = NotificationServicess.init(
     webVapidPublicKey:
@@ -91,7 +77,6 @@ Future<void> main() async {
     firebaseInit.timeout(const Duration(seconds: 5), onTimeout: () => null),
     notifInit.timeout(const Duration(seconds: 4), onTimeout: () => null),
     localNotifInit.timeout(const Duration(seconds: 4), onTimeout: () => null),
-    // storageBoot.timeout(const Duration(seconds: 6), onTimeout: () => null),
   ]);
   await StorageService.init();
   await HiveBoot.init();
@@ -111,106 +96,39 @@ Future<void> main() async {
       Get.put(AuthApiServiceImpl(), permanent: true);
     }
   }
-
-  // IMPORTANT CHANGE:
-  // Instead of doing heavy awaits here, we start UI immediately and
-  // defer your exact same initialization to after first frame (see _deferredBoot).
   SystemChrome.setPreferredOrientations(
           [DeviceOrientation.portraitUp, DeviceOrientation.portraitDown])
       .then((value) {
     runApp(const MyApp());
 
-    // Kick boot AFTER first frame to avoid blocking splash.
     WidgetsBinding.instance.addPostFrameCallback((_) {
       _bootOnce ??=
-          _deferredBoot(); // runs all your original awaits, just later
+          _deferredBoot();
     });
   });
 }
 
-// ---------------------------------------------
-// NEW: moved your heavy code here (nothing removed, only deferred)
-// ---------------------------------------------
 const selectedCompanyBox = 'selected_company_box';
 Future<void> _deferredBoot() async {
-  // Your original code lines are preserved below; I only grouped & parallelized them.
-  // await StorageService.init();
-  // ---- originally: firebase + notifications + storages + boxes ----
-/*  final Future<void> firebaseInit = _initializeFirebase(); // (kept)
-
-  // (kept) Notification init – deferred, same call
-  final Future<void> notifInit = NotificationServicess.init(
-    webVapidPublicKey:
-        "BJt_tuDwKCr6OR8Gibo9KMKsJfSjB3rje9fn7Q31qGPyxAi9SKF11kf8HYOd__Zo7Wubg_xgbhkZzykxRojmN9g",
-  );
-
-  // (kept) Local notifications – deferred, same calls
-  final Future<void> localNotifInit = (() async {
-    await LocalNotificationService.initialize(onSelect: handleNotificationTap);
-    await LocalNotificationService.createAllChannels();
-  })();
-
-  FirebaseMessaging.onBackgroundMessage(
-      firebaseMessagingBackgroundHandler);*/
-
-  // (kept) Billing service/controller – same creation, just deferred
   final service = BillingService(
     baseUrl: 'https://api.accuchat.example',
     authTokenProvider: () async => '<JWT>',
   );
-  final billingCtrl = Get.lazyPut(() => BillingController(service)); // (kept)
+  final billingCtrl = Get.lazyPut(() => BillingController(service));
 
-  // (kept) storages + hive registrations + box open
-
-
-  // final storageBoot = (() async {
-  //   await HiveBoot.init();
-  //   await HiveBoot.openBoxOnce<CompanyData>(selectedCompanyBox);
-  // })();
-  //
-  //   await Get.putAsync<CompanyService>(
-  //         () async => await CompanyService().init(),
-  //     permanent: true,
-  //   );
-
-  // await Future.wait<void>([
-  //   firebaseInit.timeout(const Duration(seconds: 5), onTimeout: () => null),
-  //   notifInit.timeout(const Duration(seconds: 4), onTimeout: () => null),
-  //   localNotifInit.timeout(const Duration(seconds: 4), onTimeout: () => null),
-  //   // storageBoot.timeout(const Duration(seconds: 6), onTimeout: () => null),
-  // ]);
-
-
-  // (kept) open boxes in try/catch – deferred
-  // try {
-  //   await Hive.openBox<CompanyData>(selected_company_box);
-  //   await Hive.openBox('current');
-  // } catch (e) {
-  //   debugPrint(e.toString());
-  // }
-
-  // (kept) immersive mode – deferred
   await SystemChrome.setEnabledSystemUIMode(SystemUiMode.edgeToEdge);
 
-  // (kept) CompanyService – deferred
-
-  // (kept) image cache tuning – deferred
   final cache = PaintingBinding.instance.imageCache;
-  cache.maximumSize = 150; // count
+  cache.maximumSize = 150;
   cache.maximumSizeBytes = 80 << 20;
-
-  // DONE: all the same work you had before is now finished,
-  // but the UI/splash wasn't blocked by it.
 }
 
 Future<void> clearHiveCompletely() async {
-  // (kept as-is)
   await Hive.close();
   await Hive.deleteFromDisk();
 }
 
 void handleNotificationTap(String? payload) async {
-  // (kept as-is)
   if (payload == 'invite') {
     Get.toNamed(AppRoutes.home);
   } else if (payload == 'task') {
@@ -221,7 +139,6 @@ void handleNotificationTap(String? payload) async {
 }
 
 _initializeFirebase() async {
-  // (kept as-is)
   try {
     await Firebase.initializeApp(
       options: DefaultFirebaseOptions.currentPlatform,
@@ -238,8 +155,6 @@ Future<void> firebaseMessagingBackgroundHandler(
   await Firebase.initializeApp(
     options: DefaultFirebaseOptions.currentPlatform,
   );
-
-  debugPrint('📩 Background message received: ${message}');
   debugPrint('📩 Background message received: ${message.data}');
 
 }
@@ -264,7 +179,7 @@ class MyApp extends StatelessWidget {
       defaultTransition: Transition.cupertino,
       onReady: () {
         if (kIsWeb) {
-          Future.delayed(Duration(milliseconds: 50), () {
+          Future.delayed(const Duration(milliseconds: 50), () {
             Get.offAllNamed(AppRoutes.home);
           });
         }
@@ -275,7 +190,6 @@ class MyApp extends StatelessWidget {
 
 class LoggerX {
   static void write(String text, {bool isError = false}) {
-    // (kept as-is)
     Future.microtask(() => isError ? log.v("$text") : log.i("$text"));
   }
 }

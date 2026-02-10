@@ -16,6 +16,9 @@ import '../../../../routes/app_routes.dart';
 import '../../../../utils/data_not_found.dart';
 import '../../../../utils/helper_widget.dart';
 import '../../../../utils/networl_shimmer_image.dart';
+import '../../../Chat/api/apis.dart';
+import '../../../Chat/screens/chat_tasks/Presentation/Controllers/chat_home_controller.dart';
+import '../../../Chat/screens/chat_tasks/Presentation/Controllers/chat_screen_controller.dart';
 import '../../../Chat/screens/chat_tasks/Presentation/Views/chat_screen.dart';
 import '../../../Chat/screens/chat_tasks/Presentation/dialogs/profile_dialog.dart';
 
@@ -110,7 +113,7 @@ class CompanyMembers extends GetView<CompanyMemberController> {
     return Obx(
       () => controller.isLoading.value
           ? const IndicatorLoading()
-          : (controller.filteredList ?? []).isEmpty
+          : controller.filteredList.isEmpty
               ? SizedBox(
         height: 80,
         width: 80,
@@ -130,7 +133,7 @@ class CompanyMembers extends GetView<CompanyMemberController> {
                     return false;
                   },
                   child: ListView.separated(
-                    itemCount: controller.filteredList.length ?? 0,
+                    itemCount: controller.filteredList.length,
                     physics: const AlwaysScrollableScrollPhysics(),
                     controller: controller.scrollController,
                     itemBuilder: (context, index) {
@@ -150,7 +153,7 @@ class CompanyMembers extends GetView<CompanyMemberController> {
                           enabled: false,
                           visualDensity: kIsWeb
                               ? const VisualDensity(vertical: -1)
-                              : VisualDensity.standard, // tighter on web
+                              : VisualDensity.standard,
                           contentPadding: const EdgeInsets.symmetric(
                               horizontal: 10, vertical: 0),
                           leading: memData.userImage == '' ||
@@ -194,7 +197,7 @@ class CompanyMembers extends GetView<CompanyMemberController> {
                                           boxFit: BoxFit.cover,
                                           defaultImage: userIcon,
                                           borderColor: greyText,
-                                          "${ApiEnd.baseUrlMedia}${memData?.userImage ?? ''}",
+                                          "${ApiEnd.baseUrlMedia}${memData.userImage ?? ''}",
                                         ),
                                       ))),
                           title: InkWell(
@@ -206,26 +209,26 @@ class CompanyMembers extends GetView<CompanyMemberController> {
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
                                 Text(
-                                  memData?.userName != null
-                                      ? memData?.userName ?? ''
-                                      : memData?.userCompany?.displayName !=
+                                  memData.userName != null
+                                      ? memData.userName ?? ''
+                                      : memData.userCompany?.displayName !=
                                               null
-                                          ? memData?.userCompany?.displayName ??
+                                          ? memData.userCompany?.displayName ??
                                               ''
-                                          : memData?.phone ?? '',
+                                          : memData.phone ?? '',
                                   style: BalooStyles.baloosemiBoldTextStyle(),
                                   maxLines: 1,
                                   overflow: TextOverflow.ellipsis,
                                 ),
                                 vGap(4),
-                                memData?.userName == null &&
-                                        memData?.userCompany?.displayName ==
+                                memData.userName == null &&
+                                        memData.userCompany?.displayName ==
                                             null
                                     ? const SizedBox()
                                     : Text(
-                                        memData?.phone != null
-                                            ? memData?.phone ?? ''
-                                            : memData?.email ?? '',
+                                        memData.phone != null
+                                            ? memData.phone ?? ''
+                                            : memData.email ?? '',
                                         style:
                                             BalooStyles.balooregularTextStyle(),
                                         maxLines: 1,
@@ -313,49 +316,18 @@ class CompanyMembers extends GetView<CompanyMemberController> {
       }
     }
   }
-    // if (kIsWeb) {
-    //   Get.back();
-    //   dcController.updateIndex(1);
-    //   dcController.update();
-    //   isTaskMode = true;
-    //   final homec = Get.find<TaskHomeController>();
-    //   TaskController? taskC;
-    //   if (Get.isRegistered<TaskController>()) {
-    //     taskC = Get.find<TaskController>();
-    //   } else {
-    //     taskC = Get.put(TaskController(user: memData));
-    //   }
-    //   homec.selectedChat.value = memData;
-    //   taskC?.user = homec.selectedChat.value;
-    //   taskC?.replyToMessage = null;
-    //   taskC?.showPostShimmer = true;
-    //   taskC?.openConversation(homec.selectedChat.value);
-    //   homec.selectedChat.refresh();
-    //   taskC?.update();
-    // } else {
-    //   Get.toNamed(AppRoutes.tasks_li_r, arguments: {'user': memData});
-    // }
-  // }
-
     Future<void> _goToChat(memData) async {
-      DashboardController?   dcController ;
+      DashboardController?   dcController;
       if(Get.isRegistered<DashboardController>()){
         dcController = Get.find<DashboardController>();
       }
       dcController?.updateIndex(0);
       isTaskMode = false;
-      // APIs.updateActiveStatus(true);
       if(isTaskMode) {
         if(kIsWeb){
           Get.to(()=>TaskScreen(taskUser: memData ,showBack: true,));
-          // Get.toNamed(
-          //   "${AppRoutes.tasks_li_r}?userId=${memData?.userId.toString()}",
-          // );
         }else{
-          Get.toNamed(
-            AppRoutes.tasks_li_r,
-            arguments: {'user': memData},
-          );
+          Get.toNamed(AppRoutes.tasks_li_r, arguments: {'user': memData},);
         }
       }else{
         if(kIsWeb){
@@ -367,64 +339,68 @@ class CompanyMembers extends GetView<CompanyMemberController> {
           );
         }
       }
-      // if (!kIsWeb) {
-      //   Get.toNamed(AppRoutes.chats_li_r, arguments: {'user': memData});
-      //   return;
-      // }
-
-
-
-      // close member screen
-      // if (Get.key.currentState?.canPop() ?? false) Get.back();
-
-      // ✅ switch tab first
-      // dcController.getCompany();
-      // dcController.updateIndex(0);
-      // dcController.update();
-      // isTaskMode = false;
-
-      //   var homec;
-      //   var chatc;
-      //   // ensure controllers exist
-      //   if (!Get.isRegistered<ChatHomeController>()) {
-      //     homec =  Get.put(ChatHomeController());
-      //   }else{
-      //     homec = Get.find<ChatHomeController>();
-      //   }
-      //   if (!Get.isRegistered<ChatScreenController>()) {
-      //     chatc = Get.put(ChatScreenController(user: memData));
-      //   }else{
-      //     chatc = Get.find<ChatScreenController>();
-      //   }
-      //
-      // Future.delayed(Duration(milliseconds: 600),(){
-      //     // ✅ run after UI builds chat tab
-      //     WidgetsBinding.instance.addPostFrameCallback((_) {
-      //       homec.selectedChat.value = memData;
-      //       homec.selectedChat.refresh();
-      //       homec.update();
-      //
-      //       chatc.user = memData;
-      //       chatc.textController.clear();
-      //       chatc.replyToMessage = null;
-      //       chatc.showPostShimmer = true;
-      //
-      //       chatc.openConversation(memData);
-      //       chatc.update();
-      //     });
-      //
-      //     if (Get.key.currentState?.canPop() ?? false) Get.back();
-      //     DashboardController?   dcController ;
-      //     if(Get.isRegistered<DashboardController>()){
-      //       dcController = Get.find<DashboardController>();
-      //     }
-      //
-      //     dcController?.updateIndex(0);
-      //     dcController?.update();
-      //     isTaskMode = false;
-      //
-      // });
 
       }
+
+/*  Future<void> _goToChat(memData) async {
+    // 1) Go Home first (clear stack)
+     Get.back();
+
+    // 2) Set dashboard to Chat tab (jo bhi chat index hai)
+    final dc = Get.isRegistered<DashboardController>()
+        ? Get.find<DashboardController>()
+        : Get.put(DashboardController());
+
+    dc.updateIndex(0); // <-- yaha apna chat tab index daalo
+    dc.update();
+
+    // 3) Give Home UI/controllers a frame to build
+    await Future.delayed(const Duration(milliseconds: 50));
+
+    if (kIsWeb) {
+      final _tag = "chat_${memData?.userId ?? 'mobile'}";
+      // 4) Ensure Home controller is available
+      final homec = Get.isRegistered<ChatHomeController>()
+          ? Get.find<ChatHomeController>()
+          : Get.put(ChatHomeController());
+
+      // 5) Ensure ChatScreenController exists with correct user
+      ChatScreenController chatc;
+      if (Get.isRegistered<ChatScreenController>()) {
+
+        chatc = Get.find<ChatScreenController>(tag: _tag);
+        chatc.user = memData; // important
+      } else {
+        chatc = Get.put(ChatScreenController(user: memData),tag: _tag);
+      }
+
+      // 6) Select user & open conversation
+      homec.selectedChat.value = memData;
+      homec.selectedChat.refresh();
+
+      chatc.textController.clear();
+      chatc.replyToMessage = null;
+      chatc.showPostShimmer = true;
+
+       chatc.openConversation(memData);
+
+      // 7) Mark read
+      if ((memData?.pendingCount ?? 0) != 0) {
+        chatc.markAllVisibleAsReadOnOpen(
+          APIs.me?.userCompany?.userCompanyId,
+          memData?.userCompany?.userCompanyId,
+          (memData?.userCompany?.isGroup == 1) ? 1 : 0,
+        );
+      }
+
+      homec.update();
+      chatc.update();
+    } else {
+      // mobile direct chat screen
+      Get.toNamed(AppRoutes.chats_li_r, arguments: {'user': memData});
+    }
+  }*/
+
+
 
 }

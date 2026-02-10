@@ -39,11 +39,11 @@ class AllUserController extends GetxController{
     myCompany = svc.selected;
   }
 
-  UserDataAPI? me = UserDataAPI();
-  _getMe(){
-    me = getUser();
-    update();
-  }
+  // UserDataAPI? me = UserDataAPI();
+  // _getMe(){
+  //   me = getUser();
+  //   update();
+  // }
 
   RxBool isLoading = false.obs;
 
@@ -178,7 +178,7 @@ class AllUserController extends GetxController{
     getArguments();
     // scrollListener();
     _getCompany();
-    _getMe();
+    // _getMe();
 
     Future.delayed(const Duration(milliseconds: 400),(){
       getAllUsers();

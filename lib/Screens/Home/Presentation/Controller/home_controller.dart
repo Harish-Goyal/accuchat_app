@@ -34,7 +34,7 @@ import '../View/gallery_view.dart';
 import 'company_service.dart';
 
 class DashboardController extends GetxController with WidgetsBindingObserver {
-  var currentIndex = 0;
+  RxInt currentIndex = 0.obs;
   UserDataAPI? user;
 
   RxBool newChat =false.obs;
@@ -42,8 +42,8 @@ class DashboardController extends GetxController with WidgetsBindingObserver {
   RxBool newTask =false.obs;
 
   void updateIndex(int index) {
-    currentIndex = index;
-    update();
+    currentIndex.value = index;
+    // update();
   }
 
   bool _inited = false;

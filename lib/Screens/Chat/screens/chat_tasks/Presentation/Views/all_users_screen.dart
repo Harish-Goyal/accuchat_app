@@ -10,6 +10,7 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import '../../../../../../Constants/colors.dart';
 import '../../../../../../utils/helper_widget.dart';
+import '../../../../api/apis.dart';
 import '../../../auth/models/get_uesr_Res_model.dart';
 
 class AllUserScreen extends GetView<AllUserController> {
@@ -42,9 +43,9 @@ class AllUserScreen extends GetView<AllUserController> {
     return Obx(
           () => Center(
         child: controller.isLoading.value
-            ? IndicatorLoading()
+            ? const IndicatorLoading()
             : ConstrainedBox(
-          constraints: BoxConstraints(
+          constraints: const BoxConstraints(
             maxWidth:
             kIsWeb ? 600 : double.infinity, // FIX WIDTH ON WEB
           ),
@@ -76,8 +77,9 @@ class AllUserScreen extends GetView<AllUserController> {
   Widget _listViewWidget(){
    return  NotificationListener<ScrollNotification>(
       onNotification: (ScrollNotification n) {
-        if (n is! ScrollEndNotification)
+        if (n is! ScrollEndNotification) {
           return false; // ✅ avoid spam
+        }
 
         final m = n.metrics;
 
@@ -91,7 +93,7 @@ class AllUserScreen extends GetView<AllUserController> {
       },
       child: ListView.builder(
           itemCount: controller.filteredList.length ?? 0,
-          physics: AlwaysScrollableScrollPhysics(),
+          physics: const AlwaysScrollableScrollPhysics(),
           controller: controller.scrollController,
           // shrinkWrap: true,
           padding: EdgeInsets.zero,
@@ -114,7 +116,7 @@ class AllUserScreen extends GetView<AllUserController> {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    memData.userId == controller.me?.userId
+                    memData.userId == APIs.me?.userId
                         ? "Me"
                         : memData?.userName != null
                         ? memData?.userName ?? ''
@@ -143,7 +145,7 @@ class AllUserScreen extends GetView<AllUserController> {
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
                   )
-                      : SizedBox(),
+                      : const SizedBox(),
 
                 ],
               ),
@@ -166,7 +168,7 @@ class AllUserScreen extends GetView<AllUserController> {
           onPressed: () {
             Get.back();
           },
-          icon: Icon(
+          icon: const Icon(
             Icons.arrow_back,
             color: Colors.black,
           )),

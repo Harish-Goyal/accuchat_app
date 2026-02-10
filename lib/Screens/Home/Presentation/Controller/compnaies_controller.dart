@@ -23,7 +23,7 @@ class CompaniesController extends GetxController {
   @override
   void onInit() {
     getCompany();
-    _getMe();
+    // _getMe();
     hitAPIToGetCompanies();
     hitAPIToGetPendingInvites();
     hitAPIToGetSentInvites(companyData: selCompany);
@@ -69,12 +69,12 @@ class CompaniesController extends GetxController {
     return selCompany;
   }
 
-  UserDataAPI? me = UserDataAPI();
-
-  _getMe() {
-    me = getUser();
-    update();
-  }
+  // UserDataAPI? me = UserDataAPI();
+  //
+  // _getMe() {
+  //   me = getUser();
+  //   update();
+  // }
 
   bool isLoadingInvited = false;
   List<PendingInvitesList> pendingInvitesList = [];
@@ -117,7 +117,7 @@ class CompaniesController extends GetxController {
     if (value == "Pending") {
       if (companyData.companyId == selCompany?.companyId) {
         if (kIsWeb) {
-          if ((companyData.createdBy == me?.userId)) {
+          if ((companyData.createdBy == APIs.me?.userId)) {
             Get.toNamed(
               "${AppRoutes.invitations_r}?companyID=${companyData.companyId ?? 0}",
             );
@@ -125,7 +125,7 @@ class CompaniesController extends GetxController {
             toast("You are not allowed");
           }
         } else {
-          if ((companyData.createdBy == me?.userId)) {
+          if ((companyData.createdBy == APIs.me?.userId)) {
             Get.toNamed(AppRoutes.invitations_r, arguments: {
               'companyID': companyData.companyId ?? 0,
             });
@@ -146,7 +146,7 @@ class CompaniesController extends GetxController {
 
             Future.delayed(
                 const Duration(milliseconds: 500),
-                () => (selCompany?.createdBy) == me?.userId
+                () => (selCompany?.createdBy) == APIs.me?.userId
                     ? _onInvite(companyData)
                     : toast("You are not allowed to perform this action!"));
           } else {
@@ -165,13 +165,13 @@ class CompaniesController extends GetxController {
         update();
         Future.delayed(const Duration(milliseconds: 500), () {
           if (kIsWeb) {
-            (companyData.createdBy == me?.userId)
+            (companyData.createdBy == APIs.me?.userId)
                 ? Get.toNamed(
                     "${AppRoutes.company_update}?companyId=${companyData.companyId.toString()}",
                   )
                 : toast("You are not allowed to perform this action!");
           } else {
-            (companyData.createdBy == me?.userId)
+            (companyData.createdBy == APIs.me?.userId)
                 ? Get.toNamed(
                     AppRoutes.company_update,
                     arguments: {'company': companyData},

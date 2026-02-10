@@ -256,7 +256,7 @@ class LocalNotificationService {
       }
 
       if (!Get.isRegistered<ChatScreenController>()) {
-        Get.put(ChatScreenController(user: user));
+        Get.put(ChatScreenController(user: user),tag: "chat_${user.userId ?? 'mobile'}");
       }
       final homec = Get.find<ChatHomeController>();
       final chatc = Get.find<ChatScreenController>(tag: "chat_${user.userId ?? 'mobile'}");

@@ -936,6 +936,7 @@ class TaskScreen extends GetView<TaskController> {
         ),
 
         controller.isSearching?const SizedBox():  (controller.user?.userCompany?.isBroadcast==1 ||controller.user?.userCompany?.isGroup==1) ?const SizedBox():CustomTextButton(onTap: (){
+          final _tag = "chat_${controller.user?.userId ?? 'mobile'}";
           if (controller.user == null) return;
           isTaskMode = false;
           Get.find<DashboardController>().updateIndex(0);
@@ -950,11 +951,12 @@ class TaskScreen extends GetView<TaskController> {
           if (!Get.isRegistered<ChatScreenController>()) {
             // toast("Something went wrong! Please refresh the App");
             // return;
-            Get.put(ChatScreenController(user: controller.user));
+            Get.put(ChatScreenController(user: controller.user),tag: _tag);
           }
 
           final chatHome = Get.find<ChatHomeController>();
-          final chatC = Get.find<ChatScreenController>();
+
+          final chatC = Get.find<ChatScreenController>(tag: _tag);
 
           chatHome.selectedChat.value = controller.user;
           chatC.user = controller.user;
@@ -2199,8 +2201,6 @@ class TaskScreen extends GetView<TaskController> {
           // File for mobile/desktop local previews (guarded)
           File? localFile;
           if (pf != null && pf.path != null && pf.path!.isNotEmpty) {
-            print("pf.path====");
-            print(pf.path);
             localFile = File(pf.path!);
           } else if (m['file'] is File) {
             localFile = m['file'] as File;

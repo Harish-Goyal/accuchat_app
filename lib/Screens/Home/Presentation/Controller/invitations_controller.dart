@@ -29,8 +29,6 @@ class InvitationsController extends GetxController {
     }else{
       if(Get.arguments!=null){
         comapnyID = Get.arguments['companyID'];
-        print("comapnyID");
-        print(comapnyID);
       }
     }
 

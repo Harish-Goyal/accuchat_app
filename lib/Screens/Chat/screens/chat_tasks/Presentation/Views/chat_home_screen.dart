@@ -330,9 +330,11 @@ class ChatsHomeScreen extends GetView<ChatHomeController> {
         final homec = Get.find<ChatHomeController>();
         ChatScreenController? chatc;
         if(Get.isRegistered<ChatScreenController>()){
-          chatc = Get.find<ChatScreenController>();
+          final _tag = "chat_${user.userId ?? 'mobile'}";
+          chatc = Get.find<ChatScreenController>(tag: _tag);
         }else{
-          chatc = Get.put(ChatScreenController(user: user));
+          final _tag = "chat_${user.userId ?? 'mobile'}";
+          chatc = Get.put(ChatScreenController(user: user),tag: _tag);
         }
 
         // homec.page = 1;

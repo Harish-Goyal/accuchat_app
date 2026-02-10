@@ -237,8 +237,8 @@ class AddGroupMemController extends GetxController {
         .then((value) async {
           customLoader.hide();
           toast("Member added!");hitAPIToAllGetMember();
-
-         await Get.find<ChatScreenController>().hitAPIToGetMembers(group);
+          final _tag = "chat_${group?.userId ?? 'mobile'}";
+         await Get.find<ChatScreenController>(tag: _tag).hitAPIToGetMembers(group);
           await Get.find<GrBrMembersController>().hitAPIToGetMembers();
           Get.back();
 

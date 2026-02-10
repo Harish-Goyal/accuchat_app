@@ -127,8 +127,6 @@ class CompaniesScreen extends GetView<CompaniesController> {
                         ),
                         shimmerEffectWidget(
                           showShimmer: controller.loadingCompany,
-
-                          // showShimmer: true,
                           shimmerWidget: shimmerlistView(
                               count: 2,
                               child: shimmerlistItem(
@@ -150,7 +148,7 @@ class CompaniesScreen extends GetView<CompaniesController> {
                                   return Align(
                                     alignment: Alignment.centerLeft,
                                       child: ConstrainedBox(
-                                    constraints: BoxConstraints(
+                                    constraints: const BoxConstraints(
                                       maxWidth: kIsWeb ? 500 : double.infinity,
                                     ),
                                     child: Stack(
@@ -226,7 +224,7 @@ class CompaniesScreen extends GetView<CompaniesController> {
                                               ),
                                               vGap(4),
                                               Text(
-                                                "Creator: ${companyData.createdBy == controller.me?.userId ? controller.me?.phone : (companyData.companyName ?? '')}",
+                                                "Creator: ${companyData.createdBy == APIs.me.userId ? APIs.me.phone : (companyData.companyName ?? '')}",
                                                 style: BalooStyles
                                                     .baloonormalTextStyle(
                                                         size: 14),
@@ -242,11 +240,11 @@ class CompaniesScreen extends GetView<CompaniesController> {
                                                 companyData: companyData,
                                                 isMember: true);
                                               final svc = CompanyService.to;
-                                              await svc.select(companyData!);
+                                              await svc.select(companyData);
                                               controller.getCompany();
                                               await APIs.refreshMe(
                                                   companyId:
-                                                      companyData?.companyId ??
+                                                      companyData.companyId ??
                                                           0);
                                               Get.find<SocketController>()
                                                   .connectUserEmitter(
@@ -325,7 +323,7 @@ class CompaniesScreen extends GetView<CompaniesController> {
                                                           ?.companyId;
                                               final bool isCreator =
                                                   companyData.createdBy ==
-                                                      controller.me?.userId;
+                                                      APIs.me?.userId;
                                               // Hide the 3-dot entirely if not the selected company
                                               if (!isSelected)
                                                 return const SizedBox.shrink();
@@ -408,8 +406,8 @@ class CompaniesScreen extends GetView<CompaniesController> {
                                                                   .delete_outline,
                                                               size: 15,
                                                               color: AppTheme.redErrorColor),
-                                                          SizedBox(width: 4),
-                                                          Text(
+                                                          const SizedBox(width: 4),
+                                                          const Text(
                                                               'Delete Company'),
                                                         ]),
                                                       ),
@@ -528,7 +526,7 @@ class CompaniesScreen extends GetView<CompaniesController> {
                                                             Radius.circular(
                                                                 30)),
                                                 color: companyData.createdBy ==
-                                                        controller.me?.userId
+                                                    APIs.me.userId
                                                     ? appColorGreen
                                                         .withOpacity(.1)
                                                     : appColorYellow
@@ -538,15 +536,14 @@ class CompaniesScreen extends GetView<CompaniesController> {
                                                         .withOpacity(.1))),
                                             child: Text(
                                               companyData.createdBy ==
-                                                      controller.me?.userId
+                                                  APIs.me.userId
                                                   ? "Creator"
                                                   : "Joined",
                                               style: BalooStyles
                                                   .baloosemiBoldTextStyle(
                                                       color: companyData
                                                                   .createdBy ==
-                                                              controller
-                                                                  .me?.userId
+                                                          APIs.me?.userId
                                                           ? appColorGreen
                                                           : appColorYellow,
                                                       size: 12),
@@ -554,7 +551,7 @@ class CompaniesScreen extends GetView<CompaniesController> {
                                           ),
                                         ),
                                         (companyData.createdBy ==
-                                                    controller.me?.userId &&
+                                            APIs.me.userId &&
                                                 companyData.companyId ==
                                                     controller
                                                         .selCompany?.companyId)

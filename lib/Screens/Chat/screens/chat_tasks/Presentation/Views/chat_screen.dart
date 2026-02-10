@@ -141,7 +141,7 @@ class _ChatScreenState extends State<ChatScreen> {
   }
 
 
-
+ String _tag ='';
   @override
   void initState() {
     super.initState();
@@ -166,8 +166,10 @@ class _ChatScreenState extends State<ChatScreen> {
         });
       },
     );
+    _tag = "chat_${widget.user?.userId ?? 'mobile'}";
     controller = Get.put(
-      ChatScreenController(user: widget.user),
+      ChatScreenController(user: widget.user)
+        ,tag: _tag
     );
   }
 
@@ -190,7 +192,9 @@ class _ChatScreenState extends State<ChatScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return GetBuilder<ChatScreenController>(builder: (controller) {
+    return GetBuilder<ChatScreenController>(
+      tag: _tag,
+        builder: (controller) {
       return GestureDetector(
         onTap: () => FocusScope.of(context).unfocus(),
         child: SafeArea(

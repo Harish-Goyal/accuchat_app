@@ -2,6 +2,7 @@ import 'package:hive/hive.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 
 import '../Screens/Chat/models/get_company_res_model.dart';
+import '../main.dart';
 
 class HiveBoot {
   static bool _inited = false;
@@ -63,18 +64,18 @@ class HiveBoot {
     return box;
   }
 
-  /// Close all tracked boxes and optionally delete them from disk.
+
   static Future<void> closeAndDeleteAll({bool deleteFromDisk = true}) async {
-    // Close tracked boxes (ignore if already closed)
     for (final name in _openedBoxes.toList()) {
       if (Hive.isBoxOpen(name)) {
         try {
           await Hive.box(name).close();
-        } catch (_) {}
+        } catch (_) {
+          customLoader.hide();
+        }
       }
     }
 
-    // Also ensure Hive global closes any other open handles
     try {
       await Hive.close();
     } catch (_) {}

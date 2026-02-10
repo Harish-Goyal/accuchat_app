@@ -8,6 +8,7 @@ import 'package:get/get.dart';
 import '../../../../Services/APIs/local_keys.dart';
 import '../../../../Services/APIs/post/post_api_service_impl.dart';
 import '../../../../utils/text_style.dart';
+import '../../../Chat/api/apis.dart';
 import '../../../Chat/models/invite_model.dart';
 import '../../../Chat/models/get_company_res_model.dart';
 import '../../../Chat/screens/auth/models/get_uesr_Res_model.dart';
@@ -43,7 +44,7 @@ class CompanyMemberController extends GetxController{
   final RxBool isLoading = false.obs;
   initData() async {
     _getCompany();
-    _getMe();
+    // _getMe();
     hitAPIToGetMember();
 
   }
@@ -57,12 +58,12 @@ class CompanyMemberController extends GetxController{
 
 
   }
-
-  UserDataAPI? me = UserDataAPI();
-  _getMe(){
-    me = getUser();
-    update();
-  }
+  //
+  // UserDataAPI? me = UserDataAPI();
+  // _getMe(){
+  //   me = getUser();
+  //   update();
+  // }
 
   hitAPIToRemoveMember(memId) async {
     customLoader.show();
@@ -184,7 +185,7 @@ class CompanyMemberController extends GetxController{
   }
 
   removeCompanyMember(UserDataAPI? memData)async{
-    final meId = me?.userId;
+    final meId = APIs.me?.userId;
     final creatorId = myCompany?.createdBy;
     final targetId = memData?.userId;
 

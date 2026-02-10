@@ -70,7 +70,8 @@ class GalleryViewerPage extends GetView<GalleryViewerController> {
                     }
 
                     if (v == "reply") {
-                      final chatC = Get.find<ChatScreenController>();
+                      final _tag = "chat_${c.chathis?.fromUser?.userId ?? 'mobile'}";
+                      final chatC = Get.find<ChatScreenController>(tag: _tag);
                       chatC.refIdis = c.chathis?.chatId;
                       chatC.userIDSender = c.chathis?.fromUser?.userId;
                       chatC.userNameReceiver =

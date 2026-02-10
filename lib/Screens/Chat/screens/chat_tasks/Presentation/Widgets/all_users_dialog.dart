@@ -1,4 +1,5 @@
 import 'package:AccuChat/Constants/assets.dart';
+import 'package:AccuChat/Screens/Chat/api/apis.dart';
 import 'package:AccuChat/Screens/Chat/models/task_res_model.dart';
 import 'package:AccuChat/Screens/Chat/screens/chat_tasks/Presentation/Controllers/all_user_controller.dart';
 import 'package:AccuChat/Services/APIs/api_ends.dart';
@@ -90,7 +91,6 @@ class AllUserScreenDialog extends GetView<AllUserController> {
                                         : Icons.search,
                                     color: colorGrey,
                                   )),
-
                           ],
                         ),
                       ),
@@ -148,7 +148,7 @@ class AllUserScreenDialog extends GetView<AllUserController> {
                                       children: [
                                         Text(
                                           memData.userId ==
-                                              controller.me?.userId
+                                              APIs.me?.userId
                                               ? "Me":   memData.userName != null ? memData
                                               .userName ?? '' : memData
                                               .userCompany?.displayName != null

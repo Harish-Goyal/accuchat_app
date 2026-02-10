@@ -59,7 +59,6 @@ class AllSettingsScreen extends GetView<AllSettingsController> {
               con.updateIndex(3);
               con.update();
             }catch(v){
-              print(v);
             }
           },
           child: CustomContainer(

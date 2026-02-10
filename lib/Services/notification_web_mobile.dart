@@ -1,6 +1,5 @@
 import 'dart:convert';
 import 'package:AccuChat/Screens/Chat/screens/auth/models/get_uesr_Res_model.dart';
-import 'package:AccuChat/Services/web_notication_stub.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/material.dart';
@@ -73,17 +72,12 @@ class NotificationServicess {
       final senderId = (data['user_id'] ?? '').toString().trim();
       final receiverId = (data['receiver_id'] ?? '').toString().trim();
 
-      print('🔔 FCM received: sender=$senderId, receiver=$receiverId, me=$meId');
+      // print('🔔 FCM received: sender=$senderId, receiver=$receiverId, me=$meId');
 
-      // 1️⃣ Skip if self not logged in properly
       if (meId == null || meId.isEmpty) return;
-
-      // 2️⃣ Skip if missing sender info
       if (senderId.isEmpty) return;
-
-      // 3️⃣ Skip if message is from self OR to self
       if (senderId == meId && senderId == meId) {
-        print('🔕 Skipping self-message notification');
+        debugPrint('🔕 Skipping self-message notification');
         return;
       }
 
@@ -94,12 +88,9 @@ class NotificationServicess {
       );
     });
 
-    // When user taps a notification
     FirebaseMessaging.onMessageOpenedApp.listen((RemoteMessage message) async {
-
       String? type;
       type = message.data['messageType'];
-
       print('🔔 Notification Data onMessageOpenedApp =${message.data}');
       print('🔔 Notification tapped. Type: $type');
 
@@ -159,7 +150,6 @@ class NotificationServicess {
         _goToChat(user);
         return;
       } else {
-
         getCompanyByIdApi(companyId:companyId,user: user,type: 'CHAT_SEND');
         return;
       }
@@ -169,7 +159,6 @@ class NotificationServicess {
         return;
       } else {
         getCompanyByIdApi(companyId:companyId,user: user,type: 'SEND_TASK_COMMENT');
-
         return;
       }
     } else {
@@ -211,7 +200,6 @@ class NotificationServicess {
     }else{
       await Get.putAsync<CompanyService>(
             () async => await CompanyService().init(),
-        // permanent: true,
       );
       final svc = CompanyService.to;
       await svc.select(companyResponse);
@@ -251,20 +239,18 @@ class NotificationServicess {
       if (!Get.isRegistered<ChatScreenController>()) {
         Get.lazyPut(()=>ChatScreenController(user: user));
       }
-      final chatc = Get.find<ChatScreenController>();
+      final _tag = "chat_${user.userId ?? 'mobile'}";
+      final chatc = Get.find<ChatScreenController>(tag: _tag);
       final homec = Get.find<ChatHomeController>();
-      // homec.page = 1;
-      // homec.hitAPIToGetRecentChats();
       chatc.replyToMessage = null;
       homec.selectedChat.value = user;
       chatc.user = homec.selectedChat.value;
       chatc.showPostShimmer = true;
       chatc.openConversation(user);
       chatc.markAllVisibleAsReadOnOpen(
-          APIs.me?.userCompany?.userCompanyId,
+          APIs.me.userCompany?.userCompanyId,
           chatc.user?.userCompany?.userCompanyId,
           chatc.user?.userCompany?.isGroup == 1 ? 1 : 0);
-      // homec.selectedChat.refresh();
       chatc.update();
     } else {
       Get.toNamed(
@@ -308,6 +294,8 @@ class NotificationServicess {
   }
 
 }
+
+
 /*
 
   // ================== SENDING (Server -> Device) ==================

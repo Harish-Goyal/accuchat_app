@@ -20,32 +20,11 @@ class NetworkExceptions {
             switch (error.response!.statusCode) {
               case 400:
               return ErrorResponseModel.fromJson(error.response?.data).message;
-               // Map<String, dynamic> data = error.response?.data;
-               //
-               // if (data.values.elementAt(0).runtimeType == String) {
-               //   return messageData = data.values.elementAt(0);
-               // } else {
-               //   Map<String, dynamic> datas = data.values.elementAt(0);
-               //   if (data.values.elementAt(0) == null) {
-               //     var dataValue = ErrorResponseModel.fromJson(
-               //         error.response?.data)
-               //         .message;
-               //     if (dataValue == null) {
-               //       return messageData = STRING_unauthRequest;
-               //     } else {
-               //       return messageData = dataValue;
-               //     }
-               //   }
-               //   else {
-               //     return messageData = datas.values.first[0];
-               //   }
-               // }
               case 401:
                 logoutLocal();
                 Get.offAllNamed(AppRoutes.login_r);
                 customLoader.hide();
                 return ErrorResponseModel.fromJson(error.response?.data).message;
-
               case 403:
                 logoutLocal();
                 Get.offAllNamed(AppRoutes.login_r);

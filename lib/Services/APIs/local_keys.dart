@@ -100,7 +100,54 @@ RolesData? getRolesData() {
   return null;
 }
 
+bool _isLoggingOut = false;
 
+Future<void> logoutLocal() async {
+  if (_isLoggingOut) return;
+  _isLoggingOut = true;
+
+  customLoader.show();
+
+  try {
+    try {
+      if (Get.isRegistered<SocketController>()) {
+        final s = Get.find<SocketController>();
+        s.disconnect();
+        Get.delete<SocketController>(force: true);
+      }
+    } catch (_) {}
+
+    if (Get.isRegistered<Session>()) {
+      Get.delete<Session>(force: true);
+    }
+    if (Get.isRegistered<ChatScreenController>()) {
+      Get.delete<ChatScreenController>(force: true);
+    }
+    if (Get.isRegistered<ChatHomeController>()) {
+      Get.delete<ChatHomeController>(force: true);
+    }
+    await StorageService.clear();
+    await AppStorage().clear();
+
+    if (Get.isRegistered<CompanyService>()) {
+      try { await CompanyService.to.closeBox(); } catch (_) {}
+      Get.delete<CompanyService>(force: true);
+    }
+
+    try {
+      await HiveBoot.closeAndDeleteAll(deleteFromDisk: true);
+    } catch (_) {}
+  } finally {
+    customLoader.hide();
+    await Future.delayed(const Duration(milliseconds: 50));
+    Get.offAllNamed(AppRoutes.login_r);
+    _isLoggingOut = false;
+  }
+}
+
+
+
+/*
 Future<void> logoutLocal() async {
   customLoader.show();
 
@@ -137,41 +184,12 @@ Future<void> logoutLocal() async {
   Get.offAllNamed(AppRoutes.login_r);
 
   customLoader.hide();
-}
-
-
-// Future<void> logoutLocal() async {
-//   customLoader.show();
-//   StorageService.remove(isFirstTime);
-//   StorageService.remove(isFirstTimeChatKey);
-//   StorageService.remove(user_mob);
-//   StorageService.remove(LOCALKEY_token);
-//   StorageService.remove(navigation_item_key);
-//   StorageService.remove(roles_data_key);
-//   StorageService.remove(bottom_nav_key);
-//   StorageService.remove(isLoggedIn);
-//   StorageService.remove(user_key);
-//   StorageService.clear();
-//   AppStorage().remove(LOCALKEY_token);
-//   AppStorage().remove(user_key);
-//   AppStorage().clear();
-//   if (Get.isRegistered<CompanyService>()) {
-//     try { await CompanyService.to.closeBox(); } catch (_) {}
-//     await Get.delete<CompanyService>(force: true);
-//   }
-//
-//   // 2) Now it’s safe to wipe Hive
-//   await HiveBoot.closeAndDeleteAll(deleteFromDisk: true);
-//   // 4) Navigate to login
-//   Future.delayed(const Duration(milliseconds: 1000),
-//           () => Get.offAllNamed(AppRoutes.login_r));
-//   customLoader.hide();
-// }
+}*/
 
 
 void saveNavigation(List<NavigationItem> data) {
   final navJson = data
-      .map((nav) => nav.toJson()) // Map<String,dynamic>
+      .map((nav) => nav.toJson())
       .toList();
   StorageService.writeJsonList(navigation_item_key, navJson);
 }
@@ -221,13 +239,10 @@ Future<void> saveUser(UserDataAPI? user) async {
 UserDataAPI? getUser() {
   final raw = AppStorage().read<dynamic>(user_key);
   if (raw == null) return null;
-
   if (raw is String) {
-    // web (SharedPreferences) – JSON string
     final map = jsonDecode(raw) as Map<String, dynamic>;
     return UserDataAPI.fromJson(map);
   } else if (raw is Map) {
-    // mobile (GetStorage) – already a map
     return UserDataAPI.fromJson(Map<String, dynamic>.from(raw));
   }
   return null;
@@ -235,31 +250,4 @@ UserDataAPI? getUser() {
 
 
 
-class RememberMeModal {
-  String? email;
-  String? password;
-  RememberMeModal({this.email, this.password});
-}
 
-class SaveUser {
-  String? userid;
-  String? firstName;
-  String? lastName;
-  String? email;
-  String? phone;
-  String? address;
-  String? birthday;
-  String? profileUrl;
-  String? gender;
-  SaveUser({
-    this.firstName,
-    this.userid,
-    this.lastName,
-    this.email,
-    this.phone,
-    this.address,
-    this.birthday,
-    this.profileUrl,
-    this.gender,
-  });
-}

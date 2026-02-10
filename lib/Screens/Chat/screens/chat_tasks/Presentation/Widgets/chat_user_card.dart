@@ -92,6 +92,7 @@ class _ChatUserCardState extends State<ChatUserCard>
                hoverColor:appColorPerple.withOpacity(.25),
               borderRadius: BorderRadius.circular(15),
               onTap: () {
+                final _tag = "chat_${widget.user?.userId ?? 'mobile'}";
                 if(isTaskMode) {
                   if(kIsWeb){
                     final homec = Get.find<TaskHomeController>();
@@ -114,9 +115,9 @@ class _ChatUserCardState extends State<ChatUserCard>
                     final homec = Get.find<ChatHomeController>();
                     ChatScreenController? chatc;
                     if(Get.isRegistered<ChatScreenController>()){
-                      chatc = Get.find<ChatScreenController>();
+                      chatc = Get.find<ChatScreenController>(tag: _tag);
                     }else{
-                      Get.put(ChatScreenController(user: widget.user));
+                      Get.put(ChatScreenController(user: widget.user),tag: _tag);
                     }
 
                     // homec.page = 1;
