@@ -305,7 +305,9 @@ class ChatScreenController extends GetxController {
   @override
   void onInit() {
     super.onInit();
-    if(!kIsWeb) {
+    if(!kIsWeb || Get.width<600) {
+      print(Get.width);
+      print('initiallowed');
       itemScrollController = ItemScrollController();
       itemPositionsListener = ItemPositionsListener.create();
     }
@@ -346,7 +348,7 @@ class ChatScreenController extends GetxController {
   }
  @override
   void onReady() {
-   if(!kIsWeb) {
+   if(!kIsWeb|| Get.width<600) {
    _attachPaginationListener();
     super.onReady();
   }
@@ -649,15 +651,15 @@ class ChatScreenController extends GetxController {
         getUserByIdApi(userId: int.parse(argUserId ?? ''));
         // }
       } else {
-        getUserByIdApi(userId: user?.userId);
+        // getUserByIdApi(userId: user?.userId);
       }
     } else {
       if (Get.arguments != null) {
         UserDataAPI argUser = Get.arguments['user'];
         user = argUser;
-        if (argUser != null) {
-          ChatPresence.activeChatId.value = argUser?.userCompany?.userCompanyId;
-          openConversation(argUser);
+        if (user != null) {
+          // ChatPresence.activeChatId.value = argUser?.userCompany?.userCompanyId;
+          openConversation(user);
         }
       }
     }

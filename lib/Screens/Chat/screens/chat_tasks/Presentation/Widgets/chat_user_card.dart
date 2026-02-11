@@ -122,20 +122,13 @@ class _ChatUserCardState extends State<ChatUserCard>
                   ChatScreenController? chatc;
                   if (Get.isRegistered<ChatScreenController>(tag: _tag)) {
                     isRegistered =true;
-                    print("Registered");
-                    print(_tag);
                     chatc = Get.find<ChatScreenController>(tag: _tag);
                   } else {
-                    final _tag =
-                        "chat_${widget.user?.userCompany?.userCompanyId ?? 'mobile'}";
-                    print("not Registered");
-                    print(_tag);
+                    final _tag = "chat_${widget.user?.userCompany?.userCompanyId ?? 'mobile'}";
                     chatc = Get.put(ChatScreenController(user: widget.user),
                         tag: _tag);
                   }
 
-                  // homec.page = 1;
-                  // homec.hitAPIToGetRecentChats();
                   chatc?.textController.clear();
                   chatc?.replyToMessage = null;
                   chatc?.showPostShimmer = true;
@@ -143,10 +136,8 @@ class _ChatUserCardState extends State<ChatUserCard>
                   chatc?.user = homec.selectedChat.value;
                   !isRegistered?chatc?.openConversation(homec.selectedChat.value):null;
                   if (homec.selectedChat.value?.pendingCount != 0) {
-                    print(homec.selectedChat.value?.pendingCount);
-                    print("Marked read");
                     chatc?.markAllVisibleAsReadOnOpen(
-                        APIs.me?.userCompany?.userCompanyId,
+                        APIs.me.userCompany?.userCompanyId,
                         chatc.user?.userCompany?.userCompanyId,
                         chatc.user?.userCompany?.isGroup == 1 ? 1 : 0);
                   }
@@ -166,7 +157,7 @@ class _ChatUserCardState extends State<ChatUserCard>
               curve: Curves.easeInOut,
               decoration: BoxDecoration(
                 color: isSelected
-                    ? appColorPerple.withOpacity(.25) // selected color
+                    ? appColorPerple.withOpacity(.25)
                     : Colors.transparent,
                 borderRadius: BorderRadius.circular(12),
               ),

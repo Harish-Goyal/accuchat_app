@@ -62,7 +62,7 @@ class ChatsHomeScreen extends GetView<ChatHomeController> {
   }
 
   Widget _floatingBotton(w) {
-    return kIsWeb
+    return kIsWeb && w >600
         ? const SizedBox()
         : Padding(
             padding: const EdgeInsets.only(bottom: 10),
@@ -70,9 +70,11 @@ class ChatsHomeScreen extends GetView<ChatHomeController> {
                 onPressed: () async {
                   final user = await openAllUserDialog();
                   if (user != null) {
-
-                    _goToScreen(user,w);
-
+                    if(kIsWeb){
+                      Get.toNamed("${AppRoutes.chats_li_r}?userId=${user?.userId.toString()}");
+                    }else{
+                      Get.toNamed(AppRoutes.chats_li_r,arguments: {'user':user});
+                    }
                   }
                 },
                 backgroundColor: appColorGreen,
@@ -201,7 +203,7 @@ class ChatsHomeScreen extends GetView<ChatHomeController> {
               );
       }),
       actions: [
-        kIsWeb
+        kIsWeb && w >600
             ? IconButton(
                 onPressed: () async {
 
@@ -341,9 +343,6 @@ class ChatsHomeScreen extends GetView<ChatHomeController> {
               tag: _tag);
         }
 
-
-
-
         chatc?.textController.clear();
         chatc?.replyToMessage=null;
         chatc?.showPostShimmer =true;
@@ -360,7 +359,6 @@ class ChatsHomeScreen extends GetView<ChatHomeController> {
         homec.selectedChat.refresh();
         chatc?.update();
       } else {
-
         Get.toNamed(
           AppRoutes.chats_li_r,
           arguments:{'userId':user.userId,'user':kIsWeb && w < 600 ? null : user,}

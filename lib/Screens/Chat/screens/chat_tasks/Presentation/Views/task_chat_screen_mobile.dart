@@ -370,7 +370,6 @@ class TaskScreenMobile extends GetView<TaskController> {
                               border: Border.all(
                                   color: getTaskStatusColor(
                                       data.currentStatus?.name)),
-                              //making borders curved
                               borderRadius: sentByMe
                                   ? const BorderRadius.only(
                                       topLeft: Radius.circular(30),
@@ -390,13 +389,10 @@ class TaskScreenMobile extends GetView<TaskController> {
                           onPressed: () {
                             controller.handleForward(taskData: data);
                           },
-                          icon: Transform(
-                              alignment: Alignment.center,
-                              transform: Matrix4.rotationX(math.pi),
-                              child: Image.asset(
-                                forwardIcon,
-                                height: 20,
-                              ))).paddingOnly(right: 10)
+                          icon: Image.asset(
+                            forwardIcon,
+                            height: 20,
+                          )).paddingOnly(right: 10)
                       : const SizedBox()
                 ],
               ),

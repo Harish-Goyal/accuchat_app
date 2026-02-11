@@ -2423,7 +2423,9 @@ class _ChatScreenState extends State<ChatScreen> {
                     */
 
               // delete option
-              if (APIs.me?.userId == controller.myCompany?.createdBy && isMe)
+              // if (/*APIs.me?.userId == controller.myCompany?.createdBy && */isMe && ((data.media??[]).isNotEmpty||diffMinutes <= 15))
+              if ((data.message != "" || data.message != null) &&
+                  isMe && ((data.media??[]).isNotEmpty||diffMinutes <= 15))
                 _OptionItem(
                     icon: const Icon(Icons.delete_forever,
                         color: Colors.red, size: 16),

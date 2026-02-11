@@ -63,6 +63,7 @@ class _ChatUserCardMobileState extends State<ChatUserCardMobile>
   @override
   void initState() {
     super.initState();
+    print("Mobile ----");
     WidgetsBinding.instance.addObserver(this);
   }
 

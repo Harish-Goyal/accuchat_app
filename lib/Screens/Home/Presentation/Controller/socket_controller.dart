@@ -166,10 +166,16 @@ class SocketController extends GetxController with WidgetsBindingObserver {
         print(_tag);
 
         ChatScreenController? chatDetailController;
-        if (Get.isRegistered<ChatScreenController>(tag: _tag)) {
+        if(!kIsWeb || Get.width<600){
           chatDetailController =
-          Get.find<ChatScreenController>(tag: _tag);
+              Get.find<ChatScreenController>();
+        }else{
+          if (Get.isRegistered<ChatScreenController>(tag: _tag)) {
+            chatDetailController =
+                Get.find<ChatScreenController>(tag: _tag);
+          }
         }
+
 
         final key = chatDetailController!.msgKey(receivedMessageDataModal);
         if (!chatDetailController.markOnce(key)) {
@@ -1098,20 +1104,19 @@ class SocketController extends GetxController with WidgetsBindingObserver {
 
     // 2) mark it "deleted for everyone": clear text, clear media, set an activity flag (optional)
     final TaskData msg = chatDetailController.taskHisList![idx];
-    msg.title = null; // text cleared means "deleted"
-    msg.taskId = null; // text cleared means "deleted"
-    msg.details = null; // text cleared means "deleted"
-    msg.deadline = null; // text cleared means "deleted"
-    msg.currentStatus = null; // text cleared means "deleted"
-    msg.statusHistory = null; // text cleared means "deleted"
-    msg.media = <TaskMedia>[]; // remove attachments
+    msg.title = null;
+    msg.taskId = null;
+    msg.details = null;
+    msg.deadline = null;
+    msg.currentStatus = null;
+    msg.statusHistory = null;
+    msg.media = <TaskMedia>[];
 
     // 3) put back & rebuild your date groups
     chatDetailController.taskHisList![idx] = msg;
     chatDetailController.taskHisList!.removeAt(idx);
     _rebuildCategoriesForTask();
     Get.back();
-    // 4) notify GetBuilder UIs
     update();
     chatDetailController.update();
   }
@@ -1188,17 +1193,18 @@ class SocketController extends GetxController with WidgetsBindingObserver {
       final _tagid = ChatPresence.activeChatId.value;
       final _tag = "chat_${_tagid ?? 'mobile'}";
       final homeController = Get.find<ChatHomeController>();
-      final chatScreenController = Get.find<ChatScreenController>(tag: _tag);
-      print(_tag);
-
-      final int fromUcId = data['from_uc_id']; // reader
-      final int toUcId = data['to_uc_id']; // message owner (you)
+      final ChatScreenController chatScreenController;
+      if(!kIsWeb || Get.width<600){
+        chatScreenController =
+            Get.find<ChatScreenController>();
+      }else{
+        chatScreenController = Get.find<ChatScreenController>(tag: _tag);
+      }
+      Get.find<ChatScreenController>(tag: _tag);
+      final int fromUcId = data['from_uc_id'];
+      final int toUcId = data['to_uc_id'];
       final int myUcId = APIs.me.userCompany?.userCompanyId ?? 0;
 
-      // ✅ YOU must be the message owner
-      // if (myUcId == fromUcId) re/turn;
-
-      // 1️⃣ Reset unread count in recents
       final index = homeController.filteredList.indexWhere(
         (e) => e.userCompany?.userCompanyId == fromUcId,
       );
@@ -1240,7 +1246,7 @@ class SocketController extends GetxController with WidgetsBindingObserver {
 
   void joinTaskEmitter({required int taskId}) {
     socket?.emit('join_task', {
-      "task_id": 8,
+      "task_id": taskId,
     });
   }
 
@@ -1263,34 +1269,6 @@ class SocketController extends GetxController with WidgetsBindingObserver {
         debugPrint(
             "Message sent: $message ,receiverId: $toId ,fromid: ${APIs.me.userId}, comapnyid: ${APIs.me.userCompany?.userCompanyId}");
 
-        final svc = CompanyService.to;
-        final myCompany = svc.selected;
-
-        // if (pushToken != '' && pushToken != APIs.me.pushToken) {
-        //   if (!isTaskMode) {
-        //     // await LocalNotificationService.showChatNotification(
-        //     //   title: '💬 New Message from ${APIs.me.name}',
-        //     //   body: msg??'',
-        //     // );
-        //     await NotificationService.sendMessageNotification(
-        //       targetToken: pushToken,
-        //       senderName: APIs.me.userName ?? '',
-        //       company: myCompany,
-        //       message: message ?? '',
-        //     );
-        //   } else {
-        //     // await NotificationService.sendTaskNotification(
-        //     //   targetToken: token,
-        //     //   assignerName: APIs.me.name,
-        //     //   company: APIs.me.selectedCompany,
-        //     //   taskSummary: taskDetails?.title??'',
-        //     // );
-        //     // await LocalNotificationService.showTaskNotification(
-        //     //   title: '💬 New Task from ${APIs.me.name}',
-        //     //   body: taskDetails?.title??'',
-        //     // );
-        //   }
-        // }
       } catch (e) {
         debugPrint(e.toString());
       }

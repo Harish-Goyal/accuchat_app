@@ -246,7 +246,7 @@ class TaskHomeScreen extends GetView<TaskHomeController> {
                                       );
                               }),*/
                       actions: [
-                        kIsWeb
+                        kIsWeb&& w >600
                             ? IconButton(
                                 onPressed: () async {
                                   final user = await openAllUserDialog();
@@ -256,7 +256,7 @@ class TaskHomeScreen extends GetView<TaskHomeController> {
                                 },
                                 icon: Image.asset(addNewChatPng,
                                     height: 27, width: 27))
-                            : SizedBox(),
+                            : const SizedBox(),
                         hGap(10),
 
                         kIsWeb && w > 600 ? const SizedBox() : hGap(10),
@@ -306,7 +306,7 @@ class TaskHomeScreen extends GetView<TaskHomeController> {
                     ),
 
                     //floating button to add new user
-                    floatingActionButton: kIsWeb
+                    floatingActionButton: kIsWeb&& w >600
                         ? const SizedBox()
                         : Padding(
                             padding: const EdgeInsets.only(bottom: 10),
@@ -315,7 +315,11 @@ class TaskHomeScreen extends GetView<TaskHomeController> {
                                   // _addChatUserDialog();
                                   final user = await openAllUserDialog();
                                   if (user != null) {
-                                    _goToScreen(user, w);
+                                    if(kIsWeb){
+                                      Get.toNamed("${AppRoutes.tasks_li_r}?userId=${user?.userId.toString()}");
+                                    }else{
+                                      Get.toNamed(AppRoutes.tasks_li_r,arguments: {'user':user});
+                                    }
                                   }
                                 },
                                 backgroundColor: appColorYellow,
