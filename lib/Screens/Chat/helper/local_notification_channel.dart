@@ -11,6 +11,7 @@ import '../../../Services/APIs/post/post_api_service_impl.dart';
 import '../../../Services/storage_service.dart';
 import '../../../main.dart';
 import '../../../routes/app_routes.dart';
+import '../../../utils/chat_presence.dart';
 import '../../../utils/custom_flashbar.dart';
 import '../../Home/Presentation/Controller/company_service.dart';
 import '../../Home/Presentation/Controller/home_controller.dart';
@@ -251,15 +252,18 @@ class LocalNotificationService {
     isTaskMode = false;
     Get.find<DashboardController>().update();
     if (kIsWeb) {
+      final _tagid = ChatPresence.activeChatId.value;
+      final _tag = "chat_${_tagid ?? 'mobile'}";
+
       if (!Get.isRegistered<ChatHomeController>()) {
         Get.put(ChatHomeController());
       }
 
       if (!Get.isRegistered<ChatScreenController>()) {
-        Get.put(ChatScreenController(user: user),tag: "chat_${user.userId ?? 'mobile'}");
+        Get.put(ChatScreenController(user: user),tag: _tag);
       }
       final homec = Get.find<ChatHomeController>();
-      final chatc = Get.find<ChatScreenController>(tag: "chat_${user.userId ?? 'mobile'}");
+      final chatc = Get.find<ChatScreenController>(tag: _tag);
       // homec.page = 1;
       // homec.hitAPIToGetRecentChats();
       chatc.replyToMessage = null;

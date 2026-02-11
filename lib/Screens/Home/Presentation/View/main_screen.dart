@@ -14,6 +14,7 @@ import 'package:flutter_snake_navigationbar/flutter_snake_navigationbar.dart';
 import 'package:get/get.dart';
 import '../../../../main.dart';
 import '../../../../routes/app_routes.dart';
+import '../../../../utils/chat_presence.dart';
 import '../../../../utils/register_image.dart';
 import '../../../Chat/api/apis.dart';
 
@@ -113,7 +114,8 @@ class _AccuChatDashboardState extends State<AccuChatDashboard> {
                   if (Get.isRegistered<ChatScreenController>()) {
                     if (homec!.filteredList.isNotEmpty) {
                       final user = homec.filteredList[0];
-                      final _tag = "chat_${user.userId ?? 'mobile'}";
+                      final _tagid = ChatPresence.activeChatId.value;
+                      final _tag = "chat_${_tagid ?? 'mobile'}";
                       final chatc = Get.find<ChatScreenController>(tag: _tag);
                       chatc.replyToMessage = null;
 
@@ -133,7 +135,9 @@ class _AccuChatDashboardState extends State<AccuChatDashboard> {
                   } else {
                       if (homec!.filteredList.isNotEmpty) {
                         final user = homec.filteredList[0];
-                      final chatc =Get.put(ChatScreenController(user: user),tag: "chat_${user.userId ?? 'mobile'}");
+                        final _tagid = ChatPresence.activeChatId.value;
+                        final _tag = "chat_${_tagid ?? 'mobile'}";
+                      final chatc =Get.put(ChatScreenController(user: user),tag: _tag);
                         chatc.showPostShimmer = true;
                         chatc.replyToMessage = null;
                         homec.selectedChat.value = user;
@@ -459,7 +463,8 @@ class _AccuChatDashboardState extends State<AccuChatDashboard> {
             }
 
             if(v==0) {
-              final _tag = "chat_${controller.user?.userId ?? 'mobile'}";
+              final _tagid = ChatPresence.activeChatId.value;
+              final _tag = "chat_${_tagid ?? 'mobile'}";
               isTaskMode = false;
               if (Get.isRegistered<ChatHomeController>()) {
                 Get.find<ChatHomeController>().hitAPIToGetRecentChats(page: 1);

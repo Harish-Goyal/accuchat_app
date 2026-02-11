@@ -112,7 +112,7 @@ class TaskController extends GetxController {
         UserDataAPI argUser = Get.arguments['user'];
         user = argUser;
         if (argUser != null) {
-          ChatPresence.activeChatId = argUser.userCompany?.userCompanyId;
+          ChatPresence.activeChatId.value = argUser.userCompany?.userCompanyId;
           openConversation(argUser);
         }
       }

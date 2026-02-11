@@ -154,17 +154,29 @@ class SocketController extends GetxController with WidgetsBindingObserver {
     socket?.on('send_message_listener', (messages) {
       debugPrint("send_message_listener ${jsonEncode(messages.toString())}");
       try {
-
-
         ChatHomeController homeController = Get.find<ChatHomeController>();
         ChatHisList receivedMessageDataModal = ChatHisList.fromJson(messages);
+
         final meId = APIs.me?.userId?.toString();
         final msgFrom = receivedMessageDataModal.fromUser?.userId?.toString();
         final msgTo = receivedMessageDataModal.toUser?.userId?.toString();
-        final _tag = "chat_${receivedMessageDataModal.toUser?.userId ?? 'mobile'}";
-        ChatScreenController chatDetailController =
-        Get.find<ChatScreenController>(tag: _tag);
-        final selectedUserId = chatDetailController.user?.userId
+        final _tagid = ChatPresence.activeChatId.value;
+        final _tag = "chat_${_tagid ?? 'mobile'}";
+        print("_tag===");
+        print(_tag);
+
+        ChatScreenController? chatDetailController;
+        if (Get.isRegistered<ChatScreenController>(tag: _tag)) {
+          chatDetailController =
+          Get.find<ChatScreenController>(tag: _tag);
+        }
+
+        final key = chatDetailController!.msgKey(receivedMessageDataModal);
+        if (!chatDetailController.markOnce(key)) {
+          debugPrint("Duplicate message ignored: $key");
+          return;
+        }
+        final selectedUserId = chatDetailController?.user?.userId
             ?.toString(); // 1-1 userId OR group userId
         final incomingIsGroup = receivedMessageDataModal.isGroupChat == 1;
         final activeCompanyId = APIs.me.userCompany?.companyId;
@@ -194,7 +206,7 @@ class SocketController extends GetxController with WidgetsBindingObserver {
         }
 
         final selectedIsGroup =
-            chatDetailController.user?.userCompany?.isGroup ==
+            chatDetailController?.user?.userCompany?.isGroup ==
                 1; // selected chat is group?
 
         final isMessageForThisChat = incomingIsGroup
@@ -226,11 +238,20 @@ class SocketController extends GetxController with WidgetsBindingObserver {
             replyToName: receivedMessageDataModal.replyToName,
             media: receivedMessageDataModal.media,
           );
-          chatDetailController.chatHisList?.insert(0, chatMessageItems);
-          chatDetailController.chatCatygory
+          final alreadyInList = chatDetailController?.chatHisList?.any((x) =>
+          (x.chatId == chatMessageItems.chatId) &&
+              (x.sentOn == chatMessageItems.sentOn) &&
+              (x.fromUser?.userId == chatMessageItems.fromUser?.userId) &&
+              (x.toUser?.userId == chatMessageItems.toUser?.userId) &&
+              (x.message == chatMessageItems.message)
+          ) ?? false;
+
+          if (alreadyInList) return;
+          chatDetailController?.chatHisList?.insert(0, chatMessageItems);
+          chatDetailController?.chatCatygory
               .insert(0, GroupChatElement(DateTime.now(), chatMessageItems));
-          chatDetailController.rebuildFlatRows();
-          chatDetailController.update();
+          chatDetailController?.rebuildFlatRows();
+          chatDetailController?.update();
         }
 
 
@@ -244,7 +265,7 @@ class SocketController extends GetxController with WidgetsBindingObserver {
           (e) => e.userCompany?.userCompanyId == fromUcId,
         );
 
-        final isThisChatOpen = ChatPresence.activeChatId ==
+        final isThisChatOpen = ChatPresence.activeChatId.value ==
             receivedMessageDataModal.fromUser?.userCompany?.userCompanyId;
 
         if (isThisChatOpen &&
@@ -416,7 +437,8 @@ class SocketController extends GetxController with WidgetsBindingObserver {
         final meId = APIs.me.userId?.toString();
         final fromId = updated.fromUser?.userId?.toString();
         final toId = updated.toUser?.userId?.toString();
-        final _tag = "chat_${fromId ?? 'mobile'}";
+        final _tagid = ChatPresence.activeChatId.value;
+        final _tag = "chat_${_tagid ?? 'mobile'}";
         final chatController = Get.find<ChatScreenController>(tag: _tag);
         if (fromId == meId || toId == meId) {
           final list = chatController.chatHisList ?? [];
@@ -537,6 +559,18 @@ class SocketController extends GetxController with WidgetsBindingObserver {
       }
     });
   }
+
+  String buildChatTagFromMessage(ChatHisList m) {
+    final meId = APIs.me?.userId?.toString();
+    final fromId = m.fromUser?.userId?.toString();
+    final toId   = m.toUser?.userId?.toString();
+
+    // for 1-1: other side id
+    final otherId = (fromId == meId) ? toId : fromId;
+
+    return "chat_${otherId ?? 'mobile'}";
+  }
+
 
   void updateResentWeb() {
     socket?.off('update_recent_list');
@@ -976,7 +1010,8 @@ class SocketController extends GetxController with WidgetsBindingObserver {
   }
 
   void _handleMessageDeleted(Map<String, dynamic> payload) {
-    final _tag = "chat_${APIs.me?.userId ?? 'mobile'}";
+    final _tagid = ChatPresence.activeChatId.value;
+    final _tag = "chat_${_tagid ?? 'mobile'}";
     ChatScreenController chatDetailController =
         Get.find<ChatScreenController>(tag: _tag);
     final dynamic idRaw = payload['chat_id'];
@@ -1010,8 +1045,10 @@ class SocketController extends GetxController with WidgetsBindingObserver {
   }
 
   void _rebuildCategories(t) {
+    final _tagid = ChatPresence.activeChatId.value;
+    final _tag = "chat_${_tagid ?? 'mobile'}";
     ChatScreenController chatDetailController =
-        Get.find<ChatScreenController>(tag: t);
+        Get.find<ChatScreenController>(tag: _tag);
     chatDetailController.chatCatygory =
         (chatDetailController.chatHisList ?? []).map((item) {
       DateTime? dt;
@@ -1145,9 +1182,11 @@ class SocketController extends GetxController with WidgetsBindingObserver {
       if(Get.isRegistered<DashboardController>()){
         dashCon = Get.find<DashboardController>();
       }
-
+      final _tagid = ChatPresence.activeChatId.value;
+      final _tag = "chat_${_tagid ?? 'mobile'}";
       final homeController = Get.find<ChatHomeController>();
-      final chatScreenController = Get.find<ChatScreenController>();
+      final chatScreenController = Get.find<ChatScreenController>(tag: _tag);
+      print(_tag);
 
       final int fromUcId = data['from_uc_id']; // reader
       final int toUcId = data['to_uc_id']; // message owner (you)

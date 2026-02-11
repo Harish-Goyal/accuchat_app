@@ -305,8 +305,10 @@ class ChatScreenController extends GetxController {
   @override
   void onInit() {
     super.onInit();
-    itemScrollController = ItemScrollController();
-    itemPositionsListener = ItemPositionsListener.create();
+    if(!kIsWeb) {
+      itemScrollController = ItemScrollController();
+      itemPositionsListener = ItemPositionsListener.create();
+    }
     _getCompany();
     replyToMessage = null;
     getArguments();
@@ -344,35 +346,16 @@ class ChatScreenController extends GetxController {
   }
  @override
   void onReady() {
+   if(!kIsWeb) {
    _attachPaginationListener();
     super.onReady();
+  }
   }
 
   void _attachPaginationListener() {
     if (_paginationListenerAttached) return;  // ✅ prevents duplicate attach
     _paginationListenerAttached = true;
-
     itemPositionsListener.itemPositions.addListener(onPositionsChanged);
-/*    if (_paginationListenerAttached) return;
-    _paginationListenerAttached = true;
-
-    itemPositionsListener.itemPositions.addListener(() {
-      if (isPageLoading || !hasMore) return;
-
-      final positions = itemPositionsListener.itemPositions.value;
-      if (positions.isEmpty) return;
-      // When reverse:true, loading older messages happens when you reach the "top".
-      // In practice: the highest index becomes visible.
-      final maxVisibleIndex = positions
-          .where((p) => p.itemTrailingEdge > 0) // visible
-          .map((p) => p.index)
-          .reduce((a, b) => a > b ? a : b);
-
-      // near the end (top side in reverse list)
-      if (maxVisibleIndex >= chatRows.length - 4) {
-        hitAPIToGetChatHistory("pagination");
-      }
-    });*/
   }
 
   void onPositionsChanged() {
@@ -648,10 +631,9 @@ class ChatScreenController extends GetxController {
 
   @override
   void onClose() {
-    if (ChatPresence.activeChatId == user?.userCompany?.userCompanyId) {
-      ChatPresence.activeChatId = null;
+    if (ChatPresence.activeChatId.value == user?.userCompany?.userCompanyId) {
+      ChatPresence.activeChatId.value = null;
     }
-
     searchDelay?.cancel();
     _pageDebounce?.cancel();
     super.onClose();
@@ -674,7 +656,7 @@ class ChatScreenController extends GetxController {
         UserDataAPI argUser = Get.arguments['user'];
         user = argUser;
         if (argUser != null) {
-          ChatPresence.activeChatId = argUser?.userCompany?.userCompanyId;
+          ChatPresence.activeChatId.value = argUser?.userCompany?.userCompanyId;
           openConversation(argUser);
         }
       }
@@ -687,7 +669,7 @@ class ChatScreenController extends GetxController {
         .then((value) async {
       user = value.data;
       openConversation(user);
-      ChatPresence.activeChatId = user?.userCompany?.userCompanyId;
+
 
       update();
     }).onError((error, stackTrace) {
@@ -698,7 +680,7 @@ class ChatScreenController extends GetxController {
 
   void openConversation(UserDataAPI? useriii) {
     user = useriii;
-
+    ChatPresence.activeChatId.value = user?.userCompany?.userCompanyId;
     Future.delayed(const Duration(milliseconds: 200), () async {
       resetPaginationForNewChat();
       await hitAPIToGetChatHistory("openConversation");
@@ -707,7 +689,39 @@ class ChatScreenController extends GetxController {
         hitAPIToGetMembers(user);
       }
     });
+
   }
+
+  /// Put this in a singleton/service/controller (NOT inside build)
+  final Set<String> processedMsgKeys = <String>{};
+
+  String msgKey(ChatHisList m) {
+    // Prefer backend unique id if you have it: m.messageId / m.chatHisId etc.
+    // If you don’t, build a stable fingerprint:
+    return [
+      (m.chatId ?? '').toString(),
+      (m.replyToId ?? '').toString(),
+      (m.sentOn ?? '').toString(),
+      (m.fromUser?.userId ?? '').toString(),
+      (m.toUser?.userId ?? '').toString(),
+      (m.message ?? '').toString(),
+      // If media exists and has id/url, include it too
+      (m.media?.toString() ?? ''),
+    ].join('|');
+  }
+
+  bool markOnce(String key) {
+    if (processedMsgKeys.contains(key)) return false;
+    processedMsgKeys.add(key);
+
+    // Optional: prevent memory growth (keep last N only)
+    if (processedMsgKeys.length > 3000) {
+      // super simple trim (not perfect but practical)
+      processedMsgKeys.remove(processedMsgKeys.first);
+    }
+    return true;
+  }
+
 
   List<Message> allTasks = [];
   List<Message> filteredTasks = [];
@@ -1401,7 +1415,8 @@ class ChatScreenController extends GetxController {
       if (/*Get.currentRoute == AppRoutes.chats_li_r &&*/
           Get.isRegistered<ChatScreenController>()) {
         Get.find<ChatHomeController>().selectedChat.value = selectedUser;
-        final _tag = "chat_${selectedUser.userId ?? 'mobile'}";
+        final _tagid = ChatPresence.activeChatId.value;
+        final _tag = "chat_${_tagid ?? 'mobile'}";
         final con = Get.find<ChatScreenController>(
             tag:_tag);
         con.openConversation(selectedUser);

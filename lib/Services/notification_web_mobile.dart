@@ -22,6 +22,7 @@ import 'package:googleapis_auth/googleapis_auth.dart';
 
 import '../Screens/Home/Presentation/Controller/socket_controller.dart';
 import '../main.dart';
+import '../utils/chat_presence.dart';
 import '../utils/custom_flashbar.dart';
 import 'APIs/post/post_api_service_impl.dart';
 
@@ -239,7 +240,8 @@ class NotificationServicess {
       if (!Get.isRegistered<ChatScreenController>()) {
         Get.lazyPut(()=>ChatScreenController(user: user));
       }
-      final _tag = "chat_${user.userId ?? 'mobile'}";
+      final _tagid = ChatPresence.activeChatId.value;
+      final _tag = "chat_${_tagid ?? 'mobile'}";
       final chatc = Get.find<ChatScreenController>(tag: _tag);
       final homec = Get.find<ChatHomeController>();
       chatc.replyToMessage = null;

@@ -1,3 +1,5 @@
+import 'package:get/get.dart';
+
 class ChatPresence {
-  static int? activeChatId; // null = no chat open
+  static final activeChatId = RxnInt(); // null = no chat open
 }

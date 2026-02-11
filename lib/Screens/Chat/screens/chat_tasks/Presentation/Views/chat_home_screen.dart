@@ -13,6 +13,7 @@ import 'package:get/get.dart';
 import '../../../../../../Constants/app_theme.dart';
 import '../../../../../../Services/APIs/api_ends.dart';
 import '../../../../../../main.dart';
+import '../../../../../../utils/chat_presence.dart';
 import '../../../../../../utils/common_textfield.dart';
 import '../../../../../../utils/custom_dialogue.dart';
 import '../../../../../../utils/custom_flashbar.dart';
@@ -328,17 +329,21 @@ class ChatsHomeScreen extends GetView<ChatHomeController> {
 
       if (kIsWeb && w>600) {
         final homec = Get.find<ChatHomeController>();
+        final _tagid = ChatPresence.activeChatId.value;
+        final _tag = "chat_${_tagid ?? 'mobile'}";
         ChatScreenController? chatc;
-        if(Get.isRegistered<ChatScreenController>()){
-          final _tag = "chat_${user.userId ?? 'mobile'}";
+        if (Get.isRegistered<ChatScreenController>(tag: _tag)) {
           chatc = Get.find<ChatScreenController>(tag: _tag);
-        }else{
-          final _tag = "chat_${user.userId ?? 'mobile'}";
-          chatc = Get.put(ChatScreenController(user: user),tag: _tag);
+        } else {
+          final _tag =
+              "chat_${user?.userCompany?.userCompanyId ?? 'mobile'}";
+          chatc = Get.put(ChatScreenController(user: user),
+              tag: _tag);
         }
 
-        // homec.page = 1;
-        // homec.hitAPIToGetRecentChats();
+
+
+
         chatc?.textController.clear();
         chatc?.replyToMessage=null;
         chatc?.showPostShimmer =true;
@@ -347,7 +352,7 @@ class ChatsHomeScreen extends GetView<ChatHomeController> {
         chatc?.openConversation(homec.selectedChat.value);
         if (homec.selectedChat.value?.pendingCount != 0) {
           chatc?.markAllVisibleAsReadOnOpen(
-              APIs.me?.userCompany?.userCompanyId,
+              APIs.me.userCompany?.userCompanyId,
               chatc.user?.userCompany?.userCompanyId,
               chatc.user?.userCompany?.isGroup == 1 ? 1 : 0);
         }

@@ -350,7 +350,7 @@ class ChatScreenMobile extends GetView<ChatScreenController> {
   }
 
   groupListView() {
-    return controller.showPostShimmer?const IndicatorLoading(): (controller.chatRows ?? []).isNotEmpty
+   return controller.showPostShimmer?const IndicatorLoading(): (controller.chatRows ?? []).isNotEmpty
         ? ScrollablePositionedList.builder(
         itemScrollController: controller.itemScrollController,
         itemPositionsListener: controller.itemPositionsListener,
@@ -946,7 +946,7 @@ class ChatScreenMobile extends GetView<ChatScreenController> {
               onReplu: (){
                 final int? replyId = data.replyToId; // confirm field name
                 if (replyId != null) {
-                  controller.jumpToRepliedMessage(replyId);
+                  // controller.jumpToRepliedMessage(replyId);
                 }
               },
               empIdsender: data.fromUser?.userId.toString(),

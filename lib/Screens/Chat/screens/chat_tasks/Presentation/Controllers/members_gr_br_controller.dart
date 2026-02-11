@@ -8,6 +8,7 @@ import 'package:get/get.dart';
 import '../../../../../../Services/APIs/post/post_api_service_impl.dart';
 import '../../../../../../main.dart';
 import '../../../../../../routes/app_routes.dart';
+import '../../../../../../utils/chat_presence.dart';
 import '../../../../../../utils/custom_flashbar.dart';
 import '../../../../../Home/Presentation/Controller/company_service.dart';
 import '../../../../models/get_company_res_model.dart';
@@ -113,7 +114,8 @@ class GrBrMembersController extends GetxController{
       groupNameController.clear();
       toast(value.message??'');
       groupOrBr = groupResModel.data;
-      final _tag = "chat_${groupOrBr?.userId ?? 'mobile'}";
+      final _tagid = ChatPresence.activeChatId.value;
+      final _tag = "chat_${_tagid ?? 'mobile'}";
       final chatc =Get.find<ChatScreenController>(tag: _tag);
       final chath =Get.find<ChatHomeController>();
       chath.hitAPIToGetRecentChats(page: 1);
@@ -145,7 +147,8 @@ class GrBrMembersController extends GetxController{
         .addMemberToGrBrApiCall(dataBody: req)
         .then((value) async {
       customLoader.hide();
-      final _tag = "chat_${groupOrBr?.userId ?? 'mobile'}";
+      final _tagid = ChatPresence.activeChatId.value;
+      final _tag = "chat_${_tagid ?? 'mobile'}";
       Get.find<ChatScreenController>(tag: _tag).hitAPIToGetMembers(groupOrBr);
       hitAPIToGetMembers();
       update();

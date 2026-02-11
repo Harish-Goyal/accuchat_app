@@ -7,6 +7,7 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/foundation.dart';
 import 'package:get/get.dart';
 import '../../../../../../Services/APIs/post/post_api_service_impl.dart';
+import '../../../../../../utils/chat_presence.dart';
 import '../../../../../../utils/custom_flashbar.dart';
 import '../../../../../Home/Models/company_mem_res_model.dart';
 import '../../../../../Home/Presentation/Controller/company_service.dart';
@@ -237,7 +238,8 @@ class AddGroupMemController extends GetxController {
         .then((value) async {
           customLoader.hide();
           toast("Member added!");hitAPIToAllGetMember();
-          final _tag = "chat_${group?.userId ?? 'mobile'}";
+          final _tagid = ChatPresence.activeChatId.value;
+          final _tag = "chat_${_tagid ?? 'mobile'}";
          await Get.find<ChatScreenController>(tag: _tag).hitAPIToGetMembers(group);
           await Get.find<GrBrMembersController>().hitAPIToGetMembers();
           Get.back();

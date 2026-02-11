@@ -32,6 +32,7 @@ import 'package:flutter/gestures.dart';
 import '../../../../../../Constants/app_theme.dart';
 import '../../../../../../Constants/assets.dart';
 import '../../../../../../Constants/colors.dart';
+import '../../../../../../utils/chat_presence.dart';
 import '../../../../../../utils/custom_flashbar.dart';
 import '../../../../../../utils/emogi_checker.dart';
 import '../../../../../../utils/emogi_picker_web.dart';
@@ -125,6 +126,8 @@ class _ChatScreenState extends State<ChatScreen> {
   late Worker _speechWorker;
   bool _blockSpeechToInput = false;
   String _lastApplied = "";
+  late final ItemScrollController itemScrollController;
+  late final ItemPositionsListener itemPositionsListener;
 
   void applyLiveToFieldSafely(String live) {
     if (_blockSpeechToInput) return;
@@ -145,6 +148,10 @@ class _ChatScreenState extends State<ChatScreen> {
   @override
   void initState() {
     super.initState();
+    itemScrollController = ItemScrollController();
+    itemPositionsListener = ItemPositionsListener.create();
+    // controller.itemScrollController = ItemScrollController();
+    // controller.itemPositionsListener = ItemPositionsListener.create();
     _speechWorker = everAll(
       [speechC.isListening, speechC.interimText],
           (_) {
@@ -166,9 +173,9 @@ class _ChatScreenState extends State<ChatScreen> {
         });
       },
     );
-    _tag = "chat_${widget.user?.userId ?? 'mobile'}";
-    controller = Get.put(
-      ChatScreenController(user: widget.user)
+    _attachPaginationListener();
+    _tag = "chat_${widget.user?.userCompany?.userCompanyId ?? 'mobile'}";
+    controller = Get.put(ChatScreenController(user: widget.user)
         ,tag: _tag
     );
   }
@@ -179,15 +186,107 @@ class _ChatScreenState extends State<ChatScreen> {
     _speechWorker.dispose();
     speechC.onStopped = null;
     try {
-      controller.itemPositionsListener.itemPositions
-          .removeListener(controller.onPositionsChanged);
+      itemPositionsListener.itemPositions
+          .removeListener(onPositionsChanged);
     } catch (_) {}
+    final tag ="chat_${ChatPresence.activeChatId.value ?? 'mobile'}";
 
-    if (Get.isRegistered<ChatScreenController>()) {
-      Get.delete<ChatScreenController>(force: true);
+    print(tag);
+    if (Get.isRegistered<ChatScreenController>(tag: _tag)) {
+      Get.delete<ChatScreenController>(tag:_tag,force: true);
+    }
+    print("Delete Called==========");
+    print(_tag);
+    super.dispose();
+  }
+
+  Future<void> jumpToRepliedMessage(int targetChatId) async {
+    /// Load more pages if message not found
+    if (!controller.chatIdIndexMap.containsKey(targetChatId)) {
+      await _loadUntilFound(targetChatId);
+      controller.rebuildFlatRows();
     }
 
-    super.dispose();
+    final index = controller.chatIdIndexMap[targetChatId];
+    if (index == null) return;
+
+    itemScrollController.scrollTo(
+      index: index,
+      duration: const Duration(milliseconds: 400),
+      curve: Curves.easeOutCubic,
+      alignment: 0.15,
+    );
+
+    // highlight effect
+    controller.highlightedChatId = targetChatId;
+    controller.update();
+
+    Future.delayed(const Duration(seconds: 2), () {
+      if (controller.highlightedChatId == targetChatId) {
+        controller.highlightedChatId = null;
+        controller.update();
+      }
+    });
+  }
+  Future<void> _loadUntilFound(int targetChatId) async {
+    int safety = 0;
+    while (!controller.chatIdIndexMap.containsKey(targetChatId) &&
+        controller.hasMore &&
+        !controller.isPageLoading) {
+      safety++;
+      if (safety > 50) break;
+
+      await controller.hitAPIToGetChatHistory("_loadUntilFound");
+      controller.rebuildFlatRows();
+
+      if (controller.chatIdIndexMap.containsKey(targetChatId)) break;
+    }
+  }
+  bool _paginationListenerAttached = false;
+  void _attachPaginationListener() {
+    if (_paginationListenerAttached) return;  // ✅ prevents duplicate attach
+    _paginationListenerAttached = true;
+
+    itemPositionsListener.itemPositions.addListener(onPositionsChanged);
+/*    if (_paginationListenerAttached) return;
+    _paginationListenerAttached = true;
+
+    itemPositionsListener.itemPositions.addListener(() {
+      if (isPageLoading || !hasMore) return;
+
+      final positions = itemPositionsListener.itemPositions.value;
+      if (positions.isEmpty) return;
+      // When reverse:true, loading older messages happens when you reach the "top".
+      // In practice: the highest index becomes visible.
+      final maxVisibleIndex = positions
+          .where((p) => p.itemTrailingEdge > 0) // visible
+          .map((p) => p.index)
+          .reduce((a, b) => a > b ? a : b);
+
+      // near the end (top side in reverse list)
+      if (maxVisibleIndex >= chatRows.length - 4) {
+        hitAPIToGetChatHistory("pagination");
+      }
+    });*/
+  }
+
+  void onPositionsChanged() {
+
+    if (controller.isPageLoading || !controller.hasMore) return;
+
+    final positions = itemPositionsListener.itemPositions.value;
+    if (positions.isEmpty) return;
+    // When reverse:true, loading older messages happens when you reach the "top".
+    // In practice: the highest index becomes visible.
+    final maxVisibleIndex = positions
+        .where((p) => p.itemTrailingEdge > 0) // visible
+        .map((p) => p.index)
+        .reduce((a, b) => a > b ? a : b);
+
+    // near the end (top side in reverse list)
+    if (maxVisibleIndex >= controller.chatRows.length - 4) {
+      controller.hitAPIToGetChatHistory("pagination");
+    }
   }
 
   @override
@@ -516,7 +615,7 @@ class _ChatScreenState extends State<ChatScreen> {
         Expanded(
           child: shimmerEffectWidget(
               showShimmer: controller.showPostShimmer,
-              shimmerWidget: shimmerlistView(child: ChatHistoryShimmer()),
+              shimmerWidget: shimmerlistView(child: const ChatHistoryShimmer()),
               child: groupListView()),
         ),
       ],
@@ -526,8 +625,9 @@ class _ChatScreenState extends State<ChatScreen> {
   groupListView() {
     return (controller.chatRows ?? []).isNotEmpty
         ? ScrollablePositionedList.builder(
-            itemScrollController: controller.itemScrollController,
-            itemPositionsListener: controller.itemPositionsListener,
+        key: ValueKey(_tag),
+            itemScrollController: itemScrollController,
+            itemPositionsListener: itemPositionsListener,
             itemCount: controller.chatRows.length,
             reverse: true,
             padding: const EdgeInsets.only(bottom: 30),
@@ -989,7 +1089,7 @@ class _ChatScreenState extends State<ChatScreen> {
                         final int? replyId =
                             data.replyToId; // confirm field name
                         if (replyId != null) {
-                          controller.jumpToRepliedMessage(replyId);
+                          jumpToRepliedMessage(replyId);
                         }
                       },
                       empIdsender: data.fromUser?.userId.toString(),

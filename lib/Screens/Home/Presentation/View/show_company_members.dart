@@ -345,18 +345,14 @@ class CompanyMembers extends GetView<CompanyMemberController> {
 /*  Future<void> _goToChat(memData) async {
     // 1) Go Home first (clear stack)
      Get.back();
-
     // 2) Set dashboard to Chat tab (jo bhi chat index hai)
     final dc = Get.isRegistered<DashboardController>()
         ? Get.find<DashboardController>()
         : Get.put(DashboardController());
-
     dc.updateIndex(0); // <-- yaha apna chat tab index daalo
     dc.update();
-
     // 3) Give Home UI/controllers a frame to build
     await Future.delayed(const Duration(milliseconds: 50));
-
     if (kIsWeb) {
       final _tag = "chat_${memData?.userId ?? 'mobile'}";
       // 4) Ensure Home controller is available

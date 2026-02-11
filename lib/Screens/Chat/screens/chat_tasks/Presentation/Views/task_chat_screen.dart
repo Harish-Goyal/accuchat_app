@@ -38,6 +38,7 @@ import '../../../../../../Constants/app_theme.dart';
 import '../../../../../../Constants/assets.dart';
 import '../../../../../../Constants/colors.dart';
 import '../../../../../../Services/APIs/local_keys.dart';
+import '../../../../../../utils/chat_presence.dart';
 import '../../../../../../utils/common_textfield.dart';
 import '../../../../../../utils/custom_container.dart';
 import '../../../../../../utils/custom_dialogue.dart';
@@ -936,7 +937,9 @@ class TaskScreen extends GetView<TaskController> {
         ),
 
         controller.isSearching?const SizedBox():  (controller.user?.userCompany?.isBroadcast==1 ||controller.user?.userCompany?.isGroup==1) ?const SizedBox():CustomTextButton(onTap: (){
-          final _tag = "chat_${controller.user?.userId ?? 'mobile'}";
+
+          final _tagid = ChatPresence.activeChatId.value;
+          final _tag = "chat_${_tagid ?? 'mobile'}";
           if (controller.user == null) return;
           isTaskMode = false;
           Get.find<DashboardController>().updateIndex(0);

@@ -10,6 +10,7 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:photo_view/photo_view.dart';
 import 'package:photo_view/photo_view_gallery.dart';
+import '../../../../../../utils/chat_presence.dart';
 import '../../../../../../utils/save_image.dart';
 import '../../../../../../utils/share_helper.dart';
 import '../../../../../Home/Models/pickes_file_item.dart';
@@ -70,7 +71,8 @@ class GalleryViewerPage extends GetView<GalleryViewerController> {
                     }
 
                     if (v == "reply") {
-                      final _tag = "chat_${c.chathis?.fromUser?.userId ?? 'mobile'}";
+                      final _tagid = ChatPresence.activeChatId.value;
+                      final _tag = "chat_${_tagid ?? 'mobile'}";
                       final chatC = Get.find<ChatScreenController>(tag: _tag);
                       chatC.refIdis = c.chathis?.chatId;
                       chatC.userIDSender = c.chathis?.fromUser?.userId;

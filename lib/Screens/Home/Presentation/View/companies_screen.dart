@@ -18,6 +18,7 @@ import '../../../../Constants/assets.dart';
 import '../../../../Constants/colors.dart';
 import '../../../../Services/subscription/billing_service.dart';
 import '../../../../routes/app_routes.dart';
+import '../../../../utils/chat_presence.dart';
 import '../../../../utils/product_shimmer_widget.dart';
 import '../../../Chat/api/apis.dart';
 import '../../../Chat/screens/chat_tasks/Presentation/Controllers/task_controller.dart';
@@ -264,8 +265,10 @@ class CompaniesScreen extends GetView<CompaniesController> {
                                                           ''
                                                     });
                                               }
-                                            if(Get.isRegistered<ChatScreenController>()){
-                                              Get.delete<ChatScreenController>();
+                                              final _tagid = ChatPresence.activeChatId.value;
+                                              final _tag = "chat_${_tagid ?? 'mobile'}";
+                                            if(Get.isRegistered<ChatScreenController>(tag:_tag )){
+                                              Get.delete<ChatScreenController>(tag: _tag);
                                             }
 
                                             if (Get.isRegistered<TaskController>()) {
@@ -297,9 +300,11 @@ class CompaniesScreen extends GetView<CompaniesController> {
                                                   .connectUserEmitter(
                                                       companyData.companyId);
 
-                                              if(Get.isRegistered<ChatScreenController>()){
-                                                Get.delete<ChatScreenController>();
-                                              }
+                                            final _tagid = ChatPresence.activeChatId.value;
+                                            final _tag = "chat_${_tagid ?? 'mobile'}";
+                                            if(Get.isRegistered<ChatScreenController>(tag:_tag )){
+                                              Get.delete<ChatScreenController>(tag: _tag);
+                                            }
 
                                             if (Get.isRegistered<TaskController>()) {
                                               Get.delete<TaskController>();
