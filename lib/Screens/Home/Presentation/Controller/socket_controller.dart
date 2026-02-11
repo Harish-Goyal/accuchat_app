@@ -181,10 +181,13 @@ class SocketController extends GetxController with WidgetsBindingObserver {
         final incomingIsGroup = receivedMessageDataModal.isGroupChat == 1;
         final activeCompanyId = APIs.me.userCompany?.companyId;
         final msgCompanyId = receivedMessageDataModal.fromUser?.userCompany?.companyId;
+        print("activeCompanyId");
+        print(activeCompanyId);
+        print(msgCompanyId);
         //
         if (activeCompanyId == null || msgCompanyId == null) return;
         if (activeCompanyId != msgCompanyId) return;
-// IMPORTANT: groupId nikaalo (jo user object me is_group=1 ho)
+
         String? incomingGroupId;
         if (incomingIsGroup) {
           final toIsGroup =

@@ -147,319 +147,354 @@ class CompaniesScreen extends GetView<CompaniesController> {
                                       companyData.companyId ==
                                           controller.selCompany?.companyId;
                                   return Align(
-                                    alignment: Alignment.centerLeft,
+                                      alignment: Alignment.centerLeft,
                                       child: ConstrainedBox(
-                                    constraints: const BoxConstraints(
-                                      maxWidth: kIsWeb ? 500 : double.infinity,
-                                    ),
-                                    child: Stack(
-                                      clipBehavior: Clip.none,
-                                      children: [
-                                        ChatCard(
-                                          cardColor: companyData.companyId ==
-                                                  controller
-                                                      .selCompany?.companyId
-                                              ? Colors.white
-                                              : Colors.grey.shade200,
-                                          isSelected: companyData.companyId ==
-                                              controller.selCompany?.companyId,
-                                          brcolor: companyData.companyId ==
-                                                  controller
-                                                      .selCompany?.companyId
-                                              ? appColorPerple.withOpacity(.2)
-                                              : Colors.grey.shade200,
-                                          iconWidget: Container(
-                                            decoration: BoxDecoration(
-                                                shape: BoxShape.circle,
-                                                border: Border.all(
-                                                    color: greyText)),
-                                            child: CustomCacheNetworkImage(
-                                              radiusAll: 100,
-                                              height: 50,
-                                              width: 50,
-                                              // borderColor: greyText,
-                                              '${ApiEnd.baseUrlMedia}${companyData.logo ?? ''}',
-                                              boxFit: BoxFit.cover,
-                                              defaultImage: appIcon,
-                                            ),
-                                          ).paddingOnly(left: 6),
-                                          trailWidget: Column(
-                                            mainAxisSize: MainAxisSize.min,
-                                            crossAxisAlignment:
-                                                CrossAxisAlignment.start,
-                                            children: [
-                                              Row(
-                                                mainAxisAlignment:
-                                                    MainAxisAlignment.start,
+                                        constraints: const BoxConstraints(
+                                          maxWidth:
+                                              kIsWeb ? 500 : double.infinity,
+                                        ),
+                                        child: Stack(
+                                          clipBehavior: Clip.none,
+                                          children: [
+                                            ChatCard(
+                                              cardColor:
+                                                  companyData.companyId ==
+                                                          controller.selCompany
+                                                              ?.companyId
+                                                      ? Colors.white
+                                                      : Colors.grey.shade200,
+                                              isSelected:
+                                                  companyData.companyId ==
+                                                      controller.selCompany
+                                                          ?.companyId,
+                                              brcolor: companyData.companyId ==
+                                                      controller
+                                                          .selCompany?.companyId
+                                                  ? appColorPerple
+                                                      .withOpacity(.2)
+                                                  : Colors.grey.shade200,
+                                              iconWidget: Container(
+                                                decoration: BoxDecoration(
+                                                    shape: BoxShape.circle,
+                                                    border: Border.all(
+                                                        color: greyText)),
+                                                child: CustomCacheNetworkImage(
+                                                  radiusAll: 100,
+                                                  height: 50,
+                                                  width: 50,
+                                                  // borderColor: greyText,
+                                                  '${ApiEnd.baseUrlMedia}${companyData.logo ?? ''}',
+                                                  boxFit: BoxFit.cover,
+                                                  defaultImage: appIcon,
+                                                ),
+                                              ).paddingOnly(left: 6),
+                                              trailWidget: Column(
+                                                mainAxisSize: MainAxisSize.min,
+                                                crossAxisAlignment:
+                                                    CrossAxisAlignment.start,
                                                 children: [
-                                                  /*
+                                                  Row(
+                                                    mainAxisAlignment:
+                                                        MainAxisAlignment.start,
+                                                    children: [
+                                                      /*
                                                   companyData.companyId ==
                                                       controller
                                                           .selCompany?.companyId?Image.asset(pinnedPng,height: 18,width: 15,):SizedBox(),
                                     */
-                                                  Expanded(
-                                                    child: Row(
-                                                      mainAxisSize: MainAxisSize.min,
-                                                      children: [
-                                                        // Obx(() {
-                                                        //   final b = AppBadgeController.to;
-                                                        //   final cid = companyData.companyId!;
-                                                        //   final total = (b.otherChatByCompany[cid] ?? 0) + (b.otherTaskByCompany[cid] ?? 0);
-                                                        //   return SizedBox(
-                                                        //     width: 25,
-                                                        //     child:total > 0 ? Badge(child:Text("$total") ) : null,
-                                                        //   );
-                                                        // }),
-                                                        Text(
-                                                          (companyData.companyName ??''),
-                                                          style: BalooStyles
-                                                              .baloosemiBoldTextStyle(),
-                                                          maxLines: 1,
-                                                          overflow:
-                                                              TextOverflow.ellipsis,
+                                                      Expanded(
+                                                        child: Row(
+                                                          mainAxisSize:
+                                                              MainAxisSize.min,
+                                                          children: [
+                                                            // Obx(() {
+                                                            //   final b = AppBadgeController.to;
+                                                            //   final cid = companyData.companyId!;
+                                                            //   final total = (b.otherChatByCompany[cid] ?? 0) + (b.otherTaskByCompany[cid] ?? 0);
+                                                            //   return SizedBox(
+                                                            //     width: 25,
+                                                            //     child:total > 0 ? Badge(child:Text("$total") ) : null,
+                                                            //   );
+                                                            // }),
+                                                            Text(
+                                                              (companyData
+                                                                      .companyName ??
+                                                                  ''),
+                                                              style: BalooStyles
+                                                                  .baloosemiBoldTextStyle(),
+                                                              maxLines: 1,
+                                                              overflow:
+                                                                  TextOverflow
+                                                                      .ellipsis,
+                                                            ),
+                                                          ],
                                                         ),
-                                                      ],
-                                                    ),
+                                                      ),
+                                                    ],
+                                                  ),
+                                                  vGap(4),
+                                                  Text(
+                                                    "Creator: ${companyData.createdBy == APIs.me.userId ? APIs.me.phone : (companyData.companyName ?? '')}",
+                                                    style: BalooStyles
+                                                        .baloonormalTextStyle(
+                                                            size: 14),
+                                                    maxLines: 1,
+                                                    overflow:
+                                                        TextOverflow.ellipsis,
                                                   ),
                                                 ],
                                               ),
-                                              vGap(4),
-                                              Text(
-                                                "Creator: ${companyData.createdBy == APIs.me.userId ? APIs.me.phone : (companyData.companyName ?? '')}",
-                                                style: BalooStyles
-                                                    .baloonormalTextStyle(
-                                                        size: 14),
-                                                maxLines: 1,
-                                                overflow: TextOverflow.ellipsis,
-                                              ),
-                                            ],
-                                          ),
-                                          title: '',
-                                          subtitleTap: () async {
-                                            customLoader.show();
-                                            controller.hitAPIToGetSentInvites(
-                                                companyData: companyData,
-                                                isMember: true);
-                                              final svc = CompanyService.to;
-                                              await svc.select(companyData);
-                                              controller.getCompany();
-                                              await APIs.refreshMe(
-                                                  companyId:
-                                                      companyData.companyId ??
-                                                          0);
-                                              Get.find<SocketController>()
-                                                  .connectUserEmitter(
-                                                      companyData.companyId);
-                                              if (kIsWeb) {
-                                                Get.toNamed(
-                                                    '${AppRoutes.company_members}?companyId=${companyData.companyId}&companyName=${companyData.companyName ?? ''}');
-                                              } else {
-                                                Get.toNamed(
-                                                    AppRoutes.company_members,
-                                                    arguments: {
-                                                      'companyId': companyData
-                                                              .companyId ??
-                                                          0,
-                                                      'companyName': companyData
-                                                              .companyName ??
-                                                          ''
-                                                    });
-                                              }
-                                              final _tagid = ChatPresence.activeChatId.value;
-                                              final _tag = "chat_${_tagid ?? 'mobile'}";
-                                            if(Get.isRegistered<ChatScreenController>(tag:_tag )){
-                                              Get.delete<ChatScreenController>(tag: _tag);
-                                            }
+                                              title: '',
+                                              subtitleTap: () async {
+                                                customLoader.show();
+                                                controller
+                                                    .hitAPIToGetSentInvites(
+                                                        companyData:
+                                                            companyData,
+                                                        isMember: true);
+                                                final svc = CompanyService.to;
+                                                await svc.select(companyData);
+                                                controller.getCompany();
+                                                await APIs.refreshMe(
+                                                    companyId:
+                                                        companyData.companyId ??
+                                                            0);
+                                                Get.find<SocketController>()
+                                                    .connectUserEmitter(
+                                                        companyData.companyId);
+                                                if (kIsWeb) {
+                                                  Get.toNamed(
+                                                      '${AppRoutes.company_members}?companyId=${companyData.companyId}&companyName=${companyData.companyName ?? ''}');
+                                                } else {
+                                                  Get.toNamed(
+                                                      AppRoutes.company_members,
+                                                      arguments: {
+                                                        'companyId': companyData
+                                                                .companyId ??
+                                                            0,
+                                                        'companyName': companyData
+                                                                .companyName ??
+                                                            ''
+                                                      });
+                                                }
 
-                                            if (Get.isRegistered<TaskController>()) {
-                                              Get.delete<TaskController>();
-                                            }
-                                            if (Get.isRegistered<GalleryController>()) {
-                                              Get.delete<GalleryController>();
-                                            }
+                                                if (Get.isRegistered<
+                                                    ChatScreenController>()) {
+                                                  Get.delete<
+                                                          ChatScreenController>(
+                                                      force: true);
+                                                }
 
-                                            customLoader.hide();
-                                            controller.update();
-                                          },
-                                          subtitle:
-                                              'members: ${companyData.members?.length ?? 0}',
-                                          onTap: () async {
-                                            customLoader.show();
-                                              controller.hitAPIToGetSentInvites(
-                                                  companyData: companyData,
-                                                  isMember: false);
+                                                if (Get.isRegistered<
+                                                    TaskController>()) {
+                                                  Get.delete<TaskController>();
+                                                }
+                                                if (Get.isRegistered<
+                                                    GalleryController>()) {
+                                                  Get.delete<
+                                                      GalleryController>();
+                                                }
 
-                                              final svc = CompanyService.to;
-                                              await svc.select(companyData!);
-                                              controller.getCompany();
-                                              await APIs.refreshMe(
-                                                  companyId:
-                                                      companyData?.companyId ??
-                                                          0);
-                                              Get.find<SocketController>()
-                                                  .connectUserEmitter(
-                                                      companyData.companyId);
+                                                customLoader.hide();
+                                                controller.update();
+                                              },
+                                              subtitle:
+                                                  'members: ${companyData.members?.length ?? 0}',
+                                              onTap: () async {
+                                                customLoader.show();
+                                                controller
+                                                    .hitAPIToGetSentInvites(
+                                                        companyData:
+                                                            companyData,
+                                                        isMember: false);
 
-                                            final _tagid = ChatPresence.activeChatId.value;
-                                            final _tag = "chat_${_tagid ?? 'mobile'}";
-                                            if(Get.isRegistered<ChatScreenController>(tag:_tag )){
-                                              Get.delete<ChatScreenController>(tag: _tag);
-                                            }
+                                                final svc = CompanyService.to;
+                                                await svc.select(companyData!);
+                                                controller.getCompany();
+                                                await APIs.refreshMe(
+                                                    companyId: companyData.companyId ??
+                                                        0);
+                                                Get.find<SocketController>()
+                                                    .connectUserEmitter(
+                                                        companyData.companyId);
 
-                                            if (Get.isRegistered<TaskController>()) {
-                                              Get.delete<TaskController>();
-                                            }
-                                            if (Get.isRegistered<GalleryController>()) {
-                                              Get.delete<GalleryController>();
-                                            }
+                                                if (Get.isRegistered<ChatScreenController>()) {
+                                                  Get.delete<ChatScreenController>(force: true);
+                                                }
 
-                                            customLoader.hide();
-                                            controller.update();
-                                          },
-                                        ),
-                                        Positioned(
-                                          top: 8,
-                                          right: 5,
-                                          child: Builder(
-                                            builder: (context) {
-                                              final bool isSelected =
-                                                  companyData.companyId ==
-                                                      controller.selCompany
-                                                          ?.companyId;
-                                              final bool isCreator =
-                                                  companyData.createdBy ==
-                                                      APIs.me?.userId;
-                                              // Hide the 3-dot entirely if not the selected company
-                                              if (!isSelected)
-                                                return const SizedBox.shrink();
-                                              // Show 3-dot; items depend on role
-                                              return PopupMenuButton<String>(
-                                                color: Colors.white,
-                                                icon: const Icon(
-                                                    Icons.more_vert,
-                                                    color: Colors.black87),
-                                                onSelected: (value) =>
-                                                    controller
-                                                        .companyNavigation(
-                                                            value, companyData),
-                                                itemBuilder: (context) {
-                                                  final List<
-                                                      PopupMenuEntry<
-                                                          String>> items = [];
+                                                if (Get.isRegistered<
+                                                    TaskController>()) {
+                                                  Get.delete<TaskController>();
+                                                }
+                                                if (Get.isRegistered<
+                                                    GalleryController>()) {
+                                                  Get.delete<
+                                                      GalleryController>();
+                                                }
 
-                                                  if (isCreator) {
-                                                    // Invite (creator + mobile only)
-
-                                                    items.add(
-                                                      const PopupMenuItem(
-                                                        value: 'Invite',
-                                                        child: Row(children: [
-                                                          Icon(
-                                                              Icons
-                                                                  .person_add_alt,
-                                                              size: 15,
-                                                              color: Colors
-                                                                  .black87),
-                                                          SizedBox(width: 4),
-                                                          Text('Invite Member'),
-                                                        ]),
-                                                      ),
-                                                    );
-
-                                                    // Pending (creator)
-                                                    items.add(
-                                                      const PopupMenuItem(
-                                                        value: 'Pending',
-                                                        child: Row(children: [
-                                                          Icon(
-                                                              Icons
-                                                                  .pending_outlined,
-                                                              size: 15,
-                                                              color: Colors
-                                                                  .black87),
-                                                          SizedBox(width: 4),
-                                                          Text(
-                                                              'Pending Invites'),
-                                                        ]),
-                                                      ),
-                                                    );
-
-                                                    // Update (creator)
-                                                    items.add(
-                                                      const PopupMenuItem(
-                                                        value: 'Update',
-                                                        child: Row(children: [
-                                                          Icon(
-                                                              Icons
-                                                                  .edit_outlined,
-                                                              size: 15,
-                                                              color: Colors
-                                                                  .black87),
-                                                          SizedBox(width: 4),
-                                                          Text(
-                                                              'Update Company'),
-                                                        ]),
-                                                      ),
-                                                    );
-
-                                                    items.add(
-                                                       PopupMenuItem(
-                                                        value: 'Delete',
-                                                        child: Row(children: [
-                                                          Icon(
-                                                              Icons
-                                                                  .delete_outline,
-                                                              size: 15,
-                                                              color: AppTheme.redErrorColor),
-                                                          const SizedBox(width: 4),
-                                                          const Text(
-                                                              'Delete Company'),
-                                                        ]),
-                                                      ),
-                                                    );
-                                                  }
-
-                                                  // All Members (everyone)
-                                                  items.add(
-                                                    const PopupMenuItem(
-                                                      value: 'All',
-                                                      child: Row(children: [
-                                                        Icon(Icons.people,
-                                                            size: 15,
-                                                            color:
-                                                                Colors.black87),
-                                                        SizedBox(width: 4),
-                                                        Text('All Members'),
-                                                      ]),
-                                                    ),
-                                                  );
-
-                                                  return items;
-                                                },
-                                              );
-                                            },
-                                          ),
-                                        ),
-                                        companyData.companyId ==
-                                                controller.selCompany?.companyId
-                                            ? Positioned(
-                                                top: 4,
-                                                left: 4,
-                                                // right: 0,
-                                                child: Transform.scale(
-                                                  scale: 1.2,
-                                                  child: CupertinoCheckbox(
-                                                      activeColor:
-                                                          appColorGreen,
-                                                      value: companyData
-                                                              .companyId ==
+                                                customLoader.hide();
+                                                controller.update();
+                                              },
+                                            ),
+                                            Positioned(
+                                              top: 8,
+                                              right: 5,
+                                              child: Builder(
+                                                builder: (context) {
+                                                  final bool isSelected =
+                                                      companyData.companyId ==
                                                           controller.selCompany
-                                                              ?.companyId,
-                                                      onChanged: (v) {}),
-                                                ))
-                                            : const SizedBox(),
+                                                              ?.companyId;
+                                                  final bool isCreator =
+                                                      companyData.createdBy ==
+                                                          APIs.me?.userId;
+                                                  // Hide the 3-dot entirely if not the selected company
+                                                  if (!isSelected)
+                                                    return const SizedBox
+                                                        .shrink();
+                                                  // Show 3-dot; items depend on role
+                                                  return PopupMenuButton<
+                                                      String>(
+                                                    color: Colors.white,
+                                                    icon: const Icon(
+                                                        Icons.more_vert,
+                                                        color: Colors.black87),
+                                                    onSelected: (value) =>
+                                                        controller
+                                                            .companyNavigation(
+                                                                value,
+                                                                companyData),
+                                                    itemBuilder: (context) {
+                                                      final List<
+                                                              PopupMenuEntry<
+                                                                  String>>
+                                                          items = [];
 
-                                        /*   Positioned(
+                                                      if (isCreator) {
+                                                        // Invite (creator + mobile only)
+
+                                                        items.add(
+                                                          const PopupMenuItem(
+                                                            value: 'Invite',
+                                                            child:
+                                                                Row(children: [
+                                                              Icon(
+                                                                  Icons
+                                                                      .person_add_alt,
+                                                                  size: 15,
+                                                                  color: Colors
+                                                                      .black87),
+                                                              SizedBox(
+                                                                  width: 4),
+                                                              Text(
+                                                                  'Invite Member'),
+                                                            ]),
+                                                          ),
+                                                        );
+
+                                                        // Pending (creator)
+                                                        items.add(
+                                                          const PopupMenuItem(
+                                                            value: 'Pending',
+                                                            child:
+                                                                Row(children: [
+                                                              Icon(
+                                                                  Icons
+                                                                      .pending_outlined,
+                                                                  size: 15,
+                                                                  color: Colors
+                                                                      .black87),
+                                                              SizedBox(
+                                                                  width: 4),
+                                                              Text(
+                                                                  'Pending Invites'),
+                                                            ]),
+                                                          ),
+                                                        );
+
+                                                        // Update (creator)
+                                                        items.add(
+                                                          const PopupMenuItem(
+                                                            value: 'Update',
+                                                            child:
+                                                                Row(children: [
+                                                              Icon(
+                                                                  Icons
+                                                                      .edit_outlined,
+                                                                  size: 15,
+                                                                  color: Colors
+                                                                      .black87),
+                                                              SizedBox(
+                                                                  width: 4),
+                                                              Text(
+                                                                  'Update Company'),
+                                                            ]),
+                                                          ),
+                                                        );
+
+                                                        items.add(
+                                                          PopupMenuItem(
+                                                            value: 'Delete',
+                                                            child:
+                                                                Row(children: [
+                                                              Icon(
+                                                                  Icons
+                                                                      .delete_outline,
+                                                                  size: 15,
+                                                                  color: AppTheme
+                                                                      .redErrorColor),
+                                                              const SizedBox(
+                                                                  width: 4),
+                                                              const Text(
+                                                                  'Delete Company'),
+                                                            ]),
+                                                          ),
+                                                        );
+                                                      }
+
+                                                      // All Members (everyone)
+                                                      items.add(
+                                                        const PopupMenuItem(
+                                                          value: 'All',
+                                                          child: Row(children: [
+                                                            Icon(Icons.people,
+                                                                size: 15,
+                                                                color: Colors
+                                                                    .black87),
+                                                            SizedBox(width: 4),
+                                                            Text('All Members'),
+                                                          ]),
+                                                        ),
+                                                      );
+
+                                                      return items;
+                                                    },
+                                                  );
+                                                },
+                                              ),
+                                            ),
+                                            companyData.companyId ==
+                                                    controller
+                                                        .selCompany?.companyId
+                                                ? Positioned(
+                                                    top: 4,
+                                                    left: 4,
+                                                    // right: 0,
+                                                    child: Transform.scale(
+                                                      scale: 1.2,
+                                                      child: CupertinoCheckbox(
+                                                          activeColor:
+                                                              appColorGreen,
+                                                          value: companyData
+                                                                  .companyId ==
+                                                              controller
+                                                                  .selCompany
+                                                                  ?.companyId,
+                                                          onChanged: (v) {}),
+                                                    ))
+                                                : const SizedBox(),
+
+                                            /*   Positioned(
                                               top: 8,
                                               right: 5,
                                               child: PopupMenuButton<String>(
@@ -513,16 +548,15 @@ class CompaniesScreen extends GetView<CompaniesController> {
                                               ),
                                             )*/
 
-
-
-                                        Positioned(
-                                          top: -18,
-                                          right: 10,
-                                          child: Container(
-                                            padding: const EdgeInsets.all(6),
-                                            decoration: BoxDecoration(
-                                                borderRadius:
-                                                    const BorderRadius.only(
+                                            Positioned(
+                                              top: -18,
+                                              right: 10,
+                                              child: Container(
+                                                padding:
+                                                    const EdgeInsets.all(6),
+                                                decoration: BoxDecoration(
+                                                    borderRadius: const BorderRadius
+                                                        .only(
                                                         topRight:
                                                             Radius.circular(30),
                                                         topLeft:
@@ -530,78 +564,80 @@ class CompaniesScreen extends GetView<CompaniesController> {
                                                         bottomRight:
                                                             Radius.circular(
                                                                 30)),
-                                                color: companyData.createdBy ==
-                                                    APIs.me.userId
-                                                    ? appColorGreen
-                                                        .withOpacity(.1)
-                                                    : appColorYellow
-                                                        .withOpacity(.1),
-                                                border: Border.all(
-                                                    color: appColorPerple
-                                                        .withOpacity(.1))),
-                                            child: Text(
-                                              companyData.createdBy ==
-                                                  APIs.me.userId
-                                                  ? "Creator"
-                                                  : "Joined",
-                                              style: BalooStyles
-                                                  .baloosemiBoldTextStyle(
-                                                      color: companyData
-                                                                  .createdBy ==
-                                                          APIs.me?.userId
-                                                          ? appColorGreen
-                                                          : appColorYellow,
-                                                      size: 12),
+                                                    color: companyData.createdBy ==
+                                                            APIs.me.userId
+                                                        ? appColorGreen
+                                                            .withOpacity(.1)
+                                                        : appColorYellow
+                                                            .withOpacity(.1),
+                                                    border: Border.all(
+                                                        color: appColorPerple
+                                                            .withOpacity(.1))),
+                                                child: Text(
+                                                  companyData.createdBy ==
+                                                          APIs.me.userId
+                                                      ? "Creator"
+                                                      : "Joined",
+                                                  style: BalooStyles
+                                                      .baloosemiBoldTextStyle(
+                                                          color: companyData
+                                                                      .createdBy ==
+                                                                  APIs.me
+                                                                      ?.userId
+                                                              ? appColorGreen
+                                                              : appColorYellow,
+                                                          size: 12),
+                                                ),
+                                              ),
                                             ),
-                                          ),
-                                        ),
-                                        (companyData.createdBy ==
-                                            APIs.me.userId &&
-                                                companyData.companyId ==
-                                                    controller
-                                                        .selCompany?.companyId)
-                                            ? (controller.sentInviteList
-                                                        .isNotEmpty ||
-                                                    controller.sentInviteList
-                                                            .length !=
-                                                        0)
-                                                ? Positioned(
-                                                    bottom: 20,
-                                                    right: 20,
-                                                    child: InkWell(
-                                                      onTap: () {
+                                            (companyData.createdBy ==
+                                                        APIs.me.userId &&
+                                                    companyData.companyId ==
+                                                        controller.selCompany
+                                                            ?.companyId)
+                                                ? (controller.sentInviteList
+                                                            .isNotEmpty ||
                                                         controller
-                                                            .companyNavigation(
-                                                                "Pending",
-                                                                companyData);
-                                                      },
-                                                      child: Container(
-                                                        padding:
-                                                            const EdgeInsets
-                                                                .all(6),
-                                                        decoration: BoxDecoration(
-                                                            shape:
-                                                                BoxShape.circle,
-                                                            color: appColorPerple
-                                                                .withOpacity(
-                                                                    .1),
-                                                            border: Border.all(
+                                                                .sentInviteList
+                                                                .length !=
+                                                            0)
+                                                    ? Positioned(
+                                                        bottom: 20,
+                                                        right: 20,
+                                                        child: InkWell(
+                                                          onTap: () {
+                                                            controller
+                                                                .companyNavigation(
+                                                                    "Pending",
+                                                                    companyData);
+                                                          },
+                                                          child: Container(
+                                                            padding:
+                                                                const EdgeInsets
+                                                                    .all(6),
+                                                            decoration: BoxDecoration(
+                                                                shape: BoxShape
+                                                                    .circle,
+                                                                color: appColorPerple
+                                                                    .withOpacity(
+                                                                        .1),
+                                                                border: Border.all(
+                                                                    color:
+                                                                        appColorPerple)),
+                                                            child: Text(
+                                                              "${controller.sentInviteList.length}",
+                                                              style: BalooStyles
+                                                                  .baloosemiBoldTextStyle(
                                                                 color:
-                                                                    appColorPerple)),
-                                                        child: Text(
-                                                          "${controller.sentInviteList.length}",
-                                                          style: BalooStyles
-                                                              .baloosemiBoldTextStyle(
-                                                            color:
-                                                                appColorPerple,
+                                                                    appColorPerple,
+                                                              ),
+                                                            ),
                                                           ),
                                                         ),
-                                                      ),
-                                                    ),
-                                                  )
-                                                : const SizedBox()
-                                            : const SizedBox(),
-                                        /*
+                                                      )
+                                                    : const SizedBox()
+                                                : const SizedBox(),
+                                            /*
                                           (companyData.createdBy ==
                                                       controller.me?.userId &&
                                                   companyData.companyId ==
@@ -675,9 +711,9 @@ class CompaniesScreen extends GetView<CompaniesController> {
                                                     )
                                                   : SizedBox()
                                               : const SizedBox(),*/
-                                      ],
-                                    ).paddingOnly(bottom: 12),
-                                  ));
+                                          ],
+                                        ).paddingOnly(bottom: 12),
+                                      ));
                                 }),
                           )),
                         ),
