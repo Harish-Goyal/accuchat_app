@@ -65,6 +65,7 @@ class Session extends GetxService {
         await APIs.getFirebaseMessagingToken();
         _saveToCache(fresh);
         _user.value = fresh;
+
       }
     } catch (_) {  }
     return _user.value;

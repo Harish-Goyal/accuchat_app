@@ -93,12 +93,13 @@ class _ChatUserCardState extends State<ChatUserCard>
       child: Obx(() {
         bool isSelected =
             homec.selectedChat.value?.userId == widget.user?.userId;
+        bool isRegistered=false;
         return InkWell(
             hoverColor: appColorPerple.withOpacity(.25),
             borderRadius: BorderRadius.circular(15),
             onTap: () {
               final _tagid = ChatPresence.activeChatId.value;
-              final _tag = "chat_${_tagid}";
+              final _tag = "chat_$_tagid";
 
               if (isTaskMode) {
                 if (kIsWeb) {
@@ -120,10 +121,15 @@ class _ChatUserCardState extends State<ChatUserCard>
                   final homec = Get.find<ChatHomeController>();
                   ChatScreenController? chatc;
                   if (Get.isRegistered<ChatScreenController>(tag: _tag)) {
+                    isRegistered =true;
+                    print("Registered");
+                    print(_tag);
                     chatc = Get.find<ChatScreenController>(tag: _tag);
                   } else {
                     final _tag =
                         "chat_${widget.user?.userCompany?.userCompanyId ?? 'mobile'}";
+                    print("not Registered");
+                    print(_tag);
                     chatc = Get.put(ChatScreenController(user: widget.user),
                         tag: _tag);
                   }
@@ -135,7 +141,7 @@ class _ChatUserCardState extends State<ChatUserCard>
                   chatc?.showPostShimmer = true;
                   homec.selectedChat.value = widget.user;
                   chatc?.user = homec.selectedChat.value;
-                  chatc?.openConversation(homec.selectedChat.value);
+                  !isRegistered?chatc?.openConversation(homec.selectedChat.value):null;
                   if (homec.selectedChat.value?.pendingCount != 0) {
                     print(homec.selectedChat.value?.pendingCount);
                     print("Marked read");
