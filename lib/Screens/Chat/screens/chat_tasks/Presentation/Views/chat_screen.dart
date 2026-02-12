@@ -174,7 +174,8 @@ class _ChatScreenState extends State<ChatScreen> {
       },
     );
     _attachPaginationListener();
-    _tag = "chat_${widget.user?.userCompany?.userCompanyId ?? 'mobile'}";
+    final ucId = widget.user?.userCompany?.userCompanyId;
+    _tag = "chat_${ucId??'mobile'}";
     controller = Get.put(ChatScreenController(user: widget.user)
         ,tag: _tag
     );

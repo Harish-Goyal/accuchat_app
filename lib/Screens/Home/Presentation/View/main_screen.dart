@@ -18,26 +18,7 @@ import '../../../../utils/chat_presence.dart';
 import '../../../../utils/register_image.dart';
 import '../../../Chat/api/apis.dart';
 
-class AccuChatDashboard extends StatefulWidget {
-  @override
-  State<AccuChatDashboard> createState() => _AccuChatDashboardState();
-}
-
-
-
-class _AccuChatDashboardState extends State<AccuChatDashboard> {
-  // ChatHomeController? homec;
-
-
-  @override
-  void initState() {
-    // if (Get.isRegistered<ChatHomeController>()) {
-    //   homec = Get.find<ChatHomeController>();
-    // } else {
-    //   homec = Get.put(ChatHomeController());
-    // }
-    super.initState();
-  }
+class AccuChatDashboard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     bool isWideScreen = MediaQuery.of(context).size.width > 800;
@@ -58,10 +39,10 @@ class _AccuChatDashboardState extends State<AccuChatDashboard> {
                 Expanded(
                   child: controller.screens.isEmpty
                       ? const SizedBox()
-                      : Obx(()=> ConstrainedBox(
+                      :  ConstrainedBox(
                             constraints: const BoxConstraints(maxWidth: 1000),
-                            child: controller.screens[controller.currentIndex.value],
-                          ),
+                            child: controller.screens[controller.currentIndex],
+
                       ),
                 ),
               ],
@@ -77,22 +58,21 @@ class _AccuChatDashboardState extends State<AccuChatDashboard> {
     );
   }
 
-
   Widget buildSideNav(DashboardController controller) {
 
 
     return Column(
       children: [
         Expanded(
-          child: Obx(
-        ()=> Container(
+          child:  Container(
               decoration: BoxDecoration(
                   border: Border.symmetric(vertical: BorderSide(color: Colors.grey.shade200))
               ),
               child: NavigationRail(
-                selectedIndex: controller.currentIndex.value,
+                selectedIndex: controller.currentIndex,
                 onDestinationSelected: (index) {
                   controller.getCompany();
+                  controller.updateIndex(index);
                   final isSetting = index == 4;
                   if (isSetting) {
                     if (kIsWeb) unregisterImage();
@@ -100,8 +80,10 @@ class _AccuChatDashboardState extends State<AccuChatDashboard> {
                   }
                   // Get.toNamed(AppRoutes.home);
                   isTaskMode = index == 1;
-
+                  print("index===");
+                  print(index);
                   if (index == 0) {
+                    print(index);
 
                     ChatHomeController? homec;
                     bool isOpen = false;
@@ -111,11 +93,13 @@ class _AccuChatDashboardState extends State<AccuChatDashboard> {
                       homec = Get.put(ChatHomeController());
                       isOpen = true;
                     }
-                  if (Get.isRegistered<ChatScreenController>()) {
+                    final _tagid = ChatPresence.activeChatId.value;
+                    final _tag = "chat_${_tagid ?? 'mobile'}";
+                  if (Get.isRegistered<ChatScreenController>(tag: _tag)) {
+                    print("registered===");
                     if (homec!.filteredList.isNotEmpty) {
                       final user = homec.filteredList[0];
-                      final _tagid = ChatPresence.activeChatId.value;
-                      final _tag = "chat_${_tagid ?? 'mobile'}";
+
                       final chatc = Get.find<ChatScreenController>(tag: _tag);
                       chatc.replyToMessage = null;
 
@@ -124,7 +108,7 @@ class _AccuChatDashboardState extends State<AccuChatDashboard> {
                       chatc.textController.clear();
                       chatc.update();
                       chatc.showPostShimmer = true;
-                      isOpen?null:   chatc.openConversation(chatc.user);
+                       chatc.openConversation(chatc.user);
                       if (homec.selectedChat.value?.pendingCount != 0) {
                         chatc.markAllVisibleAsReadOnOpen(
                             APIs.me.userCompany?.userCompanyId,
@@ -133,10 +117,12 @@ class _AccuChatDashboardState extends State<AccuChatDashboard> {
                       }
                     }
                   } else {
+                    print("un =registered");
                       if (homec!.filteredList.isNotEmpty) {
                         final user = homec.filteredList[0];
+                        final userCid =user.userCompany?.userCompanyId;
                         final _tagid = ChatPresence.activeChatId.value;
-                        final _tag = "chat_${_tagid ?? 'mobile'}";
+                        final _tag = "chat_${userCid ?? 'mobile'}";
                       final chatc =Get.put(ChatScreenController(user: user),tag: _tag);
                         chatc.showPostShimmer = true;
                         chatc.replyToMessage = null;
@@ -149,7 +135,7 @@ class _AccuChatDashboardState extends State<AccuChatDashboard> {
                               chatc.user?.userCompany?.userCompanyId,
                               chatc.user?.userCompany?.isGroup == 1 ? 1 : 0);
                         }
-                        homec?.selectedChat.refresh();
+                        homec.selectedChat.refresh();
                         chatc.update();
                       }
                   }
@@ -207,8 +193,7 @@ class _AccuChatDashboardState extends State<AccuChatDashboard> {
                       homec.update();
                     }
                   }
-                  controller.updateIndex(index);
-                  controller.update();
+
                 },
                 unselectedIconTheme: const IconThemeData(color: Colors.black45),
                 selectedIconTheme: const IconThemeData(color: Colors.white),
@@ -225,7 +210,7 @@ class _AccuChatDashboardState extends State<AccuChatDashboard> {
                           Image.asset(
                             chatHome,
                             height: 22,
-                            color: controller.currentIndex.value == 0
+                            color: controller.currentIndex == 0
                                 ? Colors.white
                                 : Colors.grey,
                           ),
@@ -256,7 +241,7 @@ class _AccuChatDashboardState extends State<AccuChatDashboard> {
                             Image.asset(
                               tasksHome,
                               height: 22,
-                              color: controller.currentIndex.value == 1
+                              color: controller.currentIndex == 1
                                   ? Colors.white
                                   : Colors.grey,
                             ),
@@ -278,7 +263,7 @@ class _AccuChatDashboardState extends State<AccuChatDashboard> {
                         galleryIcon,
                         height: 22,
                         color:
-                        controller.currentIndex.value == 2 ? Colors.white : Colors.grey,
+                        controller.currentIndex == 2 ? Colors.white : Colors.grey,
                       ),
                       label: Text(
                         'Gallery',
@@ -294,7 +279,7 @@ class _AccuChatDashboardState extends State<AccuChatDashboard> {
                             Image.asset(
                               connectedAppIcon,
                               height: 22,
-                              color: controller.currentIndex.value == 3
+                              color: controller.currentIndex == 3
                                   ? Colors.white
                                   : Colors.grey,
                             ),
@@ -319,7 +304,6 @@ class _AccuChatDashboardState extends State<AccuChatDashboard> {
               ),
             ),
           ),
-        ),
         InkWell(
           onTap: () {
             Get.toNamed(AppRoutes.all_settings);
@@ -337,7 +321,6 @@ class _AccuChatDashboardState extends State<AccuChatDashboard> {
       ],
     );
   }
-
 
 /*
   @override
@@ -413,8 +396,7 @@ class _AccuChatDashboardState extends State<AccuChatDashboard> {
         ));
   }*/
   Widget _bottomNavigationBar(bool isWide,DashboardController controller) {
-    return Obx(
-      ()=> SnakeNavigationBar.gradient(
+    return  SnakeNavigationBar.gradient(
         behaviour: SnakeBarBehaviour.floating,
         backgroundGradient: LinearGradient(colors: [
           appColorGreen.withOpacity(.2),
@@ -433,7 +415,7 @@ class _AccuChatDashboardState extends State<AccuChatDashboard> {
         selectedLabelStyle: BalooStyles.baloonormalTextStyle(color: Colors.white),
         unselectedLabelStyle: BalooStyles.baloonormalTextStyle(),
         showUnselectedLabels: true,
-        currentIndex: controller.currentIndex.value,
+        currentIndex: controller.currentIndex,
         onTap: (v) async {
           if (controller.bottomNavItems.isNotEmpty) {
             controller.updateIndex(v);
@@ -491,7 +473,6 @@ class _AccuChatDashboardState extends State<AccuChatDashboard> {
           }
         },
         items: controller.barItems,
-      ),
     );
   }
 }

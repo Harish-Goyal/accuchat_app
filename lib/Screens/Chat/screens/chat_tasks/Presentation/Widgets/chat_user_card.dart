@@ -134,6 +134,7 @@ class _ChatUserCardState extends State<ChatUserCard>
                   chatc?.showPostShimmer = true;
                   homec.selectedChat.value = widget.user;
                   chatc?.user = homec.selectedChat.value;
+                  // chatc?.openConversation(homec.selectedChat.value);
                   !isRegistered?chatc?.openConversation(homec.selectedChat.value):null;
                   if (homec.selectedChat.value?.pendingCount != 0) {
                     chatc?.markAllVisibleAsReadOnOpen(

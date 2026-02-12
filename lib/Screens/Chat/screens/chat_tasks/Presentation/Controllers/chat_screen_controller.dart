@@ -306,8 +306,6 @@ class ChatScreenController extends GetxController {
   void onInit() {
     super.onInit();
     if(!kIsWeb || Get.width<600) {
-      print(Get.width);
-      print('initiallowed');
       itemScrollController = ItemScrollController();
       itemPositionsListener = ItemPositionsListener.create();
     }
@@ -317,10 +315,6 @@ class ChatScreenController extends GetxController {
     // scrollListener();
     if (Get.isRegistered<ChatHomeController>()) {
       Get.find<ChatHomeController>().isOnRecentList.value = false;
-      // if (kIsWeb) {
-      //   user = Get.find<ChatHomeController>().selectedChat.value;
-      //   // _initScroll();
-      // }
     }
 
     if (kIsWeb) {
@@ -651,7 +645,7 @@ class ChatScreenController extends GetxController {
         getUserByIdApi(userId: int.parse(argUserId ?? ''));
         // }
       } else {
-        // getUserByIdApi(userId: user?.userId);
+        getUserByIdApi(userId: user?.userId);
       }
     } else {
       if (Get.arguments != null) {
@@ -683,9 +677,9 @@ class ChatScreenController extends GetxController {
   void openConversation(UserDataAPI? useriii) {
     user = useriii;
     ChatPresence.activeChatId.value = user?.userCompany?.userCompanyId;
-    Future.delayed(const Duration(milliseconds: 200), () async {
+    Future.delayed(const Duration(milliseconds: 200), ()  {
       resetPaginationForNewChat();
-      await hitAPIToGetChatHistory("openConversation");
+       hitAPIToGetChatHistory("openConversation");
       if (user?.userCompany?.isGroup == 1 ||
           user?.userCompany?.isBroadcast == 1) {
         hitAPIToGetMembers(user);

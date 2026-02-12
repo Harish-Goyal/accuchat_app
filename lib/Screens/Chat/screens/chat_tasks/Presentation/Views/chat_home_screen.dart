@@ -71,7 +71,7 @@ class ChatsHomeScreen extends GetView<ChatHomeController> {
                   final user = await openAllUserDialog();
                   if (user != null) {
                     if(kIsWeb){
-                      Get.toNamed("${AppRoutes.chats_li_r}?userId=${user?.userId.toString()}");
+                      Get.toNamed("${AppRoutes.chats_li_r}?userId=${user.userId.toString()}");
                     }else{
                       Get.toNamed(AppRoutes.chats_li_r,arguments: {'user':user});
                     }
@@ -81,7 +81,8 @@ class ChatsHomeScreen extends GetView<ChatHomeController> {
                 child: const Icon(
                   Icons.add,
                   color: Colors.white,
-                )),
+                )
+            ),
           );
   }
 
@@ -206,28 +207,10 @@ class ChatsHomeScreen extends GetView<ChatHomeController> {
         kIsWeb && w >600
             ? IconButton(
                 onPressed: () async {
-
-
                   final user = await openAllUserDialog();
                   if (user != null) {
-
                     _goToScreen(user,w);
-
                   }
-
-
-                  // final selectedUser = await showDialog<UserDataAPI>(
-                  //   context: Get.context!,
-                  //   builder: (_) =>  AllUserScreenDialog(users: taskData.members,),
-                  // );
-                  // if (selectedUser == null) return;
-
-                  // if (kIsWeb) {
-                  //   Get.offNamed("${AppRoutes.all_users}?isRecent='false'");
-                  // } else {
-                  //   Get.toNamed(AppRoutes.all_users,
-                  //       arguments: {"isRecent": 'false'});
-                  // }
                 },
                 icon: Image.asset(
                   addNewChatPng,
@@ -248,7 +231,6 @@ class ChatsHomeScreen extends GetView<ChatHomeController> {
                   controller.onSearch('');
                   controller.seacrhCon.clear();
                 }
-                // controller.update();
               },
               icon: controller.isSearching.value
                   ? const Icon(CupertinoIcons.clear_circled_solid)
@@ -329,7 +311,6 @@ class ChatsHomeScreen extends GetView<ChatHomeController> {
 
   _goToScreen(UserDataAPI user,w){
 
-      if (kIsWeb && w>600) {
         final homec = Get.find<ChatHomeController>();
         final _tagid = ChatPresence.activeChatId.value;
         final _tag = "chat_${_tagid ?? 'mobile'}";
@@ -338,7 +319,7 @@ class ChatsHomeScreen extends GetView<ChatHomeController> {
           chatc = Get.find<ChatScreenController>(tag: _tag);
         } else {
           final _tag =
-              "chat_${user?.userCompany?.userCompanyId ?? 'mobile'}";
+              "chat_${user.userCompany?.userCompanyId ?? 'mobile'}";
           chatc = Get.put(ChatScreenController(user: user),
               tag: _tag);
         }
@@ -358,17 +339,10 @@ class ChatsHomeScreen extends GetView<ChatHomeController> {
         homec.update();
         homec.selectedChat.refresh();
         chatc?.update();
-      } else {
-        Get.toNamed(
-          AppRoutes.chats_li_r,
-          arguments:{'userId':user.userId,'user':kIsWeb && w < 600 ? null : user,}
-        );
-      }
   }
 
 
   Future<UserDataAPI?> openAllUserDialog() async {
-    // create controller before opening dialog (this is your "binding")
     final c = Get.put(AllUserController());
 
     try {
@@ -387,16 +361,13 @@ class ChatsHomeScreen extends GetView<ChatHomeController> {
         ),
         barrierDismissible: true,
       );
-
-      return user; // ✅ selected user (or null)
+      return user;
     } finally {
-      // cleanup controller when dialog closes
       if (Get.isRegistered<AllUserController>()) {
         Get.delete<AllUserController>();
       }
     }
   }
-
 
 
   Widget _mainBody() {
@@ -559,19 +530,10 @@ class ChatsHomeScreen extends GetView<ChatHomeController> {
       ],
     );
 
-
   }
 
-  Widget _buildHeader(String title) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-      child: Text(title,
-          style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
-    );
-  }
 
   Widget _groupDialogWidget() {
-    // Reuse your original body so it's easy to maintain
     Widget _dialogBody() {
       return Column(
         crossAxisAlignment: CrossAxisAlignment.center,
@@ -649,72 +611,4 @@ class ChatsHomeScreen extends GetView<ChatHomeController> {
     );
   }
 
-  // for adding new chat user
-  void _addChatUserDialog() {
-    String email = '';
-
-    showDialog(
-        context: Get.context!,
-        builder: (_) => AlertDialog(
-              contentPadding: const EdgeInsets.only(
-                  left: 24, right: 24, top: 20, bottom: 10),
-
-              shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(20)),
-
-              //title
-              title: const Row(
-                children: [
-                  Icon(
-                    Icons.person_add,
-                    color: Colors.blue,
-                    size: 28,
-                  ),
-                  Text('  Add User')
-                ],
-              ),
-
-              //content
-              content: TextFormField(
-                maxLines: null,
-                onChanged: (value) => email = value,
-                decoration: InputDecoration(
-                    hintText: 'Email Id',
-                    prefixIcon: const Icon(Icons.email, color: Colors.blue),
-                    border: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(15))),
-              ),
-
-              //actions
-              actions: [
-                //cancel button
-                MaterialButton(
-                    onPressed: () {
-                      //hide alert dialog
-                      Get.back();
-                    },
-                    child: const Text('Cancel',
-                        style: TextStyle(color: Colors.blue, fontSize: 16))),
-
-                //add button
-                MaterialButton(
-                    onPressed: () async {
-                      //hide alert dialog
-                      Get.back();
-                      // if (email.isNotEmpty) {
-                      //   await APIs.addChatUser(email).then((value) {
-                      //     if (!value) {
-                      //       Dialogs.showSnackbar(
-                      //           Get.context!, 'User does not Exists!');
-                      //     }
-                      //   });
-                      // }
-                    },
-                    child: const Text(
-                      'Add',
-                      style: TextStyle(color: Colors.blue, fontSize: 16),
-                    ))
-              ],
-            ));
-  }
 }
