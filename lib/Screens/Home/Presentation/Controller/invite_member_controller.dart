@@ -17,6 +17,7 @@ import '../../../../utils/custom_flashbar.dart';
 import '../../../Chat/models/get_company_res_model.dart';
 import '../../../Chat/screens/auth/models/pending_invites_res_model.dart';
 import '../../Models/all_member_res_model.dart';
+import '../View/invite_user_with_role.dart';
 
 /// Simple in-memory cache for this session
 class InvitesCache {
@@ -25,6 +26,9 @@ class InvitesCache {
 }
 
 class InviteMemberController extends GetxController {
+
+
+
   // ---- args / state ----
   var invitedBy;
   var companyName;
@@ -81,11 +85,11 @@ class InviteMemberController extends GetxController {
 
   void getArguments() {
     if (kIsWeb) {
-      companyId = CompanyData(
-        companyId: int.tryParse(Get.parameters['companyId'] ?? '0'),
-      );
-      invitedBy = Get.parameters['invitedBy'];
-      companyName = Get.parameters['companyName'];
+      if(Get.parameters!=null) {
+        companyId = Get.parameters['companyId'];
+        invitedBy = Get.parameters['invitedBy'];
+        companyName = Get.parameters['companyName'];
+      }
     } else {
       if (Get.arguments != null) {
         companyName = Get.arguments['companyName'];
@@ -308,8 +312,75 @@ class InviteMemberController extends GetxController {
 
   // ---- navigate to role screen (await result) ----
   Future<void> goToRoleScreen() async {
+    final argsContactList = selectedInvitesContacts.toSet().toList();
+
+    if (kIsWeb) {
+      // ensure controller exists and init it
+      final c = Get.isRegistered<InviteUserRoleController>()
+          ? Get.find<InviteUserRoleController>()
+          : Get.put(InviteUserRoleController());
+
+      c.initFromArgs(
+        usersArg: selectedUser,
+        companyIdArg: companyId,
+        contactListArg: argsContactList.map((e) => e.toString()).toList(),
+      );
+
+      final result = await Get.dialog(
+        const Dialog(
+          child: SizedBox(
+            width: 520,
+            child: InviteUserRoleScreen(), // same screen widget
+          ),
+        ),
+        barrierDismissible: false,
+      );
+
+      if (result is List && result.isNotEmpty) {
+        final list = result.map((e) => e.toString()).toList();
+        markAsInvited(list);
+      }
+      return;
+    }
+
+    // mobile: normal route
+    final result = await Get.toNamed(
+      AppRoutes.invite_user_role,
+      arguments: {
+        'selectedUser': selectedUser,
+        'contactList': argsContactList,
+        'companyId': companyId,
+      },
+    );
+
+    if (result is List && result.isNotEmpty) {
+      final list = result.map((e) => e.toString()).toList();
+      markAsInvited(list);
+    }
+  }
+
+/*  Future<void> goToRoleScreen() async {
     // ONLY 10-digit numbers/emails (already normalized) bhej rahe
     final argsContactList = selectedInvitesContacts.toSet().toList();
+
+    if (kIsWeb) {
+      InviteUserRoleController c;
+
+      if (Get.isRegistered<InviteUserRoleController>()) {
+        c = Get.find<InviteUserRoleController>();
+      } else {
+        c = Get.put(InviteUserRoleController());
+      }
+
+      c.initFromArgs(
+        usersArg: selectedUser,
+        companyIdArg: companyId,
+        contactListArg: argsContactList.map((e) => e.toString()).toList(),
+      );
+
+      return;
+    }
+
 
     final result = await Get.toNamed(
       AppRoutes.invite_user_role,
@@ -325,7 +396,7 @@ class InviteMemberController extends GetxController {
       final list = result.map((e) => e.toString()).toList();
       markAsInvited(list);
     }
-  }
+  }*/
 
   // ---- bottom sheet: manual -> Next -> role
   void pickContactsAndSendInvites(BuildContext context) {
@@ -368,8 +439,7 @@ class InviteMemberController extends GetxController {
                                   : value?.isValidEmail(),
                               prefix: Icon(Icons.person_add_alt,
                                   size: 18, color: appColorGreen),
-                              onChangee: (v) => onTextChanged(v,
-                                  setState: setState, i: index),
+                              onChangee: (v) => onTextChanged(v, setState: setState, i: index),
                               onFieldSubmitted: (v) {
                                 _commitInput(index);
                                 FocusScope.of(context).nextFocus();

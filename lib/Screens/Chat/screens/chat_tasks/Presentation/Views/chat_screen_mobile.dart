@@ -120,7 +120,6 @@ class ChatScreenMobile extends GetView<ChatScreenController> {
   // SaveToGalleryController saveGellController =Get.put(SaveToGalleryController());
   @override
   Widget build(BuildContext context) {
-    print("Mobile ----");
     return GetBuilder<ChatScreenController>(builder: (controller) {
       return GestureDetector(
         onTap: () => FocusScope.of(context).unfocus(),

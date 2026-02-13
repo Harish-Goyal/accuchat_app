@@ -335,7 +335,6 @@ class TaskHomeScreen extends GetView<TaskHomeController> {
                         builder: (context, constraints) {
                           double w = constraints.maxWidth;
 
-                          // ---------------- MOBILE ----------------
                           if (w < 500) {
                             return _recentTaskBody(true); // your existing list
                           }
@@ -410,16 +409,17 @@ class TaskHomeScreen extends GetView<TaskHomeController> {
   }
 
   Future<UserDataAPI?> openAllUserDialog() async {
-    final c = Get.put(AllUserController());
+    final c = Get.put(AllUserController(isRecent: 'false'));
     try {
       final user = await Get.dialog<UserDataAPI>(
         Dialog(
+          clipBehavior: Clip.antiAlias,
           insetPadding: const EdgeInsets.all(12),
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(12),
           ),
           child: SizedBox(
-            width: Get.width * 0.5,
+            width:kIsWeb? Get.width * 0.5:Get.width*.9,
             height: Get.height * 0.8,
             child: AllUserScreen(),
           ),

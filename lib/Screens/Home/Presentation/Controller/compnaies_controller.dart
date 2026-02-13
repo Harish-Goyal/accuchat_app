@@ -18,6 +18,8 @@ import '../../../Chat/screens/auth/models/pending_invites_res_model.dart';
 import '../../Models/get_pending_sent_invites_res_model.dart';
 import '../View/buy_company_pack.dart';
 import '../View/buy_users_dialog.dart';
+import '../View/invite_member.dart';
+import 'invite_member_controller.dart';
 
 class CompaniesController extends GetxController {
   @override
@@ -137,7 +139,24 @@ class CompaniesController extends GetxController {
         toast("Please select your company");
       }
     } else if (value == "Invite") {
-      if (!kIsWeb) {
+        if (companyData.companyId == selCompany?.companyId) {
+            await svc.select(companyData);
+            getCompany();
+            update();
+
+            Future.delayed(
+                const Duration(milliseconds: 500),
+                () => (selCompany?.createdBy) == APIs.me?.userId
+                    ? _onInvite(companyData)
+                    : toast("You are not allowed to perform this action!"));
+
+        } else {
+          toast("Please select your company");
+        }
+
+
+
+     /*   if (!kIsWeb) {
         if (companyData.companyId == selCompany?.companyId) {
           if (!kIsWeb) {
             await svc.select(companyData);
@@ -157,7 +176,7 @@ class CompaniesController extends GetxController {
         }
       } else {
         toast("Download mobile apps to Invite your contacts");
-      }
+      }*/
     } else if (value == "Update") {
       if (companyData.companyId == selCompany?.companyId) {
         await svc.select(companyData);
@@ -301,10 +320,45 @@ class CompaniesController extends GetxController {
     }).whenComplete(() {});
   }
 
-  _onInvite(companyData) {
+
+  Future<void> openInviteDialog(CompanyData companyData) async {
+    final c = Get.put(InviteMemberController());
+
+    Get.parameters = {
+      'companyName': companyData.companyName,
+      'companyId': "${companyData.companyId}",
+      'invitedBy':"${companyData.createdBy}",
+    };
+    try {
+       await Get.dialog<UserDataAPI>(
+        Dialog(
+          clipBehavior: Clip.antiAlias,
+          insetPadding: const EdgeInsets.all(12),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(12),
+          ),
+          child: SizedBox(
+            width:kIsWeb? Get.width * 0.5:Get.width*.9,
+            height: Get.height * 0.8,
+            child: const InviteMembersScreen(),
+          ),
+        ),
+        barrierDismissible: true,
+      );
+
+    } finally {
+      // cleanup controller when dialog closes
+      if (Get.isRegistered<InviteMemberController>()) {
+        Get.delete<InviteMemberController>();
+      }
+    }
+  }
+
+  _onInvite(CompanyData companyData) {
     if (kIsWeb) {
+
       Get.toNamed(
-          '${AppRoutes.invite_member}?companyId=${companyData.companyId.toString()}&invitedBy=${companyData.createdBy}&companyName=${companyData.companyName}');
+          '${AppRoutes.invite_member}?companyId=${companyData.companyId}&invitedBy=${companyData.createdBy}&companyName=${companyData.companyName}');
     } else {
       Get.toNamed(AppRoutes.invite_member, arguments: {
         'companyName': companyData.companyName,

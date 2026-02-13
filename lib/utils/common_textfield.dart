@@ -173,16 +173,16 @@ class CustomTextField extends StatelessWidget {
       mainAxisSize: MainAxisSize.min,
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        labletext==""?SizedBox(): Text(
+        labletext==""?const SizedBox(): Text(
           labletext ?? '',
           style:  BalooStyles.balooregularTextStyle(),
         ).paddingOnly(left: 2, bottom: 5),
         Container(
-          // padding: EdgeInsets.symmetric(vertical: 4),
+          padding: const EdgeInsets.symmetric(vertical: 4),
           decoration: BoxDecoration(
               borderRadius: BorderRadius.circular(corRadious??15),
-            boxShadow: [
-              BoxShadow(
+            boxShadow: const[
+               BoxShadow(
                 color: Colors.black12,
                 blurRadius: 15
               )
@@ -214,8 +214,8 @@ class CustomTextField extends StatelessWidget {
                 isDense: true,
                 hintMaxLines: 1,
                 hintText: hintText,
-                // contentPadding: EdgeInsets.only(top: 10),
-                // constraints: BoxConstraints(maxHeight: 50),
+                contentPadding: const EdgeInsets.symmetric(vertical: 14,horizontal: 5),
+                constraints: const BoxConstraints(maxHeight: 48),
                 hintStyle:TextStyle(color: Theme.of(context).disabledColor),
                 helperStyle: const TextStyle(
                   color: Colors.grey,

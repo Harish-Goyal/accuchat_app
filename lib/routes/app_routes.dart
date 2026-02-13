@@ -42,6 +42,7 @@ abstract class AppRoutes {
   static const verify_otp = '/verify_otp';
   static const invite_user_role = '/invite_user_role';
   static const member_sr = '/member_sr';
+  static const manageRoleRoute = '/manage_role';
 }
 
 class RoutesArgument{

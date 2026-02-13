@@ -16,7 +16,7 @@ class AllUserScreenDialog extends GetView<AllUserController> {
 
   List<TaskMember>? users;
 
-  AllUserController controller  = Get.put(AllUserController());
+  AllUserController controller  = Get.put(AllUserController(isRecent: 'false'));
    DateTime _lastCall = DateTime.fromMillisecondsSinceEpoch(0);
 
    bool canFetch() {

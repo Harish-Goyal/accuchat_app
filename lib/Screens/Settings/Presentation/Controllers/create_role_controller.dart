@@ -122,7 +122,4 @@ class CreateRoleController extends GetxController {
     update();
   }
 
-
-
-
 }

@@ -27,6 +27,26 @@ enum ChType {
   direct,
 }
 
+class RecentGuard {
+  static int? lastGroupMessageId;
+  static DateTime? lastGroupTime;
+
+  static void remember(int? id) {
+    lastGroupMessageId = id;
+    lastGroupTime = DateTime.now();
+  }
+
+  static bool isDuplicateOfRecentGroup(int? id) {
+    if (id == null || lastGroupMessageId == null) return false;
+
+    final within2Sec = lastGroupTime != null &&
+        DateTime.now().difference(lastGroupTime!).inSeconds <= 2;
+
+    return within2Sec && id == lastGroupMessageId;
+  }
+}
+
+
 class SocketController extends GetxController with WidgetsBindingObserver {
   late IO.Socket? socket;
   bool initialized = false;
@@ -162,9 +182,6 @@ class SocketController extends GetxController with WidgetsBindingObserver {
         final msgTo = receivedMessageDataModal.toUser?.userId?.toString();
         final _tagid = ChatPresence.activeChatId.value;
         final _tag = "chat_${_tagid ?? 'mobile'}";
-        print("_tag===");
-        print(_tag);
-
         ChatScreenController? chatDetailController;
         if(!kIsWeb || Get.width<600){
           chatDetailController =
@@ -187,10 +204,7 @@ class SocketController extends GetxController with WidgetsBindingObserver {
         final incomingIsGroup = receivedMessageDataModal.isGroupChat == 1;
         final activeCompanyId = APIs.me.userCompany?.companyId;
         final msgCompanyId = receivedMessageDataModal.fromUser?.userCompany?.companyId;
-        print("activeCompanyId");
-        print(activeCompanyId);
-        print(msgCompanyId);
-        //
+
         if (activeCompanyId == null || msgCompanyId == null) return;
         if (activeCompanyId != msgCompanyId) return;
 
@@ -267,15 +281,25 @@ class SocketController extends GetxController with WidgetsBindingObserver {
         final fromUcId =
             receivedMessageDataModal.fromUser?.userCompany?.userCompanyId;
 
-        final selectedUcId =
-            chatDetailController?.user?.userCompany?.userCompanyId;
+        final toUcId =
+            receivedMessageDataModal.toUser?.userCompany?.userCompanyId;
 
+        final fromIsGroupUc = receivedMessageDataModal.fromUser?.userCompany?.isGroup == 1;
+        final toIsGroupUc   = receivedMessageDataModal.toUser?.userCompany?.isGroup == 1;
+
+// ✅ For home list + active chat matching, decide the “thread UC” correctly
+        final int? threadUcId = incomingIsGroup
+            ? (toIsGroupUc ? toUcId : (fromIsGroupUc ? fromUcId : toUcId)) // fallback to toUcId
+            : fromUcId;
+
+// ✅ Now find/update the correct thread only
         final index = homeController.filteredList.indexWhere(
-          (e) => e.userCompany?.userCompanyId == fromUcId,
+              (e) => e.userCompany?.userCompanyId == threadUcId,
         );
 
-        final isThisChatOpen = ChatPresence.activeChatId.value ==
-            receivedMessageDataModal.fromUser?.userCompany?.userCompanyId;
+// ✅ open chat check must also use threadUcId (not fromUcId)
+        final isThisChatOpen = ChatPresence.activeChatId.value == threadUcId;
+
 
         if (isThisChatOpen &&
             receivedMessageDataModal.toUser?.userId == APIs.me.userId) {
@@ -392,7 +416,6 @@ class SocketController extends GetxController with WidgetsBindingObserver {
 
     socket?.off('company_joined');
     socket?.on('company_joined', (messages) {
-      debugPrint("Listing task......67");
       debugPrint("company_joined ${messages}");
     });
 
@@ -590,7 +613,6 @@ class SocketController extends GetxController with WidgetsBindingObserver {
       try {
         final updated = UserDataAPI.fromJson(messages);
 
-        // ✅ 1) Company mismatch => DO NOTHING
         final activeCompanyId = APIs.me.userCompany?.companyId;
         final msgCompanyId = updated.userCompany?.companyId;
 
@@ -600,17 +622,37 @@ class SocketController extends GetxController with WidgetsBindingObserver {
         if (!Get.isRegistered<ChatHomeController>()) return;
         final chatController = Get.find<ChatHomeController>();
 
-        final selectedUserId = chatController.selectedChat.value?.userId;
 
         final list = chatController.filteredList;
+
+        final isGroupRow = updated.userCompany?.isGroup == 1;
+
+        final msgId = updated.lastMessage?.id;
+
+        if (isGroupRow) {
+          // Remember that a group update just came
+          RecentGuard.remember(msgId);
+        } else {
+          // If this user-row update is same as a recent group message → ignore
+          if (RecentGuard.isDuplicateOfRecentGroup(msgId)) {
+            return;
+          }
+        }
+
+
 
         final key = updated.userCompany?.userCompanyId;
         final index =
             list.indexWhere((e) => e.userCompany?.userCompanyId == key);
 
         // ✅ 2) If chat is currently open for same user => reset pendingCount
+        final selectedUcId =
+            chatController.selectedChat.value?.userCompany?.userCompanyId;
+
         final isCurrentlyOpen =
-            (selectedUserId != null && updated.userId == selectedUserId);
+        (selectedUcId != null &&
+            selectedUcId == updated.userCompany?.userCompanyId);
+
 
         if (index != -1) {
           final existing = list[index];
@@ -1200,7 +1242,6 @@ class SocketController extends GetxController with WidgetsBindingObserver {
       }else{
         chatScreenController = Get.find<ChatScreenController>(tag: _tag);
       }
-      Get.find<ChatScreenController>(tag: _tag);
       final int fromUcId = data['from_uc_id'];
       final int toUcId = data['to_uc_id'];
       final int myUcId = APIs.me.userCompany?.userCompanyId ?? 0;
@@ -1226,6 +1267,7 @@ class SocketController extends GetxController with WidgetsBindingObserver {
       }
 
       homeController.filteredList.refresh();
+      homeController.update();
       chatScreenController.update();
     });
   }

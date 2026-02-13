@@ -121,9 +121,11 @@ class _ChatUserCardState extends State<ChatUserCard>
                   final homec = Get.find<ChatHomeController>();
                   ChatScreenController? chatc;
                   if (Get.isRegistered<ChatScreenController>(tag: _tag)) {
+                    print("isRegistered");
                     isRegistered =true;
                     chatc = Get.find<ChatScreenController>(tag: _tag);
                   } else {
+                    print("unn isRegistered");
                     final _tag = "chat_${widget.user?.userCompany?.userCompanyId ?? 'mobile'}";
                     chatc = Get.put(ChatScreenController(user: widget.user),
                         tag: _tag);
@@ -134,9 +136,10 @@ class _ChatUserCardState extends State<ChatUserCard>
                   chatc?.showPostShimmer = true;
                   homec.selectedChat.value = widget.user;
                   chatc?.user = homec.selectedChat.value;
-                  // chatc?.openConversation(homec.selectedChat.value);
-                  !isRegistered?chatc?.openConversation(homec.selectedChat.value):null;
+                  chatc?.openConversation(homec.selectedChat.value);
+                  // !isRegistered?chatc?.openConversation(homec.selectedChat.value):null;
                   if (homec.selectedChat.value?.pendingCount != 0) {
+
                     chatc?.markAllVisibleAsReadOnOpen(
                         APIs.me.userCompany?.userCompanyId,
                         chatc.user?.userCompany?.userCompanyId,

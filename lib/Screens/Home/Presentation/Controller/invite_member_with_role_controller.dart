@@ -1,4 +1,5 @@
 import 'package:flutter/cupertino.dart';
+import 'package:flutter/foundation.dart';
 import 'package:get/get.dart';
 
 import '../../../../Services/APIs/post/post_api_service_impl.dart';
@@ -40,17 +41,52 @@ class InviteUserRoleController extends GetxController {
 
   @override
   void onInit() {
-    initData();
-    hitAPIToGetAllRolesAPI();
+    if(!kIsWeb){
+      initData();
+
+    }
+
     super.onInit();
   }
 
   final allRoles = ['Admin', 'Member', 'Viewer'];
+  void initFromArgs({
+    required List<InviteUser> usersArg,
+    required dynamic companyIdArg,
+    required List<String> contactListArg,
+  }) {
+    _applyArgs(
+      usersArg: usersArg,
+      companyIdArg: companyIdArg,
+      contactListArg: contactListArg,
+    );
+  }
 
+  void _applyArgs({
+    required List<InviteUser> usersArg,
+    required dynamic companyIdArg,
+    required List<String> contactListArg,
+  }) {
+    users = usersArg;
+    companyId = companyIdArg;
+    phoneList = contactListArg;
+
+    // keep your existing init logic unchanged
+    selectedInvitesContacts.clear();
+    selectedInvitesContacts.addAll([ReqInviteModel()]);
+
+    ensureInviteFormKeysLength(users.length);
+
+    nameControllers = List.generate(
+      users.length,
+          (i) => TextEditingController(text: users[i].name ?? ''),
+    );
+    hitAPIToGetAllRolesAPI();
+    update(); // if using GetBuilder
+  }
 
 
   void toggleRole(InviteUser user, bool? val) {
-
     user.isSelected = val;
     update();
   }
@@ -81,7 +117,7 @@ class InviteUserRoleController extends GetxController {
       ensureInviteFormKeysLength(users.length);
       nameControllers= List.generate(users.length, (i)=>TextEditingController(text:users[i].name??'' ));
     }
-
+    hitAPIToGetAllRolesAPI();
   }
 
   // in your <some>Controller (the same 'controller' you use in the builder)
@@ -107,7 +143,7 @@ class InviteUserRoleController extends GetxController {
   hitAPIToSendInvites() async {
     customLoader.show();
     Map<String, dynamic> postData = {
-      "companyId": companyId,
+      "companyId": int.parse(companyId),
       "companyUserInvites": selectedInvitesContacts.map((v)=>v.toJson()).toList()
     };
     Get.find<PostApiServiceImpl>()
@@ -115,13 +151,9 @@ class InviteUserRoleController extends GetxController {
         .then((value) async {
       toast(value.message);
       Get.offAllNamed(AppRoutes.home);
-      customLoader.hide();
       Get.back();
       update();
-
-
-
-
+      customLoader.hide();
     }).onError((error, stackTrace) {
       update();
     });

@@ -5,13 +5,9 @@ import 'package:AccuChat/Screens/Home/Presentation/Controller/company_service.da
 import 'package:AccuChat/Screens/Home/Presentation/Controller/socket_controller.dart';
 import 'package:AccuChat/Screens/Settings/Model/get_nav_permission_res_model.dart';
 import 'package:AccuChat/routes/app_routes.dart';
+import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:get/get.dart';
-import 'package:hive/hive.dart';
-
-import '../../Screens/Authentication/AuthResponseModel/loginResModel.dart';
-import '../../Screens/Chat/api/apis.dart';
 import '../../Screens/Chat/api/session_alive.dart';
-import '../../Screens/Chat/models/get_company_res_model.dart';
 import '../../Screens/Chat/screens/chat_tasks/Presentation/Controllers/chat_home_controller.dart';
 import '../../Screens/Chat/screens/chat_tasks/Presentation/Controllers/chat_screen_controller.dart';
 import '../../Screens/Settings/Model/get_company_roles_res_moel.dart';
@@ -19,7 +15,6 @@ import '../hive_boot.dart';
 import '../../main.dart';
 import '../../utils/shares_pref_web.dart';
 import '../storage_service.dart';
-
 const String isFirstTime = 'isFirstTime';
 const String isCompanyCreated = 'isCompanyCreated';
 const String isFirstTimeChatKey = 'isFirstTimeChatKey';
@@ -102,13 +97,38 @@ RolesData? getRolesData() {
 
 bool _isLoggingOut = false;
 
+Future<void> _disablePushOnLogout() async {
+  final fcm = FirebaseMessaging.instance;
+
+  try {
+    // Example topics - replace with yours
+    // await fcm.unsubscribeFromTopic('all');
+    // await fcm.unsubscribeFromTopic('company_${CompanyService.to.companyId}');
+    // await fcm.unsubscribeFromTopic('user_${Session.to.userId}');
+  } catch (_) {}
+
+  // 2) Remove token from backend
+  try {
+    final token = await fcm.getToken();
+    if (token != null && token.isNotEmpty) {
+      // call your API to remove this token for the user
+      // await ApiService.removeFcmToken(token);
+    }
+  } catch (_) {}
+
+  // 3) Delete token locally (optional but effective)
+  try {
+    await fcm.deleteToken();
+  } catch (_) {}
+}
+
+
 Future<void> logoutLocal() async {
   if (_isLoggingOut) return;
   _isLoggingOut = true;
-
   customLoader.show();
-
   try {
+    _disablePushOnLogout();
     try {
       if (Get.isRegistered<SocketController>()) {
         final s = Get.find<SocketController>();

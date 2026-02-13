@@ -59,8 +59,6 @@ class AccuChatDashboard extends StatelessWidget {
   }
 
   Widget buildSideNav(DashboardController controller) {
-
-
     return Column(
       children: [
         Expanded(
@@ -80,11 +78,7 @@ class AccuChatDashboard extends StatelessWidget {
                   }
                   // Get.toNamed(AppRoutes.home);
                   isTaskMode = index == 1;
-                  print("index===");
-                  print(index);
                   if (index == 0) {
-                    print(index);
-
                     ChatHomeController? homec;
                     bool isOpen = false;
                     if (Get.isRegistered<ChatHomeController>()) {
@@ -96,7 +90,6 @@ class AccuChatDashboard extends StatelessWidget {
                     final _tagid = ChatPresence.activeChatId.value;
                     final _tag = "chat_${_tagid ?? 'mobile'}";
                   if (Get.isRegistered<ChatScreenController>(tag: _tag)) {
-                    print("registered===");
                     if (homec!.filteredList.isNotEmpty) {
                       final user = homec.filteredList[0];
 
@@ -117,7 +110,6 @@ class AccuChatDashboard extends StatelessWidget {
                       }
                     }
                   } else {
-                    print("un =registered");
                       if (homec!.filteredList.isNotEmpty) {
                         final user = homec.filteredList[0];
                         final userCid =user.userCompany?.userCompanyId;

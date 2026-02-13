@@ -343,7 +343,7 @@ class ChatsHomeScreen extends GetView<ChatHomeController> {
 
 
   Future<UserDataAPI?> openAllUserDialog() async {
-    final c = Get.put(AllUserController());
+    final c = Get.put(AllUserController(isRecent: 'false'));
 
     try {
       final user = await Get.dialog<UserDataAPI>(
@@ -354,7 +354,7 @@ class ChatsHomeScreen extends GetView<ChatHomeController> {
             borderRadius: BorderRadius.circular(12),
           ),
           child: SizedBox(
-            width: Get.width * 0.5,
+            width:kIsWeb? Get.width * 0.5:Get.width*.9,
             height: Get.height * 0.8,
             child:  AllUserScreen(),
           ),
@@ -377,7 +377,6 @@ class ChatsHomeScreen extends GetView<ChatHomeController> {
         builder: (context, constraints) {
           double w = constraints.maxWidth;
 
-          // ---------------- MOBILE ----------------
           if (w < 500) {
             return _recentChatsList(controller, true, w); // your existing list
           }

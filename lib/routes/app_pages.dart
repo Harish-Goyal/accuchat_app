@@ -106,7 +106,7 @@ class AppPages {
     ),
     GetPage(
       name: AppRoutes.invite_user_role,
-      page: () => InviteUserRoleScreen(),
+      page: () => const InviteUserRoleScreen(),
       bindings: [InviteUserRoleBinding()],
     ),
     GetPage(

@@ -38,7 +38,7 @@ class CompanyMembers extends GetView<CompanyMemberController> {
   Widget build(BuildContext context) {
     final size = MediaQuery.of(context).size;
     final bool isWide = size.width >= 900;
-    const double maxContentWidth = 900;
+    const double maxContentWidth = 650;
 
     return Scaffold(
       appBar: _buildAppBar(),

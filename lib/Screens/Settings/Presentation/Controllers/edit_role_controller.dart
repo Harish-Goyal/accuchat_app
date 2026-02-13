@@ -124,9 +124,13 @@ class EditRoleController extends GetxController {
   }
 
 
-  void removePermission(String perm) {
-    selectedPermissions.remove(perm);
-    update();
+  void removePermission(String perm,id) {
+
+      selectedPermissionsIds
+          .remove(id);
+      selectedPermissions
+          .remove(perm);
+      update();
   }
 
 

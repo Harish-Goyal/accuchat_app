@@ -192,12 +192,9 @@ class _ChatScreenState extends State<ChatScreen> {
     } catch (_) {}
     final tag ="chat_${ChatPresence.activeChatId.value ?? 'mobile'}";
 
-    print(tag);
     if (Get.isRegistered<ChatScreenController>(tag: _tag)) {
       Get.delete<ChatScreenController>(tag:_tag,force: true);
     }
-    print("Delete Called==========");
-    print(_tag);
     super.dispose();
   }
 

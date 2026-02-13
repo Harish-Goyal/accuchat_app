@@ -36,7 +36,7 @@ class GrBrMemberBinding extends Bindings {
 class AllUserScreenBinding extends Bindings {
   @override
   void dependencies() {
-    Get.put<AllUserController>(AllUserController());
+    Get.put<AllUserController>(AllUserController(isRecent: 'false'));
   }
 }
 

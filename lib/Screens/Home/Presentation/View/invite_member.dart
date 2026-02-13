@@ -1,4 +1,5 @@
 import 'package:AccuChat/Constants/colors.dart';
+import 'package:AccuChat/Screens/Chat/helper/dialogs.dart';
 import 'package:AccuChat/Screens/Home/Presentation/Controller/invite_member_controller.dart';
 import 'package:AccuChat/routes/app_routes.dart';
 import 'package:AccuChat/utils/gradient_button.dart';
@@ -135,7 +136,7 @@ class InviteMembersScreen extends GetView<InviteMemberController> {
 
                                       return CheckboxListTile(
                                         title: Text(
-                                          contact.displayName ?? 'No Name',
+                                          contact.displayName,
                                           style: BalooStyles.baloosemiBoldTextStyle(
                                             color: isDisabled ? Colors.grey.shade300 : null,
                                           ),
@@ -201,9 +202,11 @@ class InviteMembersScreen extends GetView<InviteMemberController> {
                                           ? const LinearGradient(colors: [Colors.grey, Colors.grey])
                                           : buttonGradient,
                                       onTap: c.selectedUser.isEmpty
-                                          ? () {}
+                                          ? () {
+                                        Dialogs.showSnackbar(context,"User is not selected!");
+                                      }
                                           : () async {
-                                        await c.goToRoleScreen(); // returns invited list -> disable immediately
+                                        await c.goToRoleScreen();
                                       },
                                     ),
                                   ),

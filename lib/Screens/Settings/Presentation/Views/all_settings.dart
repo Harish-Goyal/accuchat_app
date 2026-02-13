@@ -20,14 +20,15 @@ class AllSettingsScreen extends GetView<AllSettingsController> {
   @override
   Widget build(BuildContext context) {
     final size = MediaQuery.of(context).size;
-    final bool isWide = size.width >= 900;
-    const double maxContentWidth = 900;
+    final bool isWide = size.width >= 800;
+    const double maxContentWidth = 650;
 
     return GetBuilder<AllSettingsController>(
       init: AllSettingsController(),
       builder: (controller) {
         return Scaffold(
-          appBar: AppBar(      scrolledUnderElevation: 0,
+          appBar: AppBar(
+            scrolledUnderElevation: 0,
             surfaceTintColor: Colors.white,
             title:  Text('Settings',style: BalooStyles.balooboldTitleTextStyle(),),
             toolbarHeight: isWide ? 64 : kToolbarHeight,
@@ -152,11 +153,11 @@ class AllSettingsScreen extends GetView<AllSettingsController> {
             ));
           },
         ),
-        /* _buildTile(
+       _buildTile(
           icon: Icons.people_outline,
           title: 'Manage Roles',
-          onTap: () => Get.toNamed(AppRoutes.roleListRoute),
-        ),*/
+          onTap: () => Get.toNamed(AppRoutes.roles),
+        ),
         _buildTile(
             icon: Icons.support_agent,
             title: 'Support',

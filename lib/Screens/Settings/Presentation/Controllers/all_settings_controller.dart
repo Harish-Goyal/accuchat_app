@@ -132,7 +132,6 @@ class AllSettingsController extends GetxController {
     final opened = await openAppSettings();
     if (!opened) {
       // Could not open settings; you might show an error dialog here.
-      print('Error: Unable to open app settings');
     }
   }
 

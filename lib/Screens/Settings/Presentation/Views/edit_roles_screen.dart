@@ -15,14 +15,18 @@ class EditRoleScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final size = MediaQuery.of(context).size;
-    final bool isWide = size.width >= 900;
-    const double maxContentWidth = 900;
-
+    final bool isWide = size.width >= 800;
+    double maxContentWidth = isWide ? 650.0 : double.infinity;
     return GetBuilder<EditRoleController>(
       init: EditRoleController(),
       builder: (ctrl) {
+        final Map<String, List<NavigationItem>> grouped = {};
+        for (var perm in ctrl.navPermissionData) {
+          grouped.putIfAbsent(perm.navigationPlace!, () => []).add(perm);
+        }
         return Scaffold(
-          appBar: AppBar(      scrolledUnderElevation: 0,
+          appBar: AppBar(
+            scrolledUnderElevation: 0,
             surfaceTintColor: Colors.white,
             title: Text('Edit Role', style: BalooStyles.baloosemiBoldTextStyle()),
             toolbarHeight: isWide ? 64 : kToolbarHeight,
@@ -61,12 +65,7 @@ class EditRoleScreen extends StatelessWidget {
                                     context: context,
                                     builder: (_) => StatefulBuilder(
                                       builder: (ctx, setState) {
-                                        final Map<String, List<NavigationItem>> grouped = {};
-                                        for (var perm in ctrl.navPermissionData) {
-                                          grouped
-                                              .putIfAbsent(perm.navigationPlace!, () => [])
-                                              .add(perm);
-                                        }
+
                                         final dialogMaxWidth = isWide ? 700.0 : double.maxFinite;
                                         final dialogMaxHeight = isWide ? (size.height * 0.75) : (size.height * 0.8);
                                         return AlertDialog(
@@ -80,116 +79,113 @@ class EditRoleScreen extends StatelessWidget {
                                           content: SizedBox(
                                             width: dialogMaxWidth,
                                             height: dialogMaxHeight,
-                                            child: Scrollbar(
-                                              thumbVisibility: kIsWeb,
-                                              child: ListView(
-                                                shrinkWrap: true,
-                                                padding: EdgeInsets.zero,
-                                                children: grouped.entries.map((entry) {
-                                                  final place = entry.key;
-                                                  final items = entry.value;
-                                                  final allChecked = items.every((p) =>
-                                                      ctrl.selectedPermissionsIds.contains(p.navigationItemId));
-                                                  return Container(
-                                                    margin: const EdgeInsets.symmetric(vertical: 6,horizontal: 5),
-                                                    decoration: BoxDecoration(
-                                                      color: Colors.white,
-                                                      borderRadius: BorderRadius.circular(12),
-                                                      boxShadow: const [
-                                                        BoxShadow(
-                                                          color: Colors.black12,
-                                                          blurRadius: 6,
-                                                          offset: Offset(0, 3),
-                                                        ),
-                                                      ],
-                                                    ),
-                                                    child: Theme(
-                                                      data: Theme.of(context)
-                                                          .copyWith(dividerColor: Colors.transparent),
-                                                      child: ExpansionTile(
-                                                        tilePadding: const EdgeInsets.symmetric(
-                                                            horizontal: 16, vertical: 8),
-                                                        childrenPadding:
-                                                        const EdgeInsets.fromLTRB(16, 0, 16, 12),
-                                                        leading: Checkbox(
-                                                          activeColor: appColorYellow,
-                                                          value: allChecked,
-                                                          onChanged: (checked) {
-                                                            if (checked == true) {
-                                                              for (var p in items) {
-                                                                if (!ctrl.selectedPermissionsIds
-                                                                    .contains(p.navigationItemId)) {
-                                                                  ctrl.selectedPermissionsIds!
-                                                                      .add(p.navigationItemId!);
-                                                                  ctrl.selectedPermissions
-                                                                      .add(p.navigationItem!);
-                                                                }
-                                                              }
-                                                            } else {
-                                                              for (var p in items) {
-                                                                ctrl.selectedPermissionsIds!
-                                                                    .remove(p.navigationItemId);
+                                            child: ListView(
+                                              shrinkWrap: true,
+                                              padding: EdgeInsets.zero,
+                                              children: grouped.entries.map((entry) {
+                                                final place = entry.key;
+                                                final items = entry.value;
+                                                final allChecked = items.every((p) =>
+                                                    ctrl.selectedPermissionsIds.contains(p.navigationItemId));
+                                                return Container(
+                                                  margin: const EdgeInsets.symmetric(vertical: 6,horizontal: 5),
+                                                  decoration: BoxDecoration(
+                                                    color: Colors.white,
+                                                    borderRadius: BorderRadius.circular(12),
+                                                    boxShadow: const [
+                                                      BoxShadow(
+                                                        color: Colors.black12,
+                                                        blurRadius: 6,
+                                                        offset: Offset(0, 3),
+                                                      ),
+                                                    ],
+                                                  ),
+                                                  child: Theme(
+                                                    data: Theme.of(context)
+                                                        .copyWith(dividerColor: Colors.transparent),
+                                                    child: ExpansionTile(
+                                                      tilePadding: const EdgeInsets.symmetric(
+                                                          horizontal: 16, vertical: 8),
+                                                      childrenPadding:
+                                                      const EdgeInsets.fromLTRB(16, 0, 16, 12),
+                                                      leading: Checkbox(
+                                                        activeColor: appColorYellow,
+                                                        value: allChecked,
+                                                        onChanged: (checked) {
+                                                          if (checked == true) {
+                                                            for (var p in items) {
+                                                              if (!ctrl.selectedPermissionsIds
+                                                                  .contains(p.navigationItemId)) {
+                                                                ctrl.selectedPermissionsIds
+                                                                    .add(p.navigationItemId!);
                                                                 ctrl.selectedPermissions
-                                                                    .remove(p.navigationItem);
+                                                                    .add(p.navigationItem!);
                                                               }
+                                                            }
+                                                          } else {
+                                                            for (var p in items) {
+                                                              ctrl.selectedPermissionsIds
+                                                                  .remove(p.navigationItemId);
+                                                              ctrl.selectedPermissions
+                                                                  .remove(p.navigationItem);
+                                                            }
+                                                          }
+                                                          ctrl.update();
+                                                          setState(() {});
+                                                        },
+                                                      ),
+                                                      title: Row(
+                                                        children: [
+                                                          Expanded(
+                                                            child: Text(
+                                                              place.toUpperCase(),
+                                                              style: BalooStyles.baloonormalTextStyle()
+                                                                  ,
+                                                              maxLines: 1,
+                                                              overflow: TextOverflow.ellipsis,
+                                                            ),
+                                                          ),
+                                                        ],
+                                                      ),
+
+                                                      children: items.map((perm) {
+                                                        final checked = ctrl.selectedPermissionsIds
+                                                            .contains(perm.navigationItemId);
+                                                        return CheckboxListTile(
+                                                          activeColor: appColorYellow,
+                                                          value: checked,
+                                                          title: Text(
+                                                            perm.navigationItem ?? '',
+                                                            style: BalooStyles.balooregularTextStyle(),
+                                                            maxLines: 1,
+                                                            overflow: TextOverflow.ellipsis,
+                                                          ),
+                                                          controlAffinity:
+                                                          ListTileControlAffinity.leading,
+                                                          visualDensity: kIsWeb
+                                                              ? const VisualDensity(horizontal: -2, vertical: -2)
+                                                              : VisualDensity.standard,
+                                                          onChanged: (v) {
+                                                            if (v == true) {
+                                                              ctrl.selectedPermissionsIds
+                                                                  .add(perm.navigationItemId!);
+                                                              ctrl.selectedPermissions
+                                                                  .add(perm.navigationItem!);
+                                                            } else {
+                                                              ctrl.selectedPermissionsIds
+                                                                  .remove(perm.navigationItemId);
+                                                              ctrl.selectedPermissions
+                                                                  .remove(perm.navigationItem);
                                                             }
                                                             ctrl.update();
                                                             setState(() {});
                                                           },
-                                                        ),
-                                                        title: Row(
-                                                          children: [
-                                                            Expanded(
-                                                              child: Text(
-                                                                place.toUpperCase(),
-                                                                style: BalooStyles.baloonormalTextStyle()
-                                                                    .copyWith(fontWeight: FontWeight.w600),
-                                                                maxLines: 1,
-                                                                overflow: TextOverflow.ellipsis,
-                                                              ),
-                                                            ),
-                                                          ],
-                                                        ),
-
-                                                        children: items.map((perm) {
-                                                          final checked = ctrl.selectedPermissionsIds
-                                                              .contains(perm.navigationItemId);
-                                                          return CheckboxListTile(
-                                                            activeColor: appColorYellow,
-                                                            value: checked,
-                                                            title: Text(
-                                                              perm.navigationItem ?? '',
-                                                              style: BalooStyles.balooregularTextStyle(),
-                                                              maxLines: 1,
-                                                              overflow: TextOverflow.ellipsis,
-                                                            ),
-                                                            controlAffinity:
-                                                            ListTileControlAffinity.leading,
-                                                            visualDensity: kIsWeb
-                                                                ? const VisualDensity(horizontal: -2, vertical: -2)
-                                                                : VisualDensity.standard,
-                                                            onChanged: (v) {
-                                                              if (v == true) {
-                                                                ctrl.selectedPermissionsIds!
-                                                                    .add(perm.navigationItemId!);
-                                                                ctrl.selectedPermissions
-                                                                    .add(perm.navigationItem!);
-                                                              } else {
-                                                                ctrl.selectedPermissionsIds!
-                                                                    .remove(perm.navigationItemId);
-                                                                ctrl.selectedPermissions
-                                                                    .remove(perm.navigationItem);
-                                                              }
-                                                              ctrl.update();
-                                                              setState(() {});
-                                                            },
-                                                          );
-                                                        }).toList(),
-                                                      ),
+                                                        );
+                                                      }).toList(),
                                                     ),
-                                                  );
-                                                }).toList(),
-                                              ),
+                                                  ),
+                                                );
+                                              }).toList(),
                                             ),
                                           ),
                                           actionsPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
@@ -200,44 +196,7 @@ class EditRoleScreen extends StatelessWidget {
                                             ),
                                           ],
                                         );
-                                        /*  return AlertDialog(
-                                                backgroundColor: Colors.white,
-                                                title: const Text('Select Permissions'),
-                                                content: SizedBox(
-                                                  width: double.maxFinite,
-                                                  child:ctrl.isLoadingPer?const IndicatorLoading(): ListView(
-                                                    shrinkWrap: true,
-                                                    children: ctrl.navPermissionData.map((perm) {
-                                                      return CheckboxListTile(
-                                                        activeColor: appColorYellow,
-                                                        // value: ctrl.selectedPermissions.contains(perm),
-                                                        value: ctrl.selectedIds?.contains(perm.navigationItemId),
-                                                        title: Text(perm.navigationItem??'', style: BalooStyles.balooregularTextStyle()),
-                                                        onChanged: (v) {
-                                                          ctrl.togglePermission(perm.navigationItem??'');
-                                                          ctrl.selectIds(perm.navigationItemId??'');
-                                                          setState(() {});
-                                                          if(v==true) {
-                                                            ctrl.selectedIds?.add(
-                                                                perm.navigationItemId ?? 0);
-                                                            ctrl.permissions.add(perm);
 
-                                                          }else {
-                                                            ctrl.selectedIds?.remove(perm.navigationItemId ?? 0);
-                                                            ctrl.permissions.removeWhere((p) => p.navigationItemId == perm.navigationItemId);
-                                                          }
-                                                        },
-                                                      );
-                                                    }).toList(),
-                                                  ),
-                                                ),
-                                                actions: [
-                                                  TextButton(
-                                                    onPressed: () => Get.back(),
-                                                    child: const Text('Done'),
-                                                  ),
-                                                ],
-                                              );*/
                                       },
                                     ),
                                   );
@@ -299,18 +258,27 @@ class EditRoleScreen extends StatelessWidget {
                                         );
                                       }).toList(),
 */
-                              /*   Wrap(
-                                      spacing: 8,
-                                      runSpacing: 8,
-                                      children: ctrl.selectedPermissions.map((perm) {
-                                        return Chip(
-                                          backgroundColor: Colors.white,
-                                          deleteIconColor: appColorYellow,
-                                          label: Text(perm, style: BalooStyles.balooregularTextStyle()),
-                                          onDeleted: () => ctrl.removePermission(perm),
-                                        );
-                                      }).toList(),
-                                    ),*/
+                              Wrap(
+                                spacing: 8,
+                                runSpacing: 8,
+                                children: ctrl.selectedPermissions.map((name) {
+                                  final perm = ctrl.navPermissionData.firstWhere(
+                                        (p) => p.navigationItem == name,
+                                    // fallback in case not found
+                                    orElse: () => NavigationItem(),
+                                  );
+
+                                  return Chip(
+                                    backgroundColor: Colors.white,
+                                    deleteIconColor: appColorYellow,
+                                    label: Text(name, style: BalooStyles.balooregularTextStyle()),
+                                    onDeleted: () {
+                                      ctrl.removePermission(name, perm?.navigationItemId);
+                                    },
+                                  );
+                                }).toList(),
+                              )
+
                             ],
                           ),
                         ),
@@ -328,8 +296,6 @@ class EditRoleScreen extends StatelessWidget {
     );
   }
 }
-
-
 
 
 

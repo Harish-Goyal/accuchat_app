@@ -14,7 +14,7 @@ import '../../../../models/get_company_res_model.dart';
 import '../../../auth/models/get_uesr_Res_model.dart';
 
 class AllUserController extends GetxController{
-  AllUserController();
+  AllUserController({required this.isRecent});
   String? isRecent ='true';
 
   getArguments(){
