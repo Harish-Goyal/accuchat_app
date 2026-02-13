@@ -143,7 +143,7 @@ class InviteUserRoleController extends GetxController {
   hitAPIToSendInvites() async {
     customLoader.show();
     Map<String, dynamic> postData = {
-      "companyId": int.parse(companyId),
+      "companyId": int.parse(companyId.toString()),
       "companyUserInvites": selectedInvitesContacts.map((v)=>v.toJson()).toList()
     };
     Get.find<PostApiServiceImpl>()

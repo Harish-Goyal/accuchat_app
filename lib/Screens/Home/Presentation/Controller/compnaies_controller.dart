@@ -15,6 +15,7 @@ import '../../../../utils/text_style.dart';
 import '../../../Chat/api/apis.dart';
 import '../../../Chat/models/get_company_res_model.dart';
 import '../../../Chat/screens/auth/models/pending_invites_res_model.dart';
+import '../../Bindings/home_bindings.dart';
 import '../../Models/get_pending_sent_invites_res_model.dart';
 import '../View/buy_company_pack.dart';
 import '../View/buy_users_dialog.dart';
@@ -322,43 +323,44 @@ class CompaniesController extends GetxController {
 
 
   Future<void> openInviteDialog(CompanyData companyData) async {
-    final c = Get.put(InviteMemberController());
+    // ✅ run bindings FIRST (creates controller etc.)
+    final c = Get.isRegistered<InviteMemberController>()
+        ? Get.find<InviteMemberController>()
+        : Get.put(InviteMemberController());
 
-    Get.parameters = {
-      'companyName': companyData.companyName,
-      'companyId': "${companyData.companyId}",
-      'invitedBy':"${companyData.createdBy}",
-    };
+
+    c.companyId = companyData.companyId;
+    c.companyName = companyData.companyName;
+    c.invitedBy = companyData.createdBy;
+
+    c.initFromDialog();
     try {
-       await Get.dialog<UserDataAPI>(
+      await Get.dialog(
         Dialog(
           clipBehavior: Clip.antiAlias,
           insetPadding: const EdgeInsets.all(12),
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(12),
-          ),
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
           child: SizedBox(
-            width:kIsWeb? Get.width * 0.5:Get.width*.9,
-            height: Get.height * 0.8,
+            width: Get.width * 0.3,
+            height: Get.height * 0.4,
             child: const InviteMembersScreen(),
           ),
         ),
         barrierDismissible: true,
       );
-
     } finally {
-      // cleanup controller when dialog closes
       if (Get.isRegistered<InviteMemberController>()) {
-        Get.delete<InviteMemberController>();
+        Get.delete<InviteMemberController>(force: true);
       }
     }
   }
 
+
   _onInvite(CompanyData companyData) {
     if (kIsWeb) {
-
-      Get.toNamed(
-          '${AppRoutes.invite_member}?companyId=${companyData.companyId}&invitedBy=${companyData.createdBy}&companyName=${companyData.companyName}');
+          openInviteDialog(companyData);
+      // Get.toNamed(
+      //     '${AppRoutes.invite_member}?companyId=${companyData.companyId}&invitedBy=${companyData.createdBy}&companyName=${companyData.companyName}');
     } else {
       Get.toNamed(AppRoutes.invite_member, arguments: {
         'companyName': companyData.companyName,

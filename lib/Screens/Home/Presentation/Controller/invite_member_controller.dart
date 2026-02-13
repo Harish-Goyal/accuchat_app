@@ -65,12 +65,18 @@ class InviteMemberController extends GetxController {
   @override
   void onInit() {
     getArguments();
-    _init();
+
     super.onInit();
   }
 
+  void initFromDialog() {
+    // companyId already set
+    if (companyId == null) return;
+    _init();
+  }
+
   _init(){
-    Future.delayed(Duration(milliseconds: 500),(){
+    Future.delayed(const Duration(milliseconds: 500),(){
       hitAPIToGetAllMember();
       initController();
 
@@ -85,16 +91,18 @@ class InviteMemberController extends GetxController {
 
   void getArguments() {
     if (kIsWeb) {
-      if(Get.parameters!=null) {
-        companyId = Get.parameters['companyId'];
-        invitedBy = Get.parameters['invitedBy'];
-        companyName = Get.parameters['companyName'];
-      }
+      // if(Get.parameters!=null) {
+      //   companyId = Get.parameters['companyId'];
+      //   invitedBy = Get.parameters['invitedBy'];
+      //   companyName = Get.parameters['companyName'];
+      //   _init();
+      // }
     } else {
       if (Get.arguments != null) {
         companyName = Get.arguments['companyName'];
         invitedBy = Get.arguments['invitedBy'];
         companyId = Get.arguments['companyId'];
+        _init();
       }
     }
   }
@@ -104,8 +112,9 @@ class InviteMemberController extends GetxController {
   hitAPIToGetAllMember() async {
     isLoadingMember = true;
     update();
+    final int cId = int.parse(companyId.toString());
     Get.find<PostApiServiceImpl>()
-        .getAllMembersApiCall(comid: companyId)
+        .getAllMembersApiCall(comid:cId)
         .then((value) async {
       allInvitedAndJoinedMemberList = value.data ?? [];
       isLoadingMember = false;
@@ -327,10 +336,15 @@ class InviteMemberController extends GetxController {
       );
 
       final result = await Get.dialog(
-        const Dialog(
-          child: SizedBox(
+         Dialog(
+          clipBehavior: Clip.antiAlias,
+          insetPadding: const EdgeInsets.all(12),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(12),
+          ),
+          child: const SizedBox(
             width: 520,
-            child: InviteUserRoleScreen(), // same screen widget
+            child: InviteUserRoleScreen(),
           ),
         ),
         barrierDismissible: false,
