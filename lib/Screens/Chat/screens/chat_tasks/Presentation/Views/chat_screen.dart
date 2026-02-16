@@ -111,7 +111,7 @@ double _textScaleClamp(BuildContext context) {
 }
 
 class ChatScreen extends StatefulWidget {
-  final UserDataAPI? user;
+  UserDataAPI? user;
   bool showBack = true;
 
   ChatScreen({super.key, this.user, this.showBack = true});
@@ -174,11 +174,18 @@ class _ChatScreenState extends State<ChatScreen> {
       },
     );
     _attachPaginationListener();
+
     final ucId = widget.user?.userCompany?.userCompanyId;
     _tag = "chat_${ucId??'mobile'}";
-    controller = Get.put(ChatScreenController(user: widget.user)
-        ,tag: _tag
-    );
+
+    if (Get.isRegistered<ChatScreenController>(tag: _tag)) {
+      controller = Get.find<ChatScreenController>(tag: _tag);
+    } else {
+      controller = Get.put(ChatScreenController(user: widget.user), tag: _tag);
+    }
+
+       controller.user=widget.user;
+
   }
 
   @override
@@ -287,6 +294,7 @@ class _ChatScreenState extends State<ChatScreen> {
 
   @override
   Widget build(BuildContext context) {
+
     return GetBuilder<ChatScreenController>(
       tag: _tag,
         builder: (controller) {
@@ -328,6 +336,9 @@ class _ChatScreenState extends State<ChatScreen> {
   }
 
   Widget _mainBody(context) {
+    if(widget.user?.userId != controller.user?.userId){
+      widget.user = controller.user;
+    }
     return ScrollConfiguration(
       behavior: const _NoGlowScrollBehavior(),
       child: Center(
@@ -372,11 +383,14 @@ class _ChatScreenState extends State<ChatScreen> {
   }
 
   Widget _replyToMessageWidget() {
-    final username = controller.user?.userCompany?.displayName != null
-        ? controller.user?.userCompany?.displayName ?? ''
-        : controller.user?.userName != null
-            ? controller.user?.userName ?? ''
-            : controller.user?.phone ?? '';
+    if(widget.user?.userId != controller.user?.userId){
+      widget.user = controller.user;
+    }
+    final username = widget.user?.userCompany?.displayName != null
+        ? widget.user?.userCompany?.displayName ?? ''
+        : widget.user?.userName != null
+            ? widget.user?.userName ?? ''
+            : widget.user?.phone ?? '';
     return Container(
       padding: const EdgeInsets.all(2),
       margin: const EdgeInsets.only(bottom: 0, left: 10, right: 63),
@@ -604,6 +618,9 @@ class _ChatScreenState extends State<ChatScreen> {
 
 
   Widget chatMessageBuilder() {
+    if(widget.user?.userId != controller.user?.userId){
+      widget.user = controller.user;
+    }
     return Column(
       mainAxisSize: MainAxisSize.min,
       children: [
@@ -1101,7 +1118,7 @@ class _ChatScreenState extends State<ChatScreen> {
                       orignalMsg: data.replyToMedia ?? '')
                   .paddingOnly(bottom: 4)
               : const SizedBox(),
-          controller.user?.userCompany?.isGroup == 1
+          widget.user?.userCompany?.isGroup == 1
               ? Row(
                   mainAxisSize: MainAxisSize.min,
                   children: [
@@ -1227,6 +1244,10 @@ class _ChatScreenState extends State<ChatScreen> {
 
   // app bar widget
   Widget _appBar() {
+    if(widget.user?.userId != controller.user?.userId){
+      widget.user = controller.user;
+    }
+
     return Row(
       children: [
         controller.isSearching
@@ -1251,24 +1272,27 @@ class _ChatScreenState extends State<ChatScreen> {
             : Expanded(
                 child: InkWell(
                   onTap: () {
-                    if (!(controller.user?.userCompany?.isGroup == 1 ||
-                        controller.user?.userCompany?.isBroadcast == 1)) {
+                    if (Get.isRegistered<ChatScreenController>(tag: _tag)) {
+                      Get.delete<ChatScreenController>(tag:_tag,force: true);
+                    }
+                    if (!(widget.user?.userCompany?.isGroup == 1 ||
+                        widget.user?.userCompany?.isBroadcast == 1)) {
                       if (kIsWeb) {
                         Get.toNamed(
-                          "${AppRoutes.view_profile}?userId=${controller.user?.userId}",
+                          "${AppRoutes.view_profile}?userId=${widget.user?.userId}",
                         );
                       } else {
                         Get.toNamed(AppRoutes.view_profile,
-                            arguments: {'user': controller.user});
+                            arguments: {'user': widget.user});
                       }
                     } else {
                       if (kIsWeb) {
                         Get.toNamed(
-                          "${AppRoutes.member_sr}?userId=${controller.user?.userId}",
+                          "${AppRoutes.member_sr}?userId=${widget.user?.userId}",
                         );
                       } else {
                         Get.toNamed(AppRoutes.member_sr,
-                            arguments: {'user': controller.user});
+                            arguments: {'user': widget.user});
                       }
                     }
                     // APIs.updateActiveStatus(false);
@@ -1305,14 +1329,14 @@ class _ChatScreenState extends State<ChatScreen> {
 
                       CustomCacheNetworkImage(
                         radiusAll: 100,
-                        "${ApiEnd.baseUrlMedia}${controller.user?.userImage ?? ''}",
+                        "${ApiEnd.baseUrlMedia}${widget.user?.userImage ?? ''}",
                         height:
                             _avatarSize(Get.context!), // ✅ responsive avatar
                         width: _avatarSize(Get.context!),
                         boxFit: BoxFit.cover,
-                        defaultImage: controller.user?.userCompany?.isGroup == 1
+                        defaultImage: widget.user?.userCompany?.isGroup == 1
                             ? groupIcn
-                            : controller.user?.userCompany?.isBroadcast == 1
+                            : widget.user?.userCompany?.isBroadcast == 1
                                 ? broadcastIcon
                                 : ICON_profile,
                         borderColor: greyText,
@@ -1327,33 +1351,33 @@ class _ChatScreenState extends State<ChatScreen> {
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           //user name
-                          (controller.user?.userCompany?.isGroup == 1 ||
-                                  controller.user?.userCompany?.isBroadcast ==
+                          (widget.user?.userCompany?.isGroup == 1 ||
+                                  widget.user?.userCompany?.isBroadcast ==
                                       1)
                               ? Text(
-                                  (controller.user?.userName == '' ||
-                                          controller.user?.userName == null)
-                                      ? controller.user?.phone ?? ''
-                                      : controller.user?.userName ?? '',
+                                  (widget.user?.userName == '' ||
+                                          widget.user?.userName == null)
+                                      ? widget.user?.phone ?? ''
+                                      : widget.user?.userName ?? '',
                                   maxLines: 1,
                                   overflow: TextOverflow.ellipsis,
                                   style: themeData.textTheme.titleMedium,
                                 )
                               : Text(
-                                  (controller.user?.userCompany?.displayName !=
+                                  (widget.user?.userCompany?.displayName !=
                                           null)
                                       ? controller
                                               .user?.userCompany?.displayName ??
                                           ''
-                                      : controller.user?.userName != null
-                                          ? controller.user?.userName ?? ''
-                                          : controller.user?.phone ?? '',
+                                      : widget.user?.userName != null
+                                          ? widget.user?.userName ?? ''
+                                          : widget.user?.phone ?? '',
                                   maxLines: 1,
                                   overflow: TextOverflow.ellipsis,
                                   style: themeData.textTheme.titleMedium,
                                 ),
-                          controller.user?.userCompany?.isGroup == 1 ||
-                                  controller.user?.userCompany?.isBroadcast == 1
+                          widget.user?.userCompany?.isGroup == 1 ||
+                                  widget.user?.userCompany?.isBroadcast == 1
                               ? Text('${controller.members.length} members',
                                   style: BalooStyles.baloonormalTextStyle())
                               : const SizedBox(),
@@ -1376,7 +1400,7 @@ class _ChatScreenState extends State<ChatScreen> {
                                   : MyDateUtil.getLastActiveTime(
                                   context: context,
                                   lastActive:
-                                  (controller.user?.lastActive??'').toString()),
+                                  (widget.user?.lastActive??'').toString()),
                               style: const TextStyle(
                                   fontSize: 13, color: Colors.black54)),*/
                         ],
@@ -1387,12 +1411,12 @@ class _ChatScreenState extends State<ChatScreen> {
               ),
         controller.isSearching
             ? const SizedBox()
-            : (controller.user?.userCompany?.isBroadcast == 1 ||
-                    controller.user?.userCompany?.isGroup == 1)
+            : (widget.user?.userCompany?.isBroadcast == 1 ||
+                    widget.user?.userCompany?.isGroup == 1)
                 ? const SizedBox()
                 : CustomTextButton(
                     onTap: () {
-                      if (controller.user == null) return;
+                      if (widget.user == null) return;
                       isTaskMode = true;
                       Get.find<DashboardController>().updateIndex(1);
                       // ensure TaskHomeController exists
@@ -1400,22 +1424,22 @@ class _ChatScreenState extends State<ChatScreen> {
                         Get.put(TaskHomeController());
                       }
                       // ensure TaskController exists
-                      final _tagTaskid = controller.user?.userCompany?.userCompanyId;
+                      final _tagTaskid = widget.user?.userCompany?.userCompanyId;
                       final _tagTask = "task_$_tagTaskid";
                        TaskController? taskC;
                       if (!Get.isRegistered<TaskController>(tag:_tagTask)) {
 
-                      taskC =  Get.put(TaskController(user: controller.user),tag: _tagTask);
+                      taskC =  Get.put(TaskController(user: widget.user),tag: _tagTask);
                       }else{
                         taskC = Get.find<TaskController>(tag: _tagTask);
                       }
 
                       final taskHome = Get.find<TaskHomeController>();
 
-                      taskHome.selectedChat.value = controller.user;
-                      taskC?.user = controller.user;
+                      taskHome.selectedChat.value = widget.user;
+                      taskC?.user = widget.user;
                       Future.microtask(() {
-                        taskC?.openConversation(controller.user);
+                        taskC?.openConversation(widget.user);
                       });
 
                       taskHome.selectedChat.refresh();
@@ -1440,24 +1464,24 @@ class _ChatScreenState extends State<ChatScreen> {
         controller.isSearching ? const SizedBox() : hGap(10),
         controller.isSearching
             ? const SizedBox()
-            : (controller.user?.userCompany?.isGroup == 1 ||
-                    controller.user?.userCompany?.isBroadcast == 1)
+            : (widget.user?.userCompany?.isGroup == 1 ||
+                    widget.user?.userCompany?.isBroadcast == 1)
                 ? PopupMenuButton<String>(
                     color: Colors.white,
                     iconColor: Colors.black87,
                     onSelected: (value) async {
                       if (value == 'AddMember') {
                         if (kIsWeb) {
-                          openAllUserDialog(controller.user);
+                          openAllUserDialog(widget.user);
 
                           // Get.toNamed(
-                          //   "${AppRoutes.add_group_member}?groupChatId=${controller.user?.userId.toString()}",
+                          //   "${AppRoutes.add_group_member}?groupChatId=${widget.user?.userId.toString()}",
                           // );
                         } else {
-                          openAllUserDialog(controller.user);
+                          openAllUserDialog(widget.user);
                           // Get.toNamed(
                           //   AppRoutes.add_group_member,
-                          //   arguments: {'groupChat': controller.user},
+                          //   arguments: {'groupChat': widget.user},
                           // );
                         }
                       }
@@ -1467,11 +1491,11 @@ class _ChatScreenState extends State<ChatScreen> {
                       if (value == 'Edit') {
                         if (kIsWeb) {
                           Get.toNamed(
-                            "${AppRoutes.member_sr}?userId=${controller.user?.userId.toString()}",
+                            "${AppRoutes.member_sr}?userId=${widget.user?.userId.toString()}",
                           );
                         } else {
                           Get.toNamed(AppRoutes.member_sr,
-                              arguments: {'user': controller.user});
+                              arguments: {'user': widget.user});
                         }
                       }
                     },
@@ -1637,7 +1661,9 @@ class _ChatScreenState extends State<ChatScreen> {
   // bottom chat input field
   Widget _chatInput(BuildContext context) {
     // ✅ don't put controller every rebuild
-
+    // if(widget.user?.userId != controller.user?.userId){
+    //   widget.user = controller.user;
+    // }
     return Container(
       padding: const EdgeInsets.symmetric(vertical: 0, horizontal: 5),
       child: Row(
@@ -1912,34 +1938,34 @@ class _ChatScreenState extends State<ChatScreen> {
 
   _sendMessage(String msg) {
     if (controller.textController.text.isNotEmpty) {
-      if (controller.user?.userCompany?.isGroup == 1) {
+      if (widget.user?.userCompany?.isGroup == 1) {
         Get.find<SocketController>().sendMessage(
-          receiverId: controller.user?.userId ?? 0,
+          receiverId: widget.user?.userId ?? 0,
           message: msg,
-          groupId: controller.user?.userCompany?.userCompanyId ?? 0,
+          groupId: widget.user?.userCompany?.userCompanyId ?? 0,
           type: "group",
           isGroup: 1,
-          companyId: controller.user?.userCompany?.companyId,
+          companyId: widget.user?.userCompany?.companyId,
           alreadySave: false,
           replyToId: controller.replyToMessage?.chatId,
         );
-      } else if (controller.user?.userCompany?.isBroadcast == 1) {
+      } else if (widget.user?.userCompany?.isBroadcast == 1) {
         Get.find<SocketController>().sendMessage(
-          receiverId: controller.user?.userId ?? 0,
+          receiverId: widget.user?.userId ?? 0,
           message: msg,
-          brID: controller.user?.userCompany?.userCompanyId ?? 0,
+          brID: widget.user?.userCompany?.userCompanyId ?? 0,
           isGroup: 0,
           type: "broadcast",
-          companyId: controller.user?.userCompany?.companyId,
+          companyId: widget.user?.userCompany?.companyId,
           alreadySave: false,
         );
       } else {
         Get.find<SocketController>().sendMessage(
-            receiverId: controller.user?.userId ?? 0,
+            receiverId: widget.user?.userId ?? 0,
             message: msg,
             isGroup: 0,
             type: "direct",
-            companyId: controller.user?.userCompany?.companyId,
+            companyId: widget.user?.userCompany?.companyId,
             alreadySave: false,
             replyToId: controller.replyToMessage?.chatId,
             replyToText: controller.replyToImage);
@@ -2433,14 +2459,14 @@ class _ChatScreenState extends State<ChatScreen> {
                     name: 'Delete Message',
                     onTap: () async {
                       Get.find<SocketController>().deleteMsgEmitter(
-                          mode: controller.user?.userCompany?.isGroup == 1
+                          mode: widget.user?.userCompany?.isGroup == 1
                               ? "group"
-                              : controller.user?.userCompany?.isBroadcast == 1
+                              : widget.user?.userCompany?.isBroadcast == 1
                                   ? "broadcast"
                                   : "direct",
                           chatId: data.chatId ?? 0,
-                          groupId: controller.user?.userCompany?.isGroup == 1
-                              ? controller.user?.userCompany?.userCompanyId
+                          groupId: widget.user?.userCompany?.isGroup == 1
+                              ? widget.user?.userCompany?.userCompanyId
                               : null);
                     }),
 

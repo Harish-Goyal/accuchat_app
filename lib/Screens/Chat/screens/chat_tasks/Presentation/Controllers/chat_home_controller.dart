@@ -170,7 +170,7 @@ class ChatHomeController extends GetxController{
     }
     isPageLoading.value = true;
     update();
-    Get.find<PostApiServiceImpl>()
+   await Get.find<PostApiServiceImpl>()
         .getRecentChatUserApiCall(comId:myCompany?.companyId,page: page,searchText: search??'')
         .then((value) async {
       isLoading.value = false;

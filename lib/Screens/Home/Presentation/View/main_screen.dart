@@ -97,11 +97,13 @@ class AccuChatDashboard extends StatelessWidget {
                       chatc.replyToMessage = null;
 
                       homec.selectedChat.value = user;
-                      chatc.user =homec.selectedChat.value;
+                      chatc.user =user;
                       chatc.textController.clear();
                       chatc.update();
                       chatc.showPostShimmer = true;
-                       chatc.openConversation(chatc.user);
+
+                       chatc.getUserByIdApi(userId:user.userId );
+                       // chatc.openConversation(chatc.user);
                       if (homec.selectedChat.value?.pendingCount != 0) {
                         chatc.markAllVisibleAsReadOnOpen(
                             APIs.me.userCompany?.userCompanyId,
@@ -118,7 +120,7 @@ class AccuChatDashboard extends StatelessWidget {
                         chatc.showPostShimmer = true;
                         chatc.replyToMessage = null;
                         homec.selectedChat.value = user;
-                        chatc.user =homec.selectedChat.value;
+                        chatc.user =user;
                         // chatc.openConversation(chatc.user);
                         if (homec.selectedChat.value?.pendingCount != 0) {
                           chatc.markAllVisibleAsReadOnOpen(
@@ -153,7 +155,8 @@ class AccuChatDashboard extends StatelessWidget {
                         taskC.textController.clear();
                         taskC.update();
                         taskC.showPostShimmer = true;
-                        taskC.openConversation(taskhomec.selectedChat.value);
+                        taskC.getUserByIdApi(userId: user.userId);
+                        // taskC.openConversation(taskhomec.selectedChat.value);
 
                       }
                     } else {

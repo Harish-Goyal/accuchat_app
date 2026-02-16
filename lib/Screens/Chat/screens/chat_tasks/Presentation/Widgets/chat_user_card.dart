@@ -98,45 +98,35 @@ class _ChatUserCardState extends State<ChatUserCard>
             hoverColor: appColorPerple.withOpacity(.25),
             borderRadius: BorderRadius.circular(15),
             onTap: () {
-              final _tagid = ChatPresence.activeChatId.value;
-              final _tag = "chat_$_tagid";
-
-              final _tagTaskid = TaskPresence.activeTaskId.value;
-              final _tagTask = "task_$_tagTaskid";
-
               if (isTaskMode) {
                 if (kIsWeb) {
-                  final activePreTag = TaskPresence.activeTaskId.value;
-                  final preTag = "task_$activePreTag";
-
-                  if(Get.isRegistered<TaskController>(tag: preTag)){
-                    Get.delete<TaskController>(tag: preTag,force: true);
-                  }
                   final homec = Get.find<TaskHomeController>();
-                  // TaskController? taskC;
-                  // if (Get.isRegistered<TaskController>(tag:  _tagTask)) {
-                  //   print("isRegistered");
-                  //   isRegistered =true;
-                  //   taskC = Get.find<TaskController>(tag:  _tagTask);
-                  // } else {
-                  //   final _tagis = "task_${widget.user?.userCompany?.userCompanyId ?? 'mobile'}";
-                  //   taskC = Get.put(TaskController(user: widget.user),
-                  //       tag: _tagis);
-                  // }
-                  final taskId = widget.user?.userCompany?.userCompanyId ?? 'mobile';
-                  final tagtask = 'task_$taskId';
+                  var newKey = widget.user?.userCompany?.userCompanyId;
+                  final newTag = 'task_$newKey';
 
-                  ChatScreenController taskC = Get.isRegistered<ChatScreenController>(tag: tagtask)
-                      ? Get.find<ChatScreenController>(tag: tagtask)
-                      : Get.put(ChatScreenController(user: widget.user), tag: tagtask);
+                  final oldKey = TaskPresence.activeTaskId.value;
+                  final oldTag = 'task_$oldKey';
 
+                  if (oldTag != newTag && Get.isRegistered<TaskController>(tag: oldTag)) {
+                    Get.delete<TaskController>(tag: oldTag, force: true);
+                  }
+
+                  TaskPresence.activeTaskId.value = newKey;
+
+                  final taskC = Get.isRegistered<TaskController>(tag: newTag)
+                      ? Get.find<TaskController>(tag: newTag)
+                      : Get.put(TaskController(user: widget.user), tag: newTag);
+                  print("chats  carrd tag====$newTag");
                   homec.selectedChat.value = widget.user;
-                  taskC?.user = homec.selectedChat.value;
-                  taskC?.replyToMessage = null;
-                  taskC?.showPostShimmer = true;
-                  taskC?.openConversation(homec.selectedChat.value);
-                  homec?.selectedChat.refresh();
-                  taskC?.update();
+                  taskC.user = widget.user;
+                  taskC.textController.clear();
+                  taskC.replyToMessage = null;
+                  taskC.showPostShimmer = true;
+                  taskC.getUserByIdApi(userId: widget.user?.userId);
+                  homec.selectedChat.refresh();
+                  taskC.update();
+                  homec.update();
+
                 } else {
                   Get.toNamed(AppRoutes.tasks_li_r,
                       arguments: {'user': widget.user});
@@ -144,44 +134,90 @@ class _ChatUserCardState extends State<ChatUserCard>
               } else {
                 if (kIsWeb) {
                   final homec = Get.find<ChatHomeController>();
-                  // ChatScreenController? chatc;
-                  // if (Get.isRegistered<ChatScreenController>(tag: _tag)) {
-                  //   isRegistered =true;
-                  //   chatc = Get.find<ChatScreenController>(tag: _tag);
-                  // } else {
-                  //   final _tagchat = "chat_${widget.user?.userCompany?.userCompanyId ?? 'mobile'}";
-                  //   chatc = Get.put(ChatScreenController(user: widget.user),
-                  //       tag: _tagchat);
-                  // }
-                  final activePreTag = ChatPresence.activeChatId.value;
-                  final preTag = "chat_$activePreTag";
 
-                  if(Get.isRegistered<ChatScreenController>(tag: preTag)){
-                    Get.delete<ChatScreenController>(tag: preTag,force: true);
+                  var newKey = widget.user?.userCompany?.userCompanyId;
+
+                  final newTag = 'chat_$newKey';
+
+// delete previous active controller (if different)
+                  final oldKey = ChatPresence.activeChatId.value;
+                  final oldTag = 'chat_$oldKey';
+
+                  if (oldTag != newTag && Get.isRegistered<ChatScreenController>(tag: oldTag)) {
+                    Get.delete<ChatScreenController>(tag: oldTag, force: true);
                   }
-                  final chatId = widget.user?.userCompany?.userCompanyId ?? 'mobile';
-                  final tag = 'chat_$chatId';
 
-                  ChatScreenController chatc = Get.isRegistered<ChatScreenController>(tag: tag)
-                      ? Get.find<ChatScreenController>(tag: tag)
-                      : Get.put(ChatScreenController(user: widget.user), tag: tag);
+                  ChatPresence.activeChatId.value = newKey;
 
-
-                  chatc?.textController.clear();
-                  chatc?.replyToMessage = null;
-                  chatc?.showPostShimmer = true;
+                  final chatc = Get.isRegistered<ChatScreenController>(tag: newTag)
+                      ? Get.find<ChatScreenController>(tag: newTag)
+                      : Get.put(ChatScreenController(user: widget.user), tag: newTag);
+                  print("chats  carrd tag====$newTag");
                   homec.selectedChat.value = widget.user;
-                  chatc?.user = homec.selectedChat.value;
-                  // chatc?.openConversation(homec.selectedChat.value);
-                  if (homec.selectedChat.value?.pendingCount != 0) {
-                    chatc?.markAllVisibleAsReadOnOpen(
-                        APIs.me.userCompany?.userCompanyId,
-                        chatc.user?.userCompany?.userCompanyId,
-                        chatc.user?.userCompany?.isGroup == 1 ? 1 : 0);
+                  chatc.user = widget.user;
+                  chatc.update();
+                  chatc.textController.clear();
+                  chatc.replyToMessage = null;
+                  chatc.showPostShimmer = true;
+
+                  chatc.getUserByIdApi(userId: widget.user?.userId);
+                  // chatc.openConversation(widget.user);
+
+                  final pending = widget.user?.pendingCount ?? 0;
+                  if (pending != 0) {
+                    chatc.markAllVisibleAsReadOnOpen(
+                      APIs.me.userCompany?.userCompanyId,
+                      chatc.user?.userCompany?.userCompanyId,
+                      chatc.user?.userCompany?.isGroup == 1 ? 1 : 0,
+                    );
                   }
-                  homec.update();
+
                   homec.selectedChat.refresh();
-                  chatc?.update();
+                  chatc.update();
+                  homec.update();
+
+                  //  final homec = Get.find<ChatHomeController>();
+                 //
+                 //  final activePreTag = ChatPresence.activeChatId.value;
+                 //  final preTag = "chat_$activePreTag";
+                 //
+                 //  if(Get.isRegistered<ChatScreenController>(tag: preTag)){
+                 //    Get.delete<ChatScreenController>(tag: preTag,force: true);
+                 //  }
+                 //  final chatId = widget.user?.userCompany?.userCompanyId ?? 'mobile';
+                 //  final tag = 'chat_$chatId';
+                 //  ChatScreenController? chatc;
+                 //  if (Get.isRegistered<ChatScreenController>(tag: tag)) {
+                 //    isRegistered =true;
+                 //    print("$isRegistered ========01");
+                 //    chatc = Get.find<ChatScreenController>(tag: tag);
+                 //  } else {
+                 //    print("$isRegistered ========00");
+                 //    isRegistered =false;
+                 //    chatc = Get.put(ChatScreenController(user: widget.user),
+                 //        tag: tag);
+                 //  }
+                 //
+                 // chatc?.textController.clear();
+                 // chatc?.replyToMessage = null;
+                 // chatc?.showPostShimmer = true;
+                 // print(widget.user?.userId);
+                 // homec.selectedChat.value = widget.user;
+                 // chatc?.user = homec.selectedChat.value;
+                 // print(homec.selectedChat.value?.userId);
+                 // print(chatc?.user?.userId);
+                 //  // isRegistered?  chatc?.openConversation(homec.selectedChat.value) :null;
+                 //  ChatPresence.activeChatId.value =homec.selectedChat.value?.userCompany?.userCompanyId;
+                 // chatc?.openConversation(homec.selectedChat.value) ;
+                 //  if (homec.selectedChat.value?.pendingCount != 0) {
+                 //    chatc?.markAllVisibleAsReadOnOpen(
+                 //        APIs.me.userCompany?.userCompanyId,
+                 //        chatc.user?.userCompany?.userCompanyId,
+                 //        chatc.user?.userCompany?.isGroup == 1 ? 1 : 0);
+                 //  }
+                 //  homec.update();
+                 //  homec.selectedChat.refresh();
+                 //  chatc?.update();
                 } else {
                   Get.toNamed(
                     AppRoutes.chats_li_r,

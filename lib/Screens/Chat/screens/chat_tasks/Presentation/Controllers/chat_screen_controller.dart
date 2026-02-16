@@ -61,6 +61,31 @@ class ChatScreenController extends GetxController {
   var userIDReceiver;
   var refIdis;
 
+  @override
+  void onInit() {
+    super.onInit();
+    if(!kIsWeb || Get.width<600) {
+      itemScrollController = ItemScrollController();
+      itemPositionsListener = ItemPositionsListener.create();
+    }
+    _getCompany();
+    replyToMessage = null;
+
+    // scrollListener();
+    if (Get.isRegistered<ChatHomeController>()) {
+      Get.find<ChatHomeController>().isOnRecentList.value = false;
+    }
+
+    _initImagePaste();
+    if (kIsWeb && !_pasteRegistered) {
+      _pasteRegistered = true;
+      registerImage((XFile image) => _handlePastedImage(image));
+    }
+
+
+    getArguments();
+  }
+
   // final ItemScrollController itemScrollController = ItemScrollController();
   // final ItemPositionsListener itemPositionsListener =
   //     ItemPositionsListener.create();
@@ -302,44 +327,7 @@ class ChatScreenController extends GetxController {
   bool _paginationListenerAttached = false;
   bool _pasteRegistered = false;
 
-  @override
-  void onInit() {
-    super.onInit();
-    if(!kIsWeb || Get.width<600) {
-      itemScrollController = ItemScrollController();
-      itemPositionsListener = ItemPositionsListener.create();
-    }
-    _getCompany();
-    replyToMessage = null;
-    getArguments();
-    // scrollListener();
-    if (Get.isRegistered<ChatHomeController>()) {
-      Get.find<ChatHomeController>().isOnRecentList.value = false;
-    }
 
-    if (kIsWeb) {
-      user = Get.find<ChatHomeController>().selectedChat.value;
-      // _initScroll();
-    }
-
-
-
-    // attachPaginationListener(reverseList: true);
-
-    _initImagePaste();
-    if (kIsWeb && !_pasteRegistered) {
-      _pasteRegistered = true;
-      registerImage((XFile image) => _handlePastedImage(image));
-    }
-    // if (kIsWeb) {
-    //   messageParentFocus.requestFocus();
-    //   registerImage((XFile image) {
-    //     _handlePastedImage(image);
-    //   });
-    // }
-
-
-  }
  @override
   void onReady() {
    if(!kIsWeb|| Get.width<600) {
@@ -635,15 +623,14 @@ class ChatScreenController extends GetxController {
     super.onClose();
   }
 
-
+/*
   getArguments() {
     if (kIsWeb) {
       _getCompany();
-      // if (Get.parameters != null) {
       final String? argUserId = Get.parameters['userId'];
       if (argUserId != null) {
         getUserByIdApi(userId: int.parse(argUserId ?? ''));
-        // }
+
       } else {
         getUserByIdApi(userId: user?.userId);
       }
@@ -652,12 +639,37 @@ class ChatScreenController extends GetxController {
         UserDataAPI argUser = Get.arguments['user'];
         user = argUser;
         if (user != null) {
-          // ChatPresence.activeChatId.value = argUser?.userCompany?.userCompanyId;
           openConversation(user);
         }
       }
     }
+  }*/
+
+  void getArguments() {
+    if (kIsWeb) {
+      _getCompany();
+
+      // ✅ If controller already has a user (selected from list), don't override it via route params
+      if (user?.userId != null) {
+        openConversation(user);
+        return;
+      }
+
+      final String? argUserId = Get.parameters['userId'];
+      if (argUserId != null && argUserId.isNotEmpty) {
+        getUserByIdApi(userId: int.parse(argUserId));
+      }
+      return;
+    }
+
+    // mobile flow
+    if (Get.arguments != null) {
+      final UserDataAPI argUser = Get.arguments['user'];
+      user = argUser;
+      if (user != null) openConversation(user);
+    }
   }
+
 
   getUserByIdApi({int? userId}) async {
     Get.find<PostApiServiceImpl>()
@@ -677,7 +689,7 @@ class ChatScreenController extends GetxController {
   void openConversation(UserDataAPI? useriii) {
     user = useriii;
     ChatPresence.activeChatId.value = user?.userCompany?.userCompanyId;
-    Future.delayed(const Duration(milliseconds: 200), ()  {
+    Future.microtask(() {
       resetPaginationForNewChat();
        hitAPIToGetChatHistory("openConversation");
       if (user?.userCompany?.isGroup == 1 ||
@@ -685,7 +697,7 @@ class ChatScreenController extends GetxController {
         hitAPIToGetMembers(user);
       }
     });
-
+    update();
   }
 
   /// Put this in a singleton/service/controller (NOT inside build)

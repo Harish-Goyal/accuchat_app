@@ -70,9 +70,9 @@ class TaskController extends GetxController {
   void onInit() {
     super.onInit();
     getArguments();
-    if (kIsWeb) {
-      user = Get.find<TaskHomeController>().selectedChat.value;
-    }
+    // if (kIsWeb) {
+    //   user = Get.find<TaskHomeController>().selectedChat.value;
+    // }
 
     getUserNavigation();
     scrollListener();
@@ -95,7 +95,32 @@ class TaskController extends GetxController {
     super.dispose();
   }
 
-  getArguments() {
+  void getArguments() {
+    if (kIsWeb) {
+      _getCompany();
+
+      // ✅ If controller already has a user (selected from list), don't override it via route params
+      if (user?.userId != null) {
+        openConversation(user);
+        return;
+      }
+
+      final String? argUserId = Get.parameters['userId'];
+      if (argUserId != null && argUserId.isNotEmpty) {
+        getUserByIdApi(userId: int.parse(argUserId));
+      }
+      return;
+    }
+
+    // mobile flow
+    if (Get.arguments != null) {
+      final UserDataAPI argUser = Get.arguments['user'];
+      user = argUser;
+      if (user != null) openConversation(user);
+    }
+  }
+
+/*  getArguments() {
     if (kIsWeb) {
       _getCompany();
       // if (Get.parameters != null) {
@@ -116,7 +141,7 @@ class TaskController extends GetxController {
         }
       }
     }
-  }
+  }*/
  /* getArguments() {
     if(kIsWeb){
       _getCompany();
@@ -161,8 +186,8 @@ class TaskController extends GetxController {
   void openConversation(UserDataAPI? useriii) {
     user = useriii;
     TaskPresence.activeTaskId.value = user?.userCompany?.userCompanyId;
-    _getCompany();
-    Future.delayed(const Duration(milliseconds: 200), ()  {
+    // _getCompany();
+    Future.microtask(() {
       resetPaginationForNewChat();
       hitAPIToGetTaskHistory();
       hitAPIToGetTaskStatus();

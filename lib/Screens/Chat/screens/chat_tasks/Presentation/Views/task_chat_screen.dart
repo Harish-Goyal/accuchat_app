@@ -121,12 +121,17 @@ class _TaskScreenState extends State<TaskScreen> {
   @override
   void initState() {
     super.initState();
-
     final ucId = widget.taskUser?.userCompany?.userCompanyId;
     _tag = "task_${ucId??'mobile'}";
-    controller = Get.put(TaskController(user: widget.taskUser)
-        ,tag: _tag
-    );
+
+    if (Get.isRegistered<TaskController>(tag: _tag)) {
+      controller = Get.find<TaskController>(tag: _tag);
+    } else {
+      controller = Get.put(TaskController(user: widget.taskUser), tag: _tag);
+    }
+
+    controller.user=widget.taskUser;
+
   }
 
 
@@ -838,6 +843,9 @@ class _TaskScreenState extends State<TaskScreen> {
         ): Expanded(
           child: InkWell(
             onTap: () {
+              if (Get.isRegistered<TaskController>(tag: _tag)) {
+                Get.delete<TaskController>(tag:_tag,force: true);
+              }
               if (!(controller.user?.userCompany?.isGroup == 1 ||
                   controller.user?.userCompany?.isBroadcast == 1)) {
                 if (kIsWeb) {
