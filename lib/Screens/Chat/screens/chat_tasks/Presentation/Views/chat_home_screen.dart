@@ -312,14 +312,13 @@ class ChatsHomeScreen extends GetView<ChatHomeController> {
   _goToScreen(UserDataAPI user,w){
 
         final homec = Get.find<ChatHomeController>();
-        final _tagid = ChatPresence.activeChatId.value;
-        final _tag = "chat_${_tagid ?? 'mobile'}";
+        final _tag =
+            "chat_${user.userCompany?.userCompanyId ?? 'mobile'}";
         ChatScreenController? chatc;
         if (Get.isRegistered<ChatScreenController>(tag: _tag)) {
           chatc = Get.find<ChatScreenController>(tag: _tag);
         } else {
-          final _tag =
-              "chat_${user.userCompany?.userCompanyId ?? 'mobile'}";
+
           chatc = Get.put(ChatScreenController(user: user),
               tag: _tag);
         }

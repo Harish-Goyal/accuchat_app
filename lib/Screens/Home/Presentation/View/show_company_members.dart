@@ -1,5 +1,9 @@
 import 'package:AccuChat/Constants/assets.dart';
 import 'package:AccuChat/Constants/colors.dart';
+import 'package:AccuChat/Screens/Authentication/AuthResponseModel/loginResModel.dart';
+import 'package:AccuChat/Screens/Chat/screens/auth/models/get_uesr_Res_model.dart';
+import 'package:AccuChat/Screens/Chat/screens/chat_tasks/Presentation/Controllers/chat_screen_controller.dart';
+import 'package:AccuChat/Screens/Chat/screens/chat_tasks/Presentation/Controllers/task_controller.dart';
 import 'package:AccuChat/Screens/Chat/screens/chat_tasks/Presentation/Views/task_chat_screen.dart';
 import 'package:AccuChat/Screens/Home/Presentation/Controller/company_members_controller.dart';
 import 'package:AccuChat/Screens/Home/Presentation/Controller/home_controller.dart';
@@ -16,9 +20,6 @@ import '../../../../routes/app_routes.dart';
 import '../../../../utils/data_not_found.dart';
 import '../../../../utils/helper_widget.dart';
 import '../../../../utils/networl_shimmer_image.dart';
-import '../../../Chat/api/apis.dart';
-import '../../../Chat/screens/chat_tasks/Presentation/Controllers/chat_home_controller.dart';
-import '../../../Chat/screens/chat_tasks/Presentation/Controllers/chat_screen_controller.dart';
 import '../../../Chat/screens/chat_tasks/Presentation/Views/chat_screen.dart';
 import '../../../Chat/screens/chat_tasks/Presentation/dialogs/profile_dialog.dart';
 
@@ -291,54 +292,116 @@ class CompanyMembers extends GetView<CompanyMemberController> {
   }
 
   _goToTask(memData) {
-    final dcController = Get.find<DashboardController>();
-    dcController.updateIndex(1);
+    DashboardController?   dcController;
+    if(Get.isRegistered<DashboardController>()){
+      dcController = Get.find<DashboardController>();
+    }
+    dcController?.updateIndex(1);
 
     isTaskMode = true;
     controller.update();
-    if(isTaskMode) {
+
       if(kIsWeb){
-        Get.to(()=>TaskScreen(taskUser:memData ,showBack: true,));
+        openTaskScreenDialog(memData);
+        // Get.toNamed("${AppRoutes.tasks_li_r}?userId=${memData?.userId.toString()}");
+        // Get.to(()=>TaskScreen(taskUser:memData ,showBack: true,));
       }else{
         Get.toNamed(
           AppRoutes.tasks_li_r,
           arguments: {'user': memData},
         );
       }
-    }else{
-      if(kIsWeb){
-        Get.to(()=>ChatScreen(user: memData,showBack: true,));
-      }else{
-        Get.toNamed(
-          AppRoutes.chats_li_r,
-          arguments: {'user': memData},
-        );
+
+  }
+
+  Future<void> openChatScreenDialog(UserDataAPI memData) async {
+    final tagId = memData.userCompany?.userCompanyId;
+    final _tag = "chat_$tagId";
+    final c=  Get.put(ChatScreenController(
+      user: memData
+        ),tag: _tag);
+
+    try {
+      await Get.dialog(
+        Dialog(
+          clipBehavior: Clip.antiAlias,
+          insetPadding: const EdgeInsets.all(12),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(12),
+          ),
+          child: SizedBox(
+            width: kIsWeb ? 550 : Get.width * .9,
+            height: Get.height * 0.9,
+            child: ChatScreen(
+              key: ValueKey(memData.userCompany?.userCompanyId),
+              user: memData,
+              showBack: false,
+            ),
+          ),
+        ),
+        barrierDismissible: true,
+      );
+    } finally {
+      if (Get.isRegistered<ChatScreenController>()) {
+        Get.delete<ChatScreenController>();
       }
     }
   }
+
+  Future<void> openTaskScreenDialog(UserDataAPI memData) async {
+    final tagId = memData.userCompany?.userCompanyId;
+    final _tag = "task_$tagId";
+    final c=  Get.put(TaskController(
+      user: memData
+        ),tag: _tag);
+
+    try {
+      await Get.dialog(
+        Dialog(
+          clipBehavior: Clip.antiAlias,
+          insetPadding: const EdgeInsets.all(12),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(12),
+          ),
+          child: SizedBox(
+            width: kIsWeb ? 550 : Get.width * .9,
+            height: Get.height * 0.9,
+            child: TaskScreen(
+              key: ValueKey(memData.userCompany?.userCompanyId),
+              taskUser: memData,
+              showBack: false,
+            ),
+          ),
+        ),
+        barrierDismissible: true,
+      );
+    } finally {
+      if (Get.isRegistered<TaskController>()) {
+        Get.delete<TaskController>();
+      }
+    }
+  }
+
+
+
+
     Future<void> _goToChat(memData) async {
+
       DashboardController?   dcController;
       if(Get.isRegistered<DashboardController>()){
         dcController = Get.find<DashboardController>();
       }
       dcController?.updateIndex(0);
       isTaskMode = false;
-      if(isTaskMode) {
         if(kIsWeb){
-          Get.to(()=>TaskScreen(taskUser: memData ,showBack: true,));
-        }else{
-          Get.toNamed(AppRoutes.tasks_li_r, arguments: {'user': memData},);
-        }
-      }else{
-        if(kIsWeb){
-          Get.to(()=>ChatScreen(user: memData ,showBack: true,));
+          openChatScreenDialog(memData);
+          // Get.to(()=>ChatScreen(user: memData ,showBack: true,));
         }else{
           Get.toNamed(
             AppRoutes.chats_li_r,
             arguments: {'user': memData},
           );
         }
-      }
 
       }
 

@@ -122,7 +122,55 @@ Future<void> _disablePushOnLogout() async {
   } catch (_) {}
 }
 
+Future<void> logoutLocal() async {
+  if (_isLoggingOut) return;
+  _isLoggingOut = true;
 
+  customLoader.show();
+
+  try {
+    await _disablePushOnLogout();
+
+    if (Get.isRegistered<SocketController>()) {
+      try {
+        Get.find<SocketController>().disconnect();
+      } catch (_) {}
+      Get.delete<SocketController>(force: true);
+    }
+
+    Get.delete<Session>(force: true);
+    Get.delete<ChatScreenController>(force: true);
+    Get.delete<ChatHomeController>(force: true);
+
+    await StorageService.clear();
+    await AppStorage().clear();
+
+    if (Get.isRegistered<CompanyService>()) {
+      try { await CompanyService.to.closeBox(); } catch (_) {}
+      Get.delete<CompanyService>(force: true);
+    }
+
+    try { await HiveBoot.closeAndDeleteAll(deleteFromDisk: true); } catch (_) {}
+
+  } finally {
+    // 1) Close overlays first (most important)
+    try { Get.closeCurrentSnackbar(); } catch (_) {}
+    try { Get.closeAllSnackbars(); } catch (_) {}
+
+    // 2) Then hide your loader (if it uses overlay/dialog)
+    customLoader.hide();
+    customLoader.hide();
+
+   _isLoggingOut = false;
+
+    // 3) Navigate after a tiny delay / next tick
+    await Future.delayed(const Duration(milliseconds: 50));
+    Get.offAllNamed(AppRoutes.login_r);
+  }
+}
+
+
+/*
 Future<void> logoutLocal() async {
   if (_isLoggingOut) return;
   _isLoggingOut = true;
@@ -153,7 +201,6 @@ Future<void> logoutLocal() async {
       try { await CompanyService.to.closeBox(); } catch (_) {}
       Get.delete<CompanyService>(force: true);
     }
-
     try {
       await HiveBoot.closeAndDeleteAll(deleteFromDisk: true);
     } catch (_) {}
@@ -163,7 +210,7 @@ Future<void> logoutLocal() async {
     Get.offAllNamed(AppRoutes.login_r);
     _isLoggingOut = false;
   }
-}
+}*/
 
 
 

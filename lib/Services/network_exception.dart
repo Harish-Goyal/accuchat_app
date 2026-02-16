@@ -26,9 +26,9 @@ class NetworkExceptions {
                 customLoader.hide();
                 return ErrorResponseModel.fromJson(error.response?.data).message;
               case 403:
-                logoutLocal();
-                Get.offAllNamed(AppRoutes.login_r);
-                customLoader.hide();
+                // logoutLocal();
+                // Get.offAllNamed(AppRoutes.login_r);
+                // customLoader.hide();
                 return ErrorResponseModel.fromJson(error.response?.data)
                     .message;
               case 404:

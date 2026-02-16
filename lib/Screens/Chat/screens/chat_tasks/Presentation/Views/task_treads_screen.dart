@@ -63,6 +63,7 @@ class TaskThreadScreen extends GetView<TaskThreadController> {
                       overflow: TextOverflow.ellipsis,
                     ),
                     IconButton(onPressed: (){
+
                       final taskC= Get.find<TaskController>();
                       taskC.resetPaginationForNewChat();
                       taskC.searchQuery = '';

@@ -10,6 +10,7 @@ import 'package:get/get.dart';
 import 'package:swipe_to/swipe_to.dart';
 import '../../../../../../Services/APIs/api_ends.dart';
 import '../../../../../../main.dart';
+import '../../../../../../utils/chat_presence.dart';
 import '../../../../../../utils/common_textfield.dart';
 import '../../../../../../utils/custom_dialogue.dart';
 import '../../../../../../utils/custom_flashbar.dart';
@@ -366,6 +367,7 @@ class TaskHomeScreen extends GetView<TaskHomeController> {
                                         child: Text(
                                             "Select a chat to start messaging"))
                                     : TaskScreen(
+                                       key: ValueKey(selected.userCompany?.userCompanyId),
                                         taskUser: selected,
                                         showBack: false,
                                       ), // <- correct
@@ -386,10 +388,14 @@ class TaskHomeScreen extends GetView<TaskHomeController> {
       if (kIsWeb && w > 600) {
         final homec = Get.find<TaskHomeController>();
         TaskController? taskC;
-        if (Get.isRegistered<TaskController>()) {
-          taskC = Get.find<TaskController>();
+        final _tagTaskid = TaskPresence.activeTaskId.value;
+        final _tagTask = "task_$_tagTaskid";
+        if (Get.isRegistered<TaskController>(tag: _tagTask)) {
+          taskC = Get.find<TaskController>(tag: _tagTask);
         } else {
-          taskC = Get.put(TaskController(user: user));
+          final _tagTaskid = user.userCompany?.userCompanyId;
+          final _tagTask = "task_$_tagTaskid";
+          taskC = Get.put(TaskController(user: user),tag: _tagTask);
         }
 
         homec.selectedChat.value = user;

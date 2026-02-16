@@ -3,6 +3,7 @@ import 'package:AccuChat/main.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:intl/intl.dart';
 import '../../../../../../Services/APIs/post/post_api_service_impl.dart';
 import '../../../../../../utils/custom_flashbar.dart';
 import '../../../../../../utils/helper_widget.dart';
@@ -13,6 +14,7 @@ import '../../../../models/get_company_res_model.dart';
 
 class ViewProfileController extends GetxController {
   UserDataAPI? user;
+  String formattedDate='';
   @override
   void onInit() {
 
@@ -37,6 +39,7 @@ class ViewProfileController extends GetxController {
     }else{
       if(Get.arguments!=null) {
         user = Get.arguments['user'];
+        formateData(user?.createdOn??'');
         resetPaginationForNewChat();
         _fireApiForCurrentTab();
       }
@@ -86,13 +89,18 @@ void _onScroll2() {
 
 
 
-
+ formateData(date){
+   DateTime parsedDate = DateTime.parse(date);
+   formattedDate = DateFormat('d MMM yyyy').format(parsedDate);
+ }
   getUserByIdApi({int? userId}) async {
     Get.find<PostApiServiceImpl>()
         .getUserByApiCall(userID: userId,comid: myCompany?.companyId)
         .then((value) async {
       isLoading =false;
       user = value.data;
+      formateData(user?.createdOn??'');
+
       resetPaginationForNewChat();
       _fireApiForCurrentTab();
       update();

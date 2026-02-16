@@ -190,8 +190,6 @@ class _ChatScreenState extends State<ChatScreen> {
       itemPositionsListener.itemPositions
           .removeListener(onPositionsChanged);
     } catch (_) {}
-    final tag ="chat_${ChatPresence.activeChatId.value ?? 'mobile'}";
-
     if (Get.isRegistered<ChatScreenController>(tag: _tag)) {
       Get.delete<ChatScreenController>(tag:_tag,force: true);
     }
@@ -1402,17 +1400,22 @@ class _ChatScreenState extends State<ChatScreen> {
                         Get.put(TaskHomeController());
                       }
                       // ensure TaskController exists
-                      if (!Get.isRegistered<TaskController>()) {
-                        Get.put(TaskController(user: controller.user));
+                      final _tagTaskid = controller.user?.userCompany?.userCompanyId;
+                      final _tagTask = "task_$_tagTaskid";
+                       TaskController? taskC;
+                      if (!Get.isRegistered<TaskController>(tag:_tagTask)) {
+
+                      taskC =  Get.put(TaskController(user: controller.user),tag: _tagTask);
+                      }else{
+                        taskC = Get.find<TaskController>(tag: _tagTask);
                       }
 
                       final taskHome = Get.find<TaskHomeController>();
-                      final taskC = Get.find<TaskController>();
 
                       taskHome.selectedChat.value = controller.user;
-                      taskC.user = controller.user;
+                      taskC?.user = controller.user;
                       Future.microtask(() {
-                        taskC.openConversation(controller.user);
+                        taskC?.openConversation(controller.user);
                       });
 
                       taskHome.selectedChat.refresh();

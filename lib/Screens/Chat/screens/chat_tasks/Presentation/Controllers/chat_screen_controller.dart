@@ -1405,19 +1405,17 @@ class ChatScreenController extends GetxController {
     void _afterSendNavigate() {
       textController.clear();
       replyToMessage = null;
-      update();
-
+      final _tagid = selectedUser.userCompany?.userCompanyId;
+      final _tag = "chat_${_tagid ?? 'mobile'}";
       // Replace current chat screen with the target chat
       if (/*Get.currentRoute == AppRoutes.chats_li_r &&*/
-          Get.isRegistered<ChatScreenController>()) {
+          Get.isRegistered<ChatScreenController>(tag: _tag)) {
         Get.find<ChatHomeController>().selectedChat.value = selectedUser;
-        final _tagid = ChatPresence.activeChatId.value;
-        final _tag = "chat_${_tagid ?? 'mobile'}";
         final con = Get.find<ChatScreenController>(
             tag:_tag);
         con.openConversation(selectedUser);
       } else {
-        toast("Something went wrong please refresh and try again");
+        Get.put(ChatScreenController(user: selectedUser),tag: _tag);
         // if (kIsWeb) {
         //   Get.to(()=>ChatScreen(user: selectedUser ,showBack: true,));
         //   // Get.offNamed(

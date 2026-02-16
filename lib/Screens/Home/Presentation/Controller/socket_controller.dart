@@ -363,9 +363,22 @@ class SocketController extends GetxController with WidgetsBindingObserver {
       debugPrint("Listing task......4");
       debugPrint("send_task_listener ${jsonEncode(messages.toString())}");
       try {
-        TaskController taskController = Get.find<TaskController>();
+
+        final _tagid = TaskPresence.activeTaskId.value;
+        final _tag = "task_${_tagid ?? 'mobile'}";
+        TaskController? taskController;
+        if(!kIsWeb || Get.width<600){
+          taskController =
+              Get.find<TaskController>();
+        }else{
+          if (Get.isRegistered<TaskController>(tag: _tag)) {
+            taskController =
+                Get.find<TaskController>(tag: _tag);
+          }
+        }
+
         TaskData receivedMessageDataModal = TaskData.fromJson(messages);
-        final selectedUserId = taskController.user?.userId?.toString();
+        final selectedUserId = taskController?.user?.userId?.toString();
         final meId = APIs.me.userId?.toString();
         final msgFrom = receivedMessageDataModal.fromUser?.userId?.toString();
         final msgTo = receivedMessageDataModal.toUser?.userId?.toString();
@@ -401,12 +414,12 @@ class SocketController extends GetxController with WidgetsBindingObserver {
             statusHistory: receivedMessageDataModal.statusHistory,
             members: receivedMessageDataModal.members,
           );
-          taskController.taskHisList?.insert(0, chatMessageItems);
-          taskController.taskCategory
+          taskController?.taskHisList?.insert(0, chatMessageItems);
+          taskController?.taskCategory
               .insert(0, GroupTaskElement(DateTime.now(), chatMessageItems));
           // }
           dashCon.newTask.value=true;
-          taskController.update();
+          taskController?.update();
         }
         Get.find<TaskHomeController>().hitAPIToGetRecentTasksUser();
       } catch (e) {
@@ -521,7 +534,18 @@ class SocketController extends GetxController with WidgetsBindingObserver {
       debugPrint("update task  listener ${jsonEncode(payload.toString())}");
 
       try {
-        final taskController = Get.find<TaskController>();
+        final _tagid = TaskPresence.activeTaskId.value;
+        final _tag = "task_${_tagid ?? 'mobile'}";
+        TaskController? taskController;
+        if(!kIsWeb || Get.width<600){
+          taskController =
+              Get.find<TaskController>();
+        }else{
+          if (Get.isRegistered<TaskController>(tag: _tag)) {
+            taskController =
+                Get.find<TaskController>(tag: _tag);
+          }
+        }
         final updated = TaskData.fromJson(payload);
 
         final meId = APIs.me.userId?.toString();
@@ -529,7 +553,7 @@ class SocketController extends GetxController with WidgetsBindingObserver {
         final toId = updated.toUser?.userId?.toString();
 
         if (fromId == meId || toId == meId) {
-          final list = taskController.taskHisList ?? [];
+          final list = taskController?.taskHisList ?? [];
           final idx = list.indexWhere((t) => t.taskId == updated.taskId);
 
           if (idx != -1) {
@@ -558,19 +582,19 @@ class SocketController extends GetxController with WidgetsBindingObserver {
             // taskController.taskHisList!.refresh();
 
             // Sirf usi card ko rebuild karo:
-            taskController.update();
+            taskController?.update();
 
             // (optional) Agar grouped list bhi maintain karte ho:
-            final gIdx = taskController.taskCategory
+            final gIdx = taskController?.taskCategory
                 .indexWhere((g) => g.taskMsg.taskId == updated.taskId);
             if (gIdx != -1) {
-              taskController.taskCategory[gIdx].taskMsg.taskId = old.taskId;
+              taskController?.taskCategory[gIdx!].taskMsg.taskId = old.taskId;
               // targeted update same id se ho jayega
             }
           } else {
             // ❓ Not found = naya task aaya? Tab hi insert karo.
             list.insert(0, updated);
-            taskController.update(); // list-container ke liye alag id
+            taskController?.update(); // list-container ke liye alag id
           }
         }
       } catch (e) {
@@ -1131,13 +1155,25 @@ class SocketController extends GetxController with WidgetsBindingObserver {
   }
 
   void _handleMessageDeletedTask(Map<String, dynamic> payload) {
-    TaskController chatDetailController = Get.find<TaskController>();
+    final _tagid = TaskPresence.activeTaskId.value;
+    final _tag = "task_${_tagid ?? 'mobile'}";
+    TaskController? taskController;
+    if(!kIsWeb || Get.width<600){
+      taskController =
+          Get.find<TaskController>();
+    }else{
+      if (Get.isRegistered<TaskController>(tag: _tag)) {
+        taskController =
+            Get.find<TaskController>(tag: _tag);
+      }
+    }
+
     final dynamic idRaw = payload['task_id'];
     final int? chatId = idRaw is int ? idRaw : int.tryParse('$idRaw');
     if (chatId == null) return;
 
     // 1) find the message in your current page
-    final int idx = (chatDetailController.taskHisList ?? [])
+    final int idx = (taskController?.taskHisList ?? [])
         .indexWhere((m) => m.taskId == chatId);
     if (idx == -1) {
       // not in current page (maybe on a different page); nothing to update locally
@@ -1145,22 +1181,22 @@ class SocketController extends GetxController with WidgetsBindingObserver {
     }
 
     // 2) mark it "deleted for everyone": clear text, clear media, set an activity flag (optional)
-    final TaskData msg = chatDetailController.taskHisList![idx];
-    msg.title = null;
-    msg.taskId = null;
-    msg.details = null;
-    msg.deadline = null;
-    msg.currentStatus = null;
-    msg.statusHistory = null;
-    msg.media = <TaskMedia>[];
+    final TaskData? msg = taskController?.taskHisList![idx];
+    msg?.title = null;
+    msg?.taskId = null;
+    msg?.details = null;
+    msg?.deadline = null;
+    msg?.currentStatus = null;
+    msg?.statusHistory = null;
+    msg?.media = <TaskMedia>[];
 
     // 3) put back & rebuild your date groups
-    chatDetailController.taskHisList![idx] = msg;
-    chatDetailController.taskHisList!.removeAt(idx);
+    taskController?.taskHisList?[idx] = msg!;
+    taskController?.taskHisList!.removeAt(idx);
     _rebuildCategoriesForTask();
     Get.back();
     update();
-    chatDetailController.update();
+    taskController?.update();
   }
 
   void _rebuildCategoriesForTask() {

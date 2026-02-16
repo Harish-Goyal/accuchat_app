@@ -5,14 +5,12 @@ import 'package:AccuChat/Screens/Chat/screens/auth/models/get_uesr_Res_model.dar
 import 'package:AccuChat/Screens/Chat/screens/chat_tasks/Presentation/Controllers/chat_home_controller.dart';
 import 'package:AccuChat/Screens/Chat/screens/chat_tasks/Presentation/Controllers/chat_screen_controller.dart';
 import 'package:AccuChat/Screens/Chat/screens/chat_tasks/Presentation/Controllers/task_home_controller.dart';
-import 'package:AccuChat/Screens/Chat/screens/chat_tasks/Presentation/Views/chat_screen.dart';
 import 'package:AccuChat/Services/storage_service.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter_linkify/flutter_linkify.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:url_launcher/url_launcher_string.dart';
-import 'package:AccuChat/Screens/Chat/models/chat_history_response_model.dart';
 import 'package:AccuChat/Services/APIs/api_ends.dart';
 import 'package:AccuChat/routes/app_routes.dart';
 import 'package:AccuChat/utils/loading_indicator.dart';
@@ -25,7 +23,6 @@ import 'package:AccuChat/utils/helper_widget.dart';
 import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:flutter_staggered_animations/flutter_staggered_animations.dart';
 import 'package:get/get.dart';
 import 'package:grouped_list/grouped_list.dart';
 import 'package:image_picker/image_picker.dart';
@@ -37,7 +34,6 @@ import 'package:flutter/gestures.dart'; // ✅ added: better web scrolling
 import '../../../../../../Constants/app_theme.dart';
 import '../../../../../../Constants/assets.dart';
 import '../../../../../../Constants/colors.dart';
-import '../../../../../../Services/APIs/local_keys.dart';
 import '../../../../../../utils/chat_presence.dart';
 import '../../../../../../utils/common_textfield.dart';
 import '../../../../../../utils/custom_container.dart';
@@ -52,7 +48,6 @@ import '../../../../../Home/Presentation/Controller/socket_controller.dart';
 import '../../../../helper/dialogs.dart';
 import '../../../../models/task_res_model.dart';
 import '../Controllers/task_controller.dart';
-import '../Widgets/staggered_view.dart';
 import '../../../../api/apis.dart';
 import 'package:path_provider/path_provider.dart';
 
@@ -107,21 +102,46 @@ double _textScaleClamp(BuildContext context) {
   return t.clamp(0.9, 1.2);
 }
 
-class TaskScreen extends GetView<TaskController> {
-  final GlobalKey _menuKey = GlobalKey();
+class TaskScreen extends StatefulWidget {
+
   TaskScreen({super.key, this.taskUser, this.showBack = true});
   final UserDataAPI? taskUser;
   bool showBack;
 
   @override
-  Widget build(BuildContext context) {
-    final taskController = Get.put(
-      TaskController(user: taskUser),
-      tag: "task_${taskUser?.userId ?? 'mobile'}",
-    );
+  State<TaskScreen> createState() => _TaskScreenState();
+}
 
-    return GetBuilder<TaskController>(
-        init: taskController,
+class _TaskScreenState extends State<TaskScreen> {
+  final GlobalKey _menuKey = GlobalKey();
+
+  late TaskController controller;
+
+  String _tag ='';
+  @override
+  void initState() {
+    super.initState();
+
+    final ucId = widget.taskUser?.userCompany?.userCompanyId;
+    _tag = "task_${ucId??'mobile'}";
+    controller = Get.put(TaskController(user: widget.taskUser)
+        ,tag: _tag
+    );
+  }
+
+
+  @override
+  void dispose() {
+    if (Get.isRegistered<TaskController>(tag: _tag)) {
+      Get.delete<TaskController>(tag:_tag,force: true);
+    }
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+  return  GetBuilder<TaskController>(
+        tag: _tag,
         builder: (controller) {
           return GestureDetector(
             onTap: () => FocusScope.of(context).unfocus(),
@@ -153,8 +173,8 @@ class TaskScreen extends GetView<TaskController> {
       surfaceTintColor: Colors.white,
       automaticallyImplyLeading: false,
       flexibleSpace: MediaQuery(
-        data: MediaQuery.of(Get.context!).copyWith(
-            textScaleFactor: _textScaleClamp(Get.context!)),
+        data: MediaQuery.of(context).copyWith(
+            textScaleFactor: _textScaleClamp(context)),
         child: _appBar(),
       ),
     );
@@ -708,7 +728,6 @@ class TaskScreen extends GetView<TaskController> {
     );
   }
 
-
   Future<void> openDocumentFromUrl(String url) async {
     customLoader.show();
     if (kIsWeb) {
@@ -793,7 +812,6 @@ class TaskScreen extends GetView<TaskController> {
     }
   }
 
-
   // app bar widget
   Widget _appBar() {
     return Row(
@@ -845,7 +863,7 @@ class TaskScreen extends GetView<TaskController> {
             child: Row(
               children: [
                 //back button
-                !showBack
+                !widget.showBack
                     ? const SizedBox(
                         width: 14,
                       )
@@ -938,7 +956,8 @@ class TaskScreen extends GetView<TaskController> {
 
         controller.isSearching?const SizedBox():  (controller.user?.userCompany?.isBroadcast==1 ||controller.user?.userCompany?.isGroup==1) ?const SizedBox():CustomTextButton(onTap: (){
 
-          final _tagid = ChatPresence.activeChatId.value;
+          // final _tagid =controller.user?.userCompany?.userCompanyId;
+          final _tagid = TaskPresence.activeTaskId.value;
           final _tag = "chat_${_tagid ?? 'mobile'}";
           if (controller.user == null) return;
           isTaskMode = false;
@@ -947,25 +966,20 @@ class TaskScreen extends GetView<TaskController> {
           // ensure ChatHomeController exists
           if (!Get.isRegistered<ChatHomeController>()) {
             Get.put(ChatHomeController(),permanent: true);
-            // toast("Something went wrong! Please refresh the App");
-            // return;
           }
           // ensure ChatScreenController exists
-          if (!Get.isRegistered<ChatScreenController>()) {
-            // toast("Something went wrong! Please refresh the App");
-            // return;
-            Get.put(ChatScreenController(user: controller.user),tag: _tag);
+          ChatScreenController chatC;
+          if (!Get.isRegistered<ChatScreenController>(tag: _tag)) {
+            chatC= Get.put(ChatScreenController(user: controller.user),tag: _tag);
+          }else{
+            chatC = Get.find<ChatScreenController>(tag: _tag);
           }
-
           final chatHome = Get.find<ChatHomeController>();
-
-          final chatC = Get.find<ChatScreenController>(tag: _tag);
-
           chatHome.selectedChat.value = controller.user;
           chatC.user = controller.user;
-          // Future.microtask(() {
+          Future.microtask(() {
             chatC.openConversation(chatHome.selectedChat.value);
-          // });
+          });
 
           chatHome.selectedChat.refresh();
         }, title: "Go to Chat"),
@@ -1061,6 +1075,7 @@ class TaskScreen extends GetView<TaskController> {
             : const SizedBox(),
         controller.isSearching?const SizedBox(): GetBuilder<TaskController>(
           id: 'statusMenu',
+          tag: _tag,
           builder: (controller) {
             // Loading state
             if (controller.isLoadings && controller.taskStatus.isEmpty) {
@@ -2130,7 +2145,6 @@ class TaskScreen extends GetView<TaskController> {
       );
     });
   }*/
-
   _updateTasksDialogWidget(TaskData taskDetails) {
     // Local edit buffer for attachments (new + existing mapped to the same shape
     // you already use in Create dialog)
@@ -2570,7 +2584,6 @@ class TaskScreen extends GetView<TaskController> {
       controller.validString = "";
     });
   }*/
-
   String _getEstimatedTime(setStateInside, estimateTime) {
     DateTime estimate =
         DateTime.fromMillisecondsSinceEpoch(int.parse(estimateTime ?? 0));

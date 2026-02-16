@@ -1,8 +1,10 @@
 import 'package:AccuChat/Constants/themes.dart';
+import 'package:AccuChat/Screens/Chat/models/get_company_res_model.dart';
 import 'package:AccuChat/Screens/Chat/screens/chat_tasks/Presentation/Controllers/chat_screen_controller.dart';
 import 'package:AccuChat/Screens/Home/Presentation/Controller/compnaies_controller.dart';
 import 'package:AccuChat/Screens/Home/Presentation/Controller/gallery_controller.dart';
 import 'package:AccuChat/Screens/Home/Presentation/View/pending_invites_animated.dart';
+import 'package:AccuChat/Screens/Home/Presentation/View/show_company_members.dart';
 import 'package:AccuChat/Services/APIs/api_ends.dart';
 import 'package:AccuChat/Services/subscription/billing_controller.dart';
 import 'package:AccuChat/main.dart';
@@ -22,12 +24,195 @@ import '../../../../utils/chat_presence.dart';
 import '../../../../utils/product_shimmer_widget.dart';
 import '../../../Chat/api/apis.dart';
 import '../../../Chat/screens/chat_tasks/Presentation/Controllers/task_controller.dart';
+import '../Controller/company_members_controller.dart';
 import '../Controller/company_service.dart';
 import '../Controller/socket_controller.dart';
 import 'home_screen.dart';
 
 class CompaniesScreen extends GetView<CompaniesController> {
-  CompaniesScreen({super.key});
+  const CompaniesScreen({super.key});
+
+  Future<void> openMemberDialog(CompanyData company) async {
+  final c=  Get.put(CompanyMemberController(
+        companyId: company.companyId, companyName: company.companyName));
+
+    try {
+      await Get.dialog(
+        Dialog(
+          clipBehavior: Clip.antiAlias,
+          insetPadding: const EdgeInsets.all(12),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(12),
+          ),
+          child: SizedBox(
+            width: kIsWeb ? 550: Get.width * .9,
+            height: Get.height * 0.9,
+            child: CompanyMembers(),
+          ),
+        ),
+        barrierDismissible: true,
+      );
+    } finally {
+      if (Get.isRegistered<CompanyMemberController>()) {
+        Get.delete<CompanyMemberController>();
+      }
+    }
+  }
+
+  Future<void> _onSubtitleTap(CompanyData companyData) async {
+    customLoader.show();
+
+    try {
+      await controller.hitAPIToGetSentInvites(
+        companyData: companyData,
+        isMember: true,
+      );
+
+      final svc = CompanyService.to;
+      await svc.select(companyData);
+
+      // If getCompany is async, await it. If not, keep as is.
+      controller.getCompany();
+
+      await APIs.refreshMe(companyId: companyData.companyId ?? 0);
+
+      if (Get.isRegistered<SocketController>()) {
+        Get.find<SocketController>().connectUserEmitter(companyData.companyId);
+      }
+
+      // ✅ Hide loader BEFORE opening dialog/route so UI doesn't look stuck
+      customLoader.hide();
+
+      if (kIsWeb) {
+        await openMemberDialog(companyData); // safe + no loader while dialog open
+      } else {
+        await Get.toNamed(
+          AppRoutes.company_members,
+          arguments: {
+            'companyId': companyData.companyId ?? 0,
+            'companyName': companyData.companyName ?? '',
+          },
+        );
+      }
+
+      // Cleanup (guard + try/catch so it can't block)
+      try {
+        final chatId = ChatPresence.activeChatId.value;
+        final chatTag = "chat_$chatId";
+        if (Get.isRegistered<ChatScreenController>(tag: chatTag)) {
+          Get.delete<ChatScreenController>(tag: chatTag, force: true);
+        }
+
+        final taskId = TaskPresence.activeTaskId.value;
+        final taskTag = "task_$taskId";
+        if (Get.isRegistered<TaskController>(tag: taskTag)) {
+          Get.delete<TaskController>(tag: taskTag, force: true);
+        }
+
+        if (Get.isRegistered<GalleryController>()) {
+          Get.delete<GalleryController>(force: true);
+        }
+      } catch (_) {}
+    } catch (e, st) {
+      // If you want: log it / show snackbar
+      debugPrint("SubtitleTap error: $e\n$st");
+      customLoader.hide(); // extra safety
+    } finally {
+      // ✅ Guaranteed hide even if anything throws
+      customLoader.hide();
+      controller.update();
+    }
+  }
+
+  Future<void> _onTapCompany(CompanyData companyData) async {
+    customLoader.show();
+    try {
+      await controller.hitAPIToGetSentInvites(
+        companyData: companyData,
+        isMember: false,
+      );
+
+      final svc = CompanyService.to;
+      await svc.select(companyData);
+
+      controller.getCompany();
+
+      await APIs.refreshMe(companyId: companyData.companyId ?? 0);
+
+      if (Get.isRegistered<SocketController>()) {
+        Get.find<SocketController>().connectUserEmitter(companyData.companyId);
+      }
+      try {
+        if (Get.isRegistered<ChatScreenController>()) {
+          Get.delete<ChatScreenController>(force: true);
+        }
+        final taskId = TaskPresence.activeTaskId.value;
+        final taskTag = "task_$taskId";
+        if (Get.isRegistered<TaskController>(tag: taskTag)) {
+          Get.delete<TaskController>(tag: taskTag, force: true);
+        }
+
+        if (Get.isRegistered<GalleryController>()) {
+          Get.delete<GalleryController>(force: true);
+        }
+      } catch (_) {}
+    } catch (e, st) {
+      debugPrint("_onTapCompany error: $e\n$st");
+    } finally {
+      // ✅ Always hide
+      customLoader.hide();
+      controller.update();
+    }
+  }
+
+
+/*  Future<void> _onTapCompany(CompanyData companyData) async {
+  customLoader.show();
+  controller
+      .hitAPIToGetSentInvites(
+  companyData:
+  companyData,
+  isMember: false);
+
+  final svc = CompanyService.to;
+  await svc.select(companyData!);
+  controller.getCompany();
+  await APIs.refreshMe(
+  companyId:
+  companyData.companyId ??
+  0);
+  Get.find<SocketController>()
+      .connectUserEmitter(
+  companyData.companyId);
+
+  if (Get.isRegistered<
+  ChatScreenController>()) {
+  Get.delete<
+  ChatScreenController>(
+  force: true);
+  }
+
+  final _tagTaskid = TaskPresence
+      .activeTaskId.value;
+  final _tagTask =
+  "task_$_tagTaskid";
+  if (Get.isRegistered<
+  TaskController>(
+  tag: _tagTask)) {
+  Get.delete<TaskController>(
+  tag: _tagTask,
+  force: true);
+  }
+  if (Get.isRegistered<
+  GalleryController>()) {
+  Get.delete<
+  GalleryController>();
+  }
+
+  customLoader.hide();
+  controller.update();
+}*/
+
 
   @override
   Widget build(BuildContext context) => SafeArea(
@@ -245,96 +430,10 @@ class CompaniesScreen extends GetView<CompaniesController> {
                                                 ],
                                               ),
                                               title: '',
-                                              subtitleTap: () async {
-                                                customLoader.show();
-                                                controller
-                                                    .hitAPIToGetSentInvites(
-                                                        companyData:
-                                                            companyData,
-                                                        isMember: true);
-                                                final svc = CompanyService.to;
-                                                await svc.select(companyData);
-                                                controller.getCompany();
-                                                await APIs.refreshMe(
-                                                    companyId:
-                                                        companyData.companyId ??
-                                                            0);
-                                                Get.find<SocketController>()
-                                                    .connectUserEmitter(
-                                                        companyData.companyId);
-                                                if (kIsWeb) {
-                                                  Get.toNamed(
-                                                      '${AppRoutes.company_members}?companyId=${companyData.companyId}&companyName=${companyData.companyName ?? ''}');
-                                                } else {
-                                                  Get.toNamed(
-                                                      AppRoutes.company_members,
-                                                      arguments: {
-                                                        'companyId': companyData
-                                                                .companyId ??
-                                                            0,
-                                                        'companyName': companyData
-                                                                .companyName ??
-                                                            ''
-                                                      });
-                                                }
-
-                                                if (Get.isRegistered<
-                                                    ChatScreenController>()) {
-                                                  Get.delete<
-                                                          ChatScreenController>(
-                                                      force: true);
-                                                }
-
-                                                if (Get.isRegistered<
-                                                    TaskController>()) {
-                                                  Get.delete<TaskController>();
-                                                }
-                                                if (Get.isRegistered<
-                                                    GalleryController>()) {
-                                                  Get.delete<
-                                                      GalleryController>();
-                                                }
-
-                                                customLoader.hide();
-                                                controller.update();
-                                              },
+                                              subtitleTap:()=> _onSubtitleTap(companyData),
                                               subtitle:
                                                   'members: ${companyData.members?.length ?? 0}',
-                                              onTap: () async {
-                                                customLoader.show();
-                                                controller
-                                                    .hitAPIToGetSentInvites(
-                                                        companyData:
-                                                            companyData,
-                                                        isMember: false);
-
-                                                final svc = CompanyService.to;
-                                                await svc.select(companyData!);
-                                                controller.getCompany();
-                                                await APIs.refreshMe(
-                                                    companyId: companyData.companyId ??
-                                                        0);
-                                                Get.find<SocketController>()
-                                                    .connectUserEmitter(
-                                                        companyData.companyId);
-
-                                                if (Get.isRegistered<ChatScreenController>()) {
-                                                  Get.delete<ChatScreenController>(force: true);
-                                                }
-
-                                                if (Get.isRegistered<
-                                                    TaskController>()) {
-                                                  Get.delete<TaskController>();
-                                                }
-                                                if (Get.isRegistered<
-                                                    GalleryController>()) {
-                                                  Get.delete<
-                                                      GalleryController>();
-                                                }
-
-                                                customLoader.hide();
-                                                controller.update();
-                                              },
+                                              onTap: ()=>_onTapCompany(companyData),
                                             ),
                                             Positioned(
                                               top: 8,
@@ -363,7 +462,7 @@ class CompaniesScreen extends GetView<CompaniesController> {
                                                         controller
                                                             .companyNavigation(
                                                                 value,
-                                                                companyData),
+                                                                companyData,()=>_onSubtitleTap(companyData)),
                                                     itemBuilder: (context) {
                                                       final List<
                                                               PopupMenuEntry<
@@ -609,7 +708,7 @@ class CompaniesScreen extends GetView<CompaniesController> {
                                                             controller
                                                                 .companyNavigation(
                                                                     "Pending",
-                                                                    companyData);
+                                                                    companyData,()=>_onSubtitleTap(companyData));
                                                           },
                                                           child: Container(
                                                             padding:

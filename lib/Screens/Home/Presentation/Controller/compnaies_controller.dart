@@ -19,7 +19,9 @@ import '../../Bindings/home_bindings.dart';
 import '../../Models/get_pending_sent_invites_res_model.dart';
 import '../View/buy_company_pack.dart';
 import '../View/buy_users_dialog.dart';
+import '../View/invitations_screens.dart';
 import '../View/invite_member.dart';
+import 'invitations_controller.dart';
 import 'invite_member_controller.dart';
 
 class CompaniesController extends GetxController {
@@ -115,15 +117,42 @@ class CompaniesController extends GetxController {
     });
   }
 
-  companyNavigation(value, CompanyData companyData) async {
+  Future<void> openPendingInvitesScreenDialog( CompanyData companyData) async {
+    final c=  Get.put(InvitationsController(comapnyID: companyData.companyId));
+
+    try {
+      await Get.dialog(
+        Dialog(
+          clipBehavior: Clip.antiAlias,
+          insetPadding: const EdgeInsets.all(12),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(12),
+          ),
+          child: SizedBox(
+            width: kIsWeb ? 550 : Get.width * .9,
+            height: Get.height * 0.9,
+            child: const InvitationsScreen(),
+          ),
+        ),
+        barrierDismissible: true,
+      );
+    } finally {
+      if (Get.isRegistered<InvitationsController>()) {
+        Get.delete<InvitationsController>();
+      }
+    }
+  }
+
+  companyNavigation(value, CompanyData companyData,Function() onMemberTap) async {
     final svc = CompanyService.to;
     if (value == "Pending") {
       if (companyData.companyId == selCompany?.companyId) {
         if (kIsWeb) {
           if ((companyData.createdBy == APIs.me?.userId)) {
-            Get.toNamed(
-              "${AppRoutes.invitations_r}?companyID=${companyData.companyId ?? 0}",
-            );
+            openPendingInvitesScreenDialog(companyData);
+            // Get.toNamed(
+            //   "${AppRoutes.invitations_r}?companyID=${companyData.companyId ?? 0}",
+            // );
           } else {
             toast("You are not allowed");
           }
@@ -208,8 +237,9 @@ class CompaniesController extends GetxController {
         getCompany();
         update();
         if (kIsWeb) {
-          Get.toNamed(
-              '${AppRoutes.company_members}?companyId=${companyData.companyId}&companyName=${companyData.companyName ?? ''}');
+          onMemberTap();
+          // Get.toNamed(
+          //     '${AppRoutes.company_members}?companyId=${companyData.companyId}&companyName=${companyData.companyName ?? ''}');
         } else {
           Get.toNamed(AppRoutes.company_members, arguments: {
             'companyId': companyData.companyId ?? 0,

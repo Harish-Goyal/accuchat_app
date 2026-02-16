@@ -16,7 +16,7 @@ import '../../Models/company_mem_res_model.dart';
 import 'company_service.dart';
 
 class CompanyMemberController extends GetxController{
-
+  CompanyMemberController({this.companyId, this.companyName});
   late Future<List<InvitationModel>> invitationsFuture;
 
   var companyId;
@@ -33,8 +33,8 @@ class CompanyMemberController extends GetxController{
 
   getArguments(){
     if (kIsWeb) {
-      companyId = Get.parameters['companyId'];
-      companyName = Get.parameters['companyName'];
+      // companyId = Get.parameters['companyId'];
+      // companyName = Get.parameters['companyName'];
     } else if(Get.arguments!=null){
       companyId = Get.arguments['companyId'];
       companyName = Get.arguments['companyName'];
@@ -153,35 +153,41 @@ class CompanyMemberController extends GetxController{
    }
    isPageLoading = true;
    update();
-   Get.find<PostApiServiceImpl>()
-       .getComMemApiCall(companyId,page,search)
-       .then((value) async {
-     isLoading.value = false;
-     update();
-     comMemResModel=value;
-     members=value.data?.records??[];
-     if (members != null && (members ?? []).isNotEmpty) {
-       if (page == 1) {
-         filteredList.assignAll(members??[]);
+   try {
+     Get.find<PostApiServiceImpl>()
+         .getComMemApiCall(companyId, page, search)
+         .then((value) async {
+       isLoading.value = false;
+       update();
+       comMemResModel = value;
+       members = value.data?.records ?? [];
+       if (members != null && (members ?? []).isNotEmpty) {
+         if (page == 1) {
+           filteredList.assignAll(members ?? []);
+         } else {
+           filteredList.addAll(members ?? []);
+         }
+         page++; // next page
        } else {
-         filteredList.addAll(members??[]);
+         hasMore = false;
+         isPageLoading = false;
+         update();
        }
-       page++; // next page
-     } else {
-       hasMore = false;
+       isLoading.value = false;
        isPageLoading = false;
        update();
-     }
+     }).onError((error, stackTrace) {
+       isLoading.value = false;
+       isPageLoading = false;
+       update();
+       update();
+     });
+   } catch (e) {
      isLoading.value = false;
+   } finally {
      isPageLoading = false;
      update();
-
-   }).onError((error, stackTrace) {
-     isLoading.value = false;
-     isPageLoading = false;
-     update();
-     update();
-   });
+   }
   }
 
   removeCompanyMember(UserDataAPI? memData)async{

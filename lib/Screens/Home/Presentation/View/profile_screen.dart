@@ -18,6 +18,7 @@ import '../../../../utils/helper_widget.dart';
 import '../../../../utils/networl_shimmer_image.dart';
 import '../../../../utils/text_style.dart';
 import '../../../Chat/screens/auth/Presentation/Views/landing_screen.dart';
+import '../../../Chat/screens/chat_tasks/Presentation/Widgets/profile_zoom.dart';
 import '../Controller/home_controller.dart';
 import '../../../Settings/Presentation/Views/settings_screen.dart';
 import '../../../../main.dart';
@@ -266,7 +267,14 @@ class _ProfileAvatar extends StatelessWidget {
         // *****************************
         // SHOW IMAGE FOR WEB + MOBILE
         // *****************************
-        _buildProfileImage(border),
+        InkWell(
+          onTap: (){
+            controller.profileImg!=''?  Get.to(() => ProfileZoom(
+                imagePath:
+                "${ApiEnd.baseUrlMedia}${controller.profileImg?? ''}",
+                heroTag: "DetailedProfile")):null;
+          },
+            child: _buildProfileImage(border)),
 
         // *****************************
         // EDIT BUTTON (WEB + MOBILE)

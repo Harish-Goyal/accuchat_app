@@ -113,7 +113,6 @@ class AccuChatDashboard extends StatelessWidget {
                       if (homec!.filteredList.isNotEmpty) {
                         final user = homec.filteredList[0];
                         final userCid =user.userCompany?.userCompanyId;
-                        final _tagid = ChatPresence.activeChatId.value;
                         final _tag = "chat_${userCid ?? 'mobile'}";
                       final chatc =Get.put(ChatScreenController(user: user),tag: _tag);
                         chatc.showPostShimmer = true;
@@ -134,37 +133,44 @@ class AccuChatDashboard extends StatelessWidget {
                 }
 
                   if (index == 1) {
-                    if (kIsWeb) unregisterImage();
-                    final taskhomec = Get.find<TaskHomeController>();
-                    if (Get.isRegistered<TaskController>()) {
-                      final chatc = Get.find<TaskController>();
-                      chatc.replyToMessage = null;
+                   final TaskHomeController taskhomec;
+                    bool isOpen = false;
+                    if (Get.isRegistered<TaskHomeController>()) {
+                      taskhomec = Get.find<TaskHomeController>();
+                    } else {
+                      taskhomec = Get.put(TaskHomeController());
+                      isOpen = true;
+                    }
+                    final _tagid = TaskPresence.activeTaskId.value;
+                    final _tag = "task_${_tagid ?? 'mobile'}";
+                    if (Get.isRegistered<TaskController>(tag: _tag)) {
+                      final taskC = Get.find<TaskController>(tag: _tag);
+                      taskC.replyToMessage = null;
                       if (taskhomec.filteredList.isNotEmpty) {
                         final user = taskhomec.filteredList[0];
                         taskhomec.selectedChat.value = user;
-                        chatc.user = taskhomec.selectedChat.value;
-                        chatc.textController.clear();
-                        chatc.update();
-                        chatc.showPostShimmer = true;
-                        chatc.openConversation(taskhomec.selectedChat.value);
+                        taskC.user = taskhomec.selectedChat.value;
+                        taskC.textController.clear();
+                        taskC.update();
+                        taskC.showPostShimmer = true;
+                        taskC.openConversation(taskhomec.selectedChat.value);
 
                       }
                     } else {
                         if (taskhomec.filteredList.isNotEmpty) {
-                          final chatc = Get.put(
-                            TaskController(user: taskhomec.filteredList[0]),
-                            tag: "task_${taskhomec.filteredList[0].userId ?? 'mobile'}",
+                          final user = taskhomec.filteredList[0];
+                          final _tagid = user.userCompany?.userCompanyId;
+                          final _tag = "task_${_tagid ?? 'mobile'}";
+                          final taskC = Get.put(
+                            TaskController(user: user),
+                            tag: _tag,
                           );
-
-                      if (taskhomec.filteredList.isNotEmpty) {
-                        final user = taskhomec.filteredList[0];
                         taskhomec.selectedChat.value = user;
-                        chatc.user =user;
-                        chatc.textController.clear();
-                        chatc.page =1;
-                        chatc.update();
-                        chatc.openConversation(taskhomec.selectedChat.value);
-                      }
+                        taskC.user =user;
+                        taskC.textController.clear();
+                        taskC.page =1;
+                        taskC.update();
+                        // taskC.openConversation(taskhomec.selectedChat.value);
                         }
                     }
                   }

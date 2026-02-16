@@ -21,6 +21,7 @@ import '../../../../../../Constants/assets.dart';
 import '../../../../../../Constants/colors.dart';
 import '../../../../../../Constants/themes.dart';
 import '../../../../../../main.dart';
+import '../../../../../../utils/chat_presence.dart';
 import '../../../../../../utils/custom_flashbar.dart';
 import '../../../../../../utils/emogi_checker.dart';
 import '../../../../../../utils/emogi_picker_web.dart';
@@ -71,7 +72,9 @@ class TaskThreadScreenWeb extends GetView<TaskThreadController> {
                     // Get.find<TaskController>().taskHisList = []; // <--- MOST IMPORTANT
                     // Get.find<TaskController>().taskCategory = [];
                     // Get.find<TaskController>().hasMore = false;
-                    final taskC= Get.find<TaskController>();
+                    final _tagTaskid = TaskPresence.activeTaskId.value;
+                    final _tagTask = "task_$_tagTaskid";
+                    final taskC= Get.find<TaskController>(tag:_tagTask);
                     taskC.resetPaginationForNewChat();
                     taskC.searchQuery = '';
                     taskC.onSearch('');

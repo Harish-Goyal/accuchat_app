@@ -81,6 +81,9 @@ class TaskController extends GetxController {
 
   @override
   void onClose() {
+    if (TaskPresence.activeTaskId.value == user?.userCompany?.userCompanyId) {
+      TaskPresence.activeTaskId.value = null;
+    }
     imageCache.clearLiveImages();
     imageCache.clear();
     super.onClose();
@@ -92,8 +95,29 @@ class TaskController extends GetxController {
     super.dispose();
   }
 
-
   getArguments() {
+    if (kIsWeb) {
+      _getCompany();
+      // if (Get.parameters != null) {
+      final String? argUserId = Get.parameters['userId'];
+      if (argUserId != null) {
+        getUserByIdApi(userId: int.parse(argUserId ?? ''));
+        // }
+      } else {
+        getUserByIdApi(userId: user?.userId);
+      }
+    } else {
+      if (Get.arguments != null) {
+        UserDataAPI argUser = Get.arguments['user'];
+        user = argUser;
+        if (user != null) {
+          // ChatPresence.activeChatId.value = argUser?.userCompany?.userCompanyId;
+          openConversation(user);
+        }
+      }
+    }
+  }
+ /* getArguments() {
     if(kIsWeb){
       _getCompany();
       if (Get.parameters != null) {
@@ -112,13 +136,13 @@ class TaskController extends GetxController {
         UserDataAPI argUser = Get.arguments['user'];
         user = argUser;
         if (argUser != null) {
-          ChatPresence.activeChatId.value = argUser.userCompany?.userCompanyId;
+          // ChatPresence.activeChatId.value = argUser.userCompany?.userCompanyId;
           openConversation(argUser);
         }
       }
     }
 
-  }
+  }*/
 
   getUserByIdApi({int? userId}) async {
     Get.find<PostApiServiceImpl>()
@@ -136,10 +160,13 @@ class TaskController extends GetxController {
 
   void openConversation(UserDataAPI? useriii) {
     user = useriii;
+    TaskPresence.activeTaskId.value = user?.userCompany?.userCompanyId;
     _getCompany();
+    Future.delayed(const Duration(milliseconds: 200), ()  {
       resetPaginationForNewChat();
       hitAPIToGetTaskHistory();
-    hitAPIToGetTaskStatus();
+      hitAPIToGetTaskStatus();
+    });
 
   }
 
@@ -236,8 +263,12 @@ class TaskController extends GetxController {
       ).then((_) {
         Get.delete<TaskThreadController>(force: true);
       }).whenComplete((){
-        Get.find<TaskController>().resetPaginationForNewChat();
-        Get.find<TaskController>().hitAPIToGetTaskHistory();
+        final _tagTaskid = TaskPresence.activeTaskId.value;
+        final _tagTask = "task_$_tagTaskid";
+        if(Get.isRegistered<TaskController>(tag: _tagTask)) {
+          Get.find<TaskController>(tag: _tagTask).resetPaginationForNewChat();
+          Get.find<TaskController>(tag: _tagTask).hitAPIToGetTaskHistory();
+        }
       });
 
     } else {
@@ -1143,52 +1174,59 @@ class TaskController extends GetxController {
 
     isPageLoading = true;
     update();
-    Get.find<PostApiServiceImpl>()
-        .getTaskHistoryApiCall(
-            userComId: user?.userCompany?.userCompanyId,
-            page: page,
-            statusId:statusId ?? '',
-      searchText: search,
-      fromDate: fromDate,
-      toDate: toDate
-    )
-        .then((value) async {
-      showPostShimmer = false;
-      taskHisRes = value;
-      if (value.data?.rows != null && (value.data?.rows ?? []).isNotEmpty) {
-        if (page == 1) {
-          taskHisList =value.data?.rows ?? [];
+    try {
+      Get.find<PostApiServiceImpl>()
+          .getTaskHistoryApiCall(
+          userComId: user?.userCompany?.userCompanyId,
+          page: page,
+          statusId: statusId ?? '',
+          searchText: search,
+          fromDate: fromDate,
+          toDate: toDate
+      )
+          .then((value) async {
+        showPostShimmer = false;
+        taskHisRes = value;
+        if (value.data?.rows != null && (value.data?.rows ?? []).isNotEmpty) {
+          if (page == 1) {
+            taskHisList = value.data?.rows ?? [];
+          } else {
+            taskHisList?.addAll(value.data?.rows ?? []);
+          }
+          page++;
         } else {
-          taskHisList?.addAll(value.data?.rows ?? []);
+          if (!isFilter) {
+            hasMore = false;
+            isPageLoading = false;
+          } else {
+            isPageLoading = false;
+            hasMore = false;
+            taskHisList = [];
+            taskCategory = [];
+          }
         }
-        page++;
-      } else {
-        if(!isFilter ){
-          hasMore = false;
-          isPageLoading = false;
-        }else{
-          isPageLoading = false;
-          hasMore = false;
-          taskHisList=[];
-          taskCategory=[];
-        }
-      }
 
-      taskCategory = (taskHisList ?? []).map((item) {
-        DateTime? datais;
-        if (item.createdOn != null) {
-          datais = DateTime.parse(item.createdOn ?? '');
-        }
-        return GroupTaskElement(datais ?? DateTime.now(), item);
-      }).toList();
+        taskCategory = (taskHisList ?? []).map((item) {
+          DateTime? datais;
+          if (item.createdOn != null) {
+            datais = DateTime.parse(item.createdOn ?? '');
+          }
+          return GroupTaskElement(datais ?? DateTime.now(), item);
+        }).toList();
+        showPostShimmer = false;
+        isPageLoading = false;
+        update();
+      }).onError((error, stackTrace) {
+        showPostShimmer = false;
+        isPageLoading = false;
+        update();
+      });
+    }  catch (e) {
       showPostShimmer = false;
+    } finally {
       isPageLoading = false;
       update();
-    }).onError((error, stackTrace) {
-      showPostShimmer = false;
-      isPageLoading = false;
-      update();
-    });
+    }
   }
 
 
@@ -1530,13 +1568,19 @@ class TaskController extends GetxController {
     textController.clear();
     replyToMessage = null;
     update();
-
+    final _tagTaskid = TaskPresence.activeTaskId.value;
+    final _tagTask = "task_$_tagTaskid";
     // Replace current chat screen with the target chat
-    if (Get.isRegistered<TaskController>() && kIsWeb) {
+    if(Get.isRegistered<TaskController>(tag: _tagTask)&& kIsWeb) {
+      page =1;
+      Get.find<TaskHomeController>().selectedChat.value =selectedUser ;
+      Get.find<TaskController>(tag: _tagTask).openConversation(selectedUser);
+    }
+   /* if (Get.isRegistered<TaskController>() && kIsWeb) {
       page =1;
       Get.find<TaskHomeController>().selectedChat.value =selectedUser ;
       Get.find<TaskController>().openConversation(selectedUser);
-    } else {
+    }*/ else {
       if(kIsWeb){
         Get.to(()=>TaskScreen(taskUser: selectedUser));
         // Get.offNamed(

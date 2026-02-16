@@ -101,17 +101,42 @@ class _ChatUserCardState extends State<ChatUserCard>
               final _tagid = ChatPresence.activeChatId.value;
               final _tag = "chat_$_tagid";
 
+              final _tagTaskid = TaskPresence.activeTaskId.value;
+              final _tagTask = "task_$_tagTaskid";
+
               if (isTaskMode) {
                 if (kIsWeb) {
+                  final activePreTag = TaskPresence.activeTaskId.value;
+                  final preTag = "task_$activePreTag";
+
+                  if(Get.isRegistered<TaskController>(tag: preTag)){
+                    Get.delete<TaskController>(tag: preTag,force: true);
+                  }
                   final homec = Get.find<TaskHomeController>();
-                  final taskC = Get.find<TaskController>();
+                  // TaskController? taskC;
+                  // if (Get.isRegistered<TaskController>(tag:  _tagTask)) {
+                  //   print("isRegistered");
+                  //   isRegistered =true;
+                  //   taskC = Get.find<TaskController>(tag:  _tagTask);
+                  // } else {
+                  //   final _tagis = "task_${widget.user?.userCompany?.userCompanyId ?? 'mobile'}";
+                  //   taskC = Get.put(TaskController(user: widget.user),
+                  //       tag: _tagis);
+                  // }
+                  final taskId = widget.user?.userCompany?.userCompanyId ?? 'mobile';
+                  final tagtask = 'task_$taskId';
+
+                  ChatScreenController taskC = Get.isRegistered<ChatScreenController>(tag: tagtask)
+                      ? Get.find<ChatScreenController>(tag: tagtask)
+                      : Get.put(ChatScreenController(user: widget.user), tag: tagtask);
+
                   homec.selectedChat.value = widget.user;
-                  taskC.user = homec.selectedChat.value;
-                  taskC.replyToMessage = null;
-                  taskC.showPostShimmer = true;
-                  taskC.openConversation(homec.selectedChat.value);
-                  homec.selectedChat.refresh();
-                  taskC.update();
+                  taskC?.user = homec.selectedChat.value;
+                  taskC?.replyToMessage = null;
+                  taskC?.showPostShimmer = true;
+                  taskC?.openConversation(homec.selectedChat.value);
+                  homec?.selectedChat.refresh();
+                  taskC?.update();
                 } else {
                   Get.toNamed(AppRoutes.tasks_li_r,
                       arguments: {'user': widget.user});
@@ -119,27 +144,36 @@ class _ChatUserCardState extends State<ChatUserCard>
               } else {
                 if (kIsWeb) {
                   final homec = Get.find<ChatHomeController>();
-                  ChatScreenController? chatc;
-                  if (Get.isRegistered<ChatScreenController>(tag: _tag)) {
-                    print("isRegistered");
-                    isRegistered =true;
-                    chatc = Get.find<ChatScreenController>(tag: _tag);
-                  } else {
-                    print("unn isRegistered");
-                    final _tag = "chat_${widget.user?.userCompany?.userCompanyId ?? 'mobile'}";
-                    chatc = Get.put(ChatScreenController(user: widget.user),
-                        tag: _tag);
+                  // ChatScreenController? chatc;
+                  // if (Get.isRegistered<ChatScreenController>(tag: _tag)) {
+                  //   isRegistered =true;
+                  //   chatc = Get.find<ChatScreenController>(tag: _tag);
+                  // } else {
+                  //   final _tagchat = "chat_${widget.user?.userCompany?.userCompanyId ?? 'mobile'}";
+                  //   chatc = Get.put(ChatScreenController(user: widget.user),
+                  //       tag: _tagchat);
+                  // }
+                  final activePreTag = ChatPresence.activeChatId.value;
+                  final preTag = "chat_$activePreTag";
+
+                  if(Get.isRegistered<ChatScreenController>(tag: preTag)){
+                    Get.delete<ChatScreenController>(tag: preTag,force: true);
                   }
+                  final chatId = widget.user?.userCompany?.userCompanyId ?? 'mobile';
+                  final tag = 'chat_$chatId';
+
+                  ChatScreenController chatc = Get.isRegistered<ChatScreenController>(tag: tag)
+                      ? Get.find<ChatScreenController>(tag: tag)
+                      : Get.put(ChatScreenController(user: widget.user), tag: tag);
+
 
                   chatc?.textController.clear();
                   chatc?.replyToMessage = null;
                   chatc?.showPostShimmer = true;
                   homec.selectedChat.value = widget.user;
                   chatc?.user = homec.selectedChat.value;
-                  chatc?.openConversation(homec.selectedChat.value);
-                  // !isRegistered?chatc?.openConversation(homec.selectedChat.value):null;
+                  // chatc?.openConversation(homec.selectedChat.value);
                   if (homec.selectedChat.value?.pendingCount != 0) {
-
                     chatc?.markAllVisibleAsReadOnOpen(
                         APIs.me.userCompany?.userCompanyId,
                         chatc.user?.userCompany?.userCompanyId,

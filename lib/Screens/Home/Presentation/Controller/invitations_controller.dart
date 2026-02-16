@@ -8,6 +8,7 @@ import 'package:get/get.dart';
 import '../../../Chat/models/invite_model.dart';
 
 class InvitationsController extends GetxController {
+  InvitationsController({this.comapnyID});
   late Future<List<InvitationModel>> invitationsFuture;
   var comapnyID;
 
@@ -23,9 +24,9 @@ class InvitationsController extends GetxController {
   getArguments(){
 
     if(kIsWeb){
-      if (Get.parameters != null) {
-        comapnyID = Get.parameters['companyID'];
-      }
+      // if (Get.parameters != null) {
+      //   comapnyID = Get.parameters['companyID'];
+      // }
     }else{
       if(Get.arguments!=null){
         comapnyID = Get.arguments['companyID'];

@@ -8,6 +8,7 @@ import 'package:AccuChat/utils/networl_shimmer_image.dart';
 import 'package:AccuChat/utils/text_style.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:intl/intl.dart';
 import '../../../../../../Services/APIs/api_ends.dart';
 import '../../../../../../main.dart';
 import '../../../../../../routes/app_routes.dart';
@@ -62,10 +63,7 @@ class ViewProfileScreen extends GetView<ViewProfileController> {
                         textAlign: TextAlign.center,
                       ),
                       Text(
-                          MyDateUtil.getLastMessageTime(
-                              context: context,
-                              time: controller.user?.createdOn ?? '',
-                              showYear: true),
+                          controller.formattedDate,
                           style: BalooStyles.baloonormalTextStyle(size: 13)),
                     ],
                   ),
