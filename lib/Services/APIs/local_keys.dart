@@ -152,6 +152,12 @@ Future<void> logoutLocal() async {
 
     try { await HiveBoot.closeAndDeleteAll(deleteFromDisk: true); } catch (_) {}
 
+  }catch(e){
+    customLoader.hide();
+    _isLoggingOut = false;
+    // 3) Navigate after a tiny delay / next tick
+    await Future.delayed(const Duration(milliseconds: 50));
+    Get.offAllNamed(AppRoutes.login_r);
   } finally {
     // 1) Close overlays first (most important)
     try { Get.closeCurrentSnackbar(); } catch (_) {}
