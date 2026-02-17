@@ -1652,64 +1652,210 @@ class TaskController extends GetxController {
               ),
             ));
   }
+
   Future<void> handleForward({required TaskData taskData}) async {
     final selectedUser = await showDialog<UserDataAPI>(
       context: Get.context!,
-      builder: (_) =>  AllUserScreenDialog(users: taskData.members,),
+      builder: (_) => AllUserScreenDialog(),
+    );
+    if (selectedUser == null) return;
+
+    final companyId = myCompany?.companyId;
+    if (companyId == null) return;
+
+    final taskId = taskData.taskId;
+    if (taskId == null) return;
+
+    final receiverId = selectedUser.userCompany?.userCompanyId;
+    if (receiverId == null) return;
+
+    final socket = Get.find<SocketController>();
+
+    void afterSendNavigate() {
+      textController.clear();
+      replyToMessage = null;
+
+      final tagId = receiverId;
+      final tag = "task_$tagId";
+
+      if (Get.isRegistered<TaskHomeController>()) {
+        Get.find<TaskHomeController>().selectedChat.value = selectedUser;
+      }
+
+      final con = Get.isRegistered<TaskController>(tag: tag)
+          ? Get.find<TaskController>(tag: tag)
+          : Get.put(TaskController(user: selectedUser), tag: tag);
+
+      con.openConversation(selectedUser);
+    }
+
+    socket.forwardTaskMessage(
+      taskID: taskId,
+      receiverId: receiverId,
+      companyId: companyId,
+      tasktitle: taskData.title ?? '',
+    );
+
+    afterSendNavigate();
+  }
+
+/*  Future<void> handleForward({required TaskData taskData}) async {
+    final selectedUser = await showDialog<UserDataAPI>(
+      context: Get.context!,
+      builder: (_) => AllUserScreenDialog(),
     );
     if (selectedUser == null) return;
     final socket = Get.find<SocketController>();
+    void _afterSendNavigate() {
+      textController.clear();
+      replyToMessage = null;
+      final _tagid = selectedUser.userCompany?.userCompanyId;
+      final _tag = "task_${_tagid ?? 'mobile'}";
+      if (Get.isRegistered<TaskController>(tag: _tag)) {
+        Get.find<TaskHomeController>().selectedChat.value = selectedUser;
+        final con = Get.find<TaskController>(
+            tag:_tag);
+        con.openConversation(selectedUser);
+      } else {
+        Get.put(TaskController(user: selectedUser),tag: _tag);
+      }
+    }
 
-    // Safety: don’t forward to yourself
     final targetUcId = selectedUser.userCompany?.userCompanyId;
-    // if (targetUcId != null &&
-    //     APIs.me.userCompany?.userCompanyId != null &&
-    //     targetUcId ==  APIs.me.userCompany?.userCompanyId) {
-    //   Get.snackbar('Oops', 'You cannot forward a message to yourself.',backgroundColor: Colors.white,colorText: Colors.black,duration: Duration(seconds: 6));
-    //   return;
-    // }
-    // DIRECT — use UCID, NOT userId
+
+    if (selectedUser == null) return;
+
     socket.forwardTaskMessage(
         taskID: taskData.taskId,
         receiverId: selectedUser.userCompany?.userCompanyId,
-    companyId: myCompany?.companyId,
+        companyId: myCompany?.companyId,
         tasktitle: taskData.title??''
+    );
+    _afterSendNavigate();
 
-    ).then((v)=>_afterSendNavigate(selectedUser));
+  }*/
 
-  }
-
-  void _afterSendNavigate(UserDataAPI selectedUser) {
-    textController.clear();
-    replyToMessage = null;
-    update();
-    final _tagTaskid = TaskPresence.activeTaskId.value;
-    final _tagTask = "task_$_tagTaskid";
-    // Replace current chat screen with the target chat
-    if(Get.isRegistered<TaskController>(tag: _tagTask)&& kIsWeb) {
-      page =1;
-      Get.find<TaskHomeController>().selectedChat.value =selectedUser ;
-      Get.find<TaskController>(tag: _tagTask).openConversation(selectedUser);
-    }
-   /* if (Get.isRegistered<TaskController>() && kIsWeb) {
-      page =1;
-      Get.find<TaskHomeController>().selectedChat.value =selectedUser ;
-      Get.find<TaskController>().openConversation(selectedUser);
-    }*/ else {
-      if(kIsWeb){
-        Get.to(()=>TaskScreen(taskUser: selectedUser));
-        // Get.offNamed(
-        //   "${AppRoutes.tasks_li_r}?userId=${selectedUser.userId.toString()}",
-        // );
-      }else{
-        Get.toNamed(
-          AppRoutes.tasks_li_r,
-          arguments: {'user': selectedUser},
-        );
-        // Get.to(()=>TaskScreen(taskUser: selectedUser));
+  Future<void> handleForwardMobile({required TaskData taskData}) async {
+    final selectedUser = await showDialog<UserDataAPI>(
+      context: Get.context!,
+      builder: (_) => AllUserScreenDialog(),
+    );
+    if (selectedUser == null) return;
+    final socket = Get.find<SocketController>();
+    void _afterSendNavigate() {
+      textController.clear();
+      replyToMessage = null;
+      if (Get.isRegistered<TaskController>()) {
+        Get.find<TaskHomeController>().selectedChat.value = selectedUser;
+        final con = Get.find<TaskController>();
+        con.openConversation(selectedUser);
+      } else {
+        Get.put(TaskController(user: selectedUser));
       }
     }
+
+    final targetUcId = selectedUser.userCompany?.userCompanyId;
+
+    if (selectedUser == null) return;
+
+    socket.forwardTaskMessage(
+        taskID: taskData.taskId,
+        receiverId: selectedUser.userCompany?.userCompanyId,
+        companyId: myCompany?.companyId,
+        tasktitle: taskData.title??''
+    );
+    _afterSendNavigate();
+
   }
+
+
+
+
+
+
+
+
+  // Future<void> handleForward({required TaskData taskData}) async {
+  //   final selectedUser = await showDialog<UserDataAPI>(
+  //     context: Get.context!,
+  //     builder: (_) =>  AllUserScreenDialog(users: taskData.members,),
+  //   );
+  //   if (selectedUser == null) return;
+  //   final socket = Get.find<SocketController>();
+  //
+  //   socket.forwardTaskMessage(
+  //       taskID: taskData.taskId,
+  //       receiverId: selectedUser.userCompany?.userCompanyId,
+  //   companyId: myCompany?.companyId,
+  //       tasktitle: taskData.title??''
+  //
+  //   ).then((v)=> kIsWeb?_afterSendNavigate(selectedUser):_afterSendNavigateMobile(selectedUser));
+  //
+  // }
+  //
+  // void _afterSendNavigate(UserDataAPI selectedUser) {
+  //   textController.clear();
+  //   replyToMessage = null;
+  //   update();
+  //   final _tagTaskid = TaskPresence.activeTaskId.value;
+  //   final _tagTask = "task_$_tagTaskid";
+  //   // Replace current chat screen with the target chat
+  //   if(Get.isRegistered<TaskController>(tag: _tagTask)&& kIsWeb) {
+  //     page =1;
+  //     Get.find<TaskHomeController>().selectedChat.value =selectedUser ;
+  //     Get.find<TaskController>(tag: _tagTask).openConversation(selectedUser);
+  //   }
+  //  /* if (Get.isRegistered<TaskController>() && kIsWeb) {
+  //     page =1;
+  //     Get.find<TaskHomeController>().selectedChat.value =selectedUser ;
+  //     Get.find<TaskController>().openConversation(selectedUser);
+  //   }*/ else {
+  //     if(kIsWeb){
+  //       Get.to(()=>TaskScreen(taskUser: selectedUser));
+  //       // Get.offNamed(
+  //       //   "${AppRoutes.tasks_li_r}?userId=${selectedUser.userId.toString()}",
+  //       // );
+  //     }else{
+  //       Get.toNamed(
+  //         AppRoutes.tasks_li_r,
+  //         arguments: {'user': selectedUser},
+  //       );
+  //       // Get.to(()=>TaskScreen(taskUser: selectedUser));
+  //     }
+  //   }
+  // }
+  //
+  // void _afterSendNavigateMobile(UserDataAPI selectedUser) {
+  //   textController.clear();
+  //   replyToMessage = null;
+  //   update();
+  //   // Replace current chat screen with the target chat
+  //   if(Get.isRegistered<TaskController>() && kIsWeb) {
+  //     page =1;
+  //     Get.find<TaskHomeController>().selectedChat.value =selectedUser ;
+  //     openConversation(selectedUser);
+  //   }
+  //  /* if (Get.isRegistered<TaskController>() && kIsWeb) {
+  //     page =1;
+  //     Get.find<TaskHomeController>().selectedChat.value =selectedUser ;
+  //     Get.find<TaskController>().openConversation(selectedUser);
+  //   }*/ else {
+  //     if(kIsWeb){
+  //       Get.to(()=>TaskScreen(taskUser: selectedUser));
+  //       // Get.offNamed(
+  //       //   "${AppRoutes.tasks_li_r}?userId=${selectedUser.userId.toString()}",
+  //       // );
+  //     }else{
+  //       Get.toNamed(
+  //         AppRoutes.tasks_li_r,
+  //         arguments: {'user': selectedUser},
+  //       );
+  //       // Get.to(()=>TaskScreen(taskUser: selectedUser));
+  //     }
+  //   }
+  // }
+  
+  
 
 
   String formatWhen(String utcISO) {

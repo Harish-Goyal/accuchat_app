@@ -251,26 +251,7 @@ class _ChatScreenState extends State<ChatScreen> {
     _paginationListenerAttached = true;
 
     itemPositionsListener.itemPositions.addListener(onPositionsChanged);
-/*    if (_paginationListenerAttached) return;
-    _paginationListenerAttached = true;
 
-    itemPositionsListener.itemPositions.addListener(() {
-      if (isPageLoading || !hasMore) return;
-
-      final positions = itemPositionsListener.itemPositions.value;
-      if (positions.isEmpty) return;
-      // When reverse:true, loading older messages happens when you reach the "top".
-      // In practice: the highest index becomes visible.
-      final maxVisibleIndex = positions
-          .where((p) => p.itemTrailingEdge > 0) // visible
-          .map((p) => p.index)
-          .reduce((a, b) => a > b ? a : b);
-
-      // near the end (top side in reverse list)
-      if (maxVisibleIndex >= chatRows.length - 4) {
-        hitAPIToGetChatHistory("pagination");
-      }
-    });*/
   }
 
   void onPositionsChanged() {
@@ -2349,9 +2330,10 @@ class _ChatScreenState extends State<ChatScreen> {
                               : null);
                     }),
 
-              (data.message != null ||
-                      ((data.media?.isNotEmpty ?? true) &&
-                          data.media?.length == 1))
+              (
+                  (data.media?.length == 1) ||
+                      ((data.media == null || data.media!.isEmpty) && (data.message?.isNotEmpty ?? false))
+              )
                   ? _OptionItem(
                       icon: Icon(Icons.share, color: appColorGreen, size: 16),
                       name: 'Share on WhatsApp',
@@ -2367,7 +2349,17 @@ class _ChatScreenState extends State<ChatScreen> {
                           }
                         }
                       })
-                  : const SizedBox()
+                  : const SizedBox(),
+
+              if ((data.message?.isNotEmpty ?? false)|| (data.media ?? []).isNotEmpty)
+                _OptionItem(
+                    icon:  Icon(Icons.reply_all_outlined, color: Colors.blue),
+                    name:
+                    'Forward',
+                    onTap: () {
+                      Get.back();
+                      controller.handleForward(chatId: data.chatId);
+                    }),
               //separator or divider
               /* if (!widget.isForward)
                 Divider(

@@ -363,7 +363,6 @@ class SocketController extends GetxController with WidgetsBindingObserver {
       debugPrint("Listing task......4");
       debugPrint("send_task_listener ${jsonEncode(messages.toString())}");
       try {
-
         final _tagid = TaskPresence.activeTaskId.value;
         final _tag = "task_${_tagid ?? 'mobile'}";
         TaskController? taskController;

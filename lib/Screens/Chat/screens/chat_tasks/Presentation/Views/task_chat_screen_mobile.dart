@@ -184,7 +184,7 @@ class TaskScreenMobile extends GetView<TaskController> {
   }
 
   groupListView() {
-    return controller.taskCategory.isNotEmpty &&
+    return controller.showPostShimmer?const IndicatorLoading(): controller.taskCategory.isNotEmpty &&
             (controller.taskHisList ?? []).isNotEmpty
         ? NotificationListener<ScrollNotification>(
       onNotification: (n) {
@@ -322,7 +322,7 @@ class TaskScreenMobile extends GetView<TaskController> {
                   (sentByMe)
                       ? IconButton(
                           onPressed: () {
-                            controller.handleForward(taskData: data);
+                            controller.handleForwardMobile(taskData: data);
                           },
                           icon: Transform(
                               alignment: Alignment.center,
@@ -387,7 +387,7 @@ class TaskScreenMobile extends GetView<TaskController> {
                   (!sentByMe)
                       ? IconButton(
                           onPressed: () {
-                            controller.handleForward(taskData: data);
+                            controller.handleForwardMobile(taskData: data);
                           },
                           icon: Image.asset(
                             forwardIcon,
@@ -1257,7 +1257,7 @@ class TaskScreenMobile extends GetView<TaskController> {
                   controller.replyToMessage = null;
                   controller.update();
                 }
-                Get.find<TaskController>().hitAPIToGetTaskHistory();
+                // Get.find<TaskController>().hitAPIToGetTaskHistory();
 
               }
             },

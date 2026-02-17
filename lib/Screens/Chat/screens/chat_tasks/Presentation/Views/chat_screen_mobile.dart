@@ -18,9 +18,7 @@ import 'package:file_picker/file_picker.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:flutter_staggered_animations/flutter_staggered_animations.dart';
 import 'package:get/get.dart';
-import 'package:grouped_list/grouped_list.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:intl/intl.dart';
 import 'package:scrollable_positioned_list/scrollable_positioned_list.dart';
@@ -110,14 +108,118 @@ double _textScaleClamp(BuildContext context) {
   return t.clamp(0.9, 1.2);
 }
 
-class ChatScreenMobile extends GetView<ChatScreenController> {
+class ChatScreenMobile extends StatefulWidget {
   ChatScreenMobile({super.key});
 
+  @override
+  State<ChatScreenMobile> createState() => _ChatScreenMobileState();
+}
 
+class _ChatScreenMobileState extends State<ChatScreenMobile> {
   final speechC = Get.put(SpeechControllerImpl());
+  late ChatScreenController controller;
   SaveToGalleryController galleryController= Get.put(SaveToGalleryController());
+  late final ItemScrollController itemScrollController;
+  late final ItemPositionsListener itemPositionsListener;
+  @override
+  void initState() {
+    super.initState();
+    itemScrollController = ItemScrollController();
+    itemPositionsListener = ItemPositionsListener.create();
+    // controller.itemScrollController = ItemScrollController();
+    // controller.itemPositionsListener = ItemPositionsListener.create();
 
-  // SaveToGalleryController saveGellController =Get.put(SaveToGalleryController());
+    _attachPaginationListener();
+
+    if (Get.isRegistered<ChatScreenController>()) {
+      controller = Get.find<ChatScreenController>();
+    } else {
+      controller = Get.put(ChatScreenController());
+    }
+
+  }
+
+  @override
+  void dispose() {
+    try {
+      itemPositionsListener.itemPositions
+          .removeListener(onPositionsChanged);
+    } catch (_) {}
+    if (Get.isRegistered<ChatScreenController>()) {
+      Get.delete<ChatScreenController>(force: true);
+    }
+    super.dispose();
+  }
+
+  Future<void> jumpToRepliedMessage(int targetChatId) async {
+    /// Load more pages if message not found
+    if (!controller.chatIdIndexMap.containsKey(targetChatId)) {
+      await _loadUntilFound(targetChatId);
+      controller.rebuildFlatRows();
+    }
+
+    final index = controller.chatIdIndexMap[targetChatId];
+    if (index == null) return;
+
+    itemScrollController.scrollTo(
+      index: index,
+      duration: const Duration(milliseconds: 400),
+      curve: Curves.easeOutCubic,
+      alignment: 0.15,
+    );
+
+    // highlight effect
+    controller.highlightedChatId = targetChatId;
+    controller.update();
+
+    Future.delayed(const Duration(seconds: 2), () {
+      if (controller.highlightedChatId == targetChatId) {
+        controller.highlightedChatId = null;
+        controller.update();
+      }
+    });
+  }
+  Future<void> _loadUntilFound(int targetChatId) async {
+    int safety = 0;
+    while (!controller.chatIdIndexMap.containsKey(targetChatId) &&
+        controller.hasMore &&
+        !controller.isPageLoading) {
+      safety++;
+      if (safety > 50) break;
+
+      await controller.hitAPIToGetChatHistory("_loadUntilFound");
+      controller.rebuildFlatRows();
+
+      if (controller.chatIdIndexMap.containsKey(targetChatId)) break;
+    }
+  }
+  bool _paginationListenerAttached = false;
+  void _attachPaginationListener() {
+    if (_paginationListenerAttached) return;  // ✅ prevents duplicate attach
+    _paginationListenerAttached = true;
+
+    itemPositionsListener.itemPositions.addListener(onPositionsChanged);
+
+  }
+
+  void onPositionsChanged() {
+
+    if (controller.isPageLoading || !controller.hasMore) return;
+
+    final positions = itemPositionsListener.itemPositions.value;
+    if (positions.isEmpty) return;
+    // When reverse:true, loading older messages happens when you reach the "top".
+    // In practice: the highest index becomes visible.
+    final maxVisibleIndex = positions
+        .where((p) => p.itemTrailingEdge > 0) // visible
+        .map((p) => p.index)
+        .reduce((a, b) => a > b ? a : b);
+
+    // near the end (top side in reverse list)
+    if (maxVisibleIndex >= controller.chatRows.length - 4) {
+      controller.hitAPIToGetChatHistory("pagination");
+    }
+  }
   @override
   Widget build(BuildContext context) {
     return GetBuilder<ChatScreenController>(builder: (controller) {
@@ -336,8 +438,8 @@ class ChatScreenMobile extends GetView<ChatScreenController> {
   groupListView() {
    return controller.showPostShimmer?const IndicatorLoading(): (controller.chatRows ?? []).isNotEmpty
         ? ScrollablePositionedList.builder(
-        itemScrollController: controller.itemScrollController,
-        itemPositionsListener: controller.itemPositionsListener,
+        itemScrollController: itemScrollController,
+        itemPositionsListener: itemPositionsListener,
         itemCount: controller.chatRows.length,
         reverse: true,
         padding: const EdgeInsets.only(bottom: 30),
@@ -448,6 +550,7 @@ class ChatScreenMobile extends GetView<ChatScreenController> {
       ),
     );
   }
+
 /*  Widget groupListView() {
     // final initialIndex = (controller.flatRows.isEmpty)
     //     ? 0
@@ -568,184 +671,7 @@ class ChatScreenMobile extends GetView<ChatScreenController> {
 
 
 
-*//*    ScrollablePositionedList.builder(
-      itemScrollController: controller.itemScrollController,
-      itemPositionsListener: controller.itemPositionsListener,
-      initialScrollIndex: initialIndex,        // start at bottom (chat-like)
-      initialAlignment: 1.0,
-      shrinkWrap: true,// align bottom
-      padding: const EdgeInsets.only(bottom: 30),
-      itemCount: controller.flatRows.length,
-      itemBuilder: (context, index) {
-        final row = controller.flatRows[index];
-
-        if (row is ChatHeaderRow) {
-          // reuse your header builder
-          return _createGroupHeader(row.date); // adapt signature if needed
-        }
-
-        if (row is ChatMessageRow) {
-          final element = row.element;
-
-          String formattedTime = '';
-          if (element.chatMessageItems.sentOn != null) {
-            final timeString = element.chatMessageItems.sentOn!;
-            formattedTime = convertUtcToIndianTime(timeString);
-          }
-
-          final userid = controller.me?.userId;
-          final sentByMe = (userid?.toString() ==
-              element.chatMessageItems.fromUser?.userId?.toString());
-
-          final chatId = element.chatMessageItems.chatId;
-          final isHighlighted = chatId != null &&
-              controller.highlighted.contains(chatId);
-          final id = element.chatMessageItems.chatId;
-          final rowKey = (id == null)
-              ? null
-              : controller.chatIdToKey.putIfAbsent(id, () => GlobalKey());
-          return  KeyedSubtree(
-            key: rowKey,
-            child: StaggeredAnimationListItem(
-              index: index,
-              child: SwipeTo(
-                onRightSwipe: element.chatMessageItems.isActivity == 1
-                    ? (v) {}
-                    : (detail) {
-                  if (element.chatMessageItems.isActivity == 1 ||
-                      (element.chatMessageItems.media ?? [])
-                          .isNotEmpty) {
-                  } else {
-
-                    final media = element.chatMessageItems.media;
-
-                    if (media == null || media.isEmpty) {
-                      controller.refIdis = element.chatMessageItems.chatId;
-                      controller.userIDSender = element.chatMessageItems.fromUser?.userId;
-                      controller.userNameReceiver =
-                          element.chatMessageItems.toUser?.userCompany?.displayName ?? '';
-                      controller.userNameSender =
-                          element.chatMessageItems.fromUser?.userCompany?.displayName ?? '';
-                      controller.userIDReceiver = element.chatMessageItems.toUser?.userId;
-                      controller.replyToMessage = element.chatMessageItems;
-                      controller.update();
-                      controller.messageInputFocus.requestFocus();
-                    } else {
-                      final firstMedia = media.first;
-                      controller.refIdis = element.chatMessageItems.chatId;
-                      controller.userIDSender = element.chatMessageItems.fromUser?.userId;
-                      controller.userNameReceiver = element.chatMessageItems.toUser?.userCompany?.displayName ?? '';
-                      controller.userNameSender = element.chatMessageItems.fromUser?.userCompany?.displayName ?? '';
-                      controller.userIDReceiver = element.chatMessageItems.toUser?.userId;
-
-                      controller.replyToImage = firstMedia.orgFileName;
-
-                      final isDoc = firstMedia.mediaType?.mediaCode == "DOC";
-                      final msg = isDoc
-                          ? (firstMedia.orgFileName ?? '')
-                          : "${ApiEnd.baseUrlMedia}${firstMedia.fileName ?? ''}";
-
-                      controller.replyToMessage = ChatHisList(
-                        chatId: element.chatMessageItems.chatId,
-                        fromUser: element.chatMessageItems.fromUser,
-                        toUser: element.chatMessageItems.toUser,
-                        message: msg,
-                        replyToId: element.chatMessageItems.chatId,
-                        replyToText: firstMedia.orgFileName,
-                      );
-
-                      controller.update();
-                      controller.messageInputFocus.requestFocus();
-                    }
-
-
-                    // // Set the message being replied to
-                    // controller.refIdis =
-                    //     element.chatMessageItems.chatId;
-                    // controller.userIDSender =
-                    //     element.chatMessageItems.fromUser?.userId;
-                    // controller.userNameReceiver =
-                    //     element.chatMessageItems.toUser?.userCompany?.displayName ??
-                    //         '';
-                    // controller.userNameSender = element
-                    //         .chatMessageItems.fromUser?.userCompany?.displayName ??
-                    //     '';
-                    // controller.userIDReceiver =
-                    //     element.chatMessageItems.toUser?.userId;
-                    // controller.replyToMessage =
-                    //     element.chatMessageItems;
-                    // controller.update();
-                    // controller.messageInputFocus.requestFocus();
-                  }
-                },
-                child: Container(
-                  // optional highlight
-                  color: isHighlighted
-                      ? const Color(0xFFFFFF00).withOpacity(0.2)
-                      : null,
-                  child: _chatMessageTile(
-                    data: element.chatMessageItems,
-                    sentByMe: sentByMe,
-                    formatedTime: formattedTime,
-                  ),
-                ),
-              ),
-            ),
-          );
-        }
-
-        return const SizedBox.shrink();
-      },
-    );*//*
-
-  }*/
-
-
- /* Widget _createGroupHeader(GroupChatElement element) {
-    final isToday = DateUtils.isSameDay(element.date, DateTime.now());
-    final dateText =
-    isToday ? "Today" : DateFormat.yMMMd().format(element.date);
-    return Container(
-      color: Colors.transparent,
-      child: Row(
-        children: [
-          Expanded(child: divider(color: appColorGreen.withOpacity(.3))),
-          CustomContainer(
-            elevation: 2,
-            vPadding: 3,
-            hPadding: 7,
-            color: AppTheme.whiteColor,
-            childWidget: Text(
-              dateText,
-              style: BalooStyles.balooregularTextStyle(size: 12.5),
-            ),
-          ),
-          Expanded(child: divider(color: appColorGreen.withOpacity(.3))),
-        ],
-      ),
-    );
-  }*/
- /* Widget _createGroupHeader(date) {
-    return Container(
-      color: Colors.transparent,
-      child: Row(
-        children: [
-          Expanded(child: divider(color: appColorGreen.withOpacity(.3))),
-          CustomContainer(
-            elevation: 2,
-            vPadding: 3,
-            hPadding: 7,
-            color: AppTheme.whiteColor.withOpacity(.6),
-            childWidget: Text(DateFormat.yMMMd().format(date),
-              // childWidget: Text(DateFormat.yMMMd().format(element.date),
-              style: BalooStyles.balooregularTextStyle(),),
-          ),
-          Expanded(child: divider(color: appColorGreen.withOpacity(.3))),
-        ],
-      ),
-    );
-  }*/
-
+*/
   Widget _chatMessageTile(
       {required ChatHisList data, required bool sentByMe, formatedTime}) {
     return data.isActivity == 1
@@ -779,7 +705,7 @@ class ChatScreenMobile extends GetView<ChatScreenController> {
                 sentByMe)
                 ? IconButton(
                 onPressed: () {
-                  controller.handleForward(chatId: data.chatId);
+                  controller.handleForwardMobile(chatId: data.chatId);
                 },
                 icon: Transform(
                     alignment: Alignment.center,
@@ -882,7 +808,7 @@ class ChatScreenMobile extends GetView<ChatScreenController> {
                 !sentByMe)
                 ? IconButton(
                 onPressed: () {
-                  controller.handleForward(chatId: data.chatId);
+                  controller.handleForwardMobile(chatId: data.chatId);
                 },
                 icon: Image.asset(
                   forwardIcon,
@@ -1338,7 +1264,6 @@ class ChatScreenMobile extends GetView<ChatScreenController> {
     }
   }
 
-
   _changeLanguage(){
     return PopupMenuButton<String>(
       color: Colors.white,
@@ -1654,6 +1579,7 @@ class ChatScreenMobile extends GetView<ChatScreenController> {
       ),
     );
   }
+
 /*  Widget _chatInput(context) {
     final speechC = Get.put(SpeechControllerImpl(), permanent: true);
     void _appendSpeechToInput() {
@@ -1737,261 +1663,7 @@ class ChatScreenMobile extends GetView<ChatScreenController> {
                           );
                         }),
 
-                       *//* Focus(
-                          focusNode: controller.messageParentFocus,
-                          autofocus: true,
-                          onKeyEvent: (node, event) {
-                            if (!kIsWeb) return KeyEventResult.ignored;
-
-                            if (event is KeyDownEvent &&
-                                event.logicalKey == LogicalKeyboardKey.enter) {
-                              final bool shiftPressed =
-                                  HardwareKeyboard.instance.logicalKeysPressed
-                                      .contains(LogicalKeyboardKey.shiftLeft) ||
-                                      HardwareKeyboard.instance.logicalKeysPressed
-                                          .contains(LogicalKeyboardKey.shiftRight);
-
-                              if (shiftPressed) {
-                                return KeyEventResult.ignored; // SHIFT+ENTER new line
-                              } else {
-                                _sendMessage();
-                                return KeyEventResult.handled;
-                              }
-                            }
-                            return KeyEventResult.ignored;
-                          },
-                          child: ConstrainedBox(
-                            constraints: BoxConstraints(
-                              maxHeight: Get.height * .3,
-                              minHeight: 30,
-                            ),
-                            child: Container(
-                              margin: const EdgeInsets.symmetric(vertical: 4),
-                              decoration: BoxDecoration(
-                                borderRadius: BorderRadius.circular(8),
-                                border: Border.all(
-                                  color: AppTheme.appColor.withOpacity(.2),
-                                ),
-                              ),
-                              child: Row(
-                                children: [
-                                  Expanded(
-                                    child: TextFormField(
-                                      controller: controller.textController,
-                                      keyboardType: TextInputType.multiline,
-                                      focusNode: controller.messageInputFocus,
-                                      textInputAction: TextInputAction.newline,
-                                      maxLines: null,
-                                      minLines: 1,
-                                      autofocus: true,
-                                      onTap: () {
-                                        controller.messageInputFocus.requestFocus();
-                                      },
-                                      onChanged: (v){
-                                        if(controller.textController.text!=''){
-                                          isVisibleUpload = false;
-                                        }else{
-                                          isVisibleUpload = true;
-                                        }
-                                      controller.update();
-                                      },
-                                      decoration: InputDecoration(
-                                        isDense: true,
-                                        hintText: 'Type Something...',
-                                        hintMaxLines: 1,
-                                        hintStyle: themeData.textTheme.bodySmall,
-                                        contentPadding: const EdgeInsets.all(8),
-                                        border: InputBorder.none,
-                                        enabledBorder: InputBorder.none,
-                                        disabledBorder: InputBorder.none,
-                                        errorBorder: InputBorder.none,
-                                        focusedBorder: InputBorder.none,
-                                      ),
-                                      inputFormatters: [
-                                        FilteringTextInputFormatter.allow(RegExp(r'[\s\S]')),
-                                      ],
-                                    ),
-                                  ),
-
-                                  // ✅ MIC button (Web only) — upload ke paas
-                                  if (kIsWeb)
-                                    _micButton(_appendSpeechToInput),
-
-                                  if (!isTaskMode)
-                                    Visibility(
-                                      visible: isVisibleUpload,
-                                      child: InkWell(
-                                        onTap: () => showUploadOptions(Get.context!),
-                                        child: Container(
-                                          padding: const EdgeInsets.all(5),
-                                          margin: const EdgeInsets.all(5),
-                                          decoration: BoxDecoration(
-                                            borderRadius: BorderRadius.circular(8),
-                                            border: Border.all(color: AppTheme.appColor.withOpacity(.3),),
-                                            color: appColorGreen.withOpacity(.1),
-                                          ),
-                                          child: Icon(
-                                            Icons.upload_outlined,
-                                            size: 20,
-                                            color: appColorGreen,
-                                          ),
-                                        ),
-                                      ),
-                                    ),
-
-                                  if (!isTaskMode)
-                                    Visibility(
-                                      visible: isVisibleUpload,
-                                      child: InkWell(
-                                        onTap: () {
-                                          openWhatsAppEmojiPicker(
-                                            context: Get.context!, // prefer widget context, not Get.context!
-                                            textController: controller.textController,
-                                            onSend: () => Get.back(),
-                                            isMobile: true
-
-                                          );
-                                        },
-                                        child: Container(
-                                          padding: const EdgeInsets.all(5),
-                                          margin: const EdgeInsets.all(5),
-                                          decoration: BoxDecoration(
-                                            borderRadius: BorderRadius.circular(8),
-                                            border: Border.all(color: AppTheme.appColor.withOpacity(.3),),
-                                            color: appColorGreen.withOpacity(.1),
-                                          ),
-                                          child:Image.asset(
-                                            emojiPng,
-                                            height: 20,
-                                            color: appColorGreen,
-                                          ),
-                                        ),
-                                      ),
-                                    ),
-                                ],
-                              ),
-                            ),
-                          ),
-                        ),*//*
-                        Shortcuts(
-                          shortcuts: <ShortcutActivator, Intent>{
-                            const SingleActivator(LogicalKeyboardKey.enter): const ActivateIntent(),
-                          },
-                          child: Actions(
-                            actions: <Type, Action<Intent>>{
-                              ActivateIntent: CallbackAction<Intent>(
-                                onInvoke: (intent) {
-                                  if (!kIsWeb) return null;
-
-                                  // If shift is pressed, let TextField handle newline naturally
-                                  final keys = HardwareKeyboard.instance.logicalKeysPressed;
-                                  final shiftPressed = keys.contains(LogicalKeyboardKey.shiftLeft) ||
-                                      keys.contains(LogicalKeyboardKey.shiftRight);
-                                  if (shiftPressed) return null;
-
-                                  _sendMessage();
-                                  controller.messageParentFocus.requestFocus(); // keep focus after send
-                                  return null;
-                                },
-                              ),
-                            },
-                            child: ConstrainedBox(
-                              constraints: BoxConstraints(maxHeight: Get.height * .3, minHeight: 30),
-                              child: Container(
-                                margin: const EdgeInsets.symmetric(vertical: 4),
-                                decoration: BoxDecoration(
-                                  borderRadius: BorderRadius.circular(8),
-                                  border: Border.all(color: AppTheme.appColor.withOpacity(.2)),
-                                ),
-                                child: Row(
-                                  children: [
-                                    Expanded(
-                                      child: TextFormField(
-                                        controller: controller.textController,
-                                        focusNode: controller.messageParentFocus,
-                                        autofocus: true,
-                                        keyboardType: TextInputType.multiline,
-                                        textInputAction: TextInputAction.newline,
-                                        maxLines: null,
-                                        minLines: 1,
-                                        decoration: InputDecoration(
-                                          isDense: true,
-                                          hintText: 'Type Something...',
-                                          hintStyle: BalooStyles.baloonormalTextStyle(),
-                                          hintMaxLines: 1,
-                                          contentPadding: const EdgeInsets.all(8),
-                                          border: InputBorder.none,
-                                          enabledBorder: InputBorder.none,
-                                          disabledBorder: InputBorder.none,
-                                          errorBorder: InputBorder.none,
-                                          focusedBorder: InputBorder.none,
-                                        ),
-
-                                      ),
-                                    ),
-
-                                    if (kIsWeb) _micButton(_appendSpeechToInput),
-
-                                    if (!isTaskMode)
-                                     InkWell(
-                                        onTap: () => showUploadOptions(Get.context!),
-                                        child: IconButtonWidget(Icons.upload_outlined,isIcon:true),
-
-                                      ),
-
-                                    if (!isTaskMode)
-                                    InkWell(
-                                          onTap: () {
-                                            openWhatsAppEmojiPicker(
-                                                context:context,
-                                                textController: controller.textController,
-                                                onSend: () => Get.back(),
-                                                isMobile: false
-                                            );
-                                          },
-                                          child: IconButtonWidget(emojiPng),
-                                        ),
-
-                                  ],
-                                ),
-                              ),
-                            ),
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                ),
-              ],
-            ),
-          ),
-
-          hGap(6),
-
-          InkWell(
-            onTap: () async {
-              // if mic listening, stop & append before sending (optional)
-              if (kIsWeb && speechC.isListening.value) {
-                speechC.stop();
-                _appendSpeechToInput();
-              }
-              _sendMessage();
-            },
-            child: Container(
-              padding: const EdgeInsets.all(12),
-              decoration: BoxDecoration(
-                borderRadius: BorderRadius.circular(8),
-                color: appColorGreen,
-              ),
-              child: const Icon(Icons.send, color: Colors.white),
-            ),
-          ).marginOnly(bottom: 4),
-
-        ],
-      ),
-    );
-  }*/
-
+                       */
   Widget _chatInputMobile(context) {
     return Container(
       // height: Get.height*.4,
@@ -2232,9 +1904,6 @@ class ChatScreenMobile extends GetView<ChatScreenController> {
     );
   }
 
-
-
-
   _sendMessage() {
     if (controller.textController.text.isNotEmpty) {
       if (controller.user?.userCompany?.isGroup == 1) {
@@ -2353,7 +2022,6 @@ class ChatScreenMobile extends GetView<ChatScreenController> {
       ),
     );
   }
-
 
   void showUploadOptionsWeb(BuildContext context) {
     showDialog(
@@ -2499,8 +2167,6 @@ class ChatScreenMobile extends GetView<ChatScreenController> {
     if (lower.endsWith('.jpg') || lower.endsWith('.jpeg')) return 'image/jpeg';
     return 'image/*';
   }
-
-
 
   // bottom sheet for modifying message details
   void _showBottomSheet(bool isMe, {required ChatHisList data}) async {
@@ -2685,15 +2351,6 @@ class ChatScreenMobile extends GetView<ChatScreenController> {
                       _showMessageUpdateDialog(data,Get.context!);
                     }),
 
-              /*if ((APIs.me?.userCompany?.company?.createdBy ==data.fromUser?.userCompany?.company?.createdBy))
-                _OptionItem(
-                    icon:  Icon(Icons.edit, color: appColorGreen,  size: 18),
-                    name: 'Edit Message',
-                    onTap: () {
-                      Get.back();
-                      _showMessageUpdateDialog(data,Get.context!);
-                    }),*/
-
               // delete option
               if (APIs.me?.userId == controller.myCompany?.createdBy && isMe)
                 _OptionItem(
@@ -2713,7 +2370,11 @@ class ChatScreenMobile extends GetView<ChatScreenController> {
                               : null);
                     }),
 
-              (data.message != null || ((data.media?.isNotEmpty ?? true) &&data.media?.length==1 ))
+              (
+                  (data.media?.length == 1) ||
+                      ((data.media == null || data.media!.isEmpty) && (data.message?.isNotEmpty ?? false))
+              )
+
                   ? _OptionItem(
                   icon: Icon(Icons.share, color: appColorGreen, size: 16),
                   name: 'Share on WhatsApp',
@@ -2728,6 +2389,9 @@ class ChatScreenMobile extends GetView<ChatScreenController> {
 
                     }else{
                       final msg = data.message ?? '';
+                      if(msg!='') {
+                        ShareHelper.shareOnWhatsApp(msg);
+                      }else{
                       await ShareHelper.shareNetworkFile(
                         "${ApiEnd.baseUrlMedia}${data.media?.first.fileName??''}",
                         text: "From AccuChat",
@@ -2735,8 +2399,18 @@ class ChatScreenMobile extends GetView<ChatScreenController> {
                       );
                       // ShareHelper.shareNetworkImage("${ApiEnd.baseUrlMedia}${data.media?.first.fileName??''}",);
                     }
+                    }
                   })
-                  : const SizedBox()
+                  : const SizedBox(),
+              if ((data.message?.isNotEmpty ?? false)|| (data.media ?? []).isNotEmpty)
+                _OptionItem(
+                    icon:  const Icon(Icons.reply_all_outlined, color: Colors.blue),
+                    name:
+                    'Forward',
+                    onTap: () {
+                      Get.back();
+                      controller.handleForwardMobile(chatId: data.chatId);
+                    }),
               //separator or divider
               /* if (!widget.isForward)
                 Divider(
@@ -2770,8 +2444,8 @@ class ChatScreenMobile extends GetView<ChatScreenController> {
         });
   }
 
-
   final _formKeyDoc = GlobalKey<FormState>();
+
   _saveDocumentsDialog() {
     return CustomDialogue(
       title: "Documents",
@@ -2880,7 +2554,6 @@ class ChatScreenMobile extends GetView<ChatScreenController> {
       onOkTap: () {}, isShowActions: false,
     );
   }
-
 
   Widget buildMessageBubble(ChatHisList msg, {required bool isMine}) {
     final bool isDeleted = (msg.message == null || msg.message!.isEmpty);

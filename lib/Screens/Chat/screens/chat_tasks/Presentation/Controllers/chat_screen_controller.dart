@@ -1530,6 +1530,95 @@ class ChatScreenController extends GetxController {
     _afterSendNavigate();
   }
 
+  Future<void> handleForwardMobile({required chatId}) async {
+    final selectedUser = await showDialog<UserDataAPI>(
+      context: Get.context!,
+      builder: (_) => AllUserScreenDialog(),
+    );
+    if (selectedUser == null) return;
+    final socket = Get.find<SocketController>();
+    void _afterSendNavigate() {
+      textController.clear();
+      replyToMessage = null;
+      // Replace current chat screen with the target chat
+      if (/*Get.currentRoute == AppRoutes.chats_li_r &&*/
+          Get.isRegistered<ChatScreenController>()) {
+        Get.find<ChatHomeController>().selectedChat.value = selectedUser;
+        final con = Get.find<ChatScreenController>(
+            );
+        con.openConversation(selectedUser);
+      } else {
+        Get.put(ChatScreenController(user: selectedUser));
+        // if (kIsWeb) {
+        //   Get.to(()=>ChatScreen(user: selectedUser ,showBack: true,));
+        //   // Get.offNamed(
+        //   //   "${AppRoutes.chats_li_r}?userId=${selectedUser.userId.toString()}",
+        //   // );
+        // } else {
+        //   Get.offNamed(
+        //     AppRoutes.chats_li_r,
+        //     arguments: {'user': selectedUser},
+        //   );
+        // }
+      }
+    }
+
+    // Safety: don’t forward to yourself
+    final targetUcId = selectedUser.userCompany?.userCompanyId;
+/*    if (targetUcId != null &&
+        APIs.me?.userCompany?.userCompanyId != null &&
+        targetUcId == APIs.me?.userCompany?.userCompanyId) {
+      Get.snackbar('Oops', 'You cannot forward a message to yourself.',
+          backgroundColor: Colors.white,
+          colorText: Colors.black,
+          duration: Duration(seconds: 6));
+      return;
+    }*/
+
+    // Route by type
+    if (selectedUser.userCompany?.isGroup == 1) {
+      // GROUP
+      socket.sendMessage(
+        groupId: targetUcId ?? 0,
+        type: "group",
+        isGroup: 1,
+        companyId: selectedUser.userCompany?.companyId,
+        alreadySave: false,
+        forwardChatId: chatId,
+        isForward: 1,
+      );
+      _afterSendNavigate();
+      return;
+    }
+
+    if (selectedUser.userCompany?.isBroadcast == 1) {
+      // BROADCAST
+      socket.sendMessage(
+        brID: targetUcId ?? 0, // broadcast UCID
+        type: "broadcast",
+        isGroup: 0,
+        companyId: selectedUser.userCompany?.companyId,
+        alreadySave: false,
+        forwardChatId: chatId,
+        isForward: 1,
+      );
+      _afterSendNavigate();
+      return;
+    }
+
+    // DIRECT — use UCID, NOT userId
+    socket.sendMessage(
+      receiverId: selectedUser.userId ?? 0,
+      type: "direct",
+      isGroup: 0,
+      companyId: selectedUser.userCompany?.companyId,
+      alreadySave: false,
+      isForward: 1,
+      forwardChatId: chatId,
+    );
+    _afterSendNavigate();
+  }
+
   bool isSaving = false;
   String progress = '';
   int savedCount = 0;
