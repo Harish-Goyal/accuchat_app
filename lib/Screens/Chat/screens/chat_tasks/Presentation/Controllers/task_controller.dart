@@ -95,6 +95,37 @@ class TaskController extends GetxController {
     super.dispose();
   }
 
+/*
+  Future<void> getArguments() async {
+    // always ensure company first (because API/socket depends on it)
+    // await _getCompany();
+
+    // 1) If navigation passed arguments (works in same session on web too)
+    final args = Get.arguments;
+    if (args != null && args is Map && args['user'] != null) {
+      user = args['user'] as UserDataAPI;
+       openConversation(user);
+      return;
+    }
+
+    // 2) Fallback to URL params/query (works after refresh / direct link)
+    final userIdStr =
+        Get.parameters['userId'];
+
+    if (userIdStr != null && userIdStr.isNotEmpty) {
+      final id = int.tryParse(userIdStr);
+      if (id != null) {
+         getUserByIdApi(userId: id); // ensure this returns user
+        // if (user != null) openConversation(user);
+      }
+      return;
+    }
+
+    // 3) Nothing provided: keep empty or show placeholder
+  }
+*/
+
+
   void getArguments() {
     if (kIsWeb) {
       _getCompany();
@@ -102,12 +133,11 @@ class TaskController extends GetxController {
       // ✅ If controller already has a user (selected from list), don't override it via route params
       if (user?.userId != null) {
         openConversation(user);
-        return;
-      }
-
-      final String? argUserId = Get.parameters['userId'];
-      if (argUserId != null && argUserId.isNotEmpty) {
-        getUserByIdApi(userId: int.parse(argUserId));
+      }else {
+        final String? argUserId = Get.parameters['userId'];
+        if (argUserId != null && argUserId.isNotEmpty) {
+          getUserByIdApi(userId: int.parse(argUserId));
+        }
       }
       return;
     }
@@ -170,7 +200,7 @@ class TaskController extends GetxController {
   }*/
 
   getUserByIdApi({int? userId}) async {
-    Get.find<PostApiServiceImpl>()
+   await Get.find<PostApiServiceImpl>()
         .getUserByApiCall(userID: userId,comid: myCompany?.companyId)
         .then((value) async {
       user = value.data;
@@ -251,10 +281,10 @@ class TaskController extends GetxController {
 
 
 
-  void openTaskThreadSmart({
+  Future<void> openTaskThreadSmart({
     required BuildContext context,
     GroupTaskElement? groupElement,
-  }) {
+  }) async {
     Get.find<SocketController>().joinTaskEmitter(taskId: groupElement?.taskMsg.taskId??0);
 
     update();
@@ -266,7 +296,7 @@ class TaskController extends GetxController {
       };
       // Load binding manually
       TaskThreadBinding().dependencies();
-      showDialog(
+       await  showDialog(
         context: context,
         barrierDismissible: true,
         builder: (_) {
@@ -291,8 +321,9 @@ class TaskController extends GetxController {
         final _tagTaskid = TaskPresence.activeTaskId.value;
         final _tagTask = "task_$_tagTaskid";
         if(Get.isRegistered<TaskController>(tag: _tagTask)) {
-          Get.find<TaskController>(tag: _tagTask).resetPaginationForNewChat();
-          Get.find<TaskController>(tag: _tagTask).hitAPIToGetTaskHistory();
+          final taskc=  Get.find<TaskController>(tag: _tagTask);
+          taskc.resetPaginationForNewChat();
+          taskc.hitAPIToGetTaskHistory();
         }
       });
 
@@ -1190,6 +1221,63 @@ class TaskController extends GetxController {
   }
 
 
+  Future<void> hitAPIToGetTaskHistory({int? statusId,isFilter= false,isForward= false,fromDate,toDate,String? search}) async {
+    if (isPageLoading || !hasMore) return;
+    if (page == 1) {
+      showPostShimmer = true;
+      taskCategory.clear();
+      taskHisList?.clear();
+    }
+    isPageLoading = true;
+    update();
+    try {
+      final value = await Get.find<PostApiServiceImpl>().getTaskHistoryApiCall(
+          userComId: user?.userCompany?.userCompanyId,
+          page: page,
+          statusId: statusId ?? '',
+          searchText: search,
+          fromDate: fromDate,
+          toDate: toDate
+      );
+      showPostShimmer = false;
+      taskHisRes = value;
+      final rows = value.data?.rows ?? [];
+      if (rows.isNotEmpty) {
+        if (page == 1) {
+          taskHisList = rows;
+        } else {
+          taskHisList?.addAll(rows);
+        }
+        page++;
+      } else {
+        if (!isFilter) {
+          // isPageLoading = false;
+          hasMore = false;
+        } else {
+          hasMore = false;
+          taskHisList = [];
+          taskCategory = [];
+        }
+      }
+      taskCategory = (taskHisList ?? []).map((item) {
+        DateTime? datais;
+        if (item.createdOn != null) {
+          datais = DateTime.parse(item.createdOn ?? '');
+        }
+        return GroupTaskElement(datais ?? DateTime.now(), item);
+      }).toList();
+
+    } catch (e) {
+      showPostShimmer = false;
+    } finally {
+      isPageLoading = false;
+      update();
+    }
+  }
+
+
+
+/*
   hitAPIToGetTaskHistory({int? statusId,isFilter= false,isForward= false,fromDate,toDate,String? search}) async {
     if(page==1){
       showPostShimmer = true;
@@ -1253,6 +1341,8 @@ class TaskController extends GetxController {
       update();
     }
   }
+*/
+
 
 
   timeExceed(taskDetails) {

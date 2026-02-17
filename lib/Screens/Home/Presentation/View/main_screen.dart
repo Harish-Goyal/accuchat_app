@@ -424,13 +424,24 @@ class AccuChatDashboard extends StatelessWidget {
               if (kIsWeb) unregisterImage();
               isTaskMode = true;
               if (Get.isRegistered<TaskHomeController>()) {
-                Get.find<TaskHomeController>().page = 1;
-                Get.find<TaskHomeController>().hitAPIToGetRecentTasksUser();
+               final tasksHome= Get.find<TaskHomeController>();
+                 tasksHome.page = 1;
+               tasksHome.hitAPIToGetRecentTasksUser();
               } else {
-                Get.put(TaskHomeController());
-                Get.find<TaskHomeController>().page = 1;
-                Get.find<TaskHomeController>().hitAPIToGetRecentTasksUser();
+          final tasksHome= Get.put(TaskHomeController());
+                tasksHome.page = 1;
+                tasksHome.hitAPIToGetRecentTasksUser();
               }
+
+              if(kIsWeb&&isWide){
+                final _tagid = TaskPresence.activeTaskId.value;
+                final _tag = "task_${_tagid ?? 'mobile'}";
+                if (Get.isRegistered<TaskController>(tag: _tag)) {
+                 final taskc= Get.find<TaskController>(tag: _tag);
+                 taskc.page = 1;
+                 taskc.hitAPIToGetTaskHistory();
+              }
+              }/*else{
               if (Get.isRegistered<TaskController>()) {
                 if (kIsWeb && isWide) {
                   Get.find<TaskController>().page = 1;
@@ -443,6 +454,7 @@ class AccuChatDashboard extends StatelessWidget {
                   Get.find<TaskController>().hitAPIToGetTaskHistory();
                 }
               }
+            }*/
             }
 
             if(v==0) {
@@ -450,25 +462,25 @@ class AccuChatDashboard extends StatelessWidget {
               final _tag = "chat_${_tagid ?? 'mobile'}";
               isTaskMode = false;
               if (Get.isRegistered<ChatHomeController>()) {
-                Get.find<ChatHomeController>().hitAPIToGetRecentChats(page: 1);
+                final chathomec = Get.find<ChatHomeController>();
+                chathomec.hitAPIToGetRecentChats(page: 1);
               } else {
-                Get.put(ChatHomeController());
-                Get.find<ChatHomeController>().hitAPIToGetRecentChats(page: 1);
+                final chathomec =  Get.put(ChatHomeController());
+                chathomec.hitAPIToGetRecentChats(page: 1);
               }
-              if (Get.isRegistered<ChatScreenController>()) {
-                if (kIsWeb && isWide) {
-
+              if (kIsWeb && isWide) {
+              if (Get.isRegistered<ChatScreenController>(tag: _tag)) {
                  final con = Get.find<ChatScreenController>(tag: _tag);
                  con.page = 1;
                  con.hitAPIToGetChatHistory('isRegistered bottom nav chat kIsWeb && isWide');
                 }
-              } else {
+              } /*else {
                 if (kIsWeb && isWide) {
                 final con=  Get.put(ChatScreenController(user: controller.user),tag: _tag);
                 con.page = 1;
                 con.hitAPIToGetChatHistory('bottom nav chat kIsWeb && isWide');
                 }
-              }
+              }*/
             }
             controller.update();
           }

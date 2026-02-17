@@ -330,23 +330,7 @@ class ChatScreenMobile extends GetView<ChatScreenController> {
   }
 
   Widget chatMessageBuilder() {
-    return Column(
-      mainAxisSize: MainAxisSize.min,
-      children: [
-        vGap(10),
-        Expanded(
-          child:groupListView(),/* shimmerEffectWidget(
-            showShimmer: controller.showPostShimmer,
-            shimmerWidget: shimmerlistView(
-                child: ChatHistoryShimmer(
-
-                )),
-            child: groupListView(),
-          ),*/
-        ),
-        // vGap(80)
-      ],
-    );
+    return  groupListView();
   }
 
   groupListView() {
@@ -1211,7 +1195,16 @@ class ChatScreenMobile extends GetView<ChatScreenController> {
         ),
 
         controller.isSearching?const SizedBox():  (controller.user?.userCompany?.isBroadcast==1 ||controller.user?.userCompany?.isGroup==1) ?const SizedBox():  CustomTextButton(onTap: (){
-          Get.toNamed(AppRoutes.tasks_li_r,arguments: {'user':controller.user});
+          final u = controller.user;
+          if(kIsWeb){
+            Get.toNamed(
+              '${AppRoutes.tasks_li_r}?userId=${u?.userId}',
+            );
+          }else{
+            Get.toNamed(AppRoutes.tasks_li_r,arguments: {'user':controller.user});
+          }
+
+
         }, title: "Go to Task"),
         controller.isSearching?const SizedBox():  hGap(10),
         IconButton(

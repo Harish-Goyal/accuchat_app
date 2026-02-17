@@ -1,6 +1,5 @@
 import 'package:AccuChat/Constants/colors.dart';
 import 'package:AccuChat/utils/loading_indicator.dart';
-import 'package:AccuChat/utils/text_style.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 

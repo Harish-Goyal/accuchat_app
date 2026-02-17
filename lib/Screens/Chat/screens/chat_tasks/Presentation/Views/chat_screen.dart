@@ -1415,32 +1415,29 @@ class _ChatScreenState extends State<ChatScreen> {
                     widget.user?.userCompany?.isGroup == 1)
                 ? const SizedBox()
                 : CustomTextButton(
-                    onTap: () {
+                    onTap: () async {
                       if (widget.user == null) return;
                       isTaskMode = true;
                       Get.find<DashboardController>().updateIndex(1);
                       // ensure TaskHomeController exists
-                      if (!Get.isRegistered<TaskHomeController>()) {
-                        Get.put(TaskHomeController());
-                      }
+                      final taskHome =Get.isRegistered<TaskHomeController>()? Get.find<TaskHomeController>():Get.put(TaskHomeController());
+
                       // ensure TaskController exists
                       final _tagTaskid = widget.user?.userCompany?.userCompanyId;
                       final _tagTask = "task_$_tagTaskid";
                        TaskController? taskC;
-                      if (!Get.isRegistered<TaskController>(tag:_tagTask)) {
-
-                      taskC =  Get.put(TaskController(user: widget.user),tag: _tagTask);
-                      }else{
+                       bool isRegisterd=true;
+                      if (Get.isRegistered<TaskController>(tag:_tagTask)) {
                         taskC = Get.find<TaskController>(tag: _tagTask);
+                      }else{
+                        isRegisterd=false;
+                        taskC =  Get.put(TaskController(user: widget.user),tag: _tagTask);
                       }
-
-                      final taskHome = Get.find<TaskHomeController>();
-
                       taskHome.selectedChat.value = widget.user;
                       taskC?.user = widget.user;
-                      Future.microtask(() {
-                        taskC?.openConversation(widget.user);
-                      });
+
+                      isRegisterd?  taskC?.getUserByIdApi(userId:widget.user?.userId):null;
+
 
                       taskHome.selectedChat.refresh();
                     },
@@ -1675,65 +1672,8 @@ class _ChatScreenState extends State<ChatScreen> {
             child: Column(
               mainAxisSize: MainAxisSize.min,
               children: [
-                // ✅ Listening strip
-                /*   Obx(() {
-                  if (!kIsWeb || !speechC.isListening.value) {
-                    return const SizedBox.shrink();
-                  }
-
-                  final live = speechC.getCombinedText();
-                  return Container(
-                    width: double.infinity,
-                    margin: const EdgeInsets.only(bottom: 6),
-                    padding:
-                        const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
-                    decoration: BoxDecoration(
-                      borderRadius: BorderRadius.circular(8),
-                      border:
-                          Border.all(color: AppTheme.appColor.withOpacity(.15)),
-                      color: AppTheme.appColor.withOpacity(.04),
-                    ),
-                    child: Row(
-                      children: [
-                        const Icon(Icons.graphic_eq, size: 18),
-                        const SizedBox(width: 8),
-                        Expanded(
-                          child: Text(
-                            live.isEmpty ? 'Listening...' : live,
-                            maxLines: 2,
-                            overflow: TextOverflow.ellipsis,
-                            style: themeData.textTheme.bodySmall,
-                          ),
-                        ),
-                        const SizedBox(width: 8),
-                        InkWell(
-                          onTap: () {
-                            speechC.stop(skipOnStopped: true);
-                            _appendSpeechToInput();
-                            // _hardFocusBack();
-                          },
-                          child: Container(
-                            padding: const EdgeInsets.symmetric(
-                                horizontal: 10, vertical: 6),
-                            decoration: BoxDecoration(
-                              borderRadius: BorderRadius.circular(8),
-                              color: Colors.red.withOpacity(.10),
-                              border: Border.all(
-                                  color: Colors.red.withOpacity(.25)),
-                            ),
-                            child: const Text('Stop',
-                                style: TextStyle(color: Colors.red)),
-                          ),
-                        )
-                      ],
-                    ),
-                  );
-                }),*/
-
-                // ✅ Input Row (field + icons)
                 GestureDetector(
                   behavior: HitTestBehavior.translucent,
-                  // onTap: _hardFocusBack, // web reattach fix
                   child: ConstrainedBox(
                     constraints: BoxConstraints(
                         maxHeight: Get.height * .3, minHeight: 30),
@@ -1747,7 +1687,6 @@ class _ChatScreenState extends State<ChatScreen> {
                       child: Row(
                         children: [
                           Expanded(
-                              // ✅ Focus wrapper WITHOUT focusNode (prevents cycle)
                               child: Obx(() {
                                 if (kIsWeb && speechC.isListening.value && !_blockSpeechToInput) {
                                   applyLiveToFieldSafely(speechC.getCombinedText());
@@ -1799,66 +1738,6 @@ class _ChatScreenState extends State<ChatScreen> {
             ),
           ).marginOnly(bottom: 4, top: 4),
         ],
-      ),
-    );
-  }
-
-  Widget _textfield(){
-    return   Focus(
-      // skipTraversal: true,
-      onKeyEvent: (node, event) {
-        if (!kIsWeb) return KeyEventResult.ignored;
-        if (event is! KeyDownEvent)
-          return KeyEventResult.ignored;
-
-        if (event.logicalKey ==
-            LogicalKeyboardKey.enter) {
-          final keys = HardwareKeyboard
-              .instance.logicalKeysPressed;
-          final shiftPressed = keys.contains(
-              LogicalKeyboardKey.shiftLeft) ||
-              keys.contains(
-                  LogicalKeyboardKey.shiftRight);
-
-          if (shiftPressed)
-            return KeyEventResult.ignored; // newline
-
-          // _sendMessage();
-
-          // ✅ hard reattach focus (web)
-          // FocusManager.instance.primaryFocus?.unfocus();
-          // WidgetsBinding.instance.addPostFrameCallback((_) {
-          //   controller.messageParentFocus.requestFocus();
-          // });
-
-          return KeyEventResult.handled;
-        }
-
-        return KeyEventResult.ignored;
-      },
-      child: TextField(
-        controller: controller.textController,
-        autocorrect: true,
-        focusNode: controller.messageParentFocus,
-        autofocus: false,
-        keyboardType: TextInputType.multiline,
-        textInputAction: TextInputAction.newline,
-        maxLines: null,
-        minLines: 1,
-        onTap: () {
-          controller.resetMessageFocus();
-        },
-        decoration: InputDecoration(
-          isDense: true,
-          hintText: 'Type Something...',
-          hintStyle: BalooStyles.baloonormalTextStyle(),
-          contentPadding:
-          const EdgeInsets.symmetric(horizontal: 8),
-          border: InputBorder.none,
-          focusedBorder: InputBorder.none,
-          enabledBorder: InputBorder.none,
-          errorBorder: InputBorder.none,
-        ),
       ),
     );
   }

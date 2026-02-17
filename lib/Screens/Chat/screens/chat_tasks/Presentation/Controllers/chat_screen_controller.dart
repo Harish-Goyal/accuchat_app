@@ -622,7 +622,6 @@ class ChatScreenController extends GetxController {
     _pageDebounce?.cancel();
     super.onClose();
   }
-
 /*
   getArguments() {
     if (kIsWeb) {
@@ -643,7 +642,41 @@ class ChatScreenController extends GetxController {
         }
       }
     }
+  }
+*/
+
+/*  Future<void> getArguments() async {
+    // always ensure company first (because API/socket depends on it)
+    await _getCompany();
+
+    // 1) If navigation passed arguments (works in same session on web too)
+    final args = Get.arguments;
+    if (args != null && args is Map && args['user'] != null) {
+      user = args['user'] as UserDataAPI;
+      openConversation(user);
+      return;
+    }
+
+    // 2) Fallback to URL params/query (works after refresh / direct link)
+    final userIdStr =
+    Get.parameters['userId'];
+
+    if (userIdStr != null && userIdStr.isNotEmpty) {
+      print("userIdStr");
+      print(userIdStr);
+      final id = int.tryParse(userIdStr);
+      if (id != null) {
+        print("id");
+        print(id);
+         getUserByIdApi(userId: id); // ensure this returns user
+        // if (user != null) openConversation(user);
+      }
+      return;
+    }
+
+    // 3) Nothing provided: keep empty or show placeholder
   }*/
+
 
   void getArguments() {
     if (kIsWeb) {
@@ -652,12 +685,11 @@ class ChatScreenController extends GetxController {
       // ✅ If controller already has a user (selected from list), don't override it via route params
       if (user?.userId != null) {
         openConversation(user);
-        return;
-      }
-
-      final String? argUserId = Get.parameters['userId'];
-      if (argUserId != null && argUserId.isNotEmpty) {
-        getUserByIdApi(userId: int.parse(argUserId));
+      }else {
+        final String? argUserId = Get.parameters['userId'];
+        if (argUserId != null && argUserId.isNotEmpty) {
+          getUserByIdApi(userId: int.parse(argUserId));
+        }
       }
       return;
     }
@@ -672,6 +704,7 @@ class ChatScreenController extends GetxController {
 
 
   getUserByIdApi({int? userId}) async {
+    print("calling.........");
     Get.find<PostApiServiceImpl>()
         .getUserByApiCall(userID: userId, comid: myCompany?.companyId)
         .then((value) async {
@@ -697,7 +730,6 @@ class ChatScreenController extends GetxController {
         hitAPIToGetMembers(user);
       }
     });
-    update();
   }
 
   /// Put this in a singleton/service/controller (NOT inside build)

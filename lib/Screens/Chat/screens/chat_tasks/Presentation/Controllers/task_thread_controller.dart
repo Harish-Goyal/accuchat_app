@@ -23,7 +23,16 @@ class TaskThreadController extends GetxController {
 
   bool isUploading = false;
   final showUpload = true.obs;
+  void resetMessageFocus() {
+    messageParentFocus.unfocus();
 
+    // next frame me focus attach karo
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (messageParentFocus.canRequestFocus) {
+        messageParentFocus.requestFocus();
+      }
+    });
+  }
 
   @override
   void onInit() {
@@ -233,6 +242,35 @@ class TaskThreadController extends GetxController {
     });
 
   }
+
+
+  final Set<String> processedMsgKeys = <String>{};
+
+  String msgKey(TaskComments m) {
+    // Prefer backend unique id if you have it: m.messageId / m.chatHisId etc.
+    // If you don’t, build a stable fingerprint:
+    return [
+      (m.taskCommentId ?? '').toString(),
+      (m.sentOn ?? '').toString(),
+      (m.fromUser?.userId ?? '').toString(),
+      (m.toUser?.userId ?? '').toString(),
+      (m.commentText ?? '').toString(),
+      (m.media?.toString() ?? ''),
+    ].join('|');
+  }
+
+  bool markOnce(String key) {
+    if (processedMsgKeys.contains(key)) return false;
+    processedMsgKeys.add(key);
+
+    // Optional: prevent memory growth (keep last N only)
+    if (processedMsgKeys.length > 3000) {
+      // super simple trim (not perfect but practical)
+      processedMsgKeys.remove(processedMsgKeys.first);
+    }
+    return true;
+  }
+
 
 
   CompanyData? myCompany = CompanyData();

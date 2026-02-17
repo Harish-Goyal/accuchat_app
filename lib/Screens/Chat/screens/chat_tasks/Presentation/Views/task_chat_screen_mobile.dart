@@ -164,7 +164,7 @@ class TaskScreenMobile extends GetView<TaskController> {
   }
 
   Widget chatMessageBuilder() {
-    return Column(
+    return groupListView();/*Column(
       mainAxisSize: MainAxisSize.min,
       children: [
         vGap(10),
@@ -175,12 +175,12 @@ class TaskScreenMobile extends GetView<TaskController> {
             shimmerWidget: shimmerlistView(
                 child: ChatHistoryShimmer(
             )),
-            child: groupListView(),
+            child: ,
           ),
         ),
         // vGap(80)
       ],
-    );
+    );*/
   }
 
   groupListView() {
@@ -944,8 +944,14 @@ class TaskScreenMobile extends GetView<TaskController> {
                 onTap: () {
                   // isTaskMode = false;
                   // Get.find<DashboardController>().updateIndex(0);
-                  Get.toNamed(AppRoutes.chats_li_r,
-                      arguments: {'user': controller.user});
+                  final u = controller.user;
+                  if(kIsWeb){
+                    Get.toNamed(
+                      '${AppRoutes.chats_li_r}?userId=${u?.userId}',
+                    );
+                  }else{
+                    Get.toNamed(AppRoutes.chats_li_r,arguments: {'user':controller.user});
+                  }
                   // Get.back();
                 },
                 title: "Go to Chat"),
@@ -1074,21 +1080,18 @@ class TaskScreenMobile extends GetView<TaskController> {
                   )),
               onSelected: (v) {
                 final taskcon = Get.find<TaskController>();
-                taskcon.page = 1;
-                taskcon.update();
+                taskcon.resetPaginationForNewChat();
                 if (v == 'all') {
-                  Get.find<TaskController>()
-                      .hitAPIToGetTaskHistory(isFilter: true);
+                  taskcon.hitAPIToGetTaskHistory(isFilter: true);
                 } else if (v == TimeFilter.today ||
                     v == TimeFilter.thisMonth ||
                     v == TimeFilter.thisWeek) {
                   final now = DateTime.now();
                   final r = rangeFor(v);
-                  Get.find<TaskController>().hitAPIToGetTaskHistory(
+                  taskcon.hitAPIToGetTaskHistory(
                       isFilter: true, fromDate: r.startDate, toDate: r.endDate);
                 } else {
-                  Get.find<TaskController>()
-                      .hitAPIToGetTaskHistory(statusId: v, isFilter: true);
+                  taskcon.hitAPIToGetTaskHistory(statusId: v, isFilter: true);
                 }
               },
               itemBuilder: (context) {

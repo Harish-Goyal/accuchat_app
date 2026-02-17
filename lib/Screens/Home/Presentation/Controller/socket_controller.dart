@@ -434,6 +434,65 @@ class SocketController extends GetxController with WidgetsBindingObserver {
 
     socket?.off('add_task_comment_listener');
     socket?.on('add_task_comment_listener', (messages) {
+      debugPrint(
+          "add_task_comment_listener ${jsonEncode(messages.toString())}");
+      try {
+        TaskComments receivedMessageDataModal = TaskComments.fromJson(messages);
+        final meId = APIs.me?.userId?.toString();
+        final msgFrom = receivedMessageDataModal.fromUser?.userId?.toString();
+        final msgTo = receivedMessageDataModal.toUser?.userId?.toString();
+        TaskThreadController? threadController;
+        if (Get.isRegistered<TaskThreadController>()){
+          threadController =
+              Get.find<TaskThreadController>();
+        }
+
+        final key = threadController!.msgKey(receivedMessageDataModal);
+        if (!threadController.markOnce(key)) {
+          debugPrint("Duplicate message ignored: $key");
+          return;
+        }
+        final selectedUserId = threadController?.currentUser?.userId
+            ?.toString(); // 1-1 userId OR group userId
+        final activeCompanyId = APIs.me.userCompany?.companyId;
+        final msgCompanyId = receivedMessageDataModal.fromUser?.userCompany?.companyId;
+        if (activeCompanyId == null || msgCompanyId == null) return;
+        if (activeCompanyId != msgCompanyId) return;
+        final isMessageForThisChat =((msgFrom == selectedUserId && msgTo == meId) ||
+                (msgFrom == meId && msgTo == selectedUserId));
+        if (isMessageForThisChat) {
+          // safe to insert the message
+          TaskComments taskComments = TaskComments(
+            taskCommentId: receivedMessageDataModal.taskCommentId,
+            fromUser: receivedMessageDataModal.fromUser,
+            toUser: receivedMessageDataModal.toUser,
+            commentText: receivedMessageDataModal.commentText,
+            sentOn: receivedMessageDataModal.sentOn,
+            isDeleted: receivedMessageDataModal.isDeleted,
+            media: receivedMessageDataModal.media,
+          );
+          final alreadyInList = threadController?.commentsList?.any((x) =>
+          (x.taskCommentId == taskComments.taskCommentId) &&
+              (x.sentOn == taskComments.sentOn) &&
+              (x.fromUser?.userId == taskComments.fromUser?.userId) &&
+              (x.toUser?.userId == taskComments.toUser?.userId) &&
+              (x.commentText == taskComments.commentText)
+          ) ?? false;
+
+          if (alreadyInList) return;
+          threadController?.commentsList?.insert(0, taskComments);
+          threadController?.commentsCategory
+              .insert(0, GroupCommentsElement(DateTime.now(), taskComments));
+          threadController?.update();
+        }
+
+      } catch (e) {
+        debugPrint(e.toString());
+      }
+    });
+
+
+/*  socket?.on('add_task_comment_listener', (messages) {
       debugPrint("Comments Listing task......4");
       debugPrint(
           "add_task_comment_listener ${jsonEncode(messages.toString())}");
@@ -463,7 +522,7 @@ class SocketController extends GetxController with WidgetsBindingObserver {
       } catch (e) {
         debugPrint(e.toString());
       }
-    });
+    });*/
 
     socket?.off('update_message_error');
     socket?.on('update_message_error', (payload) {

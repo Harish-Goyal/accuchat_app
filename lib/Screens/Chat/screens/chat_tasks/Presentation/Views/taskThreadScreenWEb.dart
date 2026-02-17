@@ -72,16 +72,21 @@ class TaskThreadScreenWeb extends GetView<TaskThreadController> {
                     // Get.find<TaskController>().taskHisList = []; // <--- MOST IMPORTANT
                     // Get.find<TaskController>().taskCategory = [];
                     // Get.find<TaskController>().hasMore = false;
-                    final _tagTaskid = TaskPresence.activeTaskId.value;
+                    final _tagTaskid = controller.currentUser?.userCompany?.userCompanyId;
                     final _tagTask = "task_$_tagTaskid";
-                    final taskC= Get.find<TaskController>(tag:_tagTask);
-                    taskC.resetPaginationForNewChat();
-                    taskC.searchQuery = '';
-                    taskC.onSearch('');
-                    taskC.seacrhCon.clear();
-                    taskC.hitAPIToGetTaskHistory();
+                    TaskController? taskC;
+                    if(Get.isRegistered<TaskController>(tag:_tagTask)){
+                      print('registd=====');
+                      taskC= Get.find<TaskController>(tag:_tagTask);
+                    }
+                    taskC?.resetPaginationForNewChat();
+                    taskC?.searchQuery = '';
+                    taskC?.onSearch('');
+                    taskC?.seacrhCon.clear();
+                    // taskC?.hitAPIToGetTaskHistory();
+
                     Get.back();
-                  }, icon: Icon(Icons.clear,color: Colors.black87,)),
+                  }, icon: const Icon(Icons.clear,color: Colors.black87,)),
                 ],
               )
 
@@ -599,225 +604,89 @@ class TaskThreadScreenWeb extends GetView<TaskThreadController> {
       customLoader.hide();
     }
   }
-
+  // void _appendSpeechToInput() {
+  //   final text = speechC.getCombinedText();
+  //   if (text.isEmpty) return;
+  //
+  //   final old = controller.msgController.text.trim();
+  //   controller.msgController.text = old.isEmpty ? text : '$old $text';
+  //
+  //   controller.msgController.selection = TextSelection.fromPosition(
+  //     TextPosition(offset: controller.msgController.text.length),
+  //   );
+  //
+  //   speechC.finalText.value = '';
+  //   speechC.interimText.value = '';
+  // }
 
   // bottom chat input field
+
   Widget _chatInput(BuildContext context) {
     // ✅ don't put controller every rebuild
-
-
-    void _appendSpeechToInput() {
-      final text = speechC.getCombinedText();
-      if (text.isEmpty) return;
-
-      final old = controller.msgController.text.trim();
-      controller.msgController.text = old.isEmpty ? text : '$old $text';
-
-      controller.msgController.selection = TextSelection.fromPosition(
-        TextPosition(offset: controller.msgController.text.length),
-      );
-
-      speechC.finalText.value = '';
-      speechC.interimText.value = '';
-    }
-
-    void _hardFocusBack() {
-      FocusManager.instance.primaryFocus?.unfocus();
-      WidgetsBinding.instance.addPostFrameCallback((_) {
-        if (controller.messageParentFocus.canRequestFocus) {
-          controller.messageParentFocus.requestFocus();
-        }
-      });
-    }
-
-    void _send() {
-      if (kIsWeb && speechC.isListening.value) {
-        speechC.stop();
-        _appendSpeechToInput();
-      }
-      _sendThreadMessage();
-      _hardFocusBack();
-    }
-
+    // if(widget.user?.userId != controller.user?.userId){
+    //   widget.user = controller.user;
+    // }
     return Container(
       padding: const EdgeInsets.symmetric(vertical: 0, horizontal: 5),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.center,
         children: [
-          _changeLanguage(),
-          hGap(10),
-
+          // _changeLanguage(),
+          // hGap(10),
           Expanded(
             child: Column(
               mainAxisSize: MainAxisSize.min,
               children: [
-                // ✅ Listening strip
-                Obx(() {
-                  if (!kIsWeb || !speechC.isListening.value) {
-                    return const SizedBox.shrink();
-                  }
-
-                  final live = speechC.getCombinedText();
-                  return Container(
-                    width: double.infinity,
-                    margin: const EdgeInsets.only(bottom: 6),
-                    padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
-                    decoration: BoxDecoration(
-                      borderRadius: BorderRadius.circular(8),
-                      border: Border.all(color: AppTheme.appColor.withOpacity(.15)),
-                      color: AppTheme.appColor.withOpacity(.04),
-                    ),
-                    child: Row(
-                      children: [
-                        const Icon(Icons.graphic_eq, size: 18),
-                        const SizedBox(width: 8),
-                        Expanded(
-                          child: Text(
-                            live.isEmpty ? 'Listening...' : live,
-                            maxLines: 2,
-                            overflow: TextOverflow.ellipsis,
-                            style: themeData.textTheme.bodySmall,
-                          ),
-                        ),
-                        const SizedBox(width: 8),
-                        InkWell(
-                          onTap: () {
-                            speechC.stop();
-                            _appendSpeechToInput();
-                            _hardFocusBack();
-                          },
-                          child: Container(
-                            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
-                            decoration: BoxDecoration(
-                              borderRadius: BorderRadius.circular(8),
-                              color: Colors.red.withOpacity(.10),
-                              border: Border.all(color: Colors.red.withOpacity(.25)),
-                            ),
-                            child: const Text('Stop', style: TextStyle(color: Colors.red)),
-                          ),
-                        )
-                      ],
-                    ),
-                  );
-                }),
-
-                // ✅ Input Row (field + icons)
                 GestureDetector(
                   behavior: HitTestBehavior.translucent,
-                  onTap: _hardFocusBack, // web reattach fix
                   child: ConstrainedBox(
-                    constraints: BoxConstraints(maxHeight: Get.height * .3, minHeight: 30),
+                    constraints: BoxConstraints(
+                        maxHeight: Get.height * .3, minHeight: 30),
                     child: Container(
-                      margin: const EdgeInsets.symmetric(vertical: 4),
+                      margin: const EdgeInsets.symmetric(vertical: 8),
                       decoration: BoxDecoration(
                         borderRadius: BorderRadius.circular(8),
-                        border: Border.all(color: AppTheme.appColor.withOpacity(.2)),
+                        border: Border.all(
+                            color: AppTheme.appColor.withOpacity(.2)),
                       ),
                       child: Row(
                         children: [
                           Expanded(
-                            // ✅ Focus wrapper WITHOUT focusNode (prevents cycle)
-                            child: Focus(
-                              skipTraversal: true,
-                              onKeyEvent: (node, event) {
-                                if (!kIsWeb) return KeyEventResult.ignored;
-                                if (event is! KeyDownEvent) return KeyEventResult.ignored;
-
-                                if (event.logicalKey == LogicalKeyboardKey.enter) {
-                                  final keys = HardwareKeyboard.instance.logicalKeysPressed;
-                                  final shiftPressed =
-                                      keys.contains(LogicalKeyboardKey.shiftLeft) ||
-                                          keys.contains(LogicalKeyboardKey.shiftRight);
-
-                                  if (shiftPressed) return KeyEventResult.ignored; // newline
-
-                                  _sendThreadMessage();
-
-                                  // ✅ hard reattach focus (web)
-                                  FocusManager.instance.primaryFocus?.unfocus();
-                                  WidgetsBinding.instance.addPostFrameCallback((_) {
-                                    controller.messageParentFocus.requestFocus();
-                                  });
-
-                                  return KeyEventResult.handled;
-                                }
-
-                                return KeyEventResult.ignored;
-                              },
-                              child: TextFormField(
-                                controller: controller.msgController,
-                                focusNode: controller.messageParentFocus, // ✅ only here
-                                autofocus: !kIsWeb, // web me autofocus glitch karta hai
-                                keyboardType: TextInputType.multiline,
-                                textInputAction: TextInputAction.newline,
-                                maxLines: null,
-                                minLines: 1,
-                                // onTap: () {
-                                //   // web reattach
-                                //   WidgetsBinding.instance.addPostFrameCallback((_) {
-                                //     controller.messageParentFocus.requestFocus();
-                                //   });
-                                // },
-                                decoration: InputDecoration(
-                                  isDense: true,
-                                  hintText: 'Type Something...',
-                                  hintStyle: BalooStyles.baloonormalTextStyle(),
-                                  contentPadding: const EdgeInsets.symmetric(horizontal: 8),
-                                  border: InputBorder.none,
-                                  focusedBorder: InputBorder.none,
-                                  enabledBorder: InputBorder.none,
-                                  errorBorder: InputBorder.none,
-
-                                ),
-                              ),
-                            ),
+                              child:_buildTextField()
                           ),
-
-                          if (kIsWeb) _micButton(_appendSpeechToInput),
-
-                   /*       if (!isTaskMode)
+                          if (!isTaskMode)
                             InkWell(
                               onTap: () async {
                                 showUploadOptions(context);
-                                WidgetsBinding.instance.addPostFrameCallback((_) {
-                                  controller.messageParentFocus.requestFocus();
-                                });
                               },
-                              child: IconButtonWidget(Icons.upload_outlined, isIcon: true),
-                            ),*/
-
-
+                              child: IconButtonWidget(Icons.upload_outlined,
+                                  isIcon: true),
+                            ),
+                          if (!isTaskMode)
                             InkWell(
                               onTap: () async {
                                 openWhatsAppEmojiPicker(
                                   context: context,
                                   textController: controller.msgController,
                                   onSend: () {
-                                    controller.messageParentFocus.unfocus();
-                                    if (controller.messageParentFocus.canRequestFocus) {
-                                      controller.messageParentFocus.requestFocus();
-                                    }
+                                    Get.back();
                                   },
                                   isMobile: false,
                                 );
-
                               },
                               child: IconButtonWidget(emojiPng),
                             ),
                         ],
                       ),
                     ),
-                  )
-                  ,
+                  ),
                 ),
               ],
             ),
           ),
-
           hGap(6),
-
           InkWell(
-            onTap: _send,
+            onTap: _sendThreadMessage,
             child: Container(
               padding: const EdgeInsets.all(10),
               decoration: BoxDecoration(
@@ -831,6 +700,273 @@ class TaskThreadScreenWeb extends GetView<TaskThreadController> {
       ),
     );
   }
+
+  Widget _buildTextField() {
+    return Focus(
+      onKeyEvent: (node, event) {
+        if (!kIsWeb) return KeyEventResult.ignored;
+        if (event is! KeyDownEvent) return KeyEventResult.ignored;
+
+        if (event.logicalKey == LogicalKeyboardKey.enter) {
+          final keys = HardwareKeyboard.instance.logicalKeysPressed;
+          final shiftPressed =
+              keys.contains(LogicalKeyboardKey.shiftLeft) ||
+                  keys.contains(LogicalKeyboardKey.shiftRight);
+
+          // Shift+Enter => newline
+          if (shiftPressed) return KeyEventResult.ignored;
+
+
+          final msg = controller.msgController.text.trim();
+          if (msg.isNotEmpty) {
+            _sendThreadMessage();
+          }
+
+          controller.resetMessageFocus();
+          return KeyEventResult.handled;
+        }
+
+        return KeyEventResult.ignored;
+      },
+
+      child: TextField(
+        controller: controller.msgController,
+        focusNode: controller.messageParentFocus,
+        keyboardType: TextInputType.multiline,
+        textInputAction: TextInputAction.newline,
+        maxLines: null,
+        minLines: 1,
+        onTap: () {
+          controller.resetMessageFocus();
+        },
+        decoration: InputDecoration(
+          isDense: true,
+          hintText: 'Type Something...',
+          hintStyle: BalooStyles.baloonormalTextStyle(),
+          contentPadding:
+          const EdgeInsets.symmetric(horizontal: 8,vertical: 12),
+          border: InputBorder.none,
+          focusedBorder: InputBorder.none,
+          enabledBorder: InputBorder.none,
+          errorBorder: InputBorder.none,
+        ),
+      ),
+    );
+  }
+
+
+  // Widget _chatInput(BuildContext context) {
+  //   // ✅ don't put controller every rebuild
+  //
+  //   void _hardFocusBack() {
+  //     FocusManager.instance.primaryFocus?.unfocus();
+  //     WidgetsBinding.instance.addPostFrameCallback((_) {
+  //       if (controller.messageParentFocus.canRequestFocus) {
+  //         controller.messageParentFocus.requestFocus();
+  //       }
+  //     });
+  //   }
+  //
+  //   void _send() {
+  //     if (kIsWeb && speechC.isListening.value) {
+  //       speechC.stop();
+  //     }
+  //     _sendThreadMessage();
+  //     _hardFocusBack();
+  //   }
+  //
+  //   return Container(
+  //     padding: const EdgeInsets.symmetric(vertical: 0, horizontal: 5),
+  //     child: Row(
+  //       crossAxisAlignment: CrossAxisAlignment.center,
+  //       children: [
+  //         _changeLanguage(),
+  //         hGap(10),
+  //
+  //         Expanded(
+  //           child: Column(
+  //             mainAxisSize: MainAxisSize.min,
+  //             children: [
+  //               // ✅ Listening strip
+  //               Obx(() {
+  //                 if (!kIsWeb || !speechC.isListening.value) {
+  //                   return const SizedBox.shrink();
+  //                 }
+  //
+  //                 final live = speechC.getCombinedText();
+  //                 return Container(
+  //                   width: double.infinity,
+  //                   margin: const EdgeInsets.only(bottom: 6),
+  //                   padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+  //                   decoration: BoxDecoration(
+  //                     borderRadius: BorderRadius.circular(8),
+  //                     border: Border.all(color: AppTheme.appColor.withOpacity(.15)),
+  //                     color: AppTheme.appColor.withOpacity(.04),
+  //                   ),
+  //                   child: Row(
+  //                     children: [
+  //                       const Icon(Icons.graphic_eq, size: 18),
+  //                       const SizedBox(width: 8),
+  //                       Expanded(
+  //                         child: Text(
+  //                           live.isEmpty ? 'Listening...' : live,
+  //                           maxLines: 2,
+  //                           overflow: TextOverflow.ellipsis,
+  //                           style: themeData.textTheme.bodySmall,
+  //                         ),
+  //                       ),
+  //                       const SizedBox(width: 8),
+  //                       InkWell(
+  //                         onTap: () {
+  //                           speechC.stop();
+  //                           _appendSpeechToInput();
+  //                           _hardFocusBack();
+  //                         },
+  //                         child: Container(
+  //                           padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+  //                           decoration: BoxDecoration(
+  //                             borderRadius: BorderRadius.circular(8),
+  //                             color: Colors.red.withOpacity(.10),
+  //                             border: Border.all(color: Colors.red.withOpacity(.25)),
+  //                           ),
+  //                           child: const Text('Stop', style: TextStyle(color: Colors.red)),
+  //                         ),
+  //                       )
+  //                     ],
+  //                   ),
+  //                 );
+  //               }),
+  //
+  //               // ✅ Input Row (field + icons)
+  //               GestureDetector(
+  //                 behavior: HitTestBehavior.translucent,
+  //                 onTap: _hardFocusBack, // web reattach fix
+  //                 child: ConstrainedBox(
+  //                   constraints: BoxConstraints(maxHeight: Get.height * .3, minHeight: 30),
+  //                   child: Container(
+  //                     margin: const EdgeInsets.symmetric(vertical: 4),
+  //                     decoration: BoxDecoration(
+  //                       borderRadius: BorderRadius.circular(8),
+  //                       border: Border.all(color: AppTheme.appColor.withOpacity(.2)),
+  //                     ),
+  //                     child: Row(
+  //                       children: [
+  //                         Expanded(
+  //                           // ✅ Focus wrapper WITHOUT focusNode (prevents cycle)
+  //                           child: Focus(
+  //                             skipTraversal: true,
+  //                             onKeyEvent: (node, event) {
+  //                               if (!kIsWeb) return KeyEventResult.ignored;
+  //                               if (event is! KeyDownEvent) return KeyEventResult.ignored;
+  //
+  //                               if (event.logicalKey == LogicalKeyboardKey.enter) {
+  //                                 final keys = HardwareKeyboard.instance.logicalKeysPressed;
+  //                                 final shiftPressed =
+  //                                     keys.contains(LogicalKeyboardKey.shiftLeft) ||
+  //                                         keys.contains(LogicalKeyboardKey.shiftRight);
+  //
+  //                                 if (shiftPressed) return KeyEventResult.ignored; // newline
+  //
+  //                                 _sendThreadMessage();
+  //
+  //                                 // ✅ hard reattach focus (web)
+  //                                 FocusManager.instance.primaryFocus?.unfocus();
+  //                                 WidgetsBinding.instance.addPostFrameCallback((_) {
+  //                                   controller.messageParentFocus.requestFocus();
+  //                                 });
+  //
+  //                                 return KeyEventResult.handled;
+  //                               }
+  //
+  //                               return KeyEventResult.ignored;
+  //                             },
+  //                             child: TextFormField(
+  //                               controller: controller.msgController,
+  //                               focusNode: controller.messageParentFocus, // ✅ only here
+  //                               autofocus: !kIsWeb, // web me autofocus glitch karta hai
+  //                               keyboardType: TextInputType.multiline,
+  //                               textInputAction: TextInputAction.newline,
+  //                               maxLines: null,
+  //                               minLines: 1,
+  //                               // onTap: () {
+  //                               //   // web reattach
+  //                               //   WidgetsBinding.instance.addPostFrameCallback((_) {
+  //                               //     controller.messageParentFocus.requestFocus();
+  //                               //   });
+  //                               // },
+  //                               decoration: InputDecoration(
+  //                                 isDense: true,
+  //                                 hintText: 'Type Something...',
+  //                                 hintStyle: BalooStyles.baloonormalTextStyle(),
+  //                                 contentPadding: const EdgeInsets.symmetric(horizontal: 8),
+  //                                 border: InputBorder.none,
+  //                                 focusedBorder: InputBorder.none,
+  //                                 enabledBorder: InputBorder.none,
+  //                                 errorBorder: InputBorder.none,
+  //
+  //                               ),
+  //                             ),
+  //                           ),
+  //                         ),
+  //
+  //                         // if (kIsWeb) _micButton(_appendSpeechToInput),
+  //
+  //                  /*       if (!isTaskMode)
+  //                           InkWell(
+  //                             onTap: () async {
+  //                               showUploadOptions(context);
+  //                               WidgetsBinding.instance.addPostFrameCallback((_) {
+  //                                 controller.messageParentFocus.requestFocus();
+  //                               });
+  //                             },
+  //                             child: IconButtonWidget(Icons.upload_outlined, isIcon: true),
+  //                           ),*/
+  //
+  //
+  //                           InkWell(
+  //                             onTap: () async {
+  //                               openWhatsAppEmojiPicker(
+  //                                 context: context,
+  //                                 textController: controller.msgController,
+  //                                 onSend: () {
+  //                                   controller.messageParentFocus.unfocus();
+  //                                   if (controller.messageParentFocus.canRequestFocus) {
+  //                                     controller.messageParentFocus.requestFocus();
+  //                                   }
+  //                                 },
+  //                                 isMobile: false,
+  //                               );
+  //
+  //                             },
+  //                             child: IconButtonWidget(emojiPng),
+  //                           ),
+  //                       ],
+  //                     ),
+  //                   ),
+  //                 )
+  //                 ,
+  //               ),
+  //             ],
+  //           ),
+  //         ),
+  //
+  //         hGap(6),
+  //
+  //         InkWell(
+  //           onTap: _send,
+  //           child: Container(
+  //             padding: const EdgeInsets.all(10),
+  //             decoration: BoxDecoration(
+  //               borderRadius: BorderRadius.circular(8),
+  //               color: appColorGreen,
+  //             ),
+  //             child: const Icon(Icons.send, color: Colors.white),
+  //           ),
+  //         ).marginOnly(bottom: 4, top: 4),
+  //       ],
+  //     ),
+  //   );
+  // }
 
   _changeLanguage(){
     return PopupMenuButton<String>(
@@ -1241,6 +1377,7 @@ class TaskThreadScreenWeb extends GetView<TaskThreadController> {
         companyId: controller.myCompany?.companyId,
         taskId: controller.taskMessage?.taskId);
     controller.msgController.clear();
+    controller.resetMessageFocus();
   }
 
   void _showBottomSheet(bool isMe, {required TaskComments data}) async {

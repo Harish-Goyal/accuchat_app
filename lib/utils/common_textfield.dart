@@ -210,12 +210,12 @@ class CustomTextField extends StatelessWidget {
             autovalidateMode: AutovalidateMode.disabled,
             style:BalooStyles.balooregularTextStyle(),
             decoration: InputDecoration(
-              alignLabelWithHint: true,
+              // alignLabelWithHint: true,
                 isDense: true,
                 hintMaxLines: 1,
                 hintText: hintText,
                 contentPadding: const EdgeInsets.symmetric(vertical: 14,horizontal: 5),
-                constraints: const BoxConstraints(maxHeight: 48),
+                // constraints: const BoxConstraints(maxHeight: 48),
                 hintStyle:TextStyle(color: Theme.of(context).disabledColor),
                 helperStyle: const TextStyle(
                   color: Colors.grey,

@@ -965,30 +965,27 @@ class _TaskScreenState extends State<TaskScreen> {
         controller.isSearching?const SizedBox():  (controller.user?.userCompany?.isBroadcast==1 ||controller.user?.userCompany?.isGroup==1) ?const SizedBox():CustomTextButton(onTap: (){
 
           // final _tagid =controller.user?.userCompany?.userCompanyId;
-          final _tagid = TaskPresence.activeTaskId.value;
+          final _tagid = widget.taskUser?.userCompany?.userCompanyId;
           final _tag = "chat_${_tagid ?? 'mobile'}";
           if (controller.user == null) return;
           isTaskMode = false;
           Get.find<DashboardController>().updateIndex(0);
 
           // ensure ChatHomeController exists
-          if (!Get.isRegistered<ChatHomeController>()) {
-            Get.put(ChatHomeController(),permanent: true);
-          }
+          final chatHome =Get.isRegistered<ChatHomeController>()? Get.find<ChatHomeController>():Get.put(ChatHomeController(),permanent: true);
           // ensure ChatScreenController exists
           ChatScreenController chatC;
+          bool isRegisterd=true;
           if (!Get.isRegistered<ChatScreenController>(tag: _tag)) {
-            chatC= Get.put(ChatScreenController(user: controller.user),tag: _tag);
+            chatC= Get.put(ChatScreenController(user: widget.taskUser),tag: _tag);
           }else{
+            isRegisterd=false;
             chatC = Get.find<ChatScreenController>(tag: _tag);
           }
-          final chatHome = Get.find<ChatHomeController>();
-          chatHome.selectedChat.value = controller.user;
-          chatC.user = controller.user;
-          Future.microtask(() {
-            chatC.openConversation(chatHome.selectedChat.value);
-          });
+          chatHome.selectedChat.value = widget.taskUser;
+          chatC.user = widget.taskUser;
 
+       chatC.getUserByIdApi(userId: widget.taskUser?.userId);
           chatHome.selectedChat.refresh();
         }, title: "Go to Chat"),
 
@@ -1116,22 +1113,24 @@ class _TaskScreenState extends State<TaskScreen> {
                     size: 20,
                   )),
               onSelected: (v) {
-                final taskcon = Get.find<TaskController>();
-                taskcon.page = 1;
-                taskcon.update();
+                final _id = TaskPresence.activeTaskId.value;
+                final _tag = 'task_$_id';
+                final taskcon = Get.find<TaskController>(tag: _tag);
+                // taskcon.page = 1;
+                // taskcon.update();
+                taskcon.resetPaginationForNewChat();
                 if (v == 'all') {
-                  Get.find<TaskController>()
-                      .hitAPIToGetTaskHistory(isFilter: true);
+                  taskcon.hitAPIToGetTaskHistory(isFilter: true);
                 } else if (v == TimeFilter.today ||
                     v == TimeFilter.thisMonth ||
                     v == TimeFilter.thisWeek) {
                   final now = DateTime.now();
                   final r = rangeFor(v);
-                  Get.find<TaskController>().hitAPIToGetTaskHistory(
+                  taskcon.hitAPIToGetTaskHistory(
                       isFilter: true, fromDate: r.startDate, toDate: r.endDate);
                 } else {
-                  Get.find<TaskController>()
-                      .hitAPIToGetTaskHistory(statusId: v, isFilter: true);
+
+                  taskcon.hitAPIToGetTaskHistory(statusId: v, isFilter: true);
                 }
               },
               itemBuilder: (context) {
@@ -1360,7 +1359,7 @@ class _TaskScreenState extends State<TaskScreen> {
                   controller.update();
                 }
 
-                Get.find<TaskController>().hitAPIToGetTaskHistory();
+                // Get.find<TaskController>().hitAPIToGetTaskHistory();
 
                 // APIs.updateTypingStatus(false);
               }

@@ -116,7 +116,6 @@ class _ChatUserCardState extends State<ChatUserCard>
                   final taskC = Get.isRegistered<TaskController>(tag: newTag)
                       ? Get.find<TaskController>(tag: newTag)
                       : Get.put(TaskController(user: widget.user), tag: newTag);
-                  print("chats  carrd tag====$newTag");
                   homec.selectedChat.value = widget.user;
                   taskC.user = widget.user;
                   taskC.textController.clear();
