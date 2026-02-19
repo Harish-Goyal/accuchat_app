@@ -149,7 +149,6 @@ class ProfileScreen extends GetView<HProfileController> {
                               onTap: () {
                                 SystemChannels.textInput.invokeMethod('TextInput.hide');
                                 if (_formKey.currentState!.validate()) {
-                                  _formKey.currentState!.save();
                                   controller.hitAPIToUpdateUser();
                                 }
                               },

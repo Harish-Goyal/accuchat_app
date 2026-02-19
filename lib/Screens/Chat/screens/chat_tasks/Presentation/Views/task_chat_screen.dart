@@ -104,9 +104,10 @@ double _textScaleClamp(BuildContext context) {
 
 class TaskScreen extends StatefulWidget {
 
-  TaskScreen({super.key, this.taskUser, this.showBack = true});
+  TaskScreen({super.key, this.taskUser, this.showBack = true,this.isShowNav = true});
   final UserDataAPI? taskUser;
   bool showBack;
+  bool isShowNav;
 
   @override
   State<TaskScreen> createState() => _TaskScreenState();
@@ -606,7 +607,6 @@ class _TaskScreenState extends State<TaskScreen> {
     ConstrainedBox(
     constraints: BoxConstraints(
     maxWidth: Get.width * (kIsWeb ? 0.3: 0.5)),
-
             child: Row(
               mainAxisSize: MainAxisSize.min,
               children:[
@@ -962,15 +962,17 @@ class _TaskScreenState extends State<TaskScreen> {
           ),
         ),
 
-        controller.isSearching?const SizedBox():  (controller.user?.userCompany?.isBroadcast==1 ||controller.user?.userCompany?.isGroup==1) ?const SizedBox():CustomTextButton(onTap: (){
+        controller.isSearching?const SizedBox():  (controller.user?.userCompany?.isBroadcast==1 ||controller.user?.userCompany?.isGroup==1 || !widget.isShowNav) ?const SizedBox():CustomTextButton(onTap: () async {
 
           // final _tagid =controller.user?.userCompany?.userCompanyId;
           final _tagid = widget.taskUser?.userCompany?.userCompanyId;
           final _tag = "chat_${_tagid ?? 'mobile'}";
           if (controller.user == null) return;
-          isTaskMode = false;
-          Get.find<DashboardController>().updateIndex(0);
 
+          final   dashC =Get.isRegistered<DashboardController>()?Get.find<DashboardController>():Get.put(DashboardController());
+          isTaskMode = false;
+          await dashC.getCompany();
+          dashC.updateIndex(0);
           // ensure ChatHomeController exists
           final chatHome =Get.isRegistered<ChatHomeController>()? Get.find<ChatHomeController>():Get.put(ChatHomeController(),permanent: true);
           // ensure ChatScreenController exists

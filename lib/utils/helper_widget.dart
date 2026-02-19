@@ -17,7 +17,10 @@ import '../Screens/Chat/models/all_media_res_model.dart';
 import '../Screens/Chat/models/message.dart';
 import 'package:dio/dio.dart';
 import 'package:permission_handler/permission_handler.dart';
+import '../Screens/Chat/screens/auth/Presentation/Controllers/accept_invite_controller.dart';
+import '../Screens/Chat/screens/auth/Presentation/Views/accept_invite_screen.dart';
 import '../main.dart';
+import '../routes/app_routes.dart';
 import 'custom_flashbar.dart';
 import 'dart:io';
 import 'package:path/path.dart' as p;
@@ -47,6 +50,60 @@ Future<bool> requestStoragePermission() async {
     return true; // iOS not needed for saving to gallery
   }
 }
+
+void showCompanyErrorDialog() {
+  Get.dialog(
+    Center(
+      child: Container(
+        width: 300,
+        height: 300,
+        child: AlertDialog(
+          title: Text('Access Denied'),
+          content: Text('You are not a part of this company. Please contact admin for more details.'),
+          actions: [
+            TextButton(
+              onPressed: () {
+                Get.back(); // Close the dialog
+                Get.offAllNamed(AppRoutes.landing_r);
+              },
+              child: Text('OK'),
+            ),
+          ],
+        ),
+      ),
+    ),
+    barrierDismissible: true,
+  );
+}
+
+
+Future<void> openAcceptInviteDialog() async {
+  final c=  Get.put(AcceptInviteController());
+
+  try {
+    await Get.dialog(
+      Dialog(
+        clipBehavior: Clip.antiAlias,
+        insetPadding: const EdgeInsets.all(12),
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(12),
+        ),
+        child: SizedBox(
+          width: kIsWeb ? 450: Get.width * .9,
+          height: Get.height * 0.6,
+          child: const AcceptInvitationScreen(),
+        ),
+      ),
+      barrierDismissible: true,
+    );
+  } finally {
+    if (Get.isRegistered<AcceptInviteController>()) {
+      Get.delete<AcceptInviteController>();
+    }
+  }
+}
+
+
 
 Future<void> saveImageToDownloads(String imageUrl) async {
   try {

@@ -8,6 +8,7 @@ import 'package:get/get.dart';
 
 import '../Constants/strings.dart';
 import '../main.dart';
+import '../utils/helper_widget.dart';
 
 class NetworkExceptions {
   static String messageData = "";
@@ -29,6 +30,7 @@ class NetworkExceptions {
                 // logoutLocal();
                 // Get.offAllNamed(AppRoutes.login_r);
                 // customLoader.hide();
+
                 return ErrorResponseModel.fromJson(error.response?.data)
                     .message;
               case 404:

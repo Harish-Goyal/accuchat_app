@@ -2,6 +2,7 @@ import 'package:AccuChat/Screens/Chat/api/session_alive.dart';
 import 'package:AccuChat/Screens/Chat/models/get_company_res_model.dart';
 import 'package:AccuChat/Screens/Home/Presentation/Controller/company_service.dart';
 import 'package:AccuChat/Services/APIs/post/post_api_service_impl.dart';
+import 'package:AccuChat/utils/helper_widget.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
@@ -80,7 +81,13 @@ class LandingScreenController extends GetxController {
         );
         return;
       }else{
-        Get.toNamed(AppRoutes.accept_invite);
+        if(kIsWeb){
+          openAcceptInviteDialog();
+        }else{
+          Get.toNamed(AppRoutes.accept_invite);
+        }
+
+
       }
 
 
@@ -90,6 +97,9 @@ class LandingScreenController extends GetxController {
       customLoader.hide();
     });
   }
+
+
+
 
 
 }

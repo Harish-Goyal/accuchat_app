@@ -17,8 +17,10 @@ import '../../../../Services/APIs/auth_service/auth_api_services_impl.dart';
 import '../../../../Services/APIs/local_keys.dart';
 import '../../../../Services/APIs/post/post_api_service_impl.dart';
 import '../../../../main.dart';
+import '../../../../routes/app_routes.dart';
 import '../../../../utils/budge_controller.dart';
 import '../../../../utils/custom_flashbar.dart';
+import '../../../../utils/helper_widget.dart';
 import '../../../../utils/register_image.dart';
 import '../../../../utils/shares_pref_web.dart';
 import '../../../Chat/api/apis.dart';
@@ -43,6 +45,7 @@ class DashboardController extends GetxController with WidgetsBindingObserver {
   RxBool newTask =false.obs;
 
   void updateIndex(int index) {
+    print("Updating index to: $index");
     currentIndex = index;
     update();
   }
@@ -236,9 +239,13 @@ class DashboardController extends GetxController with WidgetsBindingObserver {
 
   List<NavigationItem>? userNav = [];
   CompanyData? myCompany;
-  getCompany() async {
+  Future<void> getCompany() async {
     final svc = CompanyService.to;
     myCompany = svc.selected;
+    if (!svc.hasCompany){
+      Get.offAllNamed(AppRoutes.landing_r);
+      return;
+    }
     // update();
     await hitAPIToGetUser(myCompany?.companyId);
   }
@@ -314,6 +321,7 @@ class DashboardController extends GetxController with WidgetsBindingObserver {
       saveUser(userData);
       _navigationLogic();
     }).onError((error, stackTrace) {
+      showCompanyErrorDialog();
       customLoader.hide();
       errorDialog(error.toString());
       update();

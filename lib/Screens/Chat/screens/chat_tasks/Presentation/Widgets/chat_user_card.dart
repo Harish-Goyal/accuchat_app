@@ -162,14 +162,14 @@ class _ChatUserCardState extends State<ChatUserCard>
                   chatc.getUserByIdApi(userId: widget.user?.userId);
                   // chatc.openConversation(widget.user);
 
-                  final pending = widget.user?.pendingCount ?? 0;
-                  if (pending != 0) {
-                    chatc.markAllVisibleAsReadOnOpen(
-                      APIs.me.userCompany?.userCompanyId,
-                      chatc.user?.userCompany?.userCompanyId,
-                      chatc.user?.userCompany?.isGroup == 1 ? 1 : 0,
-                    );
-                  }
+                  // final pending = widget.user?.pendingCount ?? 0;
+                  // if (pending != 0) {
+                  //   chatc.markAllVisibleAsReadOnOpen(
+                  //     APIs.me.userCompany?.userCompanyId,
+                  //     widget.user?.userCompany?.userCompanyId,
+                  //     widget.user?.userCompany?.isGroup == 1 ? 1 : 0,
+                  //   );
+                  // }
 
                   homec.selectedChat.refresh();
                   chatc.update();

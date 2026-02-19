@@ -1,5 +1,6 @@
 import 'package:AccuChat/Constants/assets.dart';
 import 'package:AccuChat/Constants/colors.dart';
+import 'package:AccuChat/Screens/Chat/helper/dialogs.dart';
 import 'package:AccuChat/Screens/Chat/screens/chat_tasks/Presentation/Controllers/chat_home_controller.dart';
 import 'package:AccuChat/Screens/Chat/screens/chat_tasks/Presentation/Controllers/chat_screen_controller.dart';
 import 'package:AccuChat/Screens/Chat/screens/chat_tasks/Presentation/Controllers/task_controller.dart';
@@ -10,6 +11,7 @@ import 'package:AccuChat/utils/bottom_nav_budge.dart';
 import 'package:AccuChat/utils/text_style.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:AccuChat/Screens/Reload/reload_factory.dart';
 import 'package:flutter_snake_navigationbar/flutter_snake_navigationbar.dart';
 import 'package:get/get.dart';
 import '../../../../main.dart';
@@ -17,16 +19,18 @@ import '../../../../routes/app_routes.dart';
 import '../../../../utils/chat_presence.dart';
 import '../../../../utils/register_image.dart';
 import '../../../Chat/api/apis.dart';
+import '../Controller/company_service.dart';
 
 class AccuChatDashboard extends StatelessWidget {
+  final controller = Get.put(DashboardController());
   @override
   Widget build(BuildContext context) {
     bool isWideScreen = MediaQuery.of(context).size.width > 800;
 
-    return GetBuilder<DashboardController>(builder: (controller) {
+    return GetBuilder<DashboardController>(builder: (con) {
         return WillPopScope(onWillPop: () async {
-          if (controller.currentIndex != 0) {
-            controller.updateIndex(0);
+          if (con.currentIndex != 0) {
+            con.updateIndex(0);
             return false;
           }
           return true;
@@ -35,13 +39,13 @@ class AccuChatDashboard extends StatelessWidget {
             body: Row(
               children: [
                 if (isWideScreen)
-                  SizedBox(width: Get.width * .13, child: buildSideNav(controller)),
+                  SizedBox(width: Get.width * .13, child: buildSideNav(con)),
                 Expanded(
-                  child: controller.screens.isEmpty
+                  child: con.screens.isEmpty
                       ? const SizedBox()
                       :  ConstrainedBox(
                             constraints: const BoxConstraints(maxWidth: 1000),
-                            child: controller.screens[controller.currentIndex],
+                            child: con.screens[con.currentIndex],
 
                       ),
                 ),
@@ -49,9 +53,9 @@ class AccuChatDashboard extends StatelessWidget {
             ),
             bottomNavigationBar: isWideScreen
                 ? null
-                : controller.screens.isEmpty
+                : con.screens.isEmpty
                     ? const SizedBox()
-                    : _bottomNavigationBar(isWideScreen,controller),
+                    : _bottomNavigationBar(isWideScreen,con),
           )
            );
       }
@@ -68,14 +72,24 @@ class AccuChatDashboard extends StatelessWidget {
               ),
               child: NavigationRail(
                 selectedIndex: controller.currentIndex,
-                onDestinationSelected: (index) {
-                  controller.getCompany();
-                  controller.updateIndex(index);
+                onDestinationSelected: (index) async {
+                 await controller.getCompany();
+
+
+                 if(isCompanySwitched){
+                   Dialogs.showSnackbar(Get.context!, "Your Company has been change please wait to reload");
+                   final reloadCon = Get.put(ReloadControllerImpl());
+                   reloadCon.refreshApp();
+                   isCompanySwitched=false;
+                 }
+
+                 controller.updateIndex(index);
                   final isSetting = index == 4;
                   if (isSetting) {
                     if (kIsWeb) unregisterImage();
                     Get.toNamed(AppRoutes.all_settings);
                   }
+
                   // Get.toNamed(AppRoutes.home);
                   isTaskMode = index == 1;
                   if (index == 0) {
@@ -102,8 +116,7 @@ class AccuChatDashboard extends StatelessWidget {
                       chatc.update();
                       chatc.showPostShimmer = true;
 
-                       chatc.getUserByIdApi(userId:user.userId );
-                       // chatc.openConversation(chatc.user);
+                      !isOpen? chatc.getUserByIdApi(userId:user.userId ):null;
                       if (homec.selectedChat.value?.pendingCount != 0) {
                         chatc.markAllVisibleAsReadOnOpen(
                             APIs.me.userCompany?.userCompanyId,
@@ -472,7 +485,7 @@ class AccuChatDashboard extends StatelessWidget {
               if (Get.isRegistered<ChatScreenController>(tag: _tag)) {
                  final con = Get.find<ChatScreenController>(tag: _tag);
                  con.page = 1;
-                 con.hitAPIToGetChatHistory('isRegistered bottom nav chat kIsWeb && isWide');
+                 con.hitAPIToGetChatHistory('isRegistered bottom nav chat kIsWeb && isWide', user: con.user!);
                 }
               } /*else {
                 if (kIsWeb && isWide) {

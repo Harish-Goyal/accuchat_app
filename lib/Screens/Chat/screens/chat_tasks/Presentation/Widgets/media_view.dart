@@ -249,7 +249,7 @@ class _ImagesGrid extends StatelessWidget {
               child: ConstrainedBox(
                 constraints: BoxConstraints(
                   maxWidth: _bubbleMaxWidth(context),
-                  maxHeight: kIsWeb ? 520 : 420,
+
                 ),
                 child: CustomCacheNetworkImage(
                   item.url,

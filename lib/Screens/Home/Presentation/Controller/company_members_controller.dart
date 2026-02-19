@@ -54,6 +54,7 @@ class CompanyMemberController extends GetxController{
   _getCompany()async{
     final svc = CompanyService.to;
     myCompany = svc.selected;
+
     update();
 
 
@@ -73,6 +74,9 @@ class CompanyMemberController extends GetxController{
           customLoader.hide();
       toast(value.message??'');
       Get.find<CompaniesController>().hitAPIToGetCompanies();
+          final svc = CompanyService.to;
+          svc.clear();
+      _getCompany();
       hitAPIToGetMember();
       update();
     }).onError((error, stackTrace) {

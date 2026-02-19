@@ -199,7 +199,7 @@ class TaskController extends GetxController {
 
   }*/
 
-  getUserByIdApi({int? userId}) async {
+   getUserByIdApi({int? userId}) async {
    await Get.find<PostApiServiceImpl>()
         .getUserByApiCall(userID: userId,comid: myCompany?.companyId)
         .then((value) async {
@@ -1686,6 +1686,7 @@ class TaskController extends GetxController {
           ? Get.find<TaskController>(tag: tag)
           : Get.put(TaskController(user: selectedUser), tag: tag);
 
+
       con.openConversation(selectedUser);
     }
 
@@ -1694,6 +1695,12 @@ class TaskController extends GetxController {
       receiverId: receiverId,
       companyId: companyId,
       tasktitle: taskData.title ?? '',
+      user:
+      (selectedUser.userCompany?.displayName != null)
+          ? selectedUser.userCompany?.displayName ?? ''
+          : selectedUser?.userName != null
+          ? selectedUser?.userName ?? ''
+          : selectedUser?.phone?? ''
     );
 
     afterSendNavigate();
@@ -1762,7 +1769,12 @@ class TaskController extends GetxController {
         taskID: taskData.taskId,
         receiverId: selectedUser.userCompany?.userCompanyId,
         companyId: myCompany?.companyId,
-        tasktitle: taskData.title??''
+        tasktitle: taskData.title??'',
+        user:  (selectedUser.userCompany?.displayName != null)
+            ? selectedUser.userCompany?.displayName ?? ''
+            : selectedUser?.userName != null
+            ? selectedUser?.userName ?? ''
+            : selectedUser?.phone?? ''
     );
     _afterSendNavigate();
 

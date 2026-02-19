@@ -13,6 +13,7 @@ import 'package:get/get.dart';
 import 'package:image_picker/image_picker.dart';
 import '../../../../Services/APIs/post/post_api_service_impl.dart';
 import '../../../../main.dart';
+import '../../../../routes/app_routes.dart';
 import '../../../../utils/custom_flashbar.dart';
 import '../../../../utils/helper.dart';
 import '../../../../utils/helper_widget.dart';
@@ -112,6 +113,10 @@ class GalleryController extends GetxController
     final svc = CompanyService.to;
     myCompany = svc.selected;
     update();
+    if (!svc.hasCompany){
+      Get.offAllNamed(AppRoutes.landing_r);
+      return;
+    }
   }
 
 

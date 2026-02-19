@@ -31,6 +31,8 @@ CustomLoader customLoader = CustomLoader();
 var log = Logger();
 
 late Size mq;
+
+bool isCompanySwitched = false;
 bool isConnected = true;
 bool isTaskMode = false;
 bool isFirstTimeChat = true;

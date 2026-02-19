@@ -1,6 +1,6 @@
 class ApiEnd {
-  // static const String baseUrl = "http://192.168.1.88:3001/";
-  // static const String baseUrlMedia = "http://192.168.1.88:3001";
+  // static const String baseUrl = "http://192.168.1.66:3001/";
+  // static const String baseUrlMedia = "http://192.168.1.66:3001";
   static const String baseUrl = "https://api.accuchat.in/";
   static const String baseUrlMedia = "https://api.accuchat.in";
   // static const String baseUrl = "http://www.api.accuchat.in:3001/";

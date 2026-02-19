@@ -14,6 +14,7 @@ import '../../../../../../Services/storage_service.dart';
 import '../../../../../../main.dart';
 import '../../../../../../routes/app_routes.dart';
 import '../../../../../../utils/custom_flashbar.dart';
+import '../../../../../../utils/helper_widget.dart';
 import '../../../../../Home/Models/get_pending_sent_invites_res_model.dart';
 import '../../../../../Home/Presentation/Controller/company_service.dart';
 import '../../../../helper/dialogs.dart';
@@ -36,7 +37,7 @@ class ChatHomeController extends GetxController{
   String searchQuery = '';
   Future<void> onCompanyChanged(int? companyId) async => hitAPIToGetRecentChats(page: 1);
 
-  final dash = Get.put(DashboardController(),permanent: true);
+
   var selectedCompany = Rxn<CompanyData>();     // Rx nullable object
   var joinedCompaniesList = <CompanyData>[].obs; // Rx list
   var loadingCompany = false.obs;
@@ -100,6 +101,11 @@ class ChatHomeController extends GetxController{
       update();
     }
 
+    final svc = CompanyService.to;
+    if (!svc.hasCompany){
+      Get.offAllNamed(AppRoutes.landing_r);
+      return;
+    }
   }
 
   List<SentInvitesData> sentInviteList = [];

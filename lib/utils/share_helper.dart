@@ -6,15 +6,24 @@ import 'dart:io';
 import 'package:path_provider/path_provider.dart';
 import 'package:path/path.dart' as p;
 
-
 class ShareHelper {
   static Future<void> shareOnWhatsApp(String text) async {
     final encodedText = Uri.encodeComponent(text);
 
-    final url = "https://wa.me/?text=$encodedText"; // works on Web + Mobile
+    // For mobile: try to open WhatsApp with the "whatsapp://" scheme.
+    final whatsappUrl = "whatsapp://send?text=$encodedText";
 
-    if (await canLaunchUrl(Uri.parse(url))) {
-      await launchUrl(Uri.parse(url), mode: LaunchMode.externalApplication);
+    // For web: fallback to wa.me
+    final webUrl = "https://wa.me/?text=$encodedText";
+
+    // Check if it's a mobile platform (Android/iOS) and try opening with the mobile URL scheme
+    if (await canLaunchUrl(Uri.parse(whatsappUrl))) {
+      await launchUrl(Uri.parse(whatsappUrl),
+          mode: LaunchMode.externalApplication);
+    }
+    // If mobile scheme fails, try the web scheme
+    else if (await canLaunchUrl(Uri.parse(webUrl))) {
+      await launchUrl(Uri.parse(webUrl), mode: LaunchMode.externalApplication);
     } else {
       print("Cannot launch WhatsApp");
     }
@@ -37,10 +46,10 @@ class ShareHelper {
   }
 
   static Future<void> shareNetworkFile(
-      String fileUrl, {
-        String? text,
-        String? fileName, // optional: "invoice.pdf"
-      }) async {
+    String fileUrl, {
+    String? text,
+    String? fileName, // optional: "invoice.pdf"
+  }) async {
     final uri = Uri.parse(fileUrl);
 
     final res = await http.get(uri);
@@ -50,7 +59,6 @@ class ShareHelper {
 
     // 1) Detect content-type from headers (best)
     final contentType = res.headers['content-type'];
-
 
     String name = fileName ??
         (uri.pathSegments.isNotEmpty ? uri.pathSegments.last : "accuchat_file");
@@ -73,7 +81,8 @@ class ShareHelper {
 
     // Create a unique file name to avoid overwrite
     final ts = DateTime.now().millisecondsSinceEpoch;
-    final safeName = "${p.basenameWithoutExtension(name)}_$ts${p.extension(name)}";
+    final safeName =
+        "${p.basenameWithoutExtension(name)}_$ts${p.extension(name)}";
 
     final dir = await getTemporaryDirectory();
     final file = File(p.join(dir.path, safeName));
@@ -101,11 +110,14 @@ class ShareHelper {
       "image/png": ".png",
       "image/webp": ".webp",
       "application/msword": ".doc",
-      "application/vnd.openxmlformats-officedocument.wordprocessingml.document": ".docx",
+      "application/vnd.openxmlformats-officedocument.wordprocessingml.document":
+          ".docx",
       "application/vnd.ms-excel": ".xls",
-      "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet": ".xlsx",
+      "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet":
+          ".xlsx",
       "application/vnd.ms-powerpoint": ".ppt",
-      "application/vnd.openxmlformats-officedocument.presentationml.presentation": ".pptx",
+      "application/vnd.openxmlformats-officedocument.presentationml.presentation":
+          ".pptx",
       "text/plain": ".txt",
       "application/zip": ".zip",
       "audio/mpeg": ".mp3",
@@ -114,5 +126,4 @@ class ShareHelper {
 
     return map[ct];
   }
-
 }

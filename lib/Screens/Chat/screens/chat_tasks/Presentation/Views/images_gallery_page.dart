@@ -197,7 +197,11 @@ class GalleryViewerPage extends GetView<GalleryViewerController> {
             builder: (context, index) {
               final url = controller.urls[index];
               return  PhotoViewGalleryPageOptions(
-                imageProvider: CachedNetworkImageProvider(url),
+                imageProvider: CachedNetworkImageProvider(url,errorListener: (v){
+                  Center(
+                    child: Image.asset(appIcon, fit: BoxFit.contain),
+                  );
+                }),
                 heroAttributes: PhotoViewHeroAttributes(tag: url),
                 minScale: PhotoViewComputedScale.contained,
                 maxScale: PhotoViewComputedScale.covered,

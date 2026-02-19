@@ -101,36 +101,22 @@ Future<void> _disablePushOnLogout() async {
   final fcm = FirebaseMessaging.instance;
 
   try {
-    // Example topics - replace with yours
-    // await fcm.unsubscribeFromTopic('all');
-    // await fcm.unsubscribeFromTopic('company_${CompanyService.to.companyId}');
-    // await fcm.unsubscribeFromTopic('user_${Session.to.userId}');
-  } catch (_) {}
-
-  // 2) Remove token from backend
-  try {
-    final token = await fcm.getToken();
-    if (token != null && token.isNotEmpty) {
-      // call your API to remove this token for the user
-      // await ApiService.removeFcmToken(token);
-    }
-  } catch (_) {}
-
-  // 3) Delete token locally (optional but effective)
-  try {
     await fcm.deleteToken();
-  } catch (_) {}
+  } catch (_) {Get.offAllNamed(AppRoutes.login_r);}
 }
 
 Future<void> logoutLocal() async {
   if (_isLoggingOut) return;
   _isLoggingOut = true;
 
-  customLoader.show();
+  // Show the loader initially
+  // customLoader.show();
 
   try {
+    // Disable push notifications
     await _disablePushOnLogout();
 
+    // Disconnect from socket if necessary
     if (Get.isRegistered<SocketController>()) {
       try {
         Get.find<SocketController>().disconnect();
@@ -138,42 +124,61 @@ Future<void> logoutLocal() async {
       Get.delete<SocketController>(force: true);
     }
 
+    // Clear session, controllers, and stored data
     Get.delete<Session>(force: true);
     Get.delete<ChatScreenController>(force: true);
     Get.delete<ChatHomeController>(force: true);
 
-    await StorageService.clear();
-    await AppStorage().clear();
+    if (Get.isRegistered<AppStorage>()) {
+      await AppStorage().clear();
+      Get.delete<AppStorage>(force: true);
+    }
+    if (Get.isRegistered<StorageService>()) {
+      await StorageService.clear();
 
+      Get.delete<StorageService>(force: true);
+    }
+
+    // If CompanyService is registered, close it
     if (Get.isRegistered<CompanyService>()) {
-      try { await CompanyService.to.closeBox(); } catch (_) {}
+      try {
+        await CompanyService.to.closeBox();
+      } catch (_) {}
       Get.delete<CompanyService>(force: true);
     }
 
-    try { await HiveBoot.closeAndDeleteAll(deleteFromDisk: true); } catch (_) {}
+    // Close Hive data
+    try {
+      await HiveBoot.closeAndDeleteAll(deleteFromDisk: true);
+    } catch (_) {
+      Get.offAllNamed(AppRoutes.login_r);
+    }
 
-  }catch(e){
+  } catch (e) {
+    // Hide the loader if any error occurs
     customLoader.hide();
     _isLoggingOut = false;
-    // 3) Navigate after a tiny delay / next tick
+
+    // Navigate to login screen after a small delay
     await Future.delayed(const Duration(milliseconds: 50));
     Get.offAllNamed(AppRoutes.login_r);
   } finally {
-    // 1) Close overlays first (most important)
+    // Close any current snackbars (this ensures no overlays remain)
     try { Get.closeCurrentSnackbar(); } catch (_) {}
     try { Get.closeAllSnackbars(); } catch (_) {}
 
-    // 2) Then hide your loader (if it uses overlay/dialog)
-    customLoader.hide();
+    // Hide the loader again if it was not hidden before (redundant safeguard)
     customLoader.hide();
 
-   _isLoggingOut = false;
+    // Set logging out flag to false
+    _isLoggingOut = false;
 
-    // 3) Navigate after a tiny delay / next tick
+    // Navigate after a tiny delay
     await Future.delayed(const Duration(milliseconds: 50));
     Get.offAllNamed(AppRoutes.login_r);
   }
 }
+
 
 
 /*

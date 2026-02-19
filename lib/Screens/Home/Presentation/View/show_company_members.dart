@@ -335,7 +335,8 @@ class CompanyMembers extends GetView<CompanyMemberController> {
             child: ChatScreen(
               key: ValueKey(memData.userCompany?.userCompanyId),
               user: memData,
-              showBack: false,
+              showBack: true,
+              isShowNav: false,
             ),
           ),
         ),
@@ -369,7 +370,8 @@ class CompanyMembers extends GetView<CompanyMemberController> {
             child: TaskScreen(
               key: ValueKey(memData.userCompany?.userCompanyId),
               taskUser: memData,
-              showBack: false,
+              showBack: true,
+              isShowNav: false,
             ),
           ),
         ),

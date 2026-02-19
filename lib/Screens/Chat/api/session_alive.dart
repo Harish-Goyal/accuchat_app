@@ -5,6 +5,7 @@ import 'package:get/get.dart';
 
 import '../../../Services/APIs/auth_service/auth_api_services_impl.dart';
 import '../../../Services/storage_service.dart';
+import '../../../utils/helper_widget.dart';
 import '../../../utils/shares_pref_web.dart';
 import '../screens/auth/models/get_uesr_Res_model.dart';
 import 'apis.dart';
@@ -59,15 +60,21 @@ class Session extends GetxService {
       }
 
       _companyId = companyId;
-      final res = await _api.getUserApiCall(companyId: _companyId);
-      final fresh = res.data;
-      if (fresh != null) {
-        await APIs.getFirebaseMessagingToken();
-        _saveToCache(fresh);
-        _user.value = fresh;
+     await _api.getUserApiCall(companyId: _companyId).then((v) async {
+       final fresh = v.data;
+       if (fresh != null) {
+         await APIs.getFirebaseMessagingToken();
+         _saveToCache(fresh);
+         _user.value = fresh;
 
-      }
-    } catch (_) {  }
+       }
+     }).onError((v,e){
+       showCompanyErrorDialog();
+     });
+
+    } catch (_) {
+
+    }
     return _user.value;
   }
 
@@ -134,5 +141,11 @@ class Session extends GetxService {
   Future<void> signOut() async {
     _user.value = null;
     _storage.write(_userKey, null);
+  }
+
+  Future<void> clearSession() async {
+    _user.value = null; // Clear user data
+    _storage.write(_userKey, null); // Clear the cached user data
+    _companyId = null; // Clear the company ID
   }
 }

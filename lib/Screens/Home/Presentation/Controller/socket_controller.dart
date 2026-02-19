@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'package:AccuChat/Screens/Chat/helper/dialogs.dart';
 import 'package:AccuChat/Screens/Chat/models/task_attachment_res_model.dart';
 import 'package:AccuChat/Screens/Chat/models/task_commets_res_model.dart';
 import 'package:AccuChat/Screens/Chat/screens/chat_tasks/Presentation/Controllers/chat_home_controller.dart';
@@ -432,7 +433,7 @@ class SocketController extends GetxController with WidgetsBindingObserver {
     });
 
     socket?.off('add_task_comment_listener');
-    socket?.on('add_task_comment_listener', (messages) {
+  /*  socket?.on('add_task_comment_listener', (messages) {
       debugPrint(
           "add_task_comment_listener ${jsonEncode(messages.toString())}");
       try {
@@ -452,7 +453,7 @@ class SocketController extends GetxController with WidgetsBindingObserver {
           return;
         }
         final selectedUserId = threadController?.currentUser?.userId
-            ?.toString(); // 1-1 userId OR group userId
+            ?.toString();
         final activeCompanyId = APIs.me.userCompany?.companyId;
         final msgCompanyId = receivedMessageDataModal.fromUser?.userCompany?.companyId;
         if (activeCompanyId == null || msgCompanyId == null) return;
@@ -488,10 +489,10 @@ class SocketController extends GetxController with WidgetsBindingObserver {
       } catch (e) {
         debugPrint(e.toString());
       }
-    });
+    });*/
 
 
-/*  socket?.on('add_task_comment_listener', (messages) {
+  socket?.on('add_task_comment_listener', (messages) {
       debugPrint("Comments Listing task......4");
       debugPrint(
           "add_task_comment_listener ${jsonEncode(messages.toString())}");
@@ -521,7 +522,7 @@ class SocketController extends GetxController with WidgetsBindingObserver {
       } catch (e) {
         debugPrint(e.toString());
       }
-    });*/
+    });
 
     socket?.off('update_message_error');
     socket?.on('update_message_error', (payload) {
@@ -707,6 +708,15 @@ class SocketController extends GetxController with WidgetsBindingObserver {
 
         final list = chatController.filteredList;
 
+        final loggedInUserCompanyId = APIs.me.userCompany?.userCompanyId;
+
+        // Skip updates for the logged-in user "Me"
+        final isLoggedInUserInList = list.any((e) => e.userCompany?.userCompanyId == loggedInUserCompanyId);
+        if (isLoggedInUserInList) {
+          return; // Skip if it's the logged-in user's recent message
+        }
+
+
         final isGroupRow = updated.userCompany?.isGroup == 1;
 
         final msgId = updated.lastMessage?.id;
@@ -736,7 +746,7 @@ class SocketController extends GetxController with WidgetsBindingObserver {
             selectedUcId == updated.userCompany?.userCompanyId);
 
 
-        if (index != -1) {
+        if (index != -1 &&!isLoggedInUserInList) {
           final existing = list[index];
 
           existing.lastMessage = updated.lastMessage;
@@ -825,7 +835,6 @@ class SocketController extends GetxController with WidgetsBindingObserver {
     socket?.off('update_recent_task_list');
     socket?.on('update_recent_task_list', (messages) {
       debugPrint("update_recent_task_list ${jsonEncode(messages.toString())}");
-
       try {
         final updated = UserDataAPI.fromJson(messages);
         final taskController = Get.find<TaskHomeController>();
@@ -1419,6 +1428,7 @@ class SocketController extends GetxController with WidgetsBindingObserver {
     var companyId,
     int? chatId,
     int? forwardChatId,
+    String? username,
     int? groupId,
     int? brID,
     int isGroup = 0,
@@ -1470,6 +1480,10 @@ class SocketController extends GetxController with WidgetsBindingObserver {
             "Message sent: $message ,receiverId: $receiverId,replyToId: $replyToId, Broadcast user id,: $brID , forwardChatId: $forwardChatId, fromid: ${APIs.me.userId}, comapnyid: ${APIs.me.userCompany?.userCompanyId}, group id: $groupId, alreadySaved: ${alreadySave}");
         var token = StorageService.getToken();
         debugPrint("authorization token is ********* $token");
+        if(forwardChatId!=null){
+          Dialogs.showSnackbar(Get.context!, "Message forwarded to $username");
+        }
+
         final svc = CompanyService.to;
         final myCompany = svc.selected;
 
@@ -1655,6 +1669,7 @@ class SocketController extends GetxController with WidgetsBindingObserver {
     int? receiverId,
     var companyId,
     tasktitle,
+    user,
     pushToken,
   }) async {
     if (socket != null && socket!.connected) {
@@ -1665,6 +1680,7 @@ class SocketController extends GetxController with WidgetsBindingObserver {
           "company_id": companyId,
           "to_id": receiverId,
         });
+        Dialogs.showSnackbar(Get.context!,"Task Forwarded Successfully to this $user!");
         debugPrint("Message sent:TaskID $taskID ,receiverId: $receiverId ");
         final svc = CompanyService.to;
         final myCompany = svc.selected;

@@ -126,19 +126,21 @@ class ChatScreenController extends GetxController {
   TextEditingController seacrhCon = TextEditingController();
 
   Timer? searchDelay;
-  void onSearch(String query) {
-    searchDelay?.cancel();
-    searchDelay = Timer(const Duration(milliseconds: 400), () {
-      searchQuery = query.trim().toLowerCase();
-      page = 1;
-      hasMore = true;
-      chatHisList = [];
-      update();
 
-      hitAPIToGetChatHistory("onsearch",
-          searchQuery: searchQuery.isEmpty ? null : searchQuery);
+  void onSearch(String query, UserDataAPI user) {
+    searchDelay?.cancel();  // Cancel any ongoing search
+    searchDelay = Timer(const Duration(milliseconds: 500), () {
+      searchQuery = query.trim().toLowerCase();
+      // Always reset the page to 1 on new search
+      page = 1;
+
+      // Disable pagination while search is ongoing
+      print(query);
+      // Call the API with the search query
+      hitAPIToGetChatHistory("onsearch", user: user, searchQuery: searchQuery.isEmpty ? null : searchQuery);
     });
   }
+
 
   final showUpload = true.obs;
 
@@ -244,7 +246,7 @@ class ChatScreenController extends GetxController {
       safety++;
       if (safety > 50) break;
 
-      await hitAPIToGetChatHistory("_loadUntilFound");
+      // await hitAPIToGetChatHistory("_loadUntilFound", user: null);
       rebuildFlatRows();
 
       if (chatIdIndexMap.containsKey(targetChatId)) break;
@@ -314,53 +316,17 @@ class ChatScreenController extends GetxController {
   }
 */
 
-  // Optional highlight logic
-  final highlighted = <int>{}.obs;
-  void highlightMessage(int chatId) {
-    highlighted.add(chatId);
-    update();
-    Future.delayed(const Duration(seconds: 1), () {
-      highlighted.remove(chatId);
-      update();
-    });
-  }
-  bool _paginationListenerAttached = false;
+
   bool _pasteRegistered = false;
 
 
  @override
   void onReady() {
    if(!kIsWeb|| Get.width<600) {
-   _attachPaginationListener();
     super.onReady();
   }
   }
-
-  void _attachPaginationListener() {
-    if (_paginationListenerAttached) return;  // ✅ prevents duplicate attach
-    _paginationListenerAttached = true;
-    itemPositionsListener.itemPositions.addListener(onPositionsChanged);
-  }
-
-  void onPositionsChanged() {
-
-    if (isPageLoading || !hasMore) return;
-
-    final positions = itemPositionsListener.itemPositions.value;
-    if (positions.isEmpty) return;
-    // When reverse:true, loading older messages happens when you reach the "top".
-    // In practice: the highest index becomes visible.
-    final maxVisibleIndex = positions
-        .where((p) => p.itemTrailingEdge > 0) // visible
-        .map((p) => p.index)
-        .reduce((a, b) => a > b ? a : b);
-
-    // near the end (top side in reverse list)
-    if (maxVisibleIndex >= chatRows.length - 4) {
-      hitAPIToGetChatHistory("pagination");
-    }
-  }
-
+  
   _initImagePaste() {
     if (kIsWeb) {
       WidgetsBinding.instance.addPostFrameCallback((_) {
@@ -604,8 +570,9 @@ class ChatScreenController extends GetxController {
   }
 
   void markAllVisibleAsReadOnOpen(toUcID, fromUcId, isGroupChat) {
-    Get.find<SocketController>().connectUserEmitter(myCompany?.companyId);
-    Get.find<SocketController>().readMsgEmitter(
+   final socketCon =Get.find<SocketController>();
+   socketCon.connectUserEmitter(myCompany?.companyId);
+   socketCon.readMsgEmitter(
         toucID: toUcID,
         fromUcID: fromUcId,
         companyId: myCompany?.companyId,
@@ -721,10 +688,11 @@ class ChatScreenController extends GetxController {
 
   void openConversation(UserDataAPI? useriii) {
     user = useriii;
+    update();
     ChatPresence.activeChatId.value = user?.userCompany?.userCompanyId;
     Future.microtask(() {
       resetPaginationForNewChat();
-       hitAPIToGetChatHistory("openConversation");
+       hitAPIToGetChatHistory("openConversation", user: useriii!);
       if (user?.userCompany?.isGroup == 1 ||
           user?.userCompany?.isBroadcast == 1) {
         hitAPIToGetMembers(user);
@@ -816,34 +784,42 @@ class ChatScreenController extends GetxController {
     update();
   }
 
-  Future<void> hitAPIToGetChatHistory(p, {String? searchQuery}) async {
-    if (isPageLoading || !hasMore) return;
+
+  Future<void> hitAPIToGetChatHistory(p, {String? searchQuery, required UserDataAPI user}) async {
+    if (isPageLoading || !hasMore) return; // Don't call API if loading or no more pages
+    print("p===============");
+    print(p);
     if (page == 1) {
       showPostShimmer = true;
-      chatHisList?.clear();
+      chatHisList?.clear();  // Clear previous chat history on new search
       chatCatygory.clear();
     }
-    isPageLoading = true;
+
+    isPageLoading = true;  // Set loading state
     update();
+
     try {
       final value = await Get.find<PostApiServiceImpl>().getChatHistoryApiCall(
         userComId: user?.userCompany?.userCompanyId,
         page: page,
         searchText: searchQuery ?? '',
       );
+
       showPostShimmer = false;
       chatHisResModelAPI = value;
       final rows = value.data?.rows ?? [];
+
       if (rows.isNotEmpty) {
         if (page == 1) {
-          chatHisList = rows;
+          chatHisList = rows; // Overwrite for new search
         } else {
-          chatHisList?.addAll(rows);
+          chatHisList?.addAll(rows); // Add to list if it's a paged request
         }
         page++;
       } else {
-        hasMore = false;
+        hasMore = false; // No more results, set flag
       }
+
       chatCatygory = (chatHisList ?? []).map((item) {
         DateTime dt = DateTime.now();
         if (item.sentOn != null && item.sentOn!.isNotEmpty) {
@@ -867,6 +843,61 @@ class ChatScreenController extends GetxController {
       update();
     }
   }
+
+  // Future<void> hitAPIToGetChatHistory(p, {String? searchQuery ,required UserDataAPI user}) async {
+  //   if (isPageLoading || !hasMore) return;
+  //   if (page == 1) {
+  //     showPostShimmer = true;
+  //     chatHisList?.clear();
+  //     chatCatygory.clear();
+  //   }
+  //   isPageLoading = true;
+  //   update();
+  //   try {
+  //     final value = await Get.find<PostApiServiceImpl>().getChatHistoryApiCall(
+  //       userComId: user?.userCompany?.userCompanyId,
+  //       page: page,
+  //       searchText: searchQuery ?? '',
+  //     );
+  //     showPostShimmer = false;
+  //     chatHisResModelAPI = value;
+  //     final rows = value.data?.rows ?? [];
+  //     if (rows.isNotEmpty) {
+  //       if (page == 1) {
+  //         chatHisList = rows;
+  //       } else {
+  //         chatHisList?.addAll(rows);
+  //       }
+  //       page++;
+  //     } else {
+  //       hasMore = false;
+  //     }
+  //     chatCatygory = (chatHisList ?? []).map((item) {
+  //       DateTime dt = DateTime.now();
+  //       if (item.sentOn != null && item.sentOn!.isNotEmpty) {
+  //         dt = DateTime.parse(item.sentOn!).toLocal();
+  //       }
+  //       return GroupChatElement(dt, item);
+  //     }).toList();
+  //
+  //     print("user?.pendingCount");
+  //     print(user?.pendingCount);
+  //     if ((user?.pendingCount ?? 0) != 0) {
+  //       print(user?.pendingCount);
+  //       markAllVisibleAsReadOnOpen(
+  //         user?.userCompany?.userCompanyId,
+  //         APIs.me.userCompany?.userCompanyId,
+  //         user?.userCompany?.isGroup == 1 ? 1 : 0,
+  //       );
+  //     }
+  //     rebuildFlatRows();
+  //   } catch (e) {
+  //     showPostShimmer = false;
+  //   } finally {
+  //     isPageLoading = false;
+  //     update();
+  //   }
+  // }
 
 /*  hitAPIToGetChatHistory(p, {String? searchQuery}) async {
     if (isPageLoading || !hasMore) return;
@@ -1451,14 +1482,19 @@ class ChatScreenController extends GetxController {
       replyToMessage = null;
       final _tagid = selectedUser.userCompany?.userCompanyId;
       final _tag = "chat_${_tagid ?? 'mobile'}";
+      final chatHomeController=
+      Get.find<ChatHomeController>();
       // Replace current chat screen with the target chat
       if (/*Get.currentRoute == AppRoutes.chats_li_r &&*/
           Get.isRegistered<ChatScreenController>(tag: _tag)) {
-        Get.find<ChatHomeController>().selectedChat.value = selectedUser;
+
+        chatHomeController.selectedChat.value = selectedUser;
         final con = Get.find<ChatScreenController>(
             tag:_tag);
         con.openConversation(selectedUser);
       } else {
+        chatHomeController.selectedChat.value = selectedUser;
+        chatHomeController.selectedChat.refresh();
         Get.put(ChatScreenController(user: selectedUser),tag: _tag);
         // if (kIsWeb) {
         //   Get.to(()=>ChatScreen(user: selectedUser ,showBack: true,));
@@ -1497,6 +1533,11 @@ class ChatScreenController extends GetxController {
         alreadySave: false,
         forwardChatId: chatId,
         isForward: 1,
+        username: (selectedUser.userCompany?.displayName != null)
+            ? selectedUser.userCompany?.displayName ?? ''
+            : selectedUser?.userName != null
+            ? selectedUser?.userName ?? ''
+            : selectedUser?.phone?? ''
       );
       _afterSendNavigate();
       return;
@@ -1512,6 +1553,11 @@ class ChatScreenController extends GetxController {
         alreadySave: false,
         forwardChatId: chatId,
         isForward: 1,
+          username: (selectedUser.userCompany?.displayName != null)
+              ? selectedUser.userCompany?.displayName ?? ''
+              : selectedUser?.userName != null
+              ? selectedUser?.userName ?? ''
+              : selectedUser?.phone?? ''
       );
       _afterSendNavigate();
       return;
@@ -1526,6 +1572,11 @@ class ChatScreenController extends GetxController {
       alreadySave: false,
       isForward: 1,
       forwardChatId: chatId,
+        username: (selectedUser.userCompany?.displayName != null)
+            ? selectedUser.userCompany?.displayName ?? ''
+            : selectedUser?.userName != null
+            ? selectedUser?.userName ?? ''
+            : selectedUser?.phone?? ''
     );
     _afterSendNavigate();
   }
@@ -1586,6 +1637,11 @@ class ChatScreenController extends GetxController {
         alreadySave: false,
         forwardChatId: chatId,
         isForward: 1,
+          username: (selectedUser.userCompany?.displayName != null)
+              ? selectedUser.userCompany?.displayName ?? ''
+              : selectedUser?.userName != null
+              ? selectedUser?.userName ?? ''
+              : selectedUser?.phone?? ''
       );
       _afterSendNavigate();
       return;
@@ -1601,6 +1657,11 @@ class ChatScreenController extends GetxController {
         alreadySave: false,
         forwardChatId: chatId,
         isForward: 1,
+          username: (selectedUser.userCompany?.displayName != null)
+              ? selectedUser.userCompany?.displayName ?? ''
+              : selectedUser?.userName != null
+              ? selectedUser?.userName ?? ''
+              : selectedUser?.phone?? ''
       );
       _afterSendNavigate();
       return;
@@ -1615,6 +1676,11 @@ class ChatScreenController extends GetxController {
       alreadySave: false,
       isForward: 1,
       forwardChatId: chatId,
+        username: (selectedUser.userCompany?.displayName != null)
+            ? selectedUser.userCompany?.displayName ?? ''
+            : selectedUser?.userName != null
+            ? selectedUser?.userName ?? ''
+            : selectedUser?.phone?? ''
     );
     _afterSendNavigate();
   }

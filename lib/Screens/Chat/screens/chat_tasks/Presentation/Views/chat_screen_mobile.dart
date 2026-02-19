@@ -34,7 +34,6 @@ import '../../../../../../utils/custom_flashbar.dart';
 import '../../../../../../utils/emogi_checker.dart';
 import '../../../../../../utils/emogi_picker_web.dart';
 import '../../../../../../utils/gradient_button.dart';
-import '../../../../../../utils/product_shimmer_widget.dart';
 import '../../../../../../utils/share_helper.dart';
 import '../../../../../../utils/text_button.dart';
 import '../../../../../../utils/text_style.dart';
@@ -187,7 +186,7 @@ class _ChatScreenMobileState extends State<ChatScreenMobile> {
       safety++;
       if (safety > 50) break;
 
-      await controller.hitAPIToGetChatHistory("_loadUntilFound");
+      await controller.hitAPIToGetChatHistory("_loadUntilFound", user: controller.user!);
       controller.rebuildFlatRows();
 
       if (controller.chatIdIndexMap.containsKey(targetChatId)) break;
@@ -217,7 +216,7 @@ class _ChatScreenMobileState extends State<ChatScreenMobile> {
 
     // near the end (top side in reverse list)
     if (maxVisibleIndex >= controller.chatRows.length - 4) {
-      controller.hitAPIToGetChatHistory("pagination");
+      controller.hitAPIToGetChatHistory("pagination", user: controller.user!);
     }
   }
   @override
@@ -988,7 +987,7 @@ class _ChatScreenMobileState extends State<ChatScreenMobile> {
                 fontSize: 13, letterSpacing: 0.5),
             onChanged: (val) {
               controller.searchQuery = val;
-              controller.onSearch(val);
+              controller.onSearch(val, controller.user!);
             },
           ).marginSymmetric(vertical: 10),
         )
@@ -1139,7 +1138,7 @@ class _ChatScreenMobileState extends State<ChatScreenMobile> {
               controller.update();
               if(!controller.isSearching){
                 controller.searchQuery = '';
-                controller.onSearch('');
+                controller.onSearch('', controller.user!);
                 controller.seacrhCon.clear();
               }
               controller.update();
@@ -2382,6 +2381,7 @@ class _ChatScreenMobileState extends State<ChatScreenMobile> {
                     if (kIsWeb) {
                       final msg = data.message ?? '';
                       if(msg!='') {
+                        print("Sharing");
                         ShareHelper.shareOnWhatsApp(msg);
                       }else{
                         ShareHelper.shareOnWhatsApp("${ApiEnd.baseUrlMedia}${data.media?.first.fileName??''}");
@@ -2404,7 +2404,10 @@ class _ChatScreenMobileState extends State<ChatScreenMobile> {
                   : const SizedBox(),
               if ((data.message?.isNotEmpty ?? false)|| (data.media ?? []).isNotEmpty)
                 _OptionItem(
-                    icon:  const Icon(Icons.reply_all_outlined, color: Colors.blue),
+                    icon:  Image.asset(
+                forwardIcon,
+          height: 17,
+          ),
                     name:
                     'Forward',
                     onTap: () {
@@ -2668,7 +2671,7 @@ class _ChatScreenMobileState extends State<ChatScreenMobile> {
 
 //custom options card (for copy, edit, delete, etc.)
 class _OptionItem extends StatelessWidget {
-  final Icon icon;
+  final Widget icon;
   final String name;
   final Function() onTap;
 

@@ -166,6 +166,31 @@ class CompanyService extends GetxService {
     }
   }
 
+  Future<void> clearService() async {
+    await _ensureBoxOpen();
+
+    // 1. Delete the current company from Hive storage
+    await _box!.delete(_keyCurrent);
+
+    // 2. Reset in-memory state
+    _selected.value = null;
+
+    // 3. Clear the session data
+    try {
+      if (Get.isRegistered<Session>()) {
+        final session = Get.find<Session>();
+        await session.clearSession(); // Clears session-related data
+      }
+    } catch (e, s) {
+      debugPrint('Error clearing session: $e\n$s');
+    }
+
+    // 4. Optional cleanup tasks
+    await MemoryDoctor.deflateBeforeNav();
+    MemoryDoctor.disposeFeatureControllers();
+  }
+
+
   static CompanyService get to => Get.find<CompanyService>();
 }
 

@@ -113,8 +113,9 @@ double _textScaleClamp(BuildContext context) {
 class ChatScreen extends StatefulWidget {
   UserDataAPI? user;
   bool showBack = true;
+  bool isShowNav;
 
-  ChatScreen({super.key, this.user, this.showBack = true});
+  ChatScreen({super.key, this.user, this.showBack = true, this.isShowNav = true});
 
   @override
   State<ChatScreen> createState() => _ChatScreenState();
@@ -173,6 +174,7 @@ class _ChatScreenState extends State<ChatScreen> {
         });
       },
     );
+
     _attachPaginationListener();
 
     final ucId = widget.user?.userCompany?.userCompanyId;
@@ -203,6 +205,28 @@ class _ChatScreenState extends State<ChatScreen> {
     super.dispose();
   }
 
+  bool _paginationListenerAttached = false;
+  void _attachPaginationListener() {
+    if (_paginationListenerAttached) return;  // ✅ prevents duplicate attach
+    _paginationListenerAttached = true;
+        itemPositionsListener.itemPositions.addListener(onPositionsChanged);
+
+  }
+  void onPositionsChanged() {
+    if (controller.isPageLoading || !controller.hasMore ||controller.isSearching ) return;
+    final positions = itemPositionsListener.itemPositions.value;
+    if (positions.isEmpty) return;
+    final maxVisibleIndex = positions
+        .where((p) => p.itemTrailingEdge > 0)
+        .map((p) => p.index)
+        .reduce((a, b) => a > b ? a : b);
+
+    if (maxVisibleIndex >= controller.chatRows.length - 4) {
+      // Trigger pagination API call
+      controller.hitAPIToGetChatHistory("pagination", user: widget.user!);
+    }
+  }
+
   Future<void> jumpToRepliedMessage(int targetChatId) async {
     /// Load more pages if message not found
     if (!controller.chatIdIndexMap.containsKey(targetChatId)) {
@@ -231,6 +255,7 @@ class _ChatScreenState extends State<ChatScreen> {
       }
     });
   }
+
   Future<void> _loadUntilFound(int targetChatId) async {
     int safety = 0;
     while (!controller.chatIdIndexMap.containsKey(targetChatId) &&
@@ -239,39 +264,32 @@ class _ChatScreenState extends State<ChatScreen> {
       safety++;
       if (safety > 50) break;
 
-      await controller.hitAPIToGetChatHistory("_loadUntilFound");
+      await controller.hitAPIToGetChatHistory("_loadUntilFound", user: widget.user!);
       controller.rebuildFlatRows();
 
       if (controller.chatIdIndexMap.containsKey(targetChatId)) break;
     }
   }
-  bool _paginationListenerAttached = false;
-  void _attachPaginationListener() {
-    if (_paginationListenerAttached) return;  // ✅ prevents duplicate attach
-    _paginationListenerAttached = true;
 
-    itemPositionsListener.itemPositions.addListener(onPositionsChanged);
 
-  }
-
-  void onPositionsChanged() {
-
-    if (controller.isPageLoading || !controller.hasMore) return;
-
-    final positions = itemPositionsListener.itemPositions.value;
-    if (positions.isEmpty) return;
-    // When reverse:true, loading older messages happens when you reach the "top".
-    // In practice: the highest index becomes visible.
-    final maxVisibleIndex = positions
-        .where((p) => p.itemTrailingEdge > 0) // visible
-        .map((p) => p.index)
-        .reduce((a, b) => a > b ? a : b);
-
-    // near the end (top side in reverse list)
-    if (maxVisibleIndex >= controller.chatRows.length - 4) {
-      controller.hitAPIToGetChatHistory("pagination");
-    }
-  }
+  // void onPositionsChanged() {
+  //
+  //   if (controller.isPageLoading || !controller.hasMore) return;
+  //
+  //   final positions = itemPositionsListener.itemPositions.value;
+  //   if (positions.isEmpty) return;
+  //   // When reverse:true, loading older messages happens when you reach the "top".
+  //   // In practice: the highest index becomes visible.
+  //   final maxVisibleIndex = positions
+  //       .where((p) => p.itemTrailingEdge > 0) // visible
+  //       .map((p) => p.index)
+  //       .reduce((a, b) => a > b ? a : b);
+  //
+  //   // near the end (top side in reverse list)
+  //   if (maxVisibleIndex >= controller.chatRows.length - 4) {
+  //     controller.hitAPIToGetChatHistory("pagination", user: widget.user!);
+  //   }
+  // }
 
   @override
   Widget build(BuildContext context) {
@@ -1242,11 +1260,11 @@ class _ChatScreenState extends State<ChatScreen> {
                       contentPadding:
                           EdgeInsets.symmetric(vertical: 0, horizontal: 10),
                       constraints: BoxConstraints(maxHeight: 45)),
-                  autofocus: true,
+
                   style: const TextStyle(fontSize: 13, letterSpacing: 0.5),
                   onChanged: (val) {
                     controller.searchQuery = val;
-                    controller.onSearch(val);
+                    controller.onSearch(val,widget.user!);
                   },
                 ).marginSymmetric(vertical: 10),
               )
@@ -1393,16 +1411,18 @@ class _ChatScreenState extends State<ChatScreen> {
         controller.isSearching
             ? const SizedBox()
             : (widget.user?.userCompany?.isBroadcast == 1 ||
-                    widget.user?.userCompany?.isGroup == 1)
+                    widget.user?.userCompany?.isGroup == 1|| !widget.isShowNav)
                 ? const SizedBox()
-                : CustomTextButton(
+                : /*CustomTextButton(
                     onTap: () async {
                       if (widget.user == null) return;
+
+                      final   dashC =Get.isRegistered<DashboardController>()?Get.find<DashboardController>():Get.put(DashboardController());
+
                       isTaskMode = true;
-                      Get.find<DashboardController>().updateIndex(1);
                       // ensure TaskHomeController exists
                       final taskHome =Get.isRegistered<TaskHomeController>()? Get.find<TaskHomeController>():Get.put(TaskHomeController());
-
+                      dashC.updateIndex(1);
                       // ensure TaskController exists
                       final _tagTaskid = widget.user?.userCompany?.userCompanyId;
                       final _tagTask = "task_$_tagTaskid";
@@ -1422,7 +1442,45 @@ class _ChatScreenState extends State<ChatScreen> {
 
                       taskHome.selectedChat.refresh();
                     },
-                    title: "Go to Task"),
+                    title: "Go to Task")*/CustomTextButton(
+    onTap: () async {
+    if (widget.user == null) return;
+    try{
+      DashboardController? dashC;
+      bool isReg = true;
+      if (Get.isRegistered<DashboardController>()) {
+        print("Registed dash====");
+        dashC = Get.find<DashboardController>();
+      } else {
+        isReg = false;
+        print("Not Registed dashh====");
+        dashC = Get.put(DashboardController());
+      }
+      await dashC?.getCompany();
+      Future.delayed(const Duration(milliseconds: 300));
+      TaskHomeController? taskHome;
+      if (Get.isRegistered<TaskHomeController>()) {
+        print("Registed====");
+        taskHome = Get.find<TaskHomeController>();
+      } else {
+        print("Not Registed====");
+        taskHome = Get.put(TaskHomeController());
+      }
+
+      taskHome?.selectedChat.value = widget.user;
+      await Future.delayed(const Duration(milliseconds: 300));
+      taskHome?.selectedChat.refresh();
+
+      dashC?.getCompany();
+      dashC?.updateIndex(1);
+      isTaskMode = true;
+    }catch(e){
+      Dialogs.showSnackbar(context, "Something went wrong please refresh the App");
+    }
+    },
+    title: "Go to Task",
+    )
+    ,
         controller.isSearching ? const SizedBox() : hGap(10),
         IconButton(
                 onPressed: () {
@@ -1430,8 +1488,8 @@ class _ChatScreenState extends State<ChatScreen> {
                   controller.update();
                   if (!controller.isSearching) {
                     controller.searchQuery = '';
-                    controller.onSearch('');
                     controller.seacrhCon.clear();
+                    controller.onSearch(controller.searchQuery,widget.user!);
                   }
                   controller.update();
                 },
@@ -2087,8 +2145,8 @@ class _ChatScreenState extends State<ChatScreen> {
                   ?
                   //copy option
                   _OptionItem(
-                      icon: const Icon(Icons.copy_all_rounded,
-                          color: Colors.blue, size: 18),
+                      icon:  Icon(Icons.copy_all_rounded,
+                          color: appColorGreen, size: 18),
                       name: 'Copy Text',
                       onTap: () async {
                         await Clipboard.setData(
@@ -2105,7 +2163,7 @@ class _ChatScreenState extends State<ChatScreen> {
                       !((data.media ?? []).isNotEmpty)
                           ? _OptionItem(
                               icon: Icon(Icons.download_rounded,
-                                  color: appColorYellow, size: 16),
+                                  color: appColorGreen, size: 16),
                               name: 'Save Image',
                               onTap: () async {
                                 try {
@@ -2123,7 +2181,7 @@ class _ChatScreenState extends State<ChatScreen> {
               (((data.media ?? []).isNotEmpty && data.media?.length == 1) ||
                       data.message != '')
                   ? _OptionItem(
-                      icon: Icon(Icons.reply, color: appColorGreen, size: 16),
+                      icon: Icon(Icons.reply, color: appColorGreen, size: 19),
                       name: 'Reply',
                       onTap: () async {
                         final media = data.media;
@@ -2230,7 +2288,7 @@ class _ChatScreenState extends State<ChatScreen> {
               ((data.media ?? []).isNotEmpty && data.media?.length == 1)
                   ? _OptionItem(
                       icon: Icon(Icons.document_scanner,
-                          color: appColorYellow, size: 16),
+                          color: appColorGreen, size: 16),
                       name: 'Save to Smart Gallery',
                       onTap: () async {
                         final mediachat = data.media?.first;
@@ -2353,7 +2411,11 @@ class _ChatScreenState extends State<ChatScreen> {
 
               if ((data.message?.isNotEmpty ?? false)|| (data.media ?? []).isNotEmpty)
                 _OptionItem(
-                    icon:  Icon(Icons.reply_all_outlined, color: Colors.blue),
+                    icon:  Image.asset(
+                      forwardIcon,
+                      height: 17,
+                      color: appColorGreen,
+                    ),
                     name:
                     'Forward',
                     onTap: () {
@@ -2509,7 +2571,8 @@ class _ChatScreenState extends State<ChatScreen> {
 
 //custom options card (for copy, edit, delete, etc.)
 class _OptionItem extends StatelessWidget {
-  final Icon icon;
+  final Widget icon;
+
   final String name;
   final Function() onTap;
 
@@ -2521,14 +2584,14 @@ class _OptionItem extends StatelessWidget {
     return InkWell(
         onTap: onTap,
         child: Padding(
-          padding: EdgeInsets.only(
-              left: mq.width * .05,
-              top: mq.height * .015,
-              bottom: mq.height * .015),
+          padding: const EdgeInsets.only(
+              left: 15,
+              top: 15,
+              bottom: 15),
           child: Row(children: [
             icon,
             Flexible(
-                child: Text('    $name',
+                child: Text('  $name',
                     style: const TextStyle(
                         fontSize: 15,
                         color: Colors.black54,

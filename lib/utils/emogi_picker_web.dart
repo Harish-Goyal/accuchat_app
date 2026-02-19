@@ -78,7 +78,7 @@ void openWhatsAppEmojiPicker({
                         IconButton(
                           tooltip: "Send",
                           onPressed: () {
-                            if (!isMobile) Navigator.pop(context);
+
                             onSend();
                           },
                           icon:  Icon(Icons.send,color: appColorGreen,),

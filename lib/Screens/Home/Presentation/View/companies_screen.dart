@@ -1,8 +1,11 @@
 import 'package:AccuChat/Constants/themes.dart';
 import 'package:AccuChat/Screens/Chat/models/get_company_res_model.dart';
+import 'package:AccuChat/Screens/Chat/screens/chat_tasks/Presentation/Controllers/chat_home_controller.dart';
 import 'package:AccuChat/Screens/Chat/screens/chat_tasks/Presentation/Controllers/chat_screen_controller.dart';
+import 'package:AccuChat/Screens/Chat/screens/chat_tasks/Presentation/Controllers/task_home_controller.dart';
 import 'package:AccuChat/Screens/Home/Presentation/Controller/compnaies_controller.dart';
 import 'package:AccuChat/Screens/Home/Presentation/Controller/gallery_controller.dart';
+import 'package:AccuChat/Screens/Home/Presentation/Controller/home_controller.dart';
 import 'package:AccuChat/Screens/Home/Presentation/View/pending_invites_animated.dart';
 import 'package:AccuChat/Screens/Home/Presentation/View/show_company_members.dart';
 import 'package:AccuChat/Services/APIs/api_ends.dart';
@@ -61,7 +64,7 @@ class CompaniesScreen extends GetView<CompaniesController> {
 
   Future<void> _onSubtitleTap(CompanyData companyData) async {
     customLoader.show();
-
+    isCompanySwitched =true;
     try {
       await controller.hitAPIToGetSentInvites(
         companyData: companyData,
@@ -97,17 +100,25 @@ class CompaniesScreen extends GetView<CompaniesController> {
 
       // Cleanup (guard + try/catch so it can't block)
       try {
-        final chatId = ChatPresence.activeChatId.value;
-        final chatTag = "chat_$chatId";
-        if (Get.isRegistered<ChatScreenController>(tag: chatTag)) {
-          Get.delete<ChatScreenController>(tag: chatTag, force: true);
+        if(!kIsWeb && Get.width<500) {
+          if (Get.isRegistered<ChatScreenController>()) {
+            Get.delete<ChatScreenController>(force: true);
+          }
+          if (Get.isRegistered<TaskController>()) {
+            Get.delete<TaskController>();
+          }
         }
-
-        final taskId = TaskPresence.activeTaskId.value;
-        final taskTag = "task_$taskId";
-        if (Get.isRegistered<TaskController>(tag: taskTag)) {
-          Get.delete<TaskController>(tag: taskTag, force: true);
-        }
+        // final chatId = ChatPresence.activeChatId.value;
+        // final chatTag = "chat_$chatId";
+        // if (Get.isRegistered<ChatScreenController>(tag: chatTag)) {
+        //   Get.delete<ChatScreenController>(tag: chatTag, force: true);
+        // }
+        //
+        // final taskId = TaskPresence.activeTaskId.value;
+        // final taskTag = "task_$taskId";
+        // if (Get.isRegistered<TaskController>(tag: taskTag)) {
+        //   Get.delete<TaskController>(tag: taskTag, force: true);
+        // }
 
         if (Get.isRegistered<GalleryController>()) {
           Get.delete<GalleryController>(force: true);
@@ -126,6 +137,7 @@ class CompaniesScreen extends GetView<CompaniesController> {
 
   Future<void> _onTapCompany(CompanyData companyData) async {
     customLoader.show();
+    isCompanySwitched =true;
     try {
       await controller.hitAPIToGetSentInvites(
         companyData: companyData,
@@ -133,8 +145,9 @@ class CompaniesScreen extends GetView<CompaniesController> {
       );
 
       final svc = CompanyService.to;
+      // await svc.clearService();
       await svc.select(companyData);
-
+      //
       controller.getCompany();
 
       await APIs.refreshMe(companyId: companyData.companyId ?? 0);
@@ -143,23 +156,33 @@ class CompaniesScreen extends GetView<CompaniesController> {
         Get.find<SocketController>().connectUserEmitter(companyData.companyId);
       }
       try {
-        if (Get.isRegistered<ChatScreenController>()) {
-          Get.delete<ChatScreenController>(force: true);
+        if(!kIsWeb && Get.width<500) {
+          if (Get.isRegistered<ChatScreenController>()) {
+            Get.delete<ChatScreenController>(force: true);
+          }
+          if (Get.isRegistered<TaskController>()) {
+            Get.delete<TaskController>();
+          }
         }
-        final taskId = TaskPresence.activeTaskId.value;
-        final taskTag = "task_$taskId";
-        if (Get.isRegistered<TaskController>(tag: taskTag)) {
-          Get.delete<TaskController>(tag: taskTag, force: true);
-        }
-
         if (Get.isRegistered<GalleryController>()) {
           Get.delete<GalleryController>(force: true);
         }
+
+        // if (!Get.isRegistered<DashboardController>()) {
+        //   print("Registering DashboardController");
+        //   Get.put(DashboardController());
+        // } else {
+        //   print("DashboardController already registered");
+        // }
+        // // After company switch, manually update state and call update()// Reset or set to a specific index
+        // Get.find<DashboardController>().onInit();
+        // Get.find<DashboardController>().update();
+
       } catch (_) {}
     } catch (e, st) {
       debugPrint("_onTapCompany error: $e\n$st");
     } finally {
-      // ✅ Always hide
+
       customLoader.hide();
       controller.update();
     }
@@ -184,7 +207,6 @@ class CompaniesScreen extends GetView<CompaniesController> {
   Get.find<SocketController>()
       .connectUserEmitter(
   companyData.companyId);
-
   if (Get.isRegistered<
   ChatScreenController>()) {
   Get.delete<
@@ -306,7 +328,11 @@ class CompaniesScreen extends GetView<CompaniesController> {
                                             (v) => v.company?.companyName ?? '')
                                         .toList(),
                                     onTap: () {
-                                      Get.toNamed(AppRoutes.accept_invite);
+                                      if(kIsWeb){
+                                        openAcceptInviteDialog();
+                                      }else{
+                                        Get.toNamed(AppRoutes.accept_invite);
+                                      }
                                     },
                                   ),
                           ),

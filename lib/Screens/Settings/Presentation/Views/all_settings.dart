@@ -133,7 +133,11 @@ class AllSettingsScreen extends GetView<AllSettingsController> {
           icon: Icons.insert_invitation_outlined,
           title: 'Invitations',
           onTap: () {
-            Get.toNamed(AppRoutes.accept_invite);
+            if(kIsWeb){
+              openAcceptInviteDialog();
+            }else{
+              Get.toNamed(AppRoutes.accept_invite);
+            }
           },
         ),  _buildTile(
           icon: Icons.privacy_tip_outlined,

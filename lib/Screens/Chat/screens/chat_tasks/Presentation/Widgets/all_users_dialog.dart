@@ -149,12 +149,13 @@ class AllUserScreenDialog extends GetView<AllUserController> {
                                         Text(
                                           memData.userId ==
                                               APIs.me?.userId
-                                              ? "Me":   memData.userName != null ? memData
-                                              .userName ?? '' : memData
+                                              ? "Me":   memData
                                               .userCompany?.displayName != null
                                               ? memData.userCompany
                                               ?.displayName ?? ''
-                                              : memData.phone ?? '',
+                                              :memData.userName != null ? memData
+                                              .userName ?? '' :
+                                          memData.phone ?? '',
                                           style: BalooStyles
                                               .baloosemiBoldTextStyle(),
                                           maxLines: 1,

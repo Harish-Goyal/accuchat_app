@@ -24,6 +24,7 @@ class AllUserScreen extends GetView<AllUserController> {
     _lastCall = now;
     return true;
   }
+
   void selectUser(UserDataAPI user) {
     Get.back(result: user); // ✅ return to caller
   }
@@ -39,43 +40,42 @@ class AllUserScreen extends GetView<AllUserController> {
     ));
   }
 
-  Widget _mainBody(){
+  Widget _mainBody() {
     return Obx(
-          () => Center(
+      () => Center(
         child: controller.isLoading.value
             ? const IndicatorLoading()
             : ConstrainedBox(
-          constraints: const BoxConstraints(
-            maxWidth:
-            kIsWeb ? 600 : double.infinity, // FIX WIDTH ON WEB
-          ),
-          child: Container(
-            margin:
-            const EdgeInsets.symmetric(vertical: 6, horizontal: 10),
-            padding: const EdgeInsets.symmetric(vertical: 4),
-            decoration: BoxDecoration(
-              color: Colors.white,
-              borderRadius: BorderRadius.circular(12),
-              boxShadow: kIsWeb
-                  ? [
-                BoxShadow(
-                  color: Colors.black.withOpacity(0.05),
-                  blurRadius: 10,
-                  spreadRadius: 2,
-                  offset: const Offset(0, 3),
-                )
-              ]
-                  : [], // mobile keeps simple, no shadow
-            ),
-            child: _listViewWidget(),
-          ),
-        ),
+                constraints: const BoxConstraints(
+                  maxWidth: kIsWeb ? 600 : double.infinity, // FIX WIDTH ON WEB
+                ),
+                child: Container(
+                  margin:
+                      const EdgeInsets.symmetric(vertical: 6, horizontal: 10),
+                  padding: const EdgeInsets.symmetric(vertical: 4),
+                  decoration: BoxDecoration(
+                    color: Colors.white,
+                    borderRadius: BorderRadius.circular(12),
+                    boxShadow: kIsWeb
+                        ? [
+                            BoxShadow(
+                              color: Colors.black.withOpacity(0.05),
+                              blurRadius: 10,
+                              spreadRadius: 2,
+                              offset: const Offset(0, 3),
+                            )
+                          ]
+                        : [], // mobile keeps simple, no shadow
+                  ),
+                  child: _listViewWidget(),
+                ),
+              ),
       ),
     );
   }
 
-  Widget _listViewWidget(){
-   return  NotificationListener<ScrollNotification>(
+  Widget _listViewWidget() {
+    return NotificationListener<ScrollNotification>(
       onNotification: (ScrollNotification n) {
         if (n is! ScrollEndNotification) {
           return false; // ✅ avoid spam
@@ -118,35 +118,28 @@ class AllUserScreen extends GetView<AllUserController> {
                   Text(
                     memData.userId == APIs.me?.userId
                         ? "Me"
-                        : memData?.userName != null
-                        ? memData?.userName ?? ''
-                        : memData?.userCompany
-                        ?.displayName !=
-                        null
-                        ? memData?.userCompany
-                        ?.displayName ??
-                        ''
-                        : memData?.phone ?? '',
+                        : memData?.userCompany?.displayName != null
+                            ? memData?.userCompany?.displayName ?? ''
+                            : memData?.userName != null
+                                ? memData?.userName ?? ''
+                                : memData?.phone ?? '',
                     style: BalooStyles.baloosemiBoldTextStyle(),
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
                   ),
                   vGap(4),
-                  memData?.userName != null ||
-                      memData?.userCompany?.displayName !=
-                          null
+                  memData.userName != null ||
+                          memData.userCompany?.displayName != null
                       ? Text(
-                    memData?.phone != null
-                        ? memData?.phone ?? ''
-                        : memData?.email ?? '',
-                    style:
-                    BalooStyles.balooregularTextStyle(
-                        color: greyText),
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                  )
+                          memData.phone != null
+                              ? memData.phone ?? ''
+                              : memData.email ?? '',
+                          style: BalooStyles.balooregularTextStyle(
+                              color: greyText),
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                        )
                       : const SizedBox(),
-
                 ],
               ),
               onTap: () {

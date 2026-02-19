@@ -7,7 +7,9 @@ import 'package:flutter/services.dart';
 import 'package:dio/dio.dart' as multi;
 import '../../../../../../Services/APIs/post/post_api_service_impl.dart';
 import '../../../../../../main.dart';
+import '../../../../../../routes/app_routes.dart';
 import '../../../../../../utils/custom_flashbar.dart';
+import '../../../../../../utils/helper_widget.dart';
 import '../../../../../Home/Presentation/Controller/company_service.dart';
 import '../../../../models/group_res_model.dart';
 import '../../../../models/get_company_res_model.dart';
@@ -60,6 +62,10 @@ class TaskHomeController extends GetxController{
     final svc = CompanyService.to;
     myCompany = svc.selected;
     update();
+    if (!svc.hasCompany){
+      Get.offAllNamed(AppRoutes.landing_r);
+      return;
+    }
   }
 
   int page =1;
