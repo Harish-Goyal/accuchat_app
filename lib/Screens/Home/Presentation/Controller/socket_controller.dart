@@ -711,11 +711,14 @@ class SocketController extends GetxController with WidgetsBindingObserver {
         final loggedInUserCompanyId = APIs.me.userCompany?.userCompanyId;
 
         // Skip updates for the logged-in user "Me"
-        final isLoggedInUserInList = list.any((e) => e.userCompany?.userCompanyId == loggedInUserCompanyId);
-        if (isLoggedInUserInList) {
-          return; // Skip if it's the logged-in user's recent message
-        }
-
+        // final isLoggedInUserInList = list.any((e){
+        //  return e.userId == loggedInUserCompanyId;
+        // });
+        // if (isLoggedInUserInList) {
+        //   print("loggedInUserCompanyId");
+        //   print(isLoggedInUserInList);
+        //   return; // Skip if it's the logged-in user's recent message
+        // }
 
         final isGroupRow = updated.userCompany?.isGroup == 1;
 
@@ -746,35 +749,46 @@ class SocketController extends GetxController with WidgetsBindingObserver {
             selectedUcId == updated.userCompany?.userCompanyId);
 
 
-        if (index != -1 &&!isLoggedInUserInList) {
+        if (index != -1) {
+          // print("index");
+          // print(index);
           final existing = list[index];
+          // print("existing.userCompany?.displayName");
+          // print(existing.userCompany?.displayName);
 
           existing.lastMessage = updated.lastMessage;
-          var dashCon;
+          DashboardController? dashCon;
           if(Get.isRegistered<DashboardController>()){
             dashCon = Get.find<DashboardController>();
           }
           if (isCurrentlyOpen) {
             existing.pendingCount = 0;
-            dashCon.newCompanyChat.value=false;
-            dashCon.newChat.value=false;
+            dashCon?.newCompanyChat.value=false;
+            dashCon?.newChat.value=false;
           } else {
-            // keep server count if available
             existing.pendingCount =
                 updated.pendingCount ?? existing.pendingCount;
           }
 
           // Move to top
           if (index != 0) {
-            list.removeAt(index);
-            list.insert(0, existing);
+            // print("list[index].userCompany?.displayName");
+            // print(list[index].userCompany?.displayName);
+              list.removeAt(index);
+              list.insert(0, existing);
           }
+          // print("existing.userId");
+          // print(existing.userId);
         } else {
+
           if (isCurrentlyOpen) updated.pendingCount = 0;
           list.insert(0, updated);
+          // print("updated.userId");
+          // print(updated.userId);
         }
 
         list.refresh();
+        chatController.update();
         final totalUnread = chatController.filteredList
             .fold<int>(0, (sum, e) => sum + (e.pendingCount ?? 0));
 

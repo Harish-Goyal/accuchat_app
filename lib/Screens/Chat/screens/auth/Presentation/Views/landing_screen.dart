@@ -171,9 +171,10 @@ class LandingPage extends GetView<LandingScreenController> {
                                         Get.toNamed(AppRoutes.createCompanyRoute, arguments: {'isHome': false});
                                       }*/
                                       if(kIsWeb){
-                                        Get.toNamed(
-                                          "${AppRoutes.create_company}?isHome=${0}",
-                                        );
+                                        openCreateCompanyDialog(false);
+                                        // Get.toNamed(
+                                        //   "${AppRoutes.create_company}?isHome=${0}",
+                                        // );
                                       }else {
                                         Get.toNamed(
                                             AppRoutes.create_company,

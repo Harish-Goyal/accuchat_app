@@ -1345,64 +1345,66 @@ class _ChatScreenState extends State<ChatScreen> {
                       hGap(10),
 
                       //user name & last seen time
-                      Column(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          //user name
-                          (widget.user?.userCompany?.isGroup == 1 ||
-                                  widget.user?.userCompany?.isBroadcast ==
-                                      1)
-                              ? Text(
-                                  (widget.user?.userName == '' ||
-                                          widget.user?.userName == null)
-                                      ? widget.user?.phone ?? ''
-                                      : widget.user?.userName ?? '',
-                                  maxLines: 1,
-                                  overflow: TextOverflow.ellipsis,
-                                  style: themeData.textTheme.titleMedium,
-                                )
-                              : Text(
-                                  (widget.user?.userCompany?.displayName !=
-                                          null)
-                                      ? controller
-                                              .user?.userCompany?.displayName ??
-                                          ''
-                                      : widget.user?.userName != null
-                                          ? widget.user?.userName ?? ''
-                                          : widget.user?.phone ?? '',
-                                  maxLines: 1,
-                                  overflow: TextOverflow.ellipsis,
-                                  style: themeData.textTheme.titleMedium,
-                                ),
-                          widget.user?.userCompany?.isGroup == 1 ||
-                                  widget.user?.userCompany?.isBroadcast == 1
-                              ? Text('${controller.members.length} members',
-                                  style: BalooStyles.baloonormalTextStyle())
-                              : const SizedBox(),
-
-                          vGap(2),
-                          //for adding some space
-
-                          //last seen time of user
-                          //TODO
-                          /* Text(
-                              list.isNotEmpty
-                                  ? list[0].isOnline && !list[0].isTyping
-                                  ? 'Online'
-                                  : list[0].isTyping && list[0].isOnline
-                                  ? "Typing..."
-                                  : MyDateUtil.getLastActiveTime(
-                                  context: context,
-                                  lastActive:
-                                  list[0].lastActive.toString())
-                                  : MyDateUtil.getLastActiveTime(
-                                  context: context,
-                                  lastActive:
-                                  (widget.user?.lastActive??'').toString()),
-                              style: const TextStyle(
-                                  fontSize: 13, color: Colors.black54)),*/
-                        ],
+                      Flexible(
+                        child: Column(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            //user name
+                            (widget.user?.userCompany?.isGroup == 1 ||
+                                    widget.user?.userCompany?.isBroadcast ==
+                                        1)
+                                ? Text(
+                                    (widget.user?.userName == '' ||
+                                            widget.user?.userName == null)
+                                        ? widget.user?.phone ?? ''
+                                        : widget.user?.userName ?? '',
+                                    maxLines: 1,
+                                    overflow: TextOverflow.ellipsis,
+                                    style: themeData.textTheme.titleMedium,
+                                  )
+                                : Text(
+                                    (widget.user?.userCompany?.displayName !=
+                                            null)
+                                        ? controller
+                                                .user?.userCompany?.displayName ??
+                                            ''
+                                        : widget.user?.userName != null
+                                            ? widget.user?.userName ?? ''
+                                            : widget.user?.phone ?? '',
+                                    maxLines: 1,
+                                    overflow: TextOverflow.ellipsis,
+                                    style: themeData.textTheme.titleMedium,
+                                  ),
+                            widget.user?.userCompany?.isGroup == 1 ||
+                                    widget.user?.userCompany?.isBroadcast == 1
+                                ? Text('${controller.members.length} members',
+                                    style: BalooStyles.baloonormalTextStyle())
+                                : const SizedBox(),
+                        
+                            vGap(2),
+                            //for adding some space
+                        
+                            //last seen time of user
+                            //TODO
+                            /* Text(
+                                list.isNotEmpty
+                                    ? list[0].isOnline && !list[0].isTyping
+                                    ? 'Online'
+                                    : list[0].isTyping && list[0].isOnline
+                                    ? "Typing..."
+                                    : MyDateUtil.getLastActiveTime(
+                                    context: context,
+                                    lastActive:
+                                    list[0].lastActive.toString())
+                                    : MyDateUtil.getLastActiveTime(
+                                    context: context,
+                                    lastActive:
+                                    (widget.user?.lastActive??'').toString()),
+                                style: const TextStyle(
+                                    fontSize: 13, color: Colors.black54)),*/
+                          ],
+                        ),
                       ),
                     ],
                   ),
@@ -1623,65 +1625,7 @@ class _ChatScreenState extends State<ChatScreen> {
   }
 
   bool isVisibleUpload = true;
-  void _appendSpeechToInput() {
-    final text = speechC.getCombinedText().trim();
-    if (text.isEmpty) return;
 
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      if (!mounted) return;
-
-      // ✅ only set if TextField still exists
-      if (!controller.textController.hasListeners) return;
-
-      controller.textController.value = TextEditingValue(
-        text: text,
-        selection: TextSelection.collapsed(offset: text.length),
-        composing: TextRange.empty,
-      );
-
-      // ✅ clear speech buffers so they can't re-push old words
-      speechC.clearSpeechBuffer();
-
-      // keep focus stable on web
-      if (kIsWeb) controller.resetMessageFocus();
-    });
-  }
-
-
-  void _send() {
-    if (_blockSpeechToInput) return;
-    _blockSpeechToInput = true;
-
-    try {
-      if (kIsWeb && speechC.isListening.value) {
-        final finalCombined = speechC.getCombinedText().trim();
-        speechC.stop(skipOnStopped: true);
-        speechC.clearSpeechBuffer();
-
-        if (finalCombined.isNotEmpty) {
-          controller.textController.text = finalCombined;
-          controller.textController.selection =
-              TextSelection.collapsed(offset: finalCombined.length);
-        }
-      }
-
-      final msg = controller.textController.text.trim();
-      if (msg.isEmpty) return;
-
-      _sendMessage(msg);
-
-      WidgetsBinding.instance.addPostFrameCallback((_) {
-        if (!mounted) return;
-        controller.textController.clear();
-        _lastApplied = "";
-        if (kIsWeb) controller.resetMessageFocus();
-      });
-    } finally {
-      WidgetsBinding.instance.addPostFrameCallback((_) {
-        _blockSpeechToInput = false;
-      });
-    }
-  }
 
 
 
@@ -1700,6 +1644,67 @@ class _ChatScreenState extends State<ChatScreen> {
     // if(widget.user?.userId != controller.user?.userId){
     //   widget.user = controller.user;
     // }
+
+    void _appendSpeechToInput() {
+      final text = speechC.getCombinedText().trim();
+      if (text.isEmpty) return;
+
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (!mounted) return;
+
+        // ✅ only set if TextField still exists
+        if (!controller.textController.hasListeners) return;
+
+        controller.textController.value = TextEditingValue(
+          text: text,
+          selection: TextSelection.collapsed(offset: text.length),
+          composing: TextRange.empty,
+        );
+
+        // ✅ clear speech buffers so they can't re-push old words
+        speechC.clearSpeechBuffer();
+
+        // keep focus stable on web
+        if (kIsWeb) controller.resetMessageFocus();
+      });
+    }
+
+
+    void _send() {
+      if (_blockSpeechToInput) return;
+      _blockSpeechToInput = true;
+
+      try {
+        if (kIsWeb && speechC.isListening.value) {
+          final finalCombined = speechC.getCombinedText().trim();
+          speechC.stop(skipOnStopped: true);
+          speechC.clearSpeechBuffer();
+
+          if (finalCombined.isNotEmpty) {
+            controller.textController.text = finalCombined;
+            controller.textController.selection =
+                TextSelection.collapsed(offset: finalCombined.length);
+          }
+        }
+
+        final msg = controller.textController.text.trim();
+        if (msg.isEmpty) return;
+
+        _sendMessage(msg);
+
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          if (!mounted) return;
+          controller.textController.clear();
+          _lastApplied = "";
+          if (kIsWeb) controller.resetMessageFocus();
+        });
+      } finally {
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          _blockSpeechToInput = false;
+        });
+      }
+    }
+
     return Container(
       padding: const EdgeInsets.symmetric(vertical: 0, horizontal: 5),
       child: Row(
@@ -1713,51 +1718,47 @@ class _ChatScreenState extends State<ChatScreen> {
               children: [
                 GestureDetector(
                   behavior: HitTestBehavior.translucent,
-                  child: ConstrainedBox(
-                    constraints: BoxConstraints(
-                        maxHeight: Get.height * .3, minHeight: 30),
-                    child: Container(
-                      margin: const EdgeInsets.symmetric(vertical: 8),
-                      decoration: BoxDecoration(
-                        borderRadius: BorderRadius.circular(8),
-                        border: Border.all(
-                            color: AppTheme.appColor.withOpacity(.2)),
-                      ),
-                      child: Row(
-                        children: [
-                          Expanded(
-                              child: Obx(() {
-                                if (kIsWeb && speechC.isListening.value && !_blockSpeechToInput) {
-                                  applyLiveToFieldSafely(speechC.getCombinedText());
-                                }
-                                return _buildTextField();
-                              })
+                  child: Container(
+                    margin: const EdgeInsets.symmetric(vertical: 8),
+                    decoration: BoxDecoration(
+                      borderRadius: BorderRadius.circular(8),
+                      border: Border.all(
+                          color: AppTheme.appColor.withOpacity(.2)),
+                    ),
+                    child: Row(
+                      children: [
+                        Expanded(
+                            child: Obx(() {
+                              if (kIsWeb && speechC.isListening.value && !_blockSpeechToInput) {
+                                applyLiveToFieldSafely(speechC.getCombinedText());
+                              }
+                              return _buildTextField();
+                            })
+                        ),
+                        if (kIsWeb) _micButton(_appendSpeechToInput),
+                        if (!isTaskMode)
+                          InkWell(
+                            onTap: () async {
+                              showUploadOptions(context);
+                            },
+                            child: IconButtonWidget(Icons.upload_outlined,
+                                isIcon: true),
                           ),
-                          if (kIsWeb) _micButton(_appendSpeechToInput),
-                          if (!isTaskMode)
-                            InkWell(
-                              onTap: () async {
-                                showUploadOptions(context);
-                              },
-                              child: IconButtonWidget(Icons.upload_outlined,
-                                  isIcon: true),
-                            ),
-                          if (!isTaskMode)
-                            InkWell(
-                              onTap: () async {
-                                openWhatsAppEmojiPicker(
-                                  context: context,
-                                  textController: controller.textController,
-                                  onSend: () {
-                                    Get.back();
-                                  },
-                                  isMobile: false,
-                                );
-                              },
-                              child: IconButtonWidget(emojiPng),
-                            ),
-                        ],
-                      ),
+                        if (!isTaskMode)
+                          InkWell(
+                            onTap: () async {
+                              openWhatsAppEmojiPicker(
+                                context: context,
+                                textController: controller.textController,
+                                onSend: () {
+                                  Get.back();
+                                },
+                                isMobile: false,
+                              );
+                            },
+                            child: IconButtonWidget(emojiPng),
+                          ),
+                      ],
                     ),
                   ),
                 ),
@@ -1842,9 +1843,10 @@ class _ChatScreenState extends State<ChatScreen> {
         decoration: InputDecoration(
           isDense: true,
           hintText: 'Type Something...',
+          hintMaxLines: 1,
           hintStyle: BalooStyles.baloonormalTextStyle(),
           contentPadding:
-          const EdgeInsets.symmetric(horizontal: 8),
+          const EdgeInsets.symmetric(horizontal: 8,vertical: 10),
           border: InputBorder.none,
           focusedBorder: InputBorder.none,
           enabledBorder: InputBorder.none,

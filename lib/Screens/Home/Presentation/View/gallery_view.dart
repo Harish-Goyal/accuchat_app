@@ -232,7 +232,10 @@ class GalleryTab extends GetView<GalleryController> {
                   controller: controller,
                 ):AspectRatio(
           aspectRatio: .1,
-          child: DataNotFoundText())),
+          child: SizedBox(
+            height: 100,
+              width: 100,
+              child: DataNotFoundText()))),
     );
   }
 }
@@ -356,7 +359,7 @@ class _GalleryGrid extends StatelessWidget {
   Widget build(BuildContext context) {
     return LayoutBuilder(
       builder: (context, constraints) {
-        final cross = (constraints.maxWidth ~/ 90).clamp(2, 8);
+        final cross = (constraints.maxWidth ~/120).clamp(2, 12);
         return Obx(
           () => RefreshIndicator(
             onRefresh: () async => controller.refreshGallery(),
@@ -365,10 +368,10 @@ class _GalleryGrid extends StatelessWidget {
               controller: controller.scrollController,
               physics: const AlwaysScrollableScrollPhysics(),
               gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-                crossAxisCount: cross,
+                crossAxisCount:(kIsWeb&&Get.width>600)? cross:4,
                 crossAxisSpacing: 10,
                 mainAxisSpacing: 10,
-                childAspectRatio: .9,
+                childAspectRatio: 1,
               ),
               itemCount: items.length + (controller.hasMore.value ? 1 : 0),
               itemBuilder: (_, i) {

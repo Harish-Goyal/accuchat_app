@@ -23,7 +23,8 @@ import 'package:dio/dio.dart' as multi;
 import '../../../../../Home/Presentation/Controller/company_service.dart';
 
 class CreateCompanyController extends GetxController {
-  bool isHome = false;
+  CreateCompanyController({this.isHome});
+  bool? isHome = false;
   final formKey = GlobalKey<FormState>();
 
   late TextEditingController nameController;
@@ -71,10 +72,10 @@ class CreateCompanyController extends GetxController {
 
 
     if(kIsWeb){
-      if (Get.parameters != null) {
-        final  _isHomeBool = Get.parameters['isHome'];
-        isHome = _isHomeBool=="1"?true:false;
-      }
+      // if (Get.parameters != null) {
+      //   final  _isHomeBool = Get.parameters['isHome'];
+      //   isHome = isHome=="1"?true:false;
+      // }
     }else{
       if (Get.arguments != null) {
         final  _isHomeBool =  Get.arguments['isHome'];

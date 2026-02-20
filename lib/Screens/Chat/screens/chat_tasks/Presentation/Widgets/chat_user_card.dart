@@ -96,6 +96,7 @@ class _ChatUserCardState extends State<ChatUserCard>
         bool isRegistered=false;
         return InkWell(
             hoverColor: appColorPerple.withOpacity(.25),
+            // overlayColor: WidgetStatePropertyAll(appColorPerple.withOpacity(.12)),
             borderRadius: BorderRadius.circular(15),
             onTap: () {
               if (isTaskMode) {

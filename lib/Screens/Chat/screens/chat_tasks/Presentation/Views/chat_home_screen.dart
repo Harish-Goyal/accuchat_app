@@ -469,9 +469,13 @@ class ChatsHomeScreen extends GetView<ChatHomeController> {
             return Expanded(
               child: Center(
                 child: InkWell(
-                  onTap: () {
+                  onTap: () async {
                     if (kIsWeb) {
-                      Get.toNamed("${AppRoutes.all_users}?isRecent='false'");
+                        final user = await openAllUserDialog();
+                        if (user != null) {
+                          _goToScreen(user, width);
+                        }
+
                     } else {
                       Get.toNamed(AppRoutes.all_users, arguments: {"isRecent": 'false'});
                     }
@@ -501,24 +505,26 @@ class ChatsHomeScreen extends GetView<ChatHomeController> {
                 shimmerWidget: shimmerlistView(
                     child: GroupMemberShimmer(
                     )),
-                child: RefreshIndicator(
-                  backgroundColor: Colors.white,
-                  color: appColorGreen,
-                  onRefresh: () async {
-                    controller.resetPaginationForNewChat();
-                    await controller.hitAPIToGetRecentChats(page: 1);
-                  },
-                  child: ListView.builder(
-                    physics: const AlwaysScrollableScrollPhysics(),
-                    itemCount: controller.filteredList.length,
-                    padding: EdgeInsets.zero,
-                    controller: controller.scrollController,
-                    itemBuilder: (context, index) {
-                      final item = controller.filteredList[index];
-                      return kIsWeb && !isWebwidth
-                          ? ChatUserCard(user: item)
-                          : ChatUserCardMobile(user: item);
+                child: RepaintBoundary(
+                  child: RefreshIndicator(
+                    backgroundColor: Colors.white,
+                    color: appColorGreen,
+                    onRefresh: () async {
+                      controller.resetPaginationForNewChat();
+                      await controller.hitAPIToGetRecentChats(page: 1);
                     },
+                    child: ListView.builder(
+                      physics: const AlwaysScrollableScrollPhysics(),
+                      itemCount: controller.filteredList.length,
+                      padding: EdgeInsets.zero,
+                      controller: controller.scrollController,
+                      itemBuilder: (context, index) {
+                        final item = controller.filteredList[index];
+                        return kIsWeb && !isWebwidth
+                            ? ChatUserCard(user: item)
+                            : ChatUserCardMobile(user: item);
+                      },
+                    ),
                   ),
                 )
             ),

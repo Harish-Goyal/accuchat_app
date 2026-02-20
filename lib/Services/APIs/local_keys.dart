@@ -106,6 +106,7 @@ Future<void> _disablePushOnLogout() async {
 }
 
 Future<void> logoutLocal() async {
+  isCompanySwitched = false;
   if (_isLoggingOut) return;
   _isLoggingOut = true;
 

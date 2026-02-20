@@ -1,5 +1,6 @@
 import 'package:AccuChat/Screens/Chat/models/get_company_res_model.dart';
 import 'package:AccuChat/Screens/Settings/Model/get_nav_permission_res_model.dart';
+import 'package:AccuChat/Screens/Settings/Presentation/Controllers/role_list_controller.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:get/get.dart';
@@ -71,6 +72,7 @@ class CreateRoleController extends GetxController {
         .then((value) {
       customLoader.hide();
       Get.back();
+      Get.find<RoleListController>().hitAPIToGetAllRolesAPI();
       toast(value.message??'');
       update();
     }).onError((error, stackTrace) {

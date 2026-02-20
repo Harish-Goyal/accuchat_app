@@ -103,8 +103,8 @@ double _textScaleClamp(BuildContext context) {
 }
 
 class TaskScreen extends StatefulWidget {
-
-  TaskScreen({super.key, this.taskUser, this.showBack = true,this.isShowNav = true});
+  TaskScreen(
+      {super.key, this.taskUser, this.showBack = true, this.isShowNav = true});
   final UserDataAPI? taskUser;
   bool showBack;
   bool isShowNav;
@@ -118,12 +118,12 @@ class _TaskScreenState extends State<TaskScreen> {
 
   late TaskController controller;
 
-  String _tag ='';
+  String _tag = '';
   @override
   void initState() {
     super.initState();
     final ucId = widget.taskUser?.userCompany?.userCompanyId;
-    _tag = "task_${ucId??'mobile'}";
+    _tag = "task_${ucId ?? 'mobile'}";
 
     if (Get.isRegistered<TaskController>(tag: _tag)) {
       controller = Get.find<TaskController>(tag: _tag);
@@ -131,22 +131,20 @@ class _TaskScreenState extends State<TaskScreen> {
       controller = Get.put(TaskController(user: widget.taskUser), tag: _tag);
     }
 
-    controller.user=widget.taskUser;
-
+    controller.user = widget.taskUser;
   }
-
 
   @override
   void dispose() {
     if (Get.isRegistered<TaskController>(tag: _tag)) {
-      Get.delete<TaskController>(tag:_tag,force: true);
+      Get.delete<TaskController>(tag: _tag, force: true);
     }
     super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
-  return  GetBuilder<TaskController>(
+    return GetBuilder<TaskController>(
         tag: _tag,
         builder: (controller) {
           return GestureDetector(
@@ -159,7 +157,7 @@ class _TaskScreenState extends State<TaskScreen> {
                 },
                 child: SafeArea(
                   child: Scaffold(
-                    appBar:_appBarWidget(),
+                    appBar: _appBarWidget(),
                     backgroundColor: const Color.fromARGB(255, 234, 248, 255),
                     body: _mainBody(),
                   ),
@@ -170,39 +168,33 @@ class _TaskScreenState extends State<TaskScreen> {
         });
   }
 
-  AppBar _appBarWidget(){
-    return  AppBar(
+  AppBar _appBarWidget() {
+    return AppBar(
       backgroundColor: Colors.white,
       elevation: 1,
-      scrolledUnderElevation:
-      0,
+      scrolledUnderElevation: 0,
       surfaceTintColor: Colors.white,
       automaticallyImplyLeading: false,
       flexibleSpace: MediaQuery(
-        data: MediaQuery.of(context).copyWith(
-            textScaleFactor: _textScaleClamp(context)),
+        data: MediaQuery.of(context)
+            .copyWith(textScaleFactor: _textScaleClamp(context)),
         child: _appBar(),
       ),
     );
   }
 
-  Widget _mainBody(){
+  Widget _mainBody() {
     return ScrollConfiguration(
       behavior: const _NoGlowScrollBehavior(),
       child: Center(
         child: ConstrainedBox(
-          constraints:
-          BoxConstraints(maxWidth: _maxChatWidth(Get.context!)),
+          constraints: BoxConstraints(maxWidth: _maxChatWidth(Get.context!)),
           child: Padding(
             padding: _shellHPadding(Get.context!),
             child: Column(
               children: [
-                Expanded(
-                    child: RepaintBoundary(
-                        child: chatMessageBuilder())),
-
+                Expanded(child: RepaintBoundary(child: chatMessageBuilder())),
                 _chatInput(),
-
               ],
             ),
           ),
@@ -220,9 +212,7 @@ class _TaskScreenState extends State<TaskScreen> {
         Expanded(
           child: shimmerEffectWidget(
             showShimmer: controller.showPostShimmer,
-            shimmerWidget: shimmerlistView(
-                child: ChatHistoryShimmer(
-            )),
+            shimmerWidget: shimmerlistView(child: ChatHistoryShimmer()),
             child: groupListView(),
           ),
         ),
@@ -232,7 +222,7 @@ class _TaskScreenState extends State<TaskScreen> {
   }
 
   groupListView() {
-    return (controller.taskCategory??[]).isNotEmpty
+    return (controller.taskCategory ?? []).isNotEmpty
         ? GroupedListView<GroupTaskElement, DateTime>(
             shrinkWrap: false,
             padding: const EdgeInsets.only(bottom: 30),
@@ -282,16 +272,14 @@ class _TaskScreenState extends State<TaskScreen> {
   }
 
   Widget _createGroupHeader(GroupTaskElement element) {
-
     final isToday = DateUtils.isSameDay(element.date, DateTime.now());
     final dateText =
-    isToday ? "Today" : DateFormat.yMMMd().format(element.date);
+        isToday ? "Today" : DateFormat.yMMMd().format(element.date);
     return Container(
       color: Colors.transparent,
       child: Row(
         children: [
           Expanded(child: divider(color: appColorGreen.withOpacity(.3))),
-
           CustomContainer(
             elevation: 2,
             vPadding: 3,
@@ -323,7 +311,8 @@ class _TaskScreenState extends State<TaskScreen> {
               sentByMe ? CrossAxisAlignment.end : CrossAxisAlignment.start,
           children: [
             Align(
-              alignment: sentByMe ? Alignment.centerRight : Alignment.centerLeft,
+              alignment:
+                  sentByMe ? Alignment.centerRight : Alignment.centerLeft,
               child: Row(
                 mainAxisSize: MainAxisSize.min,
                 crossAxisAlignment: CrossAxisAlignment.start,
@@ -342,25 +331,24 @@ class _TaskScreenState extends State<TaskScreen> {
                               ))).paddingOnly(left: 10)
                       : const SizedBox(),
                   Align(
-                      alignment: sentByMe
-                          ? Alignment.centerRight
-                          : Alignment.centerLeft,
-                    child:
-                      ConstrainedBox(
-                        constraints: BoxConstraints(
-                          maxWidth: Get.width * (kIsWeb ? 0.36: 0.6)),
+                    alignment:
+                        sentByMe ? Alignment.centerRight : Alignment.centerLeft,
+                    child: ConstrainedBox(
+                      constraints: BoxConstraints(
+                          maxWidth: Get.width * (kIsWeb ? 0.36 : 0.6)),
                       child: InkWell(
-                        borderRadius:sentByMe
+                        borderRadius: sentByMe
                             ? const BorderRadius.only(
-                            topLeft: Radius.circular(30),
-                            topRight: Radius.circular(30),
-                            bottomLeft: Radius.circular(30))
+                                topLeft: Radius.circular(30),
+                                topRight: Radius.circular(30),
+                                bottomLeft: Radius.circular(30))
                             : const BorderRadius.only(
-                            topLeft: Radius.circular(30),
-                            topRight: Radius.circular(30),
-                            bottomRight: Radius.circular(30)),
+                                topLeft: Radius.circular(30),
+                                topRight: Radius.circular(30),
+                                bottomRight: Radius.circular(30)),
                         onDoubleTap: () {
-                          SystemChannels.textInput.invokeMethod('TextInput.hide');
+                          SystemChannels.textInput
+                              .invokeMethod('TextInput.hide');
                           _showBottomSheet(sentByMe, element, data: data);
                         },
                         child: Container(
@@ -421,7 +409,7 @@ class _TaskScreenState extends State<TaskScreen> {
                     ),
                   ),
                 ),
-              ).paddingSymmetric(horizontal:0),
+              ).paddingSymmetric(horizontal: 0),
             Row(
               mainAxisSize: MainAxisSize.min,
               children: [
@@ -437,51 +425,60 @@ class _TaskScreenState extends State<TaskScreen> {
           ],
         ),
         Positioned(
-            right: sentByMe ? 22 : null,
-            left: sentByMe ? null : 22,
-            top: -4,
-            child: GestureDetector(
-              // borderRadius: BorderRadius.circular(12),
-              onTapUp: (details){
-                _showStatusPopup(
-                  isME: sentByMe,
-                  task: data,
-                  contextt: contexts, // use the local BuildContext
-                  globalPos: details.globalPosition, // from TapUpDetails
-                );
-              },
-              child: Container(
-                padding: const EdgeInsets.symmetric(vertical: 5,horizontal: 12 ),
-                decoration: BoxDecoration(
+          right: sentByMe ? 22 : null,
+          left: sentByMe ? null : 22,
+          top: -4,
+          child: GestureDetector(
+            // borderRadius: BorderRadius.circular(12),
+            onTapUp: (details) {
+              _showStatusPopup(
+                isME: sentByMe,
+                task: data,
+                contextt: contexts, // use the local BuildContext
+                globalPos: details.globalPosition, // from TapUpDetails
+              );
+            },
+            child: Container(
+              padding: const EdgeInsets.symmetric(vertical: 5, horizontal: 12),
+              decoration: BoxDecoration(
                   borderRadius: BorderRadius.circular(12),
-                  color: getTaskStatusColor(data.currentStatus?.name?.capitalizeFirst)
-                ),
-                child: Text(data.currentStatus?.name??'',style: BalooStyles.baloonormalTextStyle(color: Colors.white,size: 13),),
+                  color: getTaskStatusColor(
+                      data.currentStatus?.name?.capitalizeFirst)),
+              child: Text(
+                data.currentStatus?.name ?? '',
+                style: BalooStyles.baloonormalTextStyle(
+                    color: Colors.white, size: 13),
               ),
             ),
-            ),
+          ),
+        ),
       ],
     );
   }
 
-  Widget statusHistroryPopUp({List<StatusHistory>? statusHis, CurrentStatus? status}) {
+  Widget statusHistroryPopUp(
+      {List<StatusHistory>? statusHis, CurrentStatus? status}) {
     return PopupMenuButton<int>(
       tooltip: 'Status History',
       elevation: 2,
       offset: const Offset(0, 8),
       color: Colors.white,
-      borderRadius:  BorderRadius.circular(30) ,
+      borderRadius: BorderRadius.circular(30),
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-      itemBuilder: (_) =>
-          _buildMenuItems(statusHis ?? [], APIs.me.userCompany?.displayName ?? ''),
+      itemBuilder: (_) => _buildMenuItems(
+          statusHis ?? [], APIs.me.userCompany?.displayName ?? ''),
       child: Container(
         // alignment: Alignment.center,
         padding: const EdgeInsets.only(left: 8, right: 8, top: 4, bottom: 4),
         decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(30),
-            // color: getTaskStatusColor(status?.name?.capitalizeFirst)
-    ),
-        child: Image.asset(historyIcon,height: 17,width:17,),
+          borderRadius: BorderRadius.circular(30),
+          // color: getTaskStatusColor(status?.name?.capitalizeFirst)
+        ),
+        child: Image.asset(
+          historyIcon,
+          height: 17,
+          width: 17,
+        ),
       ),
     );
   }
@@ -550,7 +547,6 @@ class _TaskScreenState extends State<TaskScreen> {
   }
 
   _taskCard({required TaskData message, required GroupTaskElement element}) {
-
     final names = element.taskMsg.members
         ?.map((v) => (v.finalName ?? '').trim())
         .where((s) => s.isNotEmpty)
@@ -559,7 +555,7 @@ class _TaskScreenState extends State<TaskScreen> {
     final unique = <String>{};
     final cleaned = names?.where((n) => unique.add(n)).toList();
 
-    final taskMember =  cleaned?.join(', ');
+    final taskMember = cleaned?.join(', ');
     return Column(
       mainAxisSize: MainAxisSize.min,
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -603,45 +599,38 @@ class _TaskScreenState extends State<TaskScreen> {
           ),
         ),
         vGap(5),
-
-    ConstrainedBox(
-    constraints: BoxConstraints(
-    maxWidth: Get.width * (kIsWeb ? 0.3: 0.5)),
-            child: Row(
-              mainAxisSize: MainAxisSize.min,
-              children:[
-                Flexible(
-                child:DefaultSelectionStyle(
-                  selectionColor:
-                  appColorPerple.withOpacity(0.3),
-                  cursorColor: appColorPerple,
-                  mouseCursor: SystemMouseCursors.text,
-                  child: SelectableLinkify(
-                    text: message.details ?? '',
-                    enableInteractiveSelection: true,
-                    showCursor:true,
-                    onOpen: (link) {
-                      launchUrl(Uri.parse(link.url),
-                          mode: LaunchMode.externalApplication);
-                    },
-                    style: BalooStyles.baloonormalTextStyle(
-                      color: Colors.black87,
-                      size: 14,
-                    ),
-                    linkStyle: BalooStyles.baloonormalTextStyle(
-                      color: Colors.blue,
-                    ),
-                    linkifiers: const [
-                      UrlLinkifier(),
-                    ],
+        ConstrainedBox(
+          constraints:
+              BoxConstraints(maxWidth: Get.width * (kIsWeb ? 0.3 : 0.5)),
+          child: Row(mainAxisSize: MainAxisSize.min, children: [
+            Flexible(
+              child: DefaultSelectionStyle(
+                selectionColor: appColorPerple.withOpacity(0.3),
+                cursorColor: appColorPerple,
+                mouseCursor: SystemMouseCursors.text,
+                child: SelectableLinkify(
+                  text: message.details ?? '',
+                  enableInteractiveSelection: true,
+                  showCursor: true,
+                  onOpen: (link) {
+                    launchUrl(Uri.parse(link.url),
+                        mode: LaunchMode.externalApplication);
+                  },
+                  style: BalooStyles.baloonormalTextStyle(
+                    color: Colors.black87,
+                    size: 14,
                   ),
+                  linkStyle: BalooStyles.baloonormalTextStyle(
+                    color: Colors.blue,
+                  ),
+                  linkifiers: const [
+                    UrlLinkifier(),
+                  ],
                 ),
-                )
-              ]
-            ),
-          ),
-
-
+              ),
+            )
+          ]),
+        ),
         if ((message.deadline ?? '').isNotEmpty) ...[
           vGap(10),
           Text(
@@ -653,7 +642,6 @@ class _TaskScreenState extends State<TaskScreen> {
           mainAxisSize: MainAxisSize.min,
           // mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
-
             Flexible(
               child: Container(
                 child: (message.media) != null
@@ -661,8 +649,7 @@ class _TaskScreenState extends State<TaskScreen> {
                     : const SizedBox(),
               ),
             ),
-
-          InkWell(
+            InkWell(
               borderRadius: BorderRadius.circular(30),
               onTap: () {
                 controller.openTaskThreadSmart(
@@ -680,23 +667,32 @@ class _TaskScreenState extends State<TaskScreen> {
                           topLeft: Radius.circular(40),
                           bottomLeft: Radius.circular(40))),
                   child: Text(
-                    "${message.commentCount??0} Replies",
+                    "${message.commentCount ?? 0} Replies",
                     style: BalooStyles.baloonormalTextStyle(
                         color: Colors.blue, size: 12),
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
                   )),
             ),
-
             SizedBox(
               width: 40,
               child: statusHistroryPopUp(
-                  status: message.currentStatus, statusHis: message.statusHistory),
+                  status: message.currentStatus,
+                  statusHis: message.statusHistory),
             )
           ],
         ),
         vGap(8),
-        taskMemberRichText(taskMember: taskMember,status:(message.currentStatus?.name??'').capitalizeFirst??'')
+        Row(
+          children: [
+            Flexible(
+                child: taskMemberRichText(
+                    taskMember: taskMember,
+                    status:
+                        (message.currentStatus?.name ?? '').capitalizeFirst ??
+                            '')),
+          ],
+        )
       ],
     );
   }
@@ -707,7 +703,7 @@ class _TaskScreenState extends State<TaskScreen> {
     Color iconColor = Colors.black45,
   }) {
     return RichText(
-      // overflow: TextOverflow.ellipsis,
+      overflow: TextOverflow.visible,
       text: TextSpan(
         children: [
           WidgetSpan(
@@ -823,440 +819,455 @@ class _TaskScreenState extends State<TaskScreen> {
       children: [
         controller.isSearching
             ? Expanded(
-          child: TextField(
-            controller: controller.seacrhCon,
-            cursorColor: appColorGreen,
-            decoration: const InputDecoration(
-                border: InputBorder.none,
-                hintText: 'Search task by title or description ...',
-                contentPadding: EdgeInsets.symmetric(
-                    vertical: 0, horizontal: 10),
-                constraints: BoxConstraints(maxHeight: 45)),
-            autofocus: true,
-            style: const TextStyle(
-                fontSize: 13, letterSpacing: 0.5),
-            onChanged: (val) {
-              controller.searchQuery = val;
-              controller.onSearch(val);
-            },
-          ).marginSymmetric(vertical: 10),
-        ): Expanded(
-          child: InkWell(
-            onTap: () {
-              if (Get.isRegistered<TaskController>(tag: _tag)) {
-                Get.delete<TaskController>(tag:_tag,force: true);
-              }
-              if (!(controller.user?.userCompany?.isGroup == 1 ||
-                  controller.user?.userCompany?.isBroadcast == 1)) {
-                if (kIsWeb) {
-                  Get.toNamed(
-                    "${AppRoutes.view_profile}?userId=${controller.user?.userId.toString()}",
-                  );
-                } else {
-                  Get.toNamed(AppRoutes.view_profile,
-                      arguments: {'user': controller.user});
-                }
-              } else {
-                if (kIsWeb) {
-                  Get.toNamed(
-                    "${AppRoutes.member_sr}?userId=${controller.user?.userId.toString()}",
-                  );
-                } else {
-                  Get.toNamed(AppRoutes.member_sr,
-                      arguments: {'user': controller.user});
-                }
-              }
-              // APIs.updateActiveStatus(false);
-            },
-            child: Row(
-              children: [
-                //back button
-                !widget.showBack
-                    ? const SizedBox(
-                        width: 14,
-                      )
-                    : IconButton(
-                        onPressed: () {
-                          if (Get.previousRoute.isNotEmpty) {
-                            Get.back();
-                          } else {
-                            Get.offAllNamed(
-                                AppRoutes.home); // or your main route
-                          }
-
-                          Get.find<TaskHomeController>()
-                              .hitAPIToGetRecentTasksUser();
-                          var dashCon;
-                          if(Get.isRegistered<DashboardController>()){
-                            dashCon = Get.find<DashboardController>();
-                          }else{
-                            dashCon = Get.put(DashboardController());
-                          }
-
-                          if (isTaskMode) {
-                            dashCon.updateIndex(1);
-                          } else {
-                            dashCon.updateIndex(0);
-                          }
-
-                          // APIs.updateActiveStatus(false);
-                        },
-                        icon: const Icon(Icons.arrow_back,
-                            color: Colors.black54)),
-
-                CustomCacheNetworkImage(
-                  radiusAll: 100,
-                  "${ApiEnd.baseUrlMedia}${controller.user?.userImage ?? ''}",
-                  height: _avatarSize(Get.context!), // ✅ responsive avatar
-                  width: _avatarSize(Get.context!),
-                  boxFit: BoxFit.cover,
-                  defaultImage: controller.user?.userCompany?.isGroup == 1
-                      ? groupIcn
-                      : controller.user?.userCompany?.isBroadcast == 1
-                          ? broadcastIcon
-                          : ICON_profile,
-                  borderColor: greyText,
-                ),
-
-                //for adding some space
-                const SizedBox(width: 10),
-
-                //user name & last seen time
-                Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    //user name
-
-                    Text(
-                      controller.user?.userCompany?.displayName != null ? controller.user?.userCompany?.displayName??'' :controller.user?.userName !=null? controller.user?.userName ?? ''
-                          :controller.user?.phone ?? '' ,
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                      style: themeData.textTheme.titleMedium,
-                    )
-                    //for adding some space
-
-                    //last seen time of user
-                    //TODO
-                    /* Text(
-                              list.isNotEmpty
-                                  ? list[0].isOnline && !list[0].isTyping
-                                  ? 'Online'
-                                  : list[0].isTyping && list[0].isOnline
-                                  ? "Typing..."
-                                  : MyDateUtil.getLastActiveTime(
-                                  context: context,
-                                  lastActive:
-                                  list[0].lastActive.toString())
-                                  : MyDateUtil.getLastActiveTime(
-                                  context: context,
-                                  lastActive:
-                                  (controller.user?.lastActive??'').toString()),
-                              style: const TextStyle(
-                                  fontSize: 13, color: Colors.black54)),*/
-                  ],
-                ),
-              ],
-            ),
-          ),
-        ),
-
-        controller.isSearching?const SizedBox():  (controller.user?.userCompany?.isBroadcast==1 ||controller.user?.userCompany?.isGroup==1 || !widget.isShowNav) ?const SizedBox():CustomTextButton(onTap: () async {
-
-          // final _tagid =controller.user?.userCompany?.userCompanyId;
-          final _tagid = widget.taskUser?.userCompany?.userCompanyId;
-          final _tag = "chat_${_tagid ?? 'mobile'}";
-          if (controller.user == null) return;
-
-          final   dashC =Get.isRegistered<DashboardController>()?Get.find<DashboardController>():Get.put(DashboardController());
-          isTaskMode = false;
-          await dashC.getCompany();
-          dashC.updateIndex(0);
-          // ensure ChatHomeController exists
-          final chatHome =Get.isRegistered<ChatHomeController>()? Get.find<ChatHomeController>():Get.put(ChatHomeController(),permanent: true);
-          // ensure ChatScreenController exists
-          ChatScreenController chatC;
-          bool isRegisterd=true;
-          if (!Get.isRegistered<ChatScreenController>(tag: _tag)) {
-            chatC= Get.put(ChatScreenController(user: widget.taskUser),tag: _tag);
-          }else{
-            isRegisterd=false;
-            chatC = Get.find<ChatScreenController>(tag: _tag);
-          }
-          chatHome.selectedChat.value = widget.taskUser;
-          chatC.user = widget.taskUser;
-
-       chatC.getUserByIdApi(userId: widget.taskUser?.userId);
-          chatHome.selectedChat.refresh();
-        }, title: "Go to Chat"),
-
-        controller.isSearching?const SizedBox():  hGap(10),
-        IconButton(
-            onPressed: () {
-              controller.isSearching = !controller.isSearching;
-              controller.update();
-              if(!controller.isSearching){
-                controller.searchQuery = '';
-                controller.onSearch('');
-                controller.seacrhCon.clear();
-              }
-              controller.update();
-            },
-            icon:  controller.isSearching?  const Icon(
-                CupertinoIcons.clear_circled_solid)
-                : Image.asset(searchPng,height:20,width:20)
-        ).paddingOnly(top: 0, right: 0),
-        controller.isSearching?const SizedBox():hGap(5),
-        controller.isSearching?const SizedBox():    (controller.user?.userCompany?.isGroup == 1 ||
-                controller.user?.userCompany?.isBroadcast == 1)
-            ? PopupMenuButton<String>(
-                color: Colors.white,
-                iconColor: Colors.black87,
-                onSelected: (value) {
-                  if (value == 'AddMember') {
-                    if (kIsWeb) {
-                      Get.toNamed(
-                        "${AppRoutes.add_group_member}?groupChatId=${controller.user?.userId.toString()}",
-                      );
-                    } else {
-                      Get.toNamed(
-                        AppRoutes.add_group_member,
-                        arguments: {'groupChat': controller.user},
-                      );
-                    }
-                  }
-                  if (value == 'Exit') {
-                    toast("Under development");
-                  }
-                  if (value == 'Edit') {
-                    Get.toNamed(AppRoutes.member_sr,
-                        arguments: {'user': controller.user});
-                  }
-                },
-                itemBuilder: (context) => [
-                  PopupMenuItem(
-                    value: 'AddMember',
-                    child: Row(
-                      children: [
-                        Icon(
-                          Icons.person_add_alt,
-                          color: appColorGreen,
-                          size: 18,
-                        ),
-                        hGap(5),
-                        const Text('Add Member'),
-                      ],
-                    ),
-                  ),
-                  PopupMenuItem(
-                    value: 'Exit',
-                    child: Row(
-                      children: [
-                        Icon(
-                          Icons.exit_to_app_rounded,
-                          color: appColorGreen,
-                          size: 18,
-                        ),
-                        hGap(5),
-                        const Text('Exit'),
-                      ],
-                    ),
-                  ),
-                  PopupMenuItem(
-                    value: 'Edit',
-                    child: Row(
-                      children: [
-                        Icon(
-                          Icons.edit_outlined,
-                          color: appColorGreen,
-                          size: 18,
-                        ),
-                        hGap(5),
-                        const Text('Edit'),
-                      ],
-                    ),
-                  ),
-                ],
+                child: TextField(
+                  controller: controller.seacrhCon,
+                  cursorColor: appColorGreen,
+                  decoration: const InputDecoration(
+                      border: InputBorder.none,
+                      hintText: 'Search task by title or description ...',
+                      contentPadding:
+                          EdgeInsets.symmetric(vertical: 0, horizontal: 10),
+                      constraints: BoxConstraints(maxHeight: 45)),
+                  autofocus: true,
+                  style: const TextStyle(fontSize: 13, letterSpacing: 0.5),
+                  onChanged: (val) {
+                    controller.searchQuery = val;
+                    controller.onSearch(val);
+                  },
+                ).marginSymmetric(vertical: 10),
               )
-            : const SizedBox(),
-        controller.isSearching?const SizedBox(): GetBuilder<TaskController>(
-          id: 'statusMenu',
-          tag: _tag,
-          builder: (controller) {
-            // Loading state
-            if (controller.isLoadings && controller.taskStatus.isEmpty) {
-              return PopupMenuButton(
-                enabled: false,
-                icon: const Icon(Icons.filter_alt_outlined,
-                    color: Colors.black87),
-                itemBuilder: (context) => const [
-                  PopupMenuItem(
-                    enabled: false,
-                    child: SizedBox(
-                      height: 24,
-                      child: Center(child: CircularProgressIndicator()),
-                    ),
+            : Expanded(
+                child: InkWell(
+                  onTap: () {
+                    if (Get.isRegistered<TaskController>(tag: _tag)) {
+                      Get.delete<TaskController>(tag: _tag, force: true);
+                    }
+                    if (!(controller.user?.userCompany?.isGroup == 1 ||
+                        controller.user?.userCompany?.isBroadcast == 1)) {
+                      if (kIsWeb) {
+                        Get.toNamed(
+                          "${AppRoutes.view_profile}?userId=${controller.user?.userId.toString()}",
+                        );
+                      } else {
+                        Get.toNamed(AppRoutes.view_profile,
+                            arguments: {'user': controller.user});
+                      }
+                    } else {
+                      if (kIsWeb) {
+                        Get.toNamed(
+                          "${AppRoutes.member_sr}?userId=${controller.user?.userId.toString()}",
+                        );
+                      } else {
+                        Get.toNamed(AppRoutes.member_sr,
+                            arguments: {'user': controller.user});
+                      }
+                    }
+                    // APIs.updateActiveStatus(false);
+                  },
+                  child: Row(
+                    children: [
+                      //back button
+                      !widget.showBack
+                          ? const SizedBox(
+                              width: 14,
+                            )
+                          : IconButton(
+                              onPressed: () {
+                                if (Get.previousRoute.isNotEmpty) {
+                                  Get.back();
+                                } else {
+                                  Get.offAllNamed(
+                                      AppRoutes.home); // or your main route
+                                  var dashCon;
+                                  if (Get.isRegistered<DashboardController>()) {
+                                    dashCon = Get.find<DashboardController>();
+                                  } else {
+                                    dashCon = Get.put(DashboardController());
+                                  }
+
+                                  if (isTaskMode) {
+                                    dashCon.updateIndex(1);
+                                  } else {
+                                    dashCon.updateIndex(0);
+                                  }
+                                }
+
+                                // Get.find<TaskHomeController>()
+                                //     .hitAPIToGetRecentTasksUser();
+                                var dashCon;
+                                // if(Get.isRegistered<DashboardController>()){
+                                //   dashCon = Get.find<DashboardController>();
+                                // }else{
+                                //   dashCon = Get.put(DashboardController());
+                                // }
+
+                                // if (isTaskMode) {
+                                //   dashCon.updateIndex(1);
+                                // } else {
+                                //   dashCon.updateIndex(0);
+                                // }
+
+                                // APIs.updateActiveStatus(false);
+                              },
+                              icon: const Icon(Icons.arrow_back,
+                                  color: Colors.black54)),
+
+                      CustomCacheNetworkImage(
+                        radiusAll: 100,
+                        "${ApiEnd.baseUrlMedia}${controller.user?.userImage ?? ''}",
+                        height:
+                            _avatarSize(Get.context!), // ✅ responsive avatar
+                        width: _avatarSize(Get.context!),
+                        boxFit: BoxFit.cover,
+                        defaultImage: controller.user?.userCompany?.isGroup == 1
+                            ? groupIcn
+                            : controller.user?.userCompany?.isBroadcast == 1
+                                ? broadcastIcon
+                                : ICON_profile,
+                        borderColor: greyText,
+                      ),
+
+                      //for adding some space
+                      const SizedBox(width: 10),
+
+                      //user name & last seen time
+                      Flexible(
+                        child: Column(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            //user name
+                        
+                            Text(
+                              controller.user?.userCompany?.displayName != null
+                                  ? controller.user?.userCompany?.displayName ??
+                                      ''
+                                  : controller.user?.userName != null
+                                      ? controller.user?.userName ?? ''
+                                      : controller.user?.phone ?? '',
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                              style: themeData.textTheme.titleMedium,
+                            )
+                            //for adding some space
+                        
+                            //last seen time of user
+                            //TODO
+                            /* Text(
+                                list.isNotEmpty
+                                    ? list[0].isOnline && !list[0].isTyping
+                                    ? 'Online'
+                                    : list[0].isTyping && list[0].isOnline
+                                    ? "Typing..."
+                                    : MyDateUtil.getLastActiveTime(
+                                    context: context,
+                                    lastActive:
+                                    list[0].lastActive.toString())
+                                    : MyDateUtil.getLastActiveTime(
+                                    context: context,
+                                    lastActive:
+                                    (controller.user?.lastActive??'').toString()),
+                                style: const TextStyle(
+                                    fontSize: 13, color: Colors.black54)),*/
+                          ],
+                        ),
+                      ),
+                    ],
                   ),
-                ],
-              );
-            }
+                ),
+              ),
+        controller.isSearching
+            ? const SizedBox()
+            : (controller.user?.userCompany?.isBroadcast == 1 ||
+                    controller.user?.userCompany?.isGroup == 1 ||
+                    !widget.isShowNav)
+                ? const SizedBox()
+                : CustomTextButton(
+                    onTap: () async {
+                      // final _tagid =controller.user?.userCompany?.userCompanyId;
+                      final _tagid =
+                          widget.taskUser?.userCompany?.userCompanyId;
+                      final _tag = "chat_${_tagid ?? 'mobile'}";
+                      if (controller.user == null) return;
 
-            return PopupMenuButton<dynamic>(
-              color: Colors.white,
-              icon: Container(
-                  padding: const EdgeInsets.all(5),
-                  decoration: BoxDecoration(
-                      shape: BoxShape.circle,
-                      color: appColorGreen.withOpacity(.2)),
-                  child:  Icon(
-                    Icons.filter_alt_outlined,
-                    color: appColorGreen,
-                    size: 20,
-                  )),
-              onSelected: (v) {
-                final _id = TaskPresence.activeTaskId.value;
-                final _tag = 'task_$_id';
-                final taskcon = Get.find<TaskController>(tag: _tag);
-                // taskcon.page = 1;
-                // taskcon.update();
-                taskcon.resetPaginationForNewChat();
-                if (v == 'all') {
-                  taskcon.hitAPIToGetTaskHistory(isFilter: true);
-                } else if (v == TimeFilter.today ||
-                    v == TimeFilter.thisMonth ||
-                    v == TimeFilter.thisWeek) {
-                  final now = DateTime.now();
-                  final r = rangeFor(v);
-                  taskcon.hitAPIToGetTaskHistory(
-                      isFilter: true, fromDate: r.startDate, toDate: r.endDate);
-                } else {
+                      final dashC = Get.isRegistered<DashboardController>()
+                          ? Get.find<DashboardController>()
+                          : Get.put(DashboardController());
+                      isTaskMode = false;
+                      await dashC.getCompany();
+                      dashC.updateIndex(0);
+                      // ensure ChatHomeController exists
+                      final chatHome = Get.isRegistered<ChatHomeController>()
+                          ? Get.find<ChatHomeController>()
+                          : Get.put(ChatHomeController(), permanent: true);
+                      // ensure ChatScreenController exists
+                      ChatScreenController chatC;
+                      bool isRegisterd = true;
+                      if (!Get.isRegistered<ChatScreenController>(tag: _tag)) {
+                        chatC = Get.put(
+                            ChatScreenController(user: widget.taskUser),
+                            tag: _tag);
+                      } else {
+                        isRegisterd = false;
+                        chatC = Get.find<ChatScreenController>(tag: _tag);
+                      }
+                      chatHome.selectedChat.value = widget.taskUser;
+                      chatC.user = widget.taskUser;
 
-                  taskcon.hitAPIToGetTaskHistory(statusId: v, isFilter: true);
-                }
-              },
-              itemBuilder: (context) {
-                final items = <PopupMenuEntry<dynamic>>[
-                  PopupMenuItem(
-                      value: 'all',
-                      child: Text('All Tasks',
-                          style: BalooStyles.baloonormalTextStyle())),
-                  const PopupMenuDivider(),
-                  // --- Dynamic statuses from API ---
-                  ...controller.taskStatus.map((s) => PopupMenuItem(
-                        value: s.taskStatusId, // pass ID to onSelected
-                        child: Text(s.status ?? 'Unknown',
-                            style: BalooStyles.baloonormalTextStyle()),
-                      )),
-                  const PopupMenuDivider(),
-                  PopupMenuItem(
-                      value: TimeFilter.today,
-                      child: Text(
-                        'Today',
-                        style: BalooStyles.baloonormalTextStyle(),
-                      )),
-                  PopupMenuItem(
-                      value: TimeFilter.thisWeek,
-                      child: Text('This Week',
-                          style: BalooStyles.baloonormalTextStyle())),
-                  PopupMenuItem(
-                      value: TimeFilter.thisMonth,
-                      child: Text('This Month',
-                          style: BalooStyles.baloonormalTextStyle())),
-                ];
-                return items;
-              },
-            );
-          },
-        )
+                      chatC.getUserByIdApi(userId: widget.taskUser?.userId);
+                      chatHome.selectedChat.refresh();
+                    },
+                    title: "Go to Chat"),
+        controller.isSearching ? const SizedBox() : hGap(10),
+        IconButton(
+                onPressed: () {
+                  controller.isSearching = !controller.isSearching;
+                  controller.update();
+                  if (!controller.isSearching) {
+                    controller.searchQuery = '';
+                    controller.onSearch('');
+                    controller.seacrhCon.clear();
+                  }
+                  controller.update();
+                },
+                icon: controller.isSearching
+                    ? const Icon(CupertinoIcons.clear_circled_solid)
+                    : Image.asset(searchPng, height: 20, width: 20))
+            .paddingOnly(top: 0, right: 0),
+        controller.isSearching ? const SizedBox() : hGap(5),
+        controller.isSearching
+            ? const SizedBox()
+            : (controller.user?.userCompany?.isGroup == 1 ||
+                    controller.user?.userCompany?.isBroadcast == 1)
+                ? PopupMenuButton<String>(
+                    color: Colors.white,
+                    iconColor: Colors.black87,
+                    onSelected: (value) {
+                      if (value == 'AddMember') {
+                        if (kIsWeb) {
+                          Get.toNamed(
+                            "${AppRoutes.add_group_member}?groupChatId=${controller.user?.userId.toString()}",
+                          );
+                        } else {
+                          Get.toNamed(
+                            AppRoutes.add_group_member,
+                            arguments: {'groupChat': controller.user},
+                          );
+                        }
+                      }
+                      if (value == 'Exit') {
+                        toast("Under development");
+                      }
+                      if (value == 'Edit') {
+                        Get.toNamed(AppRoutes.member_sr,
+                            arguments: {'user': controller.user});
+                      }
+                    },
+                    itemBuilder: (context) => [
+                      PopupMenuItem(
+                        value: 'AddMember',
+                        child: Row(
+                          children: [
+                            Icon(
+                              Icons.person_add_alt,
+                              color: appColorGreen,
+                              size: 18,
+                            ),
+                            hGap(5),
+                            const Text('Add Member'),
+                          ],
+                        ),
+                      ),
+                      PopupMenuItem(
+                        value: 'Exit',
+                        child: Row(
+                          children: [
+                            Icon(
+                              Icons.exit_to_app_rounded,
+                              color: appColorGreen,
+                              size: 18,
+                            ),
+                            hGap(5),
+                            const Text('Exit'),
+                          ],
+                        ),
+                      ),
+                      PopupMenuItem(
+                        value: 'Edit',
+                        child: Row(
+                          children: [
+                            Icon(
+                              Icons.edit_outlined,
+                              color: appColorGreen,
+                              size: 18,
+                            ),
+                            hGap(5),
+                            const Text('Edit'),
+                          ],
+                        ),
+                      ),
+                    ],
+                  )
+                : const SizedBox(),
+        controller.isSearching
+            ? const SizedBox()
+            : GetBuilder<TaskController>(
+                id: 'statusMenu',
+                tag: _tag,
+                builder: (controller) {
+                  // Loading state
+                  if (controller.isLoadings && controller.taskStatus.isEmpty) {
+                    return PopupMenuButton(
+                      enabled: false,
+                      icon: const Icon(Icons.filter_alt_outlined,
+                          color: Colors.black87),
+                      itemBuilder: (context) => const [
+                        PopupMenuItem(
+                          enabled: false,
+                          child: SizedBox(
+                            height: 24,
+                            child: Center(child: CircularProgressIndicator()),
+                          ),
+                        ),
+                      ],
+                    );
+                  }
+
+                  return PopupMenuButton<dynamic>(
+                    color: Colors.white,
+                    icon: Container(
+                        padding: const EdgeInsets.all(5),
+                        decoration: BoxDecoration(
+                            shape: BoxShape.circle,
+                            color: appColorGreen.withOpacity(.2)),
+                        child: Icon(
+                          Icons.filter_alt_outlined,
+                          color: appColorGreen,
+                          size: 20,
+                        )),
+                    onSelected: (v) {
+                      final _id = TaskPresence.activeTaskId.value;
+                      final _tag = 'task_$_id';
+                      final taskcon = Get.find<TaskController>(tag: _tag);
+                      // taskcon.page = 1;
+                      // taskcon.update();
+                      taskcon.resetPaginationForNewChat();
+                      if (v == 'all') {
+                        taskcon.hitAPIToGetTaskHistory(isFilter: true);
+                      } else if (v == TimeFilter.today ||
+                          v == TimeFilter.thisMonth ||
+                          v == TimeFilter.thisWeek) {
+                        final now = DateTime.now();
+                        final r = rangeFor(v);
+                        taskcon.hitAPIToGetTaskHistory(
+                            isFilter: true,
+                            fromDate: r.startDate,
+                            toDate: r.endDate);
+                      } else {
+                        taskcon.hitAPIToGetTaskHistory(
+                            statusId: v, isFilter: true);
+                      }
+                    },
+                    itemBuilder: (context) {
+                      final items = <PopupMenuEntry<dynamic>>[
+                        PopupMenuItem(
+                            value: 'all',
+                            child: Text('All Tasks',
+                                style: BalooStyles.baloonormalTextStyle())),
+                        const PopupMenuDivider(),
+                        // --- Dynamic statuses from API ---
+                        ...controller.taskStatus.map((s) => PopupMenuItem(
+                              value: s.taskStatusId, // pass ID to onSelected
+                              child: Text(s.status ?? 'Unknown',
+                                  style: BalooStyles.baloonormalTextStyle()),
+                            )),
+                        const PopupMenuDivider(),
+                        PopupMenuItem(
+                            value: TimeFilter.today,
+                            child: Text(
+                              'Today',
+                              style: BalooStyles.baloonormalTextStyle(),
+                            )),
+                        PopupMenuItem(
+                            value: TimeFilter.thisWeek,
+                            child: Text('This Week',
+                                style: BalooStyles.baloonormalTextStyle())),
+                        PopupMenuItem(
+                            value: TimeFilter.thisMonth,
+                            child: Text('This Month',
+                                style: BalooStyles.baloonormalTextStyle())),
+                      ];
+                      return items;
+                    },
+                  );
+                },
+              )
       ],
     );
   }
 
   bool isVisibleUpload = true;
 
-  // bottom chat input field
   Widget _chatInput() {
     return Container(
-      // height: Get.height*.4,
-      padding: const EdgeInsets.symmetric(
-          vertical: 8, horizontal: 12),
+      padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 12),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.end,
         children: [
-          //input field & buttons
           Expanded(
             child: Row(
               crossAxisAlignment: CrossAxisAlignment.end,
               children: [
-                //emoji button
-                /* IconButton(
-                          onPressed: () {
-                            FocusScope.of(context).unfocus();
-                            setState(() => _showEmoji = !_showEmoji);
-                          },
-                          icon: const Icon(Icons.emoji_emotions,
-                              color: Colors.blueAccent, size: 25)),*/
-
                 Expanded(
                   child: SingleChildScrollView(
                     child: Column(
                       children: [
-                        ConstrainedBox(
-                          constraints: const BoxConstraints(
-                              maxHeight: 48, minHeight: 48),
-                          child: Container(
-                            // color: Colors.red,
-                            decoration: BoxDecoration(
-                                borderRadius: BorderRadius.circular(8),
-                                border: Border.all(
-                                    color: AppTheme.appColor.withOpacity(.2))),
-                            child: Row(
-                              children: [
-                                Expanded(
-                                  child: TextFormField(
-                                    controller: controller.textController,
-                                    keyboardType: TextInputType.multiline,
-                                    cursorColor: AppTheme.appColor,
-                                    maxLines: null,
-                                    readOnly: true,
-                                    onChanged: (text) {
-
-                                    },
-                                    onTap: () {
-                                      // if (_showEmoji)
-                                      //   setState(() => _showEmoji = !_showEmoji);
-                                      controller.clearFields();
-                                      if (isTaskMode) {
-                                        showDialog(
-                                            context: Get.context!,
-                                            builder: (_) =>
-                                                _createTasksDialogWidget(
-                                                    controller.user
-                                                            ?.userCompany?.displayName ??
-                                                        '')).then((pickedTime) {
-                                          if (pickedTime != null) {
-                                            controller.update();
-                                            // _selectedTime = pickedTime;
-                                          }
-                                        });
+                        Container(
+                          decoration: BoxDecoration(
+                              borderRadius: BorderRadius.circular(8),
+                              border: Border.all(
+                                  color: AppTheme.appColor.withOpacity(.2))),
+                          child: Row(
+                            children: [
+                              Expanded(
+                                  child: TextField(
+                                controller: controller.textController,
+                                keyboardType: TextInputType.multiline,
+                                textInputAction: TextInputAction.newline,
+                                maxLines: null,
+                                minLines: 1,
+                                readOnly: true,
+                                onTap: () {
+                                  controller.clearFields();
+                                  if (isTaskMode) {
+                                    showDialog(
+                                        context: Get.context!,
+                                        builder: (_) =>
+                                            _createTasksDialogWidget(controller
+                                                    .user
+                                                    ?.userCompany
+                                                    ?.displayName ??
+                                                '')).then((pickedTime) {
+                                      if (pickedTime != null) {
+                                        controller.update();
                                       }
-                                    },
-                                    decoration: InputDecoration(
-                                      hintText:
-                                          'Tap here to show task dialog...',
-                                      hintStyle: themeData.textTheme.bodySmall,
-                                      contentPadding: const EdgeInsets.all(5),
-                                      border: InputBorder.none,
-                                      enabledBorder: InputBorder.none,
-                                      disabledBorder: InputBorder.none,
-                                      errorBorder: InputBorder.none,
-                                      focusedBorder: InputBorder.none,
-                                    ),
-                                  ),
+                                    });
+                                  }
+                                },
+                                decoration: InputDecoration(
+                                  isDense: true,
+                                  hintText: 'Tap here to show task dialog...',
+                                  hintMaxLines: 1,
+                                  hintStyle: BalooStyles.baloonormalTextStyle(),
+                                  contentPadding:
+                                      const EdgeInsets.symmetric(horizontal: 8,vertical: 9),
+                                  border: InputBorder.none,
+                                  focusedBorder: InputBorder.none,
+                                  enabledBorder: InputBorder.none,
+                                  errorBorder: InputBorder.none,
                                 ),
-                              ],
-                            ),
+                              )),
+                            ],
                           ),
                         ),
                       ],
@@ -1266,54 +1277,6 @@ class _TaskScreenState extends State<TaskScreen> {
               ],
             ),
           ),
-          /*hGap(6),
-                Card(
-                  clipBehavior: Clip.none,
-                  color: Colors.transparent,
-                  shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(8)),
-                  child: Row(
-                    children: [
-                      //pick image from gallery button
-                        IconButton(
-                          onPressed: () async {
-                            final ImagePicker picker = ImagePicker();
-
-                            // Picking multiple images
-                            final List<XFile> imgs =
-                            await picker.pickMultiImage(imageQuality: 70);
-                              controller.images.addAll(imgs);
-
-                          },
-                          icon: const Icon(Icons.image,
-                              color: Colors.blueAccent, size: 26)),
-
-                      //take image from camera button
-                      IconButton(
-                          onPressed: () async {
-                            // final ImagePicker picker = ImagePicker();
-                            // // Pick an image
-                            // final XFile? image = await picker.pickImage(
-                            //     source: ImageSource.camera, imageQuality: 70);
-                            // if (image != null) {
-                            //   // log('Image Path: ${image.path}');
-                            //   setState(() => _isUploading = true);
-                            //
-                            //   await APIs.sendChatImage(
-                            //       widget.user, File(image.path));
-                            //   setState(() => _isUploading = false);
-                            // }
-                            controller.chooseMediaSource();
-                          },
-                          tooltip: "Choose image from Gallery or Camera",
-                          padding: EdgeInsets.all(0),
-                          splashRadius: 1,
-                          icon: const Icon(Icons.camera_alt_outlined,
-                              color: Colors.blueAccent, size: 26)),
-                    ],
-                  ),
-                ),*/
-
           hGap(6),
           InkWell(
             onTap: () async {
@@ -1360,14 +1323,10 @@ class _TaskScreenState extends State<TaskScreen> {
                   controller.replyToMessage = null;
                   controller.update();
                 }
-
-                // Get.find<TaskController>().hitAPIToGetTaskHistory();
-
-                // APIs.updateTypingStatus(false);
               }
             },
             child: Container(
-              padding: const EdgeInsets.all(10),
+              padding: const EdgeInsets.all(8),
               decoration: BoxDecoration(
                 borderRadius: BorderRadius.circular(8),
                 color: appColorGreen,
@@ -1643,204 +1602,197 @@ class _TaskScreenState extends State<TaskScreen> {
       final bool isTablet = w >= 700 && w < 1024;
       final double maxW = isDesktop ? 700 : (isTablet ? 720 : w * 0.95);
       final double maxH = h * (kIsWeb ? 0.9 : 0.95);
-        return StatefulBuilder(builder: (context, setStateInside) {
-          final sc = ScrollController();
-          return CustomDialogue(
-            title:
-            "Create Task for ${controller.user?.userId == APIs.me.userId ? 'You' : userName.isEmpty ? controller.user?.phone : userName}",
-            isShowAppIcon: false,
-            isShowActions: false,
-            content: Center(
-              child: ConstrainedBox(
-                constraints: BoxConstraints(maxWidth: maxW, maxHeight: maxH),
-                child: Scrollbar(
+      return StatefulBuilder(builder: (context, setStateInside) {
+        final sc = ScrollController();
+        return CustomDialogue(
+          title:
+              "Create Task for ${controller.user?.userId == APIs.me.userId ? 'You' : userName.isEmpty ? controller.user?.phone : userName}",
+          isShowAppIcon: false,
+          isShowActions: false,
+          content: Center(
+            child: ConstrainedBox(
+              constraints: BoxConstraints(maxWidth: maxW, maxHeight: maxH),
+              child: Scrollbar(
+                controller: sc,
+                thumbVisibility: kIsWeb,
+                child: SingleChildScrollView(
                   controller: sc,
-                  thumbVisibility: kIsWeb,
-                  child: SingleChildScrollView(
-                    controller: sc,
-                    padding: const EdgeInsets.all(12),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.center,
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        Text(
-                          "Enter Task Details",
-                          style: BalooStyles.baloonormalTextStyle(),
-                          textAlign: TextAlign.center,
-                        ),
-                        Text(
-                          controller.validString,
-                          style: BalooStyles.baloonormalTextStyle(
-                              color: AppTheme.redErrorColor),
-                          textAlign: TextAlign.center,
-                        ),
-                        vGap(10),
-                        _taskInputArea(setStateInside),
-                        vGap(10),
-                        const Text("Attachments",
-                            style: TextStyle(fontWeight: FontWeight.bold)),
-                        vGap(10),
-                        if (controller.isUploadingTaskDoc)
-                          const IndicatorLoading(),
-                        Wrap(
-                          spacing: 8,
-                          runSpacing: 8,
-                          children: controller.attachedFiles.map((file) {
-                            final String type = file['type'];
-                            final String name = file['name'];
-                            final url = file['file'];
+                  padding: const EdgeInsets.all(12),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.center,
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Text(
+                        "Enter Task Details",
+                        style: BalooStyles.baloonormalTextStyle(),
+                        textAlign: TextAlign.center,
+                      ),
+                      Text(
+                        controller.validString,
+                        style: BalooStyles.baloonormalTextStyle(
+                            color: AppTheme.redErrorColor),
+                        textAlign: TextAlign.center,
+                      ),
+                      vGap(10),
+                      _taskInputArea(setStateInside),
+                      vGap(10),
+                      const Text("Attachments",
+                          style: TextStyle(fontWeight: FontWeight.bold)),
+                      vGap(10),
+                      if (controller.isUploadingTaskDoc)
+                        const IndicatorLoading(),
+                      Wrap(
+                        spacing: 8,
+                        runSpacing: 8,
+                        children: controller.attachedFiles.map((file) {
+                          final String type = file['type'];
+                          final String name = file['name'];
+                          final url = file['file'];
 
-                            Widget preview;
+                          Widget preview;
 
-                            if (type == 'image') {
-                              // On mobile: we stored a File in 'file'
-                              // On web: we stored Uint8List in 'bytes'
-                              final fileis = file['file']; // File? (mobile)
-                              final bytes = file['bytes']; // Uint8List? (web)
+                          if (type == 'image') {
+                            // On mobile: we stored a File in 'file'
+                            // On web: we stored Uint8List in 'bytes'
+                            final fileis = file['file']; // File? (mobile)
+                            final bytes = file['bytes']; // Uint8List? (web)
 
-                              if (kIsWeb && bytes != null) {
-                                preview = Container(
-                                  width: 75,
-                                  height: 75,
-                                  decoration: BoxDecoration(
-                                    border:
-                                    Border.all(color: Colors.grey.shade400),
-                                    borderRadius: BorderRadius.circular(8),
-                                  ),
-                                  child: ClipRRect(
-                                    borderRadius: BorderRadius.circular(8),
-                                    child: Image.memory(
-                                      bytes,
-                                      width: 75,
-                                      height: 75,
-                                      fit: BoxFit.cover,
-                                    ),
-                                  ),
-                                );
-                              } else if (!kIsWeb && file != null) {
-                                preview = Container(
-                                  width: 75,
-                                  height: 75,
-                                  decoration: BoxDecoration(
-                                    border:
-                                    Border.all(color: Colors.grey.shade400),
-                                    borderRadius: BorderRadius.circular(8),
-                                  ),
-                                  child: ClipRRect(
-                                    borderRadius: BorderRadius.circular(8),
-                                    child: Image.file(
-                                      fileis,
-                                      width: 75,
-                                      height: 75,
-                                      fit: BoxFit.cover,
-                                    ),
-                                  ),
-                                );
-                              } else {
-                                preview = const SizedBox();
-                              }
-                            } else if (type == 'doc') {
-                              IconData icon;
-                              if (name.endsWith('.pdf')) {
-                                icon = Icons.picture_as_pdf;
-                              } else if (name.endsWith('.doc') ||
-                                  name.endsWith('.docx')) {
-                                icon = Icons.description;
-                              } else if (name.endsWith('.txt')) {
-                                icon = Icons.note;
-                              } else {
-                                icon = Icons.insert_drive_file;
-                              }
-
+                            if (kIsWeb && bytes != null) {
                               preview = Container(
                                 width: 75,
                                 height: 75,
-                                padding:
-                                const EdgeInsets.symmetric(horizontal: 2),
                                 decoration: BoxDecoration(
-                                  border: Border.all(color: Colors.grey.shade400),
+                                  border:
+                                      Border.all(color: Colors.grey.shade400),
                                   borderRadius: BorderRadius.circular(8),
                                 ),
-                                child: Column(
-                                  mainAxisAlignment: MainAxisAlignment.center,
-                                  children: [
-                                    Icon(icon, size: 30, color: Colors.grey),
-                                    Text(name,
-                                        textAlign: TextAlign.center,
-                                        maxLines: 2,
-                                        overflow: TextOverflow.ellipsis,
-                                        style: const TextStyle(fontSize: 10)),
-                                  ],
+                                child: ClipRRect(
+                                  borderRadius: BorderRadius.circular(8),
+                                  child: Image.memory(
+                                    bytes,
+                                    width: 75,
+                                    height: 75,
+                                    fit: BoxFit.cover,
+                                  ),
+                                ),
+                              );
+                            } else if (!kIsWeb && file != null) {
+                              preview = Container(
+                                width: 75,
+                                height: 75,
+                                decoration: BoxDecoration(
+                                  border:
+                                      Border.all(color: Colors.grey.shade400),
+                                  borderRadius: BorderRadius.circular(8),
+                                ),
+                                child: ClipRRect(
+                                  borderRadius: BorderRadius.circular(8),
+                                  child: Image.file(
+                                    fileis,
+                                    width: 75,
+                                    height: 75,
+                                    fit: BoxFit.cover,
+                                  ),
                                 ),
                               );
                             } else {
                               preview = const SizedBox();
                             }
+                          } else if (type == 'doc') {
+                            IconData icon;
+                            if (name.endsWith('.pdf')) {
+                              icon = Icons.picture_as_pdf;
+                            } else if (name.endsWith('.doc') ||
+                                name.endsWith('.docx')) {
+                              icon = Icons.description;
+                            } else if (name.endsWith('.txt')) {
+                              icon = Icons.note;
+                            } else {
+                              icon = Icons.insert_drive_file;
+                            }
 
-                            return Stack(
-                              alignment: Alignment.topRight,
-                              clipBehavior: Clip.none,
-                              children: [
-                                preview,
-                                Positioned(
-                                  top: -5,
-                                  right: -5,
-                                  child: GestureDetector(
-                                    onTap: () {
-                                      setStateInside(() {
-                                        controller.attachedFiles.remove(file);
-                                      });
-                                      controller.update();
-                                    },
-                                    child: const CircleAvatar(
-                                      radius: 13,
-                                      backgroundColor: Colors.red,
-                                      child: Icon(Icons.close,
-                                          size: 12, color: Colors.white),
-                                    ),
+                            preview = Container(
+                              width: 75,
+                              height: 75,
+                              padding:
+                                  const EdgeInsets.symmetric(horizontal: 2),
+                              decoration: BoxDecoration(
+                                border: Border.all(color: Colors.grey.shade400),
+                                borderRadius: BorderRadius.circular(8),
+                              ),
+                              child: Column(
+                                mainAxisAlignment: MainAxisAlignment.center,
+                                children: [
+                                  Icon(icon, size: 30, color: Colors.grey),
+                                  Text(name,
+                                      textAlign: TextAlign.center,
+                                      maxLines: 2,
+                                      overflow: TextOverflow.ellipsis,
+                                      style: const TextStyle(fontSize: 10)),
+                                ],
+                              ),
+                            );
+                          } else {
+                            preview = const SizedBox();
+                          }
+
+                          return Stack(
+                            alignment: Alignment.topRight,
+                            clipBehavior: Clip.none,
+                            children: [
+                              preview,
+                              Positioned(
+                                top: -5,
+                                right: -5,
+                                child: GestureDetector(
+                                  onTap: () {
+                                    setStateInside(() {
+                                      controller.attachedFiles.remove(file);
+                                    });
+                                    controller.update();
+                                  },
+                                  child: const CircleAvatar(
+                                    radius: 13,
+                                    backgroundColor: Colors.red,
+                                    child: Icon(Icons.close,
+                                        size: 12, color: Colors.white),
                                   ),
                                 ),
-                              ],
-                            );
-                          }).toList(),
+                              ),
+                            ],
+                          );
+                        }).toList(),
+                      ),
+                      vGap(10),
+                      GestureDetector(
+                        onTap: () => controller.attachedFiles.length < 3
+                            ? showUploadOptionsForTask(context, setStateInside)
+                            : toast("You can upload upto 3 attachments only"),
+                        child: const Chip(
+                          avatar: Icon(Icons.attach_file),
+                          label: Text("Add Attachments"),
+                          backgroundColor: Colors.white,
                         ),
-                        vGap(10),
-                        GestureDetector(
-                          onTap: () => controller.attachedFiles.length < 3
-                              ? showUploadOptionsForTask(context, setStateInside)
-                              : toast("You can upload upto 3 attachments only"),
-                          child: const Chip(
-                            avatar: Icon(Icons.attach_file),
-                            label: Text("Add Attachments"),
-                            backgroundColor: Colors.white,
-                          ),
-                        ),
-                        vGap(20),
-                        GradientButton(
-                          name:
-                          "Send Task to ${controller.user?.userId == APIs.me?.userId ? 'You' : userName.isEmpty ? controller.user?.phone : userName}",
-                          btnColor: AppTheme.appColor,
-                          vPadding: 8,
-                          onTap: () {
-                            if (controller.tasksFormKey.currentState!
-                                .validate()) {
-                              if (controller.getEstimatedTime(setStateInside) !=
-                                  "" &&
-                                  controller.selectedDate != null &&
-                                  controller.selectedTime != null) {
-                                if (controller.getEstimatedTime(setStateInside) ==
-                                    "Oops! The selected time is in the past. Please choose a valid future time.") {
-                                  setStateInside(() {
-                                    controller.validString =
-                                    "Please select valid time check AM PM correctly";
-                                  });
-                                } else {
-                                  if (!controller.isUploadingTaskDoc) {
-                                    controller.sendTaskApiCall();
-                                  } else {
-                                    toast("Please wait");
-                                  }
-                                }
+                      ),
+                      vGap(20),
+                      GradientButton(
+                        name:
+                            "Send Task to ${controller.user?.userId == APIs.me?.userId ? 'You' : userName.isEmpty ? controller.user?.phone : userName}",
+                        btnColor: AppTheme.appColor,
+                        vPadding: 8,
+                        onTap: () {
+                          if (controller.tasksFormKey.currentState!
+                              .validate()) {
+                            if (controller.getEstimatedTime(setStateInside) !=
+                                    "" &&
+                                controller.selectedDate != null &&
+                                controller.selectedTime != null) {
+                              if (controller.getEstimatedTime(setStateInside) ==
+                                  "Oops! The selected time is in the past. Please choose a valid future time.") {
+                                setStateInside(() {
+                                  controller.validString =
+                                      "Please select valid time check AM PM correctly";
+                                });
                               } else {
                                 if (!controller.isUploadingTaskDoc) {
                                   controller.sendTaskApiCall();
@@ -1848,19 +1800,26 @@ class _TaskScreenState extends State<TaskScreen> {
                                   toast("Please wait");
                                 }
                               }
+                            } else {
+                              if (!controller.isUploadingTaskDoc) {
+                                controller.sendTaskApiCall();
+                              } else {
+                                toast("Please wait");
+                              }
                             }
-                          },
-                        )
-                      ],
-                    ),
+                          }
+                        },
+                      )
+                    ],
                   ),
                 ),
               ),
-            ), onOkTap: () {  },
-          );
-        });
-      }
-    );
+            ),
+          ),
+          onOkTap: () {},
+        );
+      });
+    });
   }
 
 /*  Widget _taskInputArea(setStateInside, {TaskData? taskDetails}) {
@@ -2018,7 +1977,8 @@ class _TaskScreenState extends State<TaskScreen> {
       padding: const EdgeInsets.symmetric(vertical: 0),
       // alignment: Alignment.center,
       decoration: BoxDecoration(
-          borderRadius: BorderRadius.circular(12),),
+        borderRadius: BorderRadius.circular(12),
+      ),
       child: Wrap(
         spacing: 8,
         runSpacing: 8,
@@ -2161,7 +2121,6 @@ class _TaskScreenState extends State<TaskScreen> {
     // Track which existing media the user removed (so you can delete server-side)
     final Set<String> _removedExistingMediaIds = {};
     bool _hydrated = false;
-
 
     // helper to hydrate only once from taskDetails.media
     void _ensureHydrated() {
@@ -2339,8 +2298,8 @@ class _TaskScreenState extends State<TaskScreen> {
 
         return CustomDialogue(
           title: "Update Task",
-          isShowAppIcon: false,        isShowActions: false,
-
+          isShowAppIcon: false,
+          isShowActions: false,
           content: Center(
             child: ConstrainedBox(
               constraints: BoxConstraints(maxWidth: maxW, maxHeight: maxH),
@@ -2371,8 +2330,7 @@ class _TaskScreenState extends State<TaskScreen> {
                     const Text("Attachments",
                         style: TextStyle(fontWeight: FontWeight.bold)),
                     vGap(10),
-                    if (controller.isUploadingTaskDoc)
-                      const IndicatorLoading(),
+                    if (controller.isUploadingTaskDoc) const IndicatorLoading(),
 
                     // Editable attachments grid (existing + new)
                     Wrap(
@@ -2440,8 +2398,7 @@ class _TaskScreenState extends State<TaskScreen> {
                       btnColor: AppTheme.appColor,
                       vPadding: 8,
                       onTap: () async {
-                        if (controller.tasksFormKey.currentState!
-                            .validate()) {
+                        if (controller.tasksFormKey.currentState!.validate()) {
                           // keep controller in sync before API call
                           controller.attachedFiles = _editAttachedFiles;
                           controller.removedMediaIds =
@@ -2459,8 +2416,7 @@ class _TaskScreenState extends State<TaskScreen> {
                               });
                             } else {
                               if (!controller.isUploadingTaskDoc) {
-                                controller.updateTaskApiCall(
-                                    task: taskDetails);
+                                controller.updateTaskApiCall(task: taskDetails);
                               } else {
                                 toast("Please wait");
                               }

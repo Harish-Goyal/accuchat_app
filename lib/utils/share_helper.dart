@@ -1,3 +1,5 @@
+import 'package:android_intent_plus/android_intent.dart';
+import 'package:flutter/foundation.dart';
 import 'package:http/http.dart' as http;
 import 'package:mime/mime.dart';
 import 'package:share_plus/share_plus.dart';
@@ -8,25 +10,38 @@ import 'package:path/path.dart' as p;
 
 class ShareHelper {
   static Future<void> shareOnWhatsApp(String text) async {
-    final encodedText = Uri.encodeComponent(text);
+    final encoded = Uri.encodeComponent(text);
 
-    // For mobile: try to open WhatsApp with the "whatsapp://" scheme.
-    final whatsappUrl = "whatsapp://send?text=$encodedText";
+    // Android: open directly in WhatsApp Business
+    if (!kIsWeb && Platform.isAndroid) {
+      final intent = AndroidIntent(
+        action: 'android.intent.action.VIEW',
+        data: 'https://api.whatsapp.com/send?text=$encoded',
+        package: 'com.whatsapp.w4b', // ✅ WhatsApp Business
+      );
 
-    // For web: fallback to wa.me
-    final webUrl = "https://wa.me/?text=$encodedText";
-
-    // Check if it's a mobile platform (Android/iOS) and try opening with the mobile URL scheme
-    if (await canLaunchUrl(Uri.parse(whatsappUrl))) {
-      await launchUrl(Uri.parse(whatsappUrl),
-          mode: LaunchMode.externalApplication);
+      try {
+        await intent.launch();
+        return;
+      } catch (_) {
+        // If Business not found, try normal WhatsApp
+        final intent2 = AndroidIntent(
+          action: 'android.intent.action.VIEW',
+          data: 'https://api.whatsapp.com/send?text=$encoded',
+          package: 'com.whatsapp',
+        );
+        try {
+          await intent2.launch();
+          return;
+        } catch (_) {}
+      }
     }
-    // If mobile scheme fails, try the web scheme
-    else if (await canLaunchUrl(Uri.parse(webUrl))) {
-      await launchUrl(Uri.parse(webUrl), mode: LaunchMode.externalApplication);
-    } else {
-      print("Cannot launch WhatsApp");
-    }
+
+    // iOS/web fallback (opens browser)
+    await launchUrl(
+      Uri.parse('https://api.whatsapp.com/send?text=$encoded'),
+      mode: LaunchMode.externalApplication,
+    );
   }
 
   static Future<void> shareNetworkImage(String imageUrl, {String? text}) async {

@@ -107,21 +107,31 @@ class GrBrMembersController extends GetxController{
     });
     Get.find<PostApiServiceImpl>()
         .addEditGroupBroadcastApiCall(dataBody: reqData)
-        .then((value) {
+        .then((value) async {
       customLoader.hide();
       Get.back();
       groupResModel = value;
       groupNameController.clear();
       toast(value.message??'');
       groupOrBr = groupResModel.data;
-      final _tagid = ChatPresence.activeChatId.value;
-      final _tag = "chat_${_tagid ?? 'mobile'}";
-      final chatc =Get.find<ChatScreenController>(tag: _tag);
-      final chath =Get.find<ChatHomeController>();
-      chath.hitAPIToGetRecentChats(page: 1);
-      chatc.user?.userCompany?.displayName = groupOrBr?.userCompany?.displayName;
-      chatc.user?.userName = groupOrBr?.userName;
-      chatc.update();
+      Get.offAllNamed(AppRoutes.home);
+     //  final _tagid = groupOrBr?.userCompany?.userCompanyId;
+     //  final _tag = "chat_${_tagid ?? 'mobile'}";
+     //  ChatScreenController? chatc;
+     //  if(Get.isRegistered<ChatScreenController>(tag: _tag)){
+     //    chatc =Get.find<ChatScreenController>(tag: _tag);
+     //  }
+     //  else{
+     //    chatc = Get.put(ChatScreenController());
+     //  }
+     //  final chath =Get.find<ChatHomeController>();
+     //  await chath.hitAPIToGetRecentChats(page: 1);
+     // final i = chath.filteredList.indexWhere((e)=>groupOrBr?.userCompany?.userCompanyId==chatc?.user?.userCompany?.userCompanyId );
+     //  chath.filteredList[i]= groupOrBr!;
+     //  chath.filteredList.refresh();
+     //  chatc?.user?.userCompany?.displayName = groupOrBr?.userCompany?.displayName;
+     //  chatc?.user?.userName = groupOrBr?.userName;
+     //  chatc?.refresh();
       update();
     }).onError((error, stackTrace) {
       update();

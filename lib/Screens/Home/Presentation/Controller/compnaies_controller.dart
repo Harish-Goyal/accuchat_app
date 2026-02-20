@@ -233,9 +233,9 @@ class CompaniesController extends GetxController {
       }
     } else if (value == "All") {
       if (companyData.companyId == selCompany?.companyId) {
-        await svc.select(companyData);
-        getCompany();
-        update();
+        // await svc.select(companyData);
+        // getCompany();
+        // update();
         if (kIsWeb) {
           onMemberTap();
           // Get.toNamed(
@@ -415,7 +415,17 @@ class CompaniesController extends GetxController {
         builder: (ctx) => BuyMultipleCompaniesDialog(),
       );
     } else {
-      Get.toNamed(AppRoutes.create_company, arguments: {'isHome': '1'});
+      if(kIsWeb){
+        openCreateCompanyDialog(true);
+        // Get.toNamed(
+        //   "${AppRoutes.create_company}?isHome=${0}",
+        // );
+      }else {
+        Get.toNamed(
+            AppRoutes.create_company,
+            arguments: {'isHome': '1'});
+      }
+      // Get.toNamed(AppRoutes.create_company, arguments: {'isHome': '1'});
     }
 
 /*

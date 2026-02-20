@@ -1772,9 +1772,9 @@ class TaskController extends GetxController {
         tasktitle: taskData.title??'',
         user:  (selectedUser.userCompany?.displayName != null)
             ? selectedUser.userCompany?.displayName ?? ''
-            : selectedUser?.userName != null
-            ? selectedUser?.userName ?? ''
-            : selectedUser?.phone?? ''
+            : selectedUser.userName != null
+            ? selectedUser.userName ?? ''
+            : selectedUser.phone?? ''
     );
     _afterSendNavigate();
 

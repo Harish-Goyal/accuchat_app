@@ -512,7 +512,7 @@ class CreateCompanyScreen extends GetView<CreateCompanyController> {
                                   onFieldSubmitted: (_) => FocusScope.of(context)
                                       .requestFocus(controller.addressFocus),
                                   validator: (value){
-                                    return (value?.isEmpty??true)?"":value?.validateMobile(controller.phoneController.text);
+                                    return (value?.isEmpty??false)?null:value?.validateMobile(controller.phoneController.text);
                                   },
                                 ),
                                 vGap(18),
@@ -543,7 +543,13 @@ class CreateCompanyScreen extends GetView<CreateCompanyController> {
 
                                 // Create button
                                 ElevatedButton(
-                                  onPressed:()=> controller.createCompanyApi(),
+                                  onPressed:() {
+                                    if(controller.formKey.currentState!.validate()){
+                                      controller.createCompanyApi();
+                                    }
+
+
+                                  },
                                   child: const Text("Create Company"),
                                 ),
 
@@ -576,9 +582,10 @@ class CreateCompanyScreen extends GetView<CreateCompanyController> {
 
     if (kIsWeb) {
       // ✅ Web: bytes only
+
       c.companyLogoBytes = await image.readAsBytes();
       c.update();
-      return;
+      Get.back();
     }
 
   }

@@ -60,19 +60,15 @@ class SpeechControllerImpl  extends SpeechController{
       final detail = e.detail as dynamic;
       final interim = (detail['interim'] ?? '').toString();
       final gotFinal = (detail['final'] ?? '').toString();
-
       // interim always latest
       interimText.value = interim;
-
       // final: only add if it's new (prevents duplicates)
       final chunk = gotFinal.trim();
       if (chunk.isNotEmpty && chunk != _lastFinalChunk) {
         _lastFinalChunk = chunk;
-
         final combined = (finalText.value.isEmpty)
             ? chunk
             : '${finalText.value} $chunk';
-
         finalText.value = combined.trim();
       }
     });
@@ -93,26 +89,21 @@ class SpeechControllerImpl  extends SpeechController{
     _subError = html.window.on['speech-error'].listen((event) {
       final e = event as html.CustomEvent;
       final err = (e.detail ?? 'speech_error').toString();
-
       stop(skipOnStopped: true);   // stops + clears buffers now
       _skipNextOnStopped = false;  // safety
-
       Dialogs.showSnackbar(Get.context!, err);
     });
 
 
     _subEnd = html.window.on['speech-end'].listen((_) {
       isListening.value = false;
-
       // ✅ clear buffers on end
       clearSpeechBuffer();
-
       // ✅ if stop() asked to skip callback, skip once and reset flag
       if (_skipNextOnStopped) {
         _skipNextOnStopped = false;
         return;
       }
-
       onStopped?.call();
     });
 

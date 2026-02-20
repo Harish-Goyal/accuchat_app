@@ -18,7 +18,9 @@ import '../Screens/Chat/models/message.dart';
 import 'package:dio/dio.dart';
 import 'package:permission_handler/permission_handler.dart';
 import '../Screens/Chat/screens/auth/Presentation/Controllers/accept_invite_controller.dart';
+import '../Screens/Chat/screens/auth/Presentation/Controllers/create_company_controller.dart';
 import '../Screens/Chat/screens/auth/Presentation/Views/accept_invite_screen.dart';
+import '../Screens/Chat/screens/auth/Presentation/Views/create_company_screen.dart';
 import '../main.dart';
 import '../routes/app_routes.dart';
 import 'custom_flashbar.dart';
@@ -58,15 +60,16 @@ void showCompanyErrorDialog() {
         width: 300,
         height: 300,
         child: AlertDialog(
-          title: Text('Access Denied'),
-          content: Text('You are not a part of this company. Please contact admin for more details.'),
+          backgroundColor:Colors.white,
+          title: const Text('Access Denied'),
+          content: const Text('You are not a part of this company. Please contact admin for more details.'),
           actions: [
             TextButton(
               onPressed: () {
-                Get.back(); // Close the dialog
+                Get.back();
                 Get.offAllNamed(AppRoutes.landing_r);
               },
-              child: Text('OK'),
+              child: const Text('OK'),
             ),
           ],
         ),
@@ -103,6 +106,31 @@ Future<void> openAcceptInviteDialog() async {
   }
 }
 
+Future<void> openCreateCompanyDialog(bool isHome) async {
+  final c=  Get.put(CreateCompanyController(isHome: isHome));
+
+  try {
+    await Get.dialog(
+      Dialog(
+        clipBehavior: Clip.antiAlias,
+        insetPadding: const EdgeInsets.all(12),
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(12),
+        ),
+        child: SizedBox(
+          width: kIsWeb ? 600: Get.width * .9,
+          height: Get.height * 0.9,
+          child: const CreateCompanyScreen(),
+        ),
+      ),
+      barrierDismissible: true,
+    );
+  } finally {
+    if (Get.isRegistered<CreateCompanyController>()) {
+      Get.delete<CreateCompanyController>();
+    }
+  }
+}
 
 
 Future<void> saveImageToDownloads(String imageUrl) async {
@@ -280,7 +308,7 @@ Widget backIcon({Function()? onBack}) {
       ));
 }
 
-LinearGradient headerGradient = LinearGradient(
+LinearGradient headerGradient = const LinearGradient(
   colors: [
     Colors.purple,
     Colors.white,

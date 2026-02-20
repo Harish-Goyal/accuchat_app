@@ -227,8 +227,8 @@ class _ChatScreenMobileState extends State<ChatScreenMobile> {
         child: SafeArea(
           child: WillPopScope(
             onWillPop: () {
-              Get.find<ChatHomeController>().localPage.value = 1;
-              Get.find<ChatHomeController>().hitAPIToGetRecentChats(page: 1);
+              // Get.find<ChatHomeController>().localPage.value = 1;
+              // Get.find<ChatHomeController>().hitAPIToGetRecentChats(page: 1);
               return Future.value(true);
             },
             child: SafeArea(
@@ -1030,13 +1030,13 @@ class _ChatScreenMobileState extends State<ChatScreenMobile> {
                         Get.offAllNamed(AppRoutes.home); // or your main route
                       }
                       if(!kIsWeb) {
-                        Get.find<ChatHomeController>().localPage.value = 1;
-                        Get.find<ChatHomeController>().hitAPIToGetRecentChats(page: 1);
-                        if (isTaskMode) {
-                          Get.find<DashboardController>().updateIndex(1);
-                        } else {
-                          Get.find<DashboardController>().updateIndex(0);
-                        }
+                        // Get.find<ChatHomeController>().localPage.value = 1;
+                        // Get.find<ChatHomeController>().hitAPIToGetRecentChats(page: 1);
+                        // if (isTaskMode) {
+                        //   Get.find<DashboardController>().updateIndex(1);
+                        // } else {
+                        //   Get.find<DashboardController>().updateIndex(0);
+                        // }
                       }
                     },
                     icon: const Icon(Icons.arrow_back, color: Colors.black54)),
@@ -2390,6 +2390,7 @@ class _ChatScreenMobileState extends State<ChatScreenMobile> {
                     }else{
                       final msg = data.message ?? '';
                       if(msg!='') {
+                        print("printing.........$msg");
                         ShareHelper.shareOnWhatsApp(msg);
                       }else{
                       await ShareHelper.shareNetworkFile(

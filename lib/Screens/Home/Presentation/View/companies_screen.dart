@@ -1,4 +1,5 @@
 import 'package:AccuChat/Constants/themes.dart';
+import 'package:AccuChat/Screens/Chat/helper/dialogs.dart';
 import 'package:AccuChat/Screens/Chat/models/get_company_res_model.dart';
 import 'package:AccuChat/Screens/Chat/screens/chat_tasks/Presentation/Controllers/chat_home_controller.dart';
 import 'package:AccuChat/Screens/Chat/screens/chat_tasks/Presentation/Controllers/chat_screen_controller.dart';
@@ -26,6 +27,8 @@ import '../../../../routes/app_routes.dart';
 import '../../../../utils/chat_presence.dart';
 import '../../../../utils/product_shimmer_widget.dart';
 import '../../../Chat/api/apis.dart';
+import '../../../Chat/screens/auth/Presentation/Controllers/create_company_controller.dart';
+import '../../../Chat/screens/auth/Presentation/Views/create_company_screen.dart';
 import '../../../Chat/screens/chat_tasks/Presentation/Controllers/task_controller.dart';
 import '../Controller/company_members_controller.dart';
 import '../Controller/company_service.dart';
@@ -62,7 +65,23 @@ class CompaniesScreen extends GetView<CompaniesController> {
     }
   }
 
+
+
   Future<void> _onSubtitleTap(CompanyData companyData) async {
+    if(controller.selCompany?.companyId ==companyData.companyId ){
+      if (kIsWeb) {
+        await openMemberDialog(companyData); // safe + no loader while dialog open
+      } else {
+        await Get.toNamed(
+          AppRoutes.company_members,
+          arguments: {
+            'companyId': companyData.companyId ?? 0,
+            'companyName': companyData.companyName ?? '',
+          },
+        );
+      }
+      return;
+    }
     customLoader.show();
     isCompanySwitched =true;
     try {
@@ -136,6 +155,10 @@ class CompaniesScreen extends GetView<CompaniesController> {
   }
 
   Future<void> _onTapCompany(CompanyData companyData) async {
+    if(controller.selCompany?.companyId ==companyData.companyId ){
+      Dialogs.showSnackbar(Get.context!, "You are in ${companyData.companyName}");
+      return;
+    }
     customLoader.show();
     isCompanySwitched =true;
     try {
@@ -320,21 +343,27 @@ class CompaniesScreen extends GetView<CompaniesController> {
                             child: controller.pendingInvitesList == [] ||
                                     controller.pendingInvitesList.isEmpty
                                 ? const SizedBox()
-                                : PendingInvitesCard(
-                                    invitesCount:
-                                        controller.pendingInvitesList.length,
-                                    companyNames: controller.pendingInvitesList
-                                        .map(
-                                            (v) => v.company?.companyName ?? '')
-                                        .toList(),
-                                    onTap: () {
-                                      if(kIsWeb){
-                                        openAcceptInviteDialog();
-                                      }else{
-                                        Get.toNamed(AppRoutes.accept_invite);
-                                      }
-                                    },
-                                  ),
+                                : ConstrainedBox(
+                              constraints: const BoxConstraints(
+                                maxWidth:
+                                kIsWeb ? 500 : double.infinity,
+                              ),
+                                  child: PendingInvitesCard(
+                                      invitesCount:
+                                          controller.pendingInvitesList.length,
+                                      companyNames: controller.pendingInvitesList
+                                          .map(
+                                              (v) => v.company?.companyName ?? '')
+                                          .toList(),
+                                      onTap: () {
+                                        if(kIsWeb){
+                                          openAcceptInviteDialog();
+                                        }else{
+                                          Get.toNamed(AppRoutes.accept_invite);
+                                        }
+                                      },
+                                    ),
+                                ),
                           ),
                         ),
                         shimmerEffectWidget(
@@ -488,7 +517,19 @@ class CompaniesScreen extends GetView<CompaniesController> {
                                                         controller
                                                             .companyNavigation(
                                                                 value,
-                                                                companyData,()=>_onSubtitleTap(companyData)),
+                                                                companyData,() async {
+                                                          if (kIsWeb) {
+                                                            await openMemberDialog(companyData); // safe + no loader while dialog open
+                                                          } else {
+                                                            await Get.toNamed(
+                                                              AppRoutes.company_members,
+                                                              arguments: {
+                                                                'companyId': companyData.companyId ?? 0,
+                                                                'companyName': companyData.companyName ?? '',
+                                                              },
+                                                            );
+                                                          }
+                                                        }),
                                                     itemBuilder: (context) {
                                                       final List<
                                                               PopupMenuEntry<
@@ -734,7 +775,19 @@ class CompaniesScreen extends GetView<CompaniesController> {
                                                             controller
                                                                 .companyNavigation(
                                                                     "Pending",
-                                                                    companyData,()=>_onSubtitleTap(companyData));
+                                                                    companyData,() async {
+                                                              if (kIsWeb) {
+                                                                await openMemberDialog(companyData); // safe + no loader while dialog open
+                                                              } else {
+                                                                await Get.toNamed(
+                                                                  AppRoutes.company_members,
+                                                                  arguments: {
+                                                                    'companyId': companyData.companyId ?? 0,
+                                                                    'companyName': companyData.companyName ?? '',
+                                                                  },
+                                                                );
+                                                              }
+                                                            });
                                                           },
                                                           child: Container(
                                                             padding:

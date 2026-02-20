@@ -337,7 +337,7 @@ class TaskHomeScreen extends GetView<TaskHomeController> {
                           double w = constraints.maxWidth;
 
                           if (w < 500) {
-                            return _recentTaskBody(true); // your existing list
+                            return _recentTaskBody(true,w); // your existing list
                           }
 
                           // ---------------- TABLET (Drawer + Recents) ----------------
@@ -349,7 +349,7 @@ class TaskHomeScreen extends GetView<TaskHomeController> {
                                 //   child: buildSideNav(dashboardController),   // <--- add your drawer here
                                 // ),
                                 Expanded(
-                                  child: _recentTaskBody(true),
+                                  child: _recentTaskBody(true,w),
                                 ),
                               ],
                             );
@@ -360,7 +360,7 @@ class TaskHomeScreen extends GetView<TaskHomeController> {
                           return Row(
                             children: [
                               SizedBox(
-                                  width: 320, child: _recentTaskBody(false)),
+                                  width: 320, child: _recentTaskBody(false,w)),
                               Expanded(
                                 child: selected == null
                                     ? const Center(
@@ -442,7 +442,7 @@ class TaskHomeScreen extends GetView<TaskHomeController> {
     }
   }
 
-  Widget _recentTaskBody(bool isWebwidth) {
+  Widget _recentTaskBody(bool isWebwidth,w) {
     return Column(
       children: [
         kIsWeb && !isWebwidth
@@ -494,9 +494,13 @@ class TaskHomeScreen extends GetView<TaskHomeController> {
             return Expanded(
                 child: Center(
               child: InkWell(
-                onTap: () {
+                onTap: () async{
                   if (kIsWeb) {
-                    Get.toNamed("${AppRoutes.all_users}?isRecent='false'");
+                      final user = await openAllUserDialog();
+                      if (user != null) {
+                        _goToScreen(user, w);
+                      }
+
                   } else {
                     Get.toNamed(AppRoutes.all_users,
                         arguments: {"isRecent": 'false'});
