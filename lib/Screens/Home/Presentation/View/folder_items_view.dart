@@ -74,6 +74,7 @@ class FolderItemsScreen extends GetView<GalleryItemController> {
                     ),
                     itemCount: items.length,
                     itemBuilder: (_, i) {
+                      bool isSelected = folderData?.userGalleryId == items[i].userGalleryId;
                       if (i == items.length) {
                         return const IndicatorLoading();
                       }
@@ -92,6 +93,7 @@ class FolderItemsScreen extends GetView<GalleryItemController> {
                           .where((e) => e.filePath != null)
                           .map((e) => "${ApiEnd.baseUrlMedia}${e.filePath!}")
                           .toList();
+
                       return _MediaCard(
                         thumbHeight: thumbHeight,
                         title: title,
@@ -99,6 +101,7 @@ class FolderItemsScreen extends GetView<GalleryItemController> {
                         thumbUrl: thumbUrl,
                         isImage: isImage,
                         fileName: fileName,
+                        isSelected: isSelected,
                         createdOnText: _prettyDate(it.createdOn),
                         docIcon: _fileIcon(fileName),
                         onTap: () {
@@ -320,6 +323,7 @@ class _MediaCard extends StatelessWidget {
   final String keywords;
   final String thumbUrl;
   final bool isImage;
+  final bool isSelected;
   final String fileName;
   final String createdOnText;
   final IconData docIcon;
@@ -336,6 +340,7 @@ class _MediaCard extends StatelessWidget {
     required this.keywords,
     required this.thumbUrl,
     required this.isImage,
+    required this.isSelected,
     required this.fileName,
     required this.createdOnText,
     required this.docIcon,
@@ -348,10 +353,11 @@ class _MediaCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+
     return MouseRegion(
       cursor: SystemMouseCursors.click, // ✅ web
       child: Material(
-        color: Colors.white,
+        color: isSelected ? appColorPerple.withOpacity(.3) : Colors.white,
         elevation: 2.5,
         shadowColor: Colors.black12,
         borderRadius: BorderRadius.circular(14),

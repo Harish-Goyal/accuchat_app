@@ -39,7 +39,12 @@ class GalleryController extends GetxController
     with GetSingleTickerProviderStateMixin {
   late TabController tabController;
   final RxInt renamingId = 0.obs;
+  RxInt selectedItemId = 0.obs;  // This will hold the ID of the selected item
 
+  // Method to update the selected item
+  void setSelectedItem(int itemId) {
+    selectedItemId.value = itemId;
+  }
   final Map<String, TextEditingController> _textCtrls = {};
   final Map<String, FocusNode> _focusNodes = {};
 

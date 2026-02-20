@@ -99,6 +99,8 @@ class GalleryItemController extends GetxController{
     });
   }
 
+
+
   Future<void> hitApiToGetFolderItems({bool reset = false, String? searchText}) async {
     if (isPageLoadingItems.value) return;
 
