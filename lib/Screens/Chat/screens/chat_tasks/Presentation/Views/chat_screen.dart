@@ -3,9 +3,9 @@ import 'dart:math' as math;
 import 'package:AccuChat/Screens/Chat/screens/chat_tasks/Presentation/Controllers/task_home_controller.dart';
 import 'package:AccuChat/utils/text_button.dart';
 import 'package:AccuChat/Screens/voice_to_texx/speech_controller_factory.dart';
+import 'package:emoji_picker_flutter/emoji_picker_flutter.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter_linkify/flutter_linkify.dart';
-import 'package:get_storage/get_storage.dart';
 import 'package:scrollable_positioned_list/scrollable_positioned_list.dart';
 import 'package:share_plus/share_plus.dart';
 import 'package:url_launcher/url_launcher.dart';
@@ -32,7 +32,6 @@ import 'package:flutter/gestures.dart';
 import '../../../../../../Constants/app_theme.dart';
 import '../../../../../../Constants/assets.dart';
 import '../../../../../../Constants/colors.dart';
-import '../../../../../../utils/chat_presence.dart';
 import '../../../../../../utils/custom_flashbar.dart';
 import '../../../../../../utils/emogi_checker.dart';
 import '../../../../../../utils/emogi_picker_web.dart';
@@ -46,9 +45,7 @@ import '../Controllers/save_in_accuchat_gallery_controller.dart';
 import '../../../../../Home/Presentation/Controller/socket_controller.dart';
 import '../../../../helper/dialogs.dart';
 import '../../../auth/models/get_uesr_Res_model.dart';
-import '../Controllers/task_controller.dart';
 import '../Widgets/reply_msg_widget.dart';
-import '../Widgets/staggered_view.dart';
 import '../Controllers/gallery_view_controller.dart';
 import '../Widgets/media_view.dart';
 import '../dialogs/save_in_gallery_dialog.dart';
@@ -129,7 +126,9 @@ class _ChatScreenState extends State<ChatScreen> {
   String _lastApplied = "";
   late final ItemScrollController itemScrollController;
   late final ItemPositionsListener itemPositionsListener;
-
+  OverlayEntry? _emojiOverlay;
+  final LayerLink _emojiLink = LayerLink();
+  bool _emojiVisible = false;
   void applyLiveToFieldSafely(String live) {
     if (_blockSpeechToInput) return;
     if (live == _lastApplied) return;
@@ -202,6 +201,7 @@ class _ChatScreenState extends State<ChatScreen> {
     if (Get.isRegistered<ChatScreenController>(tag: _tag)) {
       Get.delete<ChatScreenController>(tag:_tag,force: true);
     }
+    _hideEmojiPicker();
     super.dispose();
   }
 
@@ -489,7 +489,7 @@ class _ChatScreenState extends State<ChatScreen> {
     );
   }
 
-  _changeLanguage() {
+ Widget  _changeLanguage() {
     return PopupMenuButton<String>(
       color: Colors.white,
       tooltip: 'Voice language',
@@ -513,13 +513,12 @@ class _ChatScreenState extends State<ChatScreen> {
         height: 20,
         color: speechC.selectedLang == "hi-IN" ? appColorGreen : appColorYellow,
       ),
-    );
+    ).paddingOnly(bottom: 20);
   }
 
   Widget _micButton(VoidCallback appendSpeechToInput) {
     return Obx(() {
       final listening = speechC.isListening.value;
-
       return Builder(
         builder: (micContext) {
           return InkWell(
@@ -535,11 +534,9 @@ class _ChatScreenState extends State<ChatScreen> {
               speechC.setLanguage(langCode: speechC.selectedLang);
 
               if (speechC.isListening.value) {
-                // ✅ stop and then manually apply speech once
                 speechC.stop(skipOnStopped: true);
                 appendSpeechToInput();
               } else {
-                // ✅ start: clear old buffers so old words never reappear
                 speechC.clearSpeechBuffer();
                 speechC.start();
               }
@@ -549,7 +546,6 @@ class _ChatScreenState extends State<ChatScreen> {
                 speechC.stop(skipOnStopped: true);
                 appendSpeechToInput();
               }
-
               final RenderBox button =
               micContext.findRenderObject() as RenderBox;
               final RenderBox overlay =
@@ -771,6 +767,7 @@ class _ChatScreenState extends State<ChatScreen> {
 
                   // },
                   child: _chatMessageTile(
+                     index:index,
                       data: element.chatMessageItems,
                       sentByMe: (userid?.toString() ==
                               element.chatMessageItems.fromUser?.userId
@@ -911,8 +908,10 @@ class _ChatScreenState extends State<ChatScreen> {
     );
   }
 
+  bool isHoved = false;
   Widget _chatMessageTile(
-      {required ChatHisList data, required bool sentByMe, formatedTime}) {
+      {required ChatHisList data, required bool sentByMe, formatedTime,int? index}) {
+final isMedia = (data.media??[]).isNotEmpty;
     return data.isActivity == 1
         ? Center(
             child: Container(
@@ -942,7 +941,7 @@ class _ChatScreenState extends State<ChatScreen> {
                 mainAxisSize: MainAxisSize.min,
                 children: [
                   (data.message != null &&
-                          (data.media ?? []).isNotEmpty &&
+                      isMedia &&
                           sentByMe)
                       ? IconButton(
                           onPressed: () {
@@ -961,7 +960,7 @@ class _ChatScreenState extends State<ChatScreen> {
                     child: ConstrainedBox(
                       constraints: BoxConstraints(
                         maxWidth: (kIsWeb
-                            ? (data.media ?? []).isNotEmpty
+                            ? isMedia
                                 ? 300
                                 : 600
                             : Get.width * 0.75),
@@ -975,24 +974,24 @@ class _ChatScreenState extends State<ChatScreen> {
                             borderRadius: sentByMe
                                 ? BorderRadius.only(
                                     topLeft: Radius.circular(
-                                        (data.media ?? []).isNotEmpty
+                                        isMedia
                                             ? 15
                                             : 30),
                                     topRight: Radius.circular(
-                                        (data.media ?? []).isNotEmpty
+                                        isMedia
                                             ? 15
                                             : 30),
                                     bottomLeft: Radius.circular(
-                                        (data.media ?? []).isNotEmpty
+                                        isMedia
                                             ? 15
                                             : 30))
                                 : BorderRadius.only(
                                     topLeft: Radius.circular(
-                                        (data.media ?? []).isNotEmpty
+                                        isMedia
                                             ? 15
                                             : 30),
-                                    topRight: Radius.circular((data.media ?? []).isNotEmpty ? 15 : 30),
-                                    bottomRight: Radius.circular((data.media ?? []).isNotEmpty ? 15 : 30)),
+                                    topRight: Radius.circular(isMedia ? 15 : 30),
+                                    bottomRight: Radius.circular(isMedia ? 15 : 30)),
                             // mouseCursor: SystemMouseCursors.click,
                             onDoubleTap: () {
                               SystemChannels.textInput
@@ -1001,12 +1000,15 @@ class _ChatScreenState extends State<ChatScreen> {
                                 _showBottomSheet(sentByMe, data: data);
                               }
                             },
+                            onHover: (v) {
+                              controller.setHover(data.chatId.toString(), v); // make sure each message has unique id
+                            },
                             child: Container(
                               padding: EdgeInsets.symmetric(
                                 horizontal:
-                                    (data.media ?? []).isNotEmpty ? 12 : 15,
+                                isMedia ? 12 : 15,
                                 vertical:
-                                    (data.media ?? []).isNotEmpty ? 0 : 10,
+                                isMedia ? 0 : 12,
                               ),
                               margin: sentByMe
                                   ? const EdgeInsets.only(
@@ -1024,22 +1026,22 @@ class _ChatScreenState extends State<ChatScreen> {
                                   borderRadius: sentByMe
                                       ? BorderRadius.only(
                                           topLeft: Radius.circular(
-                                              (data.media ?? []).isNotEmpty
+                                              isMedia
                                                   ? 15
                                                   : 30),
                                           topRight: Radius.circular(
-                                              (data.media ?? []).isNotEmpty
+                                              isMedia
                                                   ? 15
                                                   : 30),
                                           bottomLeft: Radius.circular(
-                                              (data.media ?? []).isNotEmpty
+                                              isMedia
                                                   ? 15
                                                   : 30))
                                       : BorderRadius.only(
-                                          topLeft: Radius.circular((data.media ?? []).isNotEmpty ? 15 : 30),
-                                          topRight: Radius.circular((data.media ?? []).isNotEmpty ? 15 : 30),
-                                          bottomRight: Radius.circular((data.media ?? []).isNotEmpty ? 15 : 30))),
-                              child: messageTypeView(data, sentByMe: sentByMe),
+                                          topLeft: Radius.circular(isMedia ? 15 : 30),
+                                          topRight: Radius.circular(isMedia ? 15 : 30),
+                                          bottomRight: Radius.circular(isMedia ? 15 : 30))),
+                              child: messageTypeView(data, sentByMe: sentByMe,index: index,fTime:formatedTime),
                             ),
                           ),
                         ],
@@ -1057,11 +1059,17 @@ class _ChatScreenState extends State<ChatScreen> {
                             forwardIcon,
                             height: 20,
                           )).paddingOnly(right: 0)
-                      : const SizedBox()
+                      : const SizedBox(),
+
+
+
+
+
+
                 ],
               ),
-              vGap(3),
-              Row(
+              isMedia? vGap(3):SizedBox(),
+              isMedia? Row(
                 mainAxisSize: MainAxisSize.min,
                 children: [
                   Text(
@@ -1073,171 +1081,389 @@ class _ChatScreenState extends State<ChatScreen> {
                   hGap(5),
                   sentByMe
                       ? Icon(
-                          data.readOn != null ? Icons.done_all : Icons.done,
-                          size: 14,
-                          color:
-                              data.readOn != null ? Colors.blue : Colors.grey,
-                        )
+                    data.readOn != null ? Icons.done_all : Icons.done,
+                    size: 14,
+                    color:
+                    data.readOn != null ? Colors.blue : Colors.grey,
+                  )
                       : const SizedBox()
                 ],
-              ).marginOnly(left: 0, right: 0),
+              ).marginOnly(left: 0, right: 0):SizedBox(),
             ],
           );
   }
 
-  messageTypeView(ChatHisList data, {required bool sentByMe}) {
+  messageTypeView(ChatHisList data, {required bool sentByMe,int? index,fTime}) {
     final isEmojiMsg = isEmojiOnlyMessage(data.message ?? '');
-    return Container(
-      key: ValueKey('msg-${data.chatId}'),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          data.replyToId != null
-              ? ReplyMessageWidget(
-                      isCancel: false,
-                      sentByMe: sentByMe,
-                      onReplu: () {
-                        final int? replyId =
-                            data.replyToId; // confirm field name
-                        if (replyId != null) {
-                          jumpToRepliedMessage(replyId);
-                        }
-                      },
-                      empIdsender: data.fromUser?.userId.toString(),
-                      chatdata: data,
-                      empIdreceiver: data.toUser?.userId.toString(),
-                      empName: data.isGroupChat == 1
-                          ? data.fromUser?.userCompany?.displayName ?? ''
-                          : data.fromUser?.userId.toString() ==
-                                  APIs.me?.userId?.toString()
-                              ? data.fromUser?.userCompany?.displayName ?? ''
-                              : data.toUser?.userCompany?.displayName ?? '',
-                      message: data.replyToText ?? '',
-                      orignalMsg: data.replyToMedia ?? '')
-                  .paddingOnly(bottom: 4)
-              : const SizedBox(),
-          widget.user?.userCompany?.isGroup == 1
-              ? Row(
+    final isMedia = (data.media??[]).isNotEmpty;
+    return !isMedia? Stack(
+      clipBehavior: Clip.none,
+      alignment: Alignment.topRight,
+      children: [
+        Row(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.end,
+          children: [
+            // !sentByMe?  isHoved?  InkWell(
+            //   onTap: (){
+            //     _showBottomSheet(sentByMe, data: data);
+            //   },
+            //     child: const Icon(Icons.keyboard_arrow_down_outlined,size: 25,color: Colors.black,)):const SizedBox():const SizedBox()
+
+            Flexible(
+              child: Container(
+                key: ValueKey('msg-${data.chatId}'),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                    Flexible(
-                      fit: FlexFit.loose,
-                      child: Text(
-                              data.fromUser?.userId == APIs.me?.userId
-                                  ? "You"
-                                  : data.fromUser?.userCompany?.displayName !=
-                                          null
-                                      ? (data.fromUser?.userCompany
-                                              ?.displayName ??
-                                          '')
-                                      : data.fromUser?.userName != null
-                                          ? (data.fromUser?.userName ?? '')
-                                          : (data.fromUser?.phone ?? ''),
+                    data.replyToId != null
+                        ? ReplyMessageWidget(
+                                isCancel: false,
+                                sentByMe: sentByMe,
+                                onReplu: () {
+                                  final int? replyId =
+                                      data.replyToId; // confirm field name
+                                  if (replyId != null) {
+                                    jumpToRepliedMessage(replyId);
+                                  }
+                                },
+                                empIdsender: data.fromUser?.userId.toString(),
+                                chatdata: data,
+                                empIdreceiver: data.toUser?.userId.toString(),
+                                empName: data.isGroupChat == 1
+                                    ? data.fromUser?.userCompany?.displayName ?? ''
+                                    : data.fromUser?.userId.toString() ==
+                                            APIs.me?.userId?.toString()
+                                        ? data.fromUser?.userCompany?.displayName ?? ''
+                                        : data.toUser?.userCompany?.displayName ?? '',
+                                message: data.replyToText ?? '',
+                                orignalMsg: data.replyToMedia ?? '')
+                            .paddingOnly(bottom: 4)
+                        : const SizedBox(),
+                    widget.user?.userCompany?.isGroup == 1
+                        ? Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              Flexible(
+                                fit: FlexFit.loose,
+                                child: Text(
+                                        data.fromUser?.userId == APIs.me?.userId
+                                            ? "You"
+                                            : data.fromUser?.userCompany?.displayName !=
+                                                    null
+                                                ? (data.fromUser?.userCompany
+                                                        ?.displayName ??
+                                                    '')
+                                                : data.fromUser?.userName != null
+                                                    ? (data.fromUser?.userName ?? '')
+                                                    : (data.fromUser?.phone ?? ''),
+                                        style: BalooStyles.baloonormalTextStyle(
+                                            color:
+                                                data.fromUser?.userId == APIs.me?.userId
+                                                    ? Colors.green
+                                                    : Colors.purple),
+                                        textAlign: TextAlign.end,
+                                        maxLines: 1,
+                                        overflow: TextOverflow.ellipsis)
+                                    .marginOnly(
+                                        right: sentByMe ? 1 : 5,
+                                        left: sentByMe ? 1 : 5,
+                                        bottom: 1,
+                                        top: 4),
+                              ),
+                            ],
+                          )
+                        : const SizedBox(),
+                    data.isForwarded == 1
+                        ? Text("Forwarded",
+                                textAlign: TextAlign.start,
+                                style: BalooStyles.baloonormalTextStyle(
+                                    color: Colors.grey,
+                                    size: 13,
+                                    fontstyle: FontStyle.italic),
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis)
+                            .marginOnly(
+                            top: 8,
+                          )
+                        : const SizedBox(),
+                    data.message != '' || data.message != null
+                        ? DefaultSelectionStyle(
+                            selectionColor: appColorPerple.withOpacity(0.3),
+                            cursorColor: appColorPerple,
+                            child: SelectableLinkify(
+                              text: data.message ?? '',
+                              onOpen: (link) {
+                                launchUrl(Uri.parse(link.url),
+                                    mode: LaunchMode.externalApplication);
+                              },
                               style: BalooStyles.baloonormalTextStyle(
-                                  color:
-                                      data.fromUser?.userId == APIs.me?.userId
-                                          ? Colors.green
-                                          : Colors.purple),
-                              textAlign: TextAlign.end,
-                              maxLines: 1,
-                              overflow: TextOverflow.ellipsis)
-                          .marginOnly(
-                              right: sentByMe ? 1 : 5,
-                              left: sentByMe ? 1 : 5,
-                              bottom: 1,
-                              top: 4),
-                    ),
+                                color: Colors.black87,
+                                size: isEmojiMsg ? 50 : 15,
+                              ),
+                              linkStyle: BalooStyles.baloonormalTextStyle(
+                                color: Colors.blue,
+                                size: 15,
+                              ),
+                              linkifiers: const [
+                                UrlLinkifier(),
+                              ],
+                            ),
+                          )
+                        : const SizedBox(),
+                    ((data.media ?? []).isNotEmpty)
+                        ? ChatMessageMedia(
+                            chat: data,
+                            isGroupMessage: data.isGroupChat == 1 ? true : false,
+                            myId: (APIs.me?.userId ?? 0).toString(),
+                            fromId: (data.fromUser?.userId ?? 0).toString(),
+                            senderName: data.fromUser?.userCompany?.displayName != null
+                                ? data.fromUser?.userCompany?.displayName ?? ''
+                                : data.fromUser?.userName ?? '',
+                            baseUrl: ApiEnd.baseUrlMedia,
+                            defaultGallery: defaultGallery,
+                            onOpenDocument: (url) =>
+                                openDocumentFromUrl(url), // your existing function
+                            onOpenImageViewer: (mediaurls, startIndex) {
+                              // push your gallery view
+                              // Get.to(() => ImageViewer(urls: urls, initialIndex: startIndex));
+                              Get.to(
+                                () => GalleryViewerPage(
+                                  onReply: () {
+                                    Get.back();
+                                    controller.refIdis = data.chatId;
+                                    controller.userIDSender = data.fromUser?.userId;
+                                    controller.userNameReceiver =
+                                        data.toUser?.userCompany?.displayName ?? '';
+                                    controller.userNameSender =
+                                        data.fromUser?.userCompany?.displayName ?? '';
+                                    controller.userIDReceiver = data.toUser?.userId;
+                                    controller.replyToMessage = data;
+                                    controller.replyToImage =
+                                        data.media?[startIndex].orgFileName ?? '';
+                                  },
+                                ),
+                                binding: BindingsBuilder(() {
+                                  Get.put(GalleryViewerController(
+                                      urls: mediaurls, index: startIndex, chathis: data));
+                                }),
+                                fullscreenDialog: true,
+                                transition: Transition.fadeIn,
+                              );
+                            },
+                            onOpenVideo: (url) {
+                              // open video player route/sheet if available
+                            },
+                            onOpenAudio: (url) {
+                              // open audio player route/sheet if available
+                            },
+                          )
+                        : const SizedBox(),
                   ],
-                )
-              : const SizedBox(),
-          data.isForwarded == 1
-              ? Text("Forwarded",
+                ),
+              ),
+            ),
+
+            Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.end,
+              children: [
+                Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Text(
+                      fTime ?? '',
                       textAlign: TextAlign.start,
                       style: BalooStyles.baloonormalTextStyle(
-                          color: Colors.grey,
-                          size: 13,
-                          fontstyle: FontStyle.italic),
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis)
-                  .marginOnly(
-                  top: 8,
-                )
-              : const SizedBox(),
-          data.message != '' || data.message != null
-              ? DefaultSelectionStyle(
-                  selectionColor: appColorPerple.withOpacity(0.3),
-                  cursorColor: appColorPerple,
-                  child: SelectableLinkify(
-                    text: data.message ?? '',
-                    onOpen: (link) {
-                      launchUrl(Uri.parse(link.url),
-                          mode: LaunchMode.externalApplication);
-                    },
-                    style: BalooStyles.baloonormalTextStyle(
-                      color: Colors.black87,
-                      size: isEmojiMsg ? 50 : 15,
+                          color: Colors.grey, size: 13),
                     ),
-                    linkStyle: BalooStyles.baloonormalTextStyle(
-                      color: Colors.blue,
-                      size: 15,
-                    ),
-                    linkifiers: const [
-                      UrlLinkifier(),
-                    ],
-                  ),
-                )
-              : const SizedBox(),
-          ((data.media ?? []).isNotEmpty)
-              ? ChatMessageMedia(
-                  chat: data,
-                  isGroupMessage: data.isGroupChat == 1 ? true : false,
-                  myId: (APIs.me?.userId ?? 0).toString(),
-                  fromId: (data.fromUser?.userId ?? 0).toString(),
-                  senderName: data.fromUser?.userCompany?.displayName != null
+                    hGap(5),
+                    sentByMe
+                        ? Icon(
+                      data.readOn != null ? Icons.done_all : Icons.done,
+                      size: 14,
+                      color:
+                      data.readOn != null ? Colors.blue : Colors.grey,
+                    )
+                        : const SizedBox()
+                  ],
+                ).marginOnly(left: 0, right: 0),
+              ],
+            ),
+
+          ],
+        ),
+        (controller.hoveredMessageId == data.chatId.toString())?  InkWell(
+            borderRadius: BorderRadius.circular(50),
+            onTap: (){
+              _showBottomSheet(sentByMe, data: data);
+            },child: const Icon(Icons.keyboard_arrow_down_outlined,size: 23,color: Colors.black,)):const SizedBox()
+        ,
+      ],
+    ):Stack(
+      clipBehavior: Clip.none,
+      alignment: Alignment.topRight,
+      children: [
+        Container(
+          key: ValueKey('msg-${data.chatId}'),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              data.replyToId != null
+                  ? ReplyMessageWidget(
+                  isCancel: false,
+                  sentByMe: sentByMe,
+                  onReplu: () {
+                    final int? replyId =
+                        data.replyToId; // confirm field name
+                    if (replyId != null) {
+                      jumpToRepliedMessage(replyId);
+                    }
+                  },
+                  empIdsender: data.fromUser?.userId.toString(),
+                  chatdata: data,
+                  empIdreceiver: data.toUser?.userId.toString(),
+                  empName: data.isGroupChat == 1
                       ? data.fromUser?.userCompany?.displayName ?? ''
-                      : data.fromUser?.userName ?? '',
-                  baseUrl: ApiEnd.baseUrlMedia,
-                  defaultGallery: defaultGallery,
-                  onOpenDocument: (url) =>
-                      openDocumentFromUrl(url), // your existing function
-                  onOpenImageViewer: (mediaurls, startIndex) {
-                    // push your gallery view
-                    // Get.to(() => ImageViewer(urls: urls, initialIndex: startIndex));
-                    Get.to(
-                      () => GalleryViewerPage(
-                        onReply: () {
-                          Get.back();
-                          controller.refIdis = data.chatId;
-                          controller.userIDSender = data.fromUser?.userId;
-                          controller.userNameReceiver =
-                              data.toUser?.userCompany?.displayName ?? '';
-                          controller.userNameSender =
-                              data.fromUser?.userCompany?.displayName ?? '';
-                          controller.userIDReceiver = data.toUser?.userId;
-                          controller.replyToMessage = data;
-                          controller.replyToImage =
-                              data.media?[startIndex].orgFileName ?? '';
-                        },
-                      ),
-                      binding: BindingsBuilder(() {
-                        Get.put(GalleryViewerController(
-                            urls: mediaurls, index: startIndex, chathis: data));
-                      }),
-                      fullscreenDialog: true,
-                      transition: Transition.fadeIn,
-                    );
+                      : data.fromUser?.userId.toString() ==
+                      APIs.me?.userId?.toString()
+                      ? data.fromUser?.userCompany?.displayName ?? ''
+                      : data.toUser?.userCompany?.displayName ?? '',
+                  message: data.replyToText ?? '',
+                  orignalMsg: data.replyToMedia ?? '')
+                  .paddingOnly(bottom: 4)
+                  : const SizedBox(),
+              widget.user?.userCompany?.isGroup == 1
+                  ? Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Flexible(
+                    fit: FlexFit.loose,
+                    child: Text(
+                        data.fromUser?.userId == APIs.me?.userId
+                            ? "You"
+                            : data.fromUser?.userCompany?.displayName !=
+                            null
+                            ? (data.fromUser?.userCompany
+                            ?.displayName ??
+                            '')
+                            : data.fromUser?.userName != null
+                            ? (data.fromUser?.userName ?? '')
+                            : (data.fromUser?.phone ?? ''),
+                        style: BalooStyles.baloonormalTextStyle(
+                            color:
+                            data.fromUser?.userId == APIs.me?.userId
+                                ? Colors.green
+                                : Colors.purple),
+                        textAlign: TextAlign.end,
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis)
+                        .marginOnly(
+                        right: sentByMe ? 1 : 5,
+                        left: sentByMe ? 1 : 5,
+                        bottom: 1,
+                        top: 4),
+                  ),
+                ],
+              )
+                  : const SizedBox(),
+              data.isForwarded == 1
+                  ? Text("Forwarded",
+                  textAlign: TextAlign.start,
+                  style: BalooStyles.baloonormalTextStyle(
+                      color: Colors.grey,
+                      size: 13,
+                      fontstyle: FontStyle.italic),
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis)
+                  .marginOnly(
+                top: 8,
+              )
+                  : const SizedBox(),
+              data.message != '' || data.message != null
+                  ? DefaultSelectionStyle(
+                selectionColor: appColorPerple.withOpacity(0.3),
+                cursorColor: appColorPerple,
+                child: SelectableLinkify(
+                  text: data.message ?? '',
+                  onOpen: (link) {
+                    launchUrl(Uri.parse(link.url),
+                        mode: LaunchMode.externalApplication);
                   },
-                  onOpenVideo: (url) {
-                    // open video player route/sheet if available
-                  },
-                  onOpenAudio: (url) {
-                    // open audio player route/sheet if available
-                  },
-                )
-              : const SizedBox(),
-        ],
-      ),
+                  style: BalooStyles.baloonormalTextStyle(
+                    color: Colors.black87,
+                    size: isEmojiMsg ? 50 : 15,
+                  ),
+                  linkStyle: BalooStyles.baloonormalTextStyle(
+                    color: Colors.blue,
+                    size: 15,
+                  ),
+                  linkifiers: const [
+                    UrlLinkifier(),
+                  ],
+                ),
+              )
+                  : const SizedBox(),
+              ((data.media ?? []).isNotEmpty)
+                  ? ChatMessageMedia(
+                chat: data,
+                isGroupMessage: data.isGroupChat == 1 ? true : false,
+                myId: (APIs.me?.userId ?? 0).toString(),
+                fromId: (data.fromUser?.userId ?? 0).toString(),
+                senderName: data.fromUser?.userCompany?.displayName != null
+                    ? data.fromUser?.userCompany?.displayName ?? ''
+                    : data.fromUser?.userName ?? '',
+                baseUrl: ApiEnd.baseUrlMedia,
+                defaultGallery: defaultGallery,
+                onOpenDocument: (url) =>
+                    openDocumentFromUrl(url), // your existing function
+                onOpenImageViewer: (mediaurls, startIndex) {
+                  // push your gallery view
+                  // Get.to(() => ImageViewer(urls: urls, initialIndex: startIndex));
+                  Get.to(
+                        () => GalleryViewerPage(
+                      onReply: () {
+                        Get.back();
+                        controller.refIdis = data.chatId;
+                        controller.userIDSender = data.fromUser?.userId;
+                        controller.userNameReceiver =
+                            data.toUser?.userCompany?.displayName ?? '';
+                        controller.userNameSender =
+                            data.fromUser?.userCompany?.displayName ?? '';
+                        controller.userIDReceiver = data.toUser?.userId;
+                        controller.replyToMessage = data;
+                        controller.replyToImage =
+                            data.media?[startIndex].orgFileName ?? '';
+                      },
+                    ),
+                    binding: BindingsBuilder(() {
+                      Get.put(GalleryViewerController(
+                          urls: mediaurls, index: startIndex, chathis: data));
+                    }),
+                    fullscreenDialog: true,
+                    transition: Transition.fadeIn,
+                  );
+                },
+                onOpenVideo: (url) {
+                  // open video player route/sheet if available
+                },
+                onOpenAudio: (url) {
+                  // open audio player route/sheet if available
+                },
+              )
+                  : const SizedBox(),
+            ],
+          ),
+        ),
+
+        (controller.hoveredMessageId == data.chatId.toString())?  InkWell(
+            borderRadius: BorderRadius.circular(50),
+            onTap: (){
+              _showBottomSheet(sentByMe, data: data);
+            },child: const Icon(Icons.keyboard_arrow_down_outlined,size: 25,color: Colors.black,)):const SizedBox()
+      ],
     );
   }
 
@@ -1491,6 +1717,7 @@ class _ChatScreenState extends State<ChatScreen> {
                   if (!controller.isSearching) {
                     controller.searchQuery = '';
                     controller.seacrhCon.clear();
+                    controller.resetPaginationForNewChat();
                     controller.onSearch(controller.searchQuery,widget.user!);
                   }
                   controller.update();
@@ -1611,7 +1838,7 @@ class _ChatScreenState extends State<ChatScreen> {
               RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
           child: SizedBox(
             width: Get.width * 0.5,
-            height: Get.height * 0.8,
+            height: Get.height * 0.9,
             child: const AddGroupMembersScreen(),
           ),
         ),
@@ -1636,6 +1863,88 @@ class _ChatScreenState extends State<ChatScreen> {
         controller.messageParentFocus.requestFocus();
       }
     });
+  }
+
+
+  void _toggleEmojiPicker() {
+    if (_emojiVisible) {
+      _hideEmojiPicker();
+    } else {
+      _showEmojiPicker();
+    }
+  }
+
+  void _showEmojiPicker() {
+    _hideEmojiPicker(); // safety
+
+    _emojiOverlay = OverlayEntry(
+      builder: (context) {
+        return Stack(
+          children: [
+            // tap outside to close
+            Positioned.fill(
+              child: GestureDetector(
+                behavior: HitTestBehavior.translucent,
+                onTap: _hideEmojiPicker,
+                child: const SizedBox.expand(),
+              ),
+            ),
+
+            // picker anchored to input
+            CompositedTransformFollower(
+              link: _emojiLink,
+              showWhenUnlinked: false,
+              offset: const Offset(0, -273),
+              child: ClipRRect(
+                borderRadius: BorderRadius.circular(12),
+                child: SizedBox(
+                  width: 430,
+                  height: 280,
+                  child: EmojiPicker(
+                    key: const ValueKey('emoji_picker'),
+                    onEmojiSelected: (category, emoji) {
+                        final text =  controller.textController.text;
+                         controller.textController.text = "$text${emoji.emoji}";
+                         controller.textController.selection = TextSelection.fromPosition(
+                          TextPosition(offset: controller.textController.text.length),
+                        );
+
+                    },
+                    config: Config(
+                      height: 260,
+                      checkPlatformCompatibility: true,
+                      emojiViewConfig: const EmojiViewConfig(emojiSizeMax: 28,backgroundColor: Colors.white
+                      ),
+                      skinToneConfig: const SkinToneConfig(),
+                      categoryViewConfig: CategoryViewConfig(
+                        iconColor: Colors.grey,
+                        iconColorSelected: appColorGreen,
+                        indicatorColor: appColorGreen,
+                        backgroundColor: Colors.white
+                      ),
+
+                      bottomActionBarConfig:
+                      const BottomActionBarConfig(enabled: false,backgroundColor: Colors.white),
+                      searchViewConfig: const SearchViewConfig(),
+
+                    ),
+                  ),
+                ),
+              ),
+            ),
+          ],
+        );
+      },
+    );
+
+    Overlay.of(context, rootOverlay: true).insert(_emojiOverlay!);
+    setState(() => _emojiVisible = true);
+  }
+
+  void _hideEmojiPicker() {
+    _emojiOverlay?.remove();
+    _emojiOverlay = null;
+    if (mounted) setState(() => _emojiVisible = false);
   }
 
   // bottom chat input field
@@ -1705,64 +2014,70 @@ class _ChatScreenState extends State<ChatScreen> {
       }
     }
 
-    return Container(
-      padding: const EdgeInsets.symmetric(vertical: 0, horizontal: 5),
+    return ConstrainedBox(
+      constraints: BoxConstraints(maxHeight: Get.height*.7),
       child: Row(
-        crossAxisAlignment: CrossAxisAlignment.center,
+        crossAxisAlignment: CrossAxisAlignment.end,
         children: [
           _changeLanguage(),
           hGap(10),
           Expanded(
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                GestureDetector(
-                  behavior: HitTestBehavior.translucent,
-                  child: Container(
-                    margin: const EdgeInsets.symmetric(vertical: 8),
-                    decoration: BoxDecoration(
-                      borderRadius: BorderRadius.circular(8),
-                      border: Border.all(
-                          color: AppTheme.appColor.withOpacity(.2)),
-                    ),
-                    child: Row(
-                      children: [
-                        Expanded(
-                            child: Obx(() {
-                              if (kIsWeb && speechC.isListening.value && !_blockSpeechToInput) {
-                                applyLiveToFieldSafely(speechC.getCombinedText());
-                              }
-                              return _buildTextField();
-                            })
+            child: SingleChildScrollView(
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  GestureDetector(
+                    behavior: HitTestBehavior.translucent,
+                    child: CompositedTransformTarget(
+                      link: _emojiLink,
+                      child: Container(
+                        margin: const EdgeInsets.symmetric(vertical: 8),
+                        decoration: BoxDecoration(
+                          borderRadius: BorderRadius.circular(8),
+                          border: Border.all(color: AppTheme.appColor.withOpacity(.2)),
                         ),
-                        if (kIsWeb) _micButton(_appendSpeechToInput),
-                        if (!isTaskMode)
-                          InkWell(
-                            onTap: () async {
-                              showUploadOptions(context);
-                            },
-                            child: IconButtonWidget(Icons.upload_outlined,
-                                isIcon: true),
+                      child: Row(
+                        crossAxisAlignment: CrossAxisAlignment.end,
+                        children: [
+                          Expanded(
+                              child: Obx(() {
+                                if (kIsWeb && speechC.isListening.value && !_blockSpeechToInput) {
+                                  applyLiveToFieldSafely(speechC.getCombinedText());
+                                }
+                                return _buildTextField();
+                              })
                           ),
-                        if (!isTaskMode)
-                          InkWell(
-                            onTap: () async {
-                              openWhatsAppEmojiPicker(
-                                context: context,
-                                textController: controller.textController,
-                                onSend: () {
-                                  Get.back();
-                                },
-                                isMobile: false,
-                              );
-                            },
-                            child: IconButtonWidget(emojiPng),
-                          ),
-                      ],
+                          if (kIsWeb) _micButton(_appendSpeechToInput),
+                          if (!isTaskMode)
+                            InkWell(
+                              onTap: () async {
+                                showUploadOptions(context);
+                              },
+                              child: IconButtonWidget(Icons.upload_outlined,
+                                  isIcon: true),
+                            ),
+                          if (!isTaskMode)
+                            InkWell(
+                              onTap: () async {
+                                 _toggleEmojiPicker();
+                                // openWhatsAppEmojiPicker(
+                                //   context: context,
+                                //   textController: controller.textController,
+                                //   onSend: () {
+                                //     Get.back();
+                                //   },
+                                //   isMobile: false,
+                                // );
+                              },
+                              child: IconButtonWidget(emojiPng),
+                            ),
+                        ],
+                      ),
                     ),
                   ),
-                ),
-              ],
+                  ),
+                ],
+              ),
             ),
           ),
           hGap(6),
@@ -1776,7 +2091,7 @@ class _ChatScreenState extends State<ChatScreen> {
               ),
               child: const Icon(Icons.send, color: Colors.white),
             ),
-          ).marginOnly(bottom: 4, top: 4),
+          ).marginOnly(bottom: 8, top: 4),
         ],
       ),
     );
@@ -1857,9 +2172,10 @@ class _ChatScreenState extends State<ChatScreen> {
   }
 
   _sendMessage(String msg) {
+    final socketc =Get.find<SocketController>();
     if (controller.textController.text.isNotEmpty) {
       if (widget.user?.userCompany?.isGroup == 1) {
-        Get.find<SocketController>().sendMessage(
+        socketc.sendMessage(
           receiverId: widget.user?.userId ?? 0,
           message: msg,
           groupId: widget.user?.userCompany?.userCompanyId ?? 0,
@@ -1868,9 +2184,11 @@ class _ChatScreenState extends State<ChatScreen> {
           companyId: widget.user?.userCompany?.companyId,
           alreadySave: false,
           replyToId: controller.replyToMessage?.chatId,
+          replyToText:controller.replyToMessage?.replyToText,
+          mediaId: controller.replyToMessage?.repliedMediaId,
         );
       } else if (widget.user?.userCompany?.isBroadcast == 1) {
-        Get.find<SocketController>().sendMessage(
+        socketc.sendMessage(
           receiverId: widget.user?.userId ?? 0,
           message: msg,
           brID: widget.user?.userCompany?.userCompanyId ?? 0,
@@ -1878,9 +2196,12 @@ class _ChatScreenState extends State<ChatScreen> {
           type: "broadcast",
           companyId: widget.user?.userCompany?.companyId,
           alreadySave: false,
+          replyToId: controller.replyToMessage?.chatId,
+          replyToText:controller.replyToMessage?.replyToText,
+          mediaId: controller.replyToMessage?.repliedMediaId,
         );
       } else {
-        Get.find<SocketController>().sendMessage(
+        socketc.sendMessage(
             receiverId: widget.user?.userId ?? 0,
             message: msg,
             isGroup: 0,
@@ -1888,7 +2209,9 @@ class _ChatScreenState extends State<ChatScreen> {
             companyId: widget.user?.userCompany?.companyId,
             alreadySave: false,
             replyToId: controller.replyToMessage?.chatId,
-            replyToText: controller.replyToImage);
+            replyToText:controller.replyToMessage?.replyToText,
+          mediaId: controller.replyToMessage?.repliedMediaId,
+        );
 
         controller.replyToImage = null;
 
@@ -2223,6 +2546,7 @@ class _ChatScreenState extends State<ChatScreen> {
                             toUser: data.toUser,
                             message: msg,
                             replyToId: data.chatId,
+                            repliedMediaId: firstMedia.chatMediaId,
                             replyToText: firstMedia.orgFileName,
                             replyToMedia: msg,
                           );
@@ -2336,19 +2660,9 @@ class _ChatScreenState extends State<ChatScreen> {
                       })
                   : const SizedBox(),
 
-              //separator or divider
-              if (isMe)
-                Divider(
-                  color: Colors.black54,
-                  endIndent: mq.width * .04,
-                  indent: mq.width * .04,
-                ),
-
-              //edit option
-
               if ((data.message != "" || data.message != null) &&
                   isMe &&
-                  diffMinutes <= 15)
+                  diffMinutes <= 15 && (data.media??[]).isEmpty)
                 _OptionItem(
                     icon: Icon(Icons.edit, color: appColorGreen, size: 16),
                     name: 'Edit Message',
@@ -2371,8 +2685,8 @@ class _ChatScreenState extends State<ChatScreen> {
 
               // delete option
               // if (/*APIs.me?.userId == controller.myCompany?.createdBy && */isMe && ((data.media??[]).isNotEmpty||diffMinutes <= 15))
-              if ((data.message != "" || data.message != null) &&
-                  isMe && ((data.media??[]).isNotEmpty||diffMinutes <= 15))
+              if ((data.message != "" ||(data.media??[]).isNotEmpty) &&
+                  isMe && diffMinutes <= 15)
                 _OptionItem(
                     icon: const Icon(Icons.delete_forever,
                         color: Colors.red, size: 16),

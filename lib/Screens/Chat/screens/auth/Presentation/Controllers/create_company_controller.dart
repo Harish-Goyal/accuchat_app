@@ -10,7 +10,9 @@ import 'package:flutter/services.dart';
 import 'package:get/get.dart';
 import 'package:http_parser/http_parser.dart';
 
+import '../../../../../../Services/APIs/auth_service/auth_api_services_impl.dart';
 import '../../../../../../Services/APIs/local_keys.dart';
+import '../../../../../../Services/hive_boot.dart';
 import '../../../../../../Services/storage_service.dart';
 import '../../../../../../Services/subscription/billing_controller.dart';
 import '../../../../../../Services/subscription/billing_service.dart';
@@ -20,7 +22,9 @@ import '../../../../../../routes/app_routes.dart';
 import '../../../../../../utils/custom_flashbar.dart';
 import 'package:dio/dio.dart' as multi;
 
+import '../../../../../../utils/shares_pref_web.dart';
 import '../../../../../Home/Presentation/Controller/company_service.dart';
+import '../../../../api/session_alive.dart';
 
 class CreateCompanyController extends GetxController {
   CreateCompanyController({this.isHome});
@@ -165,17 +169,50 @@ class CreateCompanyController extends GetxController {
       if(Get.isRegistered<CompanyService>()) {
         final svc = CompanyService.to;
         await svc.select(companyResponse);
-
       }
-      /*else{
+      customLoader.show();
+      if(Get.isRegistered<CompanyService>()) {
+        final svc = CompanyService.to;
+        await svc.select(companyResponse!);
+      }else{
+        await StorageService.init();
+        await HiveBoot.init();
+        await HiveBoot.openBoxOnce<CompanyData>(selectedCompanyBox);
+        // await Get.putAsync<CompanyService>(
+        //       () async => await CompanyService().init(),
+        //   permanent: true,
+        // );
         await Get.putAsync<CompanyService>(
               () async => await CompanyService().init(),
           permanent: true,
         );
-
         final svc = CompanyService.to;
-        await svc.select(companyResponse);
-      }*/
+        await svc.select(companyResponse!);
+      }
+
+      Get.putAsync<Session>(() async {
+        final s = Session(Get.find<AuthApiServiceImpl>(), Get.find<AppStorage>());
+
+        CompanyData? selCompany;
+        try {
+          final svc = CompanyService.to;
+          // OPTIONAL: if you add a `Future<void> ready` in CompanyService, await it here:
+          selCompany = svc.selected; // may be null on clean install
+        } catch (_) {}
+        // company may not exist yet on fresh install:
+        await s.initSafe(companyId: selCompany?.companyId??0);
+        return s;
+      }, permanent: true);
+
+      // if(!Get.isRegistered<CompanyService>()) {
+      //   await StorageService.init();
+      //   await HiveBoot.init();
+      //   await HiveBoot.openBoxOnce<CompanyData>(selectedCompanyBox);
+      //   await Get.putAsync<CompanyService>(
+      //         () async => await CompanyService().init(),
+      //     permanent: true,
+      //   );
+      // }
 
 
       // refresh current user/session for that company

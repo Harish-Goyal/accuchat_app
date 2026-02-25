@@ -1215,8 +1215,9 @@ class TaskScreenMobile extends GetView<TaskController> {
           InkWell(
             onTap: () async {
               if (controller.textController.text.isNotEmpty) {
+                final socketc= Get.find<SocketController>();
                 if (controller.user?.userCompany?.isGroup == 1) {
-                  Get.find<SocketController>().sendMessage(
+                  socketc.sendMessage(
                     receiverId: controller.user?.userId ?? 0,
                     message: controller.textController.text.trim(),
                     groupId: controller.user?.userCompany?.userCompanyId ?? 0,
@@ -1230,7 +1231,7 @@ class TaskScreenMobile extends GetView<TaskController> {
                   controller.replyToMessage = null;
                   controller.update();
                 } else if (controller.user?.userCompany?.isBroadcast == 1) {
-                  Get.find<SocketController>().sendMessage(
+                  socketc.sendMessage(
                     receiverId: controller.user?.userId ?? 0,
                     message: controller.textController.text.trim(),
                     brID: controller.user?.userCompany?.userCompanyId ?? 0,
@@ -1243,7 +1244,7 @@ class TaskScreenMobile extends GetView<TaskController> {
                   controller.replyToMessage = null;
                   controller.update();
                 } else {
-                  Get.find<SocketController>().sendMessage(
+                  socketc.sendMessage(
                     receiverId: controller.user?.userId ?? 0,
                     message: controller.textController.text.trim(),
                     isGroup: 0,

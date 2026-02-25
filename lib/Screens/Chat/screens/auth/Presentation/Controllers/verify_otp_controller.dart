@@ -43,50 +43,26 @@ class VerifyOtpController extends GetxController{
         .then((value) async {
       toast(value.message??'');
 
-      Get.putAsync<Session>(() async {
-        final s = Session(Get.find<AuthApiServiceImpl>(), Get.find<AppStorage>());
-
-        CompanyData? selCompany;
-        try {
-          final svc = CompanyService.to;
-          // OPTIONAL: if you add a `Future<void> ready` in CompanyService, await it here:
-          // await svc.ready;
-          selCompany = svc.selected; // may be null on clean install
-        } catch (_) {}
-        // company may not exist yet on fresh install:
-        await s.initSafe(companyId: selCompany?.companyId??0); // <-- works with null/0
-        return s;
-
-      },permanent: true);
-
-      if(!Get.isRegistered<CompanyService>()) {
+      if (!Get.isRegistered<AppStorage>()) {
+      await  Get.putAsync<AppStorage>(() async {
+          await AppStorage().init(boxName: 'accu_chat');
+          return AppStorage();
+        }, permanent: true);
         await StorageService.init();
-        await HiveBoot.init();
-        await HiveBoot.openBoxOnce<CompanyData>(selectedCompanyBox);
-        await Get.putAsync<CompanyService>(
-              () async => await CompanyService().init(),
-          permanent: true,
-        );
       }
-
-            StorageService.setFirstTimeTask(isFirstTimeChat);
-            StorageService.saveToken(value.data?.token);
-            StorageService.saveMobile(emailOrPhone);
-            StorageService.setIsFirstTime(false);
-            await AppStorage().write(LOCALKEY_token, value.data?.token);
-
-            await APIs.getFirebaseMessagingToken();
-
-            update();
-
-      Get.offAllNamed(AppRoutes.landing_r);
+       StorageService.setFirstTimeTask(isFirstTimeChat);
+       StorageService.saveToken(value.data?.token);
+       StorageService.saveMobile(emailOrPhone);
+       StorageService.setIsFirstTime(false);
+       await AppStorage().write(LOCALKEY_token, value.data?.token);
+       Get.offAllNamed(AppRoutes.landing_r);
+       await APIs.getFirebaseMessagingToken();
 
       // openBottomSheet();
     }).onError((error, stackTrace) {
       customLoader.hide();
       errorDialog(error.toString());
       isFill = false;
-      update();
     }).then((v){});
   }
 

@@ -74,6 +74,7 @@ class GalleryViewerPage extends GetView<GalleryViewerController> {
                       final _tagid = ChatPresence.activeChatId.value;
                       final _tag = "chat_${_tagid ?? 'mobile'}";
                       final chatC = Get.find<ChatScreenController>(tag: _tag);
+                      final chatMedia = c.chathis?.media;
                       chatC.refIdis = c.chathis?.chatId;
                       chatC.userIDSender = c.chathis?.fromUser?.userId;
                       chatC.userNameReceiver =
@@ -88,6 +89,7 @@ class GalleryViewerPage extends GetView<GalleryViewerController> {
                         message: c.urls[c.index],
                         // message:getFileNameFromUrl(c.urls[c.index]),
                         replyToId: c.chathis?.chatId,
+                        repliedMediaId:chatMedia?[c.index].chatMediaId,
                         replyToText: c.urls[c.index],
                         replyToMedia: c.urls[c.index],
                         // replyToT0ext:getFileNameFromUrl(c.urls[c.index]),

@@ -99,7 +99,6 @@ bool _isLoggingOut = false;
 
 Future<void> _disablePushOnLogout() async {
   final fcm = FirebaseMessaging.instance;
-
   try {
     await fcm.deleteToken();
   } catch (_) {Get.offAllNamed(AppRoutes.login_r);}

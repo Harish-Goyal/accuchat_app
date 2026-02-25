@@ -25,7 +25,7 @@ class AcceptInvitationScreen extends GetView<AcceptInviteController> {
               child: SizedBox(
                   height: Get.height*.6,
                   width:  Get.width * 0.8,
-                  child: DataNotFoundText())):
+                  child: DataNotFoundText(height: 150,))):
           ListView.builder(
             shrinkWrap: true,
             itemCount: controller.pendingInvitesList.length,

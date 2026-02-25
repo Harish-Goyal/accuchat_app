@@ -16,6 +16,9 @@ import '../../../../../../utils/common_textfield.dart';
 import '../../../../../../utils/custom_dialogue.dart';
 import '../../../../../../utils/custom_flashbar.dart';
 import '../../../../api/apis.dart';
+import '../../../auth/models/get_uesr_Res_model.dart';
+import '../Controllers/add_group_mem_controller.dart';
+import 'add_group_members_screens.dart';
 
 class GroupMembersScreen extends GetView<GrBrMembersController> {
   const GroupMembersScreen({super.key});
@@ -271,6 +274,39 @@ class GroupMembersScreen extends GetView<GrBrMembersController> {
     );
   }
 
+
+  Future<void> openAllUserDialog(UserDataAPI? user) async {
+    if (Get.isRegistered<AddGroupMemController>()) {
+      Get.delete<AddGroupMemController>(force: true);
+    }
+
+    final c = Get.put(AddGroupMemController());
+
+    // ✅ pass the selected group/user directly
+    c.setGroupChat(user);
+
+    try {
+      await Get.dialog(
+        Dialog(
+          insetPadding: const EdgeInsets.all(12),
+          clipBehavior: Clip.antiAlias,
+          shape:
+          RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+          child: SizedBox(
+            width: Get.width * 0.5,
+            height: Get.height * 0.9,
+            child: const AddGroupMembersScreen(),
+          ),
+        ),
+        barrierDismissible: true,
+      );
+    } finally {
+      if (Get.isRegistered<AddGroupMemController>()) {
+        Get.delete<AddGroupMemController>();
+      }
+    }
+  }
+
   AppBar _appBarWidget(){
     return  AppBar(      scrolledUnderElevation: 0,
       surfaceTintColor: Colors.white,
@@ -308,9 +344,10 @@ class GroupMembersScreen extends GetView<GrBrMembersController> {
 
               } else if (value == 'add') {
                 if (kIsWeb) {
-                  Get.toNamed(
-                    "${AppRoutes.add_group_member}?groupChatId=${controller.groupOrBr?.userId.toString()}",
-                  );
+                  openAllUserDialog(controller.groupOrBr);
+                  // Get.toNamed(
+                  //   "${AppRoutes.add_group_member}?groupChatId=${controller.groupOrBr?.userId.toString()}",
+                  // );
                 } else {
                   Get.toNamed(
                     AppRoutes.add_group_member,

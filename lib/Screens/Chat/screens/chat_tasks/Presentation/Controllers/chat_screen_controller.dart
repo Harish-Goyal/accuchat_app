@@ -85,7 +85,12 @@ class ChatScreenController extends GetxController {
 
     getArguments();
   }
+  String? hoveredMessageId; // or int? hoveredIndex;
 
+  void setHover(String id, bool isHover) {
+    hoveredMessageId = isHover ? id : null;
+    update();
+  }
   // final ItemScrollController itemScrollController = ItemScrollController();
   // final ItemPositionsListener itemPositionsListener =
   //     ItemPositionsListener.create();
@@ -786,12 +791,10 @@ class ChatScreenController extends GetxController {
 
 
   Future<void> hitAPIToGetChatHistory(p, {String? searchQuery, required UserDataAPI user}) async {
-    if (isPageLoading || !hasMore) return; // Don't call API if loading or no more pages
-    print("p===============");
-    print(p);
+    if (isPageLoading || !hasMore) return;
     if (page == 1) {
       showPostShimmer = true;
-      chatHisList?.clear();  // Clear previous chat history on new search
+      chatHisList?.clear();
       chatCatygory.clear();
     }
 
@@ -1135,9 +1138,9 @@ class ChatScreenController extends GetxController {
 
       isUploading = false;
       update();
-
+    final socketc=  Get.find<SocketController>();
       try {
-        Get.find<SocketController>().sendMessage(
+        socketc.sendMessage(
           receiverId: user?.userId ?? 0,
           message: resp.data?.chat?.chatText ?? "",
           isGroup: user?.userCompany?.isGroup == 1 ? 1 : 0,
@@ -1330,9 +1333,9 @@ class ChatScreenController extends GetxController {
 
       isUploading = false;
       update();
-
+      final socketc =Get.find<SocketController>();
       try {
-        Get.find<SocketController>().sendMessage(
+        socketc.sendMessage(
           receiverId: resp.data?.chat?.toUserId ?? 0,
           message: resp.data?.chat?.chatText ?? "",
           isGroup: 0,

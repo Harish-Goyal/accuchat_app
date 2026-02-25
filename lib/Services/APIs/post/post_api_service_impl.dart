@@ -8,6 +8,7 @@ import 'package:AccuChat/Services/APIs/post/post_api_service.dart';
 import 'package:AccuChat/Services/APIs/success_res_model.dart';
 import 'package:dio/dio.dart' as httpdio;
 import 'package:dio/dio.dart';
+import 'package:flutter/foundation.dart';
 import 'package:get/get.dart';
 import '../../../Screens/Chat/models/accept_invite_res.dart';
 import '../../../Screens/Chat/models/chat_history_response_model.dart';
@@ -40,7 +41,7 @@ import '../local_keys.dart';
 
 class PostApiServiceImpl extends GetxService implements PostApiService {
   late DioClient? dioClient;
-
+  final l = kIsWeb?25:15;
 
   @override
   void onInit() {
@@ -263,7 +264,7 @@ class PostApiServiceImpl extends GetxService implements PostApiService {
           .get('api/company/active-members/$compId',
           queryParameters: {
             "page":page,
-            "limit":18,
+            "limit":l,
             "search":searchText,
           },
           skipAuth: false);
@@ -289,7 +290,7 @@ class PostApiServiceImpl extends GetxService implements PostApiService {
       {comId, page,searchText}) async {
     try {
       final response = await dioClient!
-          .get('api/recent?company_id=$comId&page=$page&limit=20&search=$searchText', skipAuth: false);
+          .get('api/recent?company_id=$comId&page=$page&limit=$l&search=$searchText', skipAuth: false);
       return RecentChatsUserResModel.fromJson(response);
     } catch (e) {
       return Future.error(NetworkExceptions.getDioException(e));
@@ -299,9 +300,10 @@ class PostApiServiceImpl extends GetxService implements PostApiService {
   @override
   Future<RecentTaskUserData> getRecentTaskUserApiCall(
       {comId, page,searchText}) async {
+
     try {
       final response = await dioClient!
-          .get('api/taskslist/recent?company_id=$comId&page=$page&limit=20&search=$searchText', skipAuth: false);
+          .get('api/taskslist/recent?company_id=$comId&page=$page&limit=$l&search=$searchText', skipAuth: false);
       return RecentTaskUserData.fromJson(response);
     } catch (e) {
       return Future.error(NetworkExceptions.getDioException(e));
@@ -313,7 +315,7 @@ class PostApiServiceImpl extends GetxService implements PostApiService {
       {userComId, page,searchText}) async {
     try {
       final response = await dioClient!
-          .get('api/chat-history/$userComId?page=$page&limit=20&text=$searchText', skipAuth: false);
+          .get('api/chat-history/$userComId?page=$page&limit=$l&text=$searchText', skipAuth: false);
       return ChatHisResModelAPI.fromJson(response);
     } catch (e) {
       return Future.error(NetworkExceptions.getDioException(e));
@@ -329,7 +331,7 @@ class PostApiServiceImpl extends GetxService implements PostApiService {
           queryParameters: {
             'company_id':companyId,
             'page':page,
-            'limit':18,
+            'limit':l,
           },
           skipAuth: false);
       return TaskCommentsResModel.fromJson(response);
@@ -346,7 +348,7 @@ class PostApiServiceImpl extends GetxService implements PostApiService {
           .get('api/task-history/$userComId',
           queryParameters: {
             'page':page,
-            'limit':18,
+            'limit':l,
             'statusId':statusId,
             'startDate':fromDate,
             'endDate':toDate,
@@ -422,7 +424,7 @@ class PostApiServiceImpl extends GetxService implements PostApiService {
       queryParameters: {
         "user_company_id": ucId,
         "page": page,
-        "limit":15
+        "limit":l,
       });
     return GetFolderResModel.fromJson(response);
     } catch (e) {
@@ -437,7 +439,7 @@ class PostApiServiceImpl extends GetxService implements PostApiService {
           .get(ApiEnd.getFolderItemsEnd, skipAuth: false,
       queryParameters: {
           "page": page,
-          "limit":15,
+          "limit":l,
           "user_company_id": ucID,
           "folder_name":folderName,
           "search":searchText,

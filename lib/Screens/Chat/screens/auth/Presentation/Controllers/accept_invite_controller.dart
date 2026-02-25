@@ -1,12 +1,16 @@
 import 'package:AccuChat/Screens/Chat/models/get_company_res_model.dart';
 import 'package:AccuChat/Services/APIs/post/post_api_service_impl.dart';
 import 'package:get/get.dart';
+import '../../../../../../Services/APIs/auth_service/auth_api_services_impl.dart';
+import '../../../../../../Services/hive_boot.dart';
 import '../../../../../../Services/storage_service.dart';
 import '../../../../../../main.dart';
 import '../../../../../../routes/app_routes.dart';
 import '../../../../../../utils/custom_flashbar.dart';
+import '../../../../../../utils/shares_pref_web.dart';
 import '../../../../../Home/Presentation/Controller/company_service.dart';
 import '../../../../api/apis.dart';
+import '../../../../api/session_alive.dart';
 import '../../models/pending_invites_res_model.dart';
 
 class AcceptInviteController extends GetxController {
@@ -29,7 +33,6 @@ class AcceptInviteController extends GetxController {
         .then((value)  async {
       customLoader.hide();
 
-      update();
       // await NotificationService.sendAcceptInvitationNotification(
       //   targetToken: token,
       //   inviterName: invite.name ?? '',
@@ -56,25 +59,45 @@ class AcceptInviteController extends GetxController {
         .then((value) async {
       customLoader.hide();
       companyResponse = value.data;
-      StorageService.setLoggedIn(true);
-      StorageService.setCompanyCreated(true);
 
       if(Get.isRegistered<CompanyService>()) {
         final svc = CompanyService.to;
         await svc.select(companyResponse!);
       }else{
+        await StorageService.init();
+        await HiveBoot.init();
+        await HiveBoot.openBoxOnce<CompanyData>(selectedCompanyBox);
+        // await Get.putAsync<CompanyService>(
+        //       () async => await CompanyService().init(),
+        //   permanent: true,
+        // );
         await Get.putAsync<CompanyService>(
               () async => await CompanyService().init(),
           permanent: true,
         );
-
         final svc = CompanyService.to;
         await svc.select(companyResponse!);
       }
 
+      Get.putAsync<Session>(() async {
+        final s = Session(Get.find<AuthApiServiceImpl>(), Get.find<AppStorage>());
+
+        CompanyData? selCompany;
+        try {
+          final svc = CompanyService.to;
+          // OPTIONAL: if you add a `Future<void> ready` in CompanyService, await it here:
+          selCompany = svc.selected; // may be null on clean install
+        } catch (_) {}
+        // company may not exist yet on fresh install:
+        await s.initSafe(companyId: selCompany?.companyId??0);
+        return s;
+      }, permanent: true);
+
       // final svc = Get.put<CompanyService>(CompanyService());
       // await svc.init().then((v) async =>await svc.select(companyResponse!));
       await APIs.refreshMe(companyId: companyResponse?.companyId ?? 0);
+      StorageService.setLoggedIn(true);
+      StorageService.setCompanyCreated(true);
       Get.offAllNamed(AppRoutes.home);
     }).onError((error, stackTrace) {
       update();

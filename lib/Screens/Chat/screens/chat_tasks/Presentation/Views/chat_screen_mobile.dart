@@ -203,7 +203,7 @@ class _ChatScreenMobileState extends State<ChatScreenMobile> {
 
   void onPositionsChanged() {
 
-    if (controller.isPageLoading || !controller.hasMore) return;
+    if (controller.isPageLoading || !controller.hasMore ||controller.isSearching ) return;
 
     final positions = itemPositionsListener.itemPositions.value;
     if (positions.isEmpty) return;
@@ -844,7 +844,6 @@ class _ChatScreenMobileState extends State<ChatScreenMobile> {
     return Container(
       key: ValueKey('msg-${data.chatId}'),
       child: Column(
-
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
 
@@ -852,10 +851,11 @@ class _ChatScreenMobileState extends State<ChatScreenMobile> {
               ? ReplyMessageWidget(
               isCancel: false,
               sentByMe: sentByMe,
-              onReplu: (){
-                final int? replyId = data.replyToId; // confirm field name
+              onReplu: () {
+                final int? replyId =
+                    data.replyToId; // confirm field name
                 if (replyId != null) {
-                  // controller.jumpToRepliedMessage(replyId);
+                  jumpToRepliedMessage(replyId);
                 }
               },
               empIdsender: data.fromUser?.userId.toString(),
@@ -868,7 +868,7 @@ class _ChatScreenMobileState extends State<ChatScreenMobile> {
                   ? data.fromUser?.userCompany?.displayName ?? ''
                   : data.toUser?.userCompany?.displayName ?? '',
               message: data.replyToText ?? '',
-              orignalMsg: data.replyToText ?? '')
+              orignalMsg: data.replyToMedia ?? '')
               .paddingOnly(bottom: 4)
               : const SizedBox(),
           controller.user?.userCompany?.isGroup == 1
@@ -1136,10 +1136,11 @@ class _ChatScreenMobileState extends State<ChatScreenMobile> {
             onPressed: () {
               controller.isSearching = !controller.isSearching;
               controller.update();
-              if(!controller.isSearching){
+              if (!controller.isSearching) {
                 controller.searchQuery = '';
-                controller.onSearch('', controller.user!);
                 controller.seacrhCon.clear();
+                controller.resetPaginationForNewChat();
+                controller.onSearch(controller.searchQuery,controller.user!);
               }
               controller.update();
             },
@@ -1250,7 +1251,7 @@ class _ChatScreenMobileState extends State<ChatScreenMobile> {
           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
           child: SizedBox(
             width: Get.width * 0.8,
-            height: Get.height * 0.9,
+            height: Get.height * 0.75,
             child: const AddGroupMembersScreen(),
           ),
         ),
@@ -1486,30 +1487,21 @@ class _ChatScreenMobileState extends State<ChatScreenMobile> {
 
                                 _sendMessage();
 
-                                // ✅ hard reattach focus (web)
-                                // FocusManager.instance.primaryFocus?.unfocus();
-                                // WidgetsBinding.instance.addPostFrameCallback((_) {
-                                //   controller.messageParentFocus.requestFocus();
-                                // });
-
                                 return KeyEventResult.handled;
                               }
 
                               return KeyEventResult.ignored;
                             },
-                            child: TextFormField(
+                            child: TextField(
                               controller: controller.textController,
-                              focusNode: controller.messageParentFocus, // ✅ only here
-                              autofocus: !kIsWeb, // web me autofocus glitch karta hai
+                              focusNode: controller.messageParentFocus,
+                              autofocus: !kIsWeb,
                               keyboardType: TextInputType.multiline,
                               textInputAction: TextInputAction.newline,
                               maxLines: null,
                               minLines: 1,
                               onTap: () {
-                                // web reattach
-                                // WidgetsBinding.instance.addPostFrameCallback((_) {
-                                //   controller.messageParentFocus.requestFocus();
-                                // });
+                                // controller.resetMessageFocus();
                               },
                               decoration: InputDecoration(
                                 isDense: true,
@@ -1520,7 +1512,6 @@ class _ChatScreenMobileState extends State<ChatScreenMobile> {
                                 focusedBorder: InputBorder.none,
                                 enabledBorder: InputBorder.none,
                                 errorBorder: InputBorder.none,
-
                               ),
                             ),
                           ),
@@ -1665,13 +1656,11 @@ class _ChatScreenMobileState extends State<ChatScreenMobile> {
                        */
   Widget _chatInputMobile(context) {
     return Container(
-      // height: Get.height*.4,
       padding: const EdgeInsets.symmetric(
           vertical: 4, horizontal: 12),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.end,
         children: [
-          //input field & buttons
           Expanded(
             child: Row(
               crossAxisAlignment: CrossAxisAlignment.end,
@@ -1680,71 +1669,47 @@ class _ChatScreenMobileState extends State<ChatScreenMobile> {
                   child: SingleChildScrollView(
                     child: Column(
                       children: [
-                        /*Focus(
-                          focusNode: controller.messageParentFocus,
-                          autofocus: true,
-                          onKeyEvent: (node, event) {
-                            if (!kIsWeb) return KeyEventResult.ignored;
-
-                            if (event is KeyDownEvent &&
-                                event.logicalKey == LogicalKeyboardKey.enter) {
-
-                              final bool shiftPressed =
-                                  HardwareKeyboard.instance.logicalKeysPressed.contains(LogicalKeyboardKey.shiftLeft) ||
-                                      HardwareKeyboard.instance.logicalKeysPressed.contains(LogicalKeyboardKey.shiftRight);
-
-                              if (shiftPressed) {
-                                // SHIFT + ENTER → new line
-                                return KeyEventResult.ignored;
-                              } else {
-                                // ENTER → send
-                                _sendMessage();
-                                return KeyEventResult.handled;
-                              }
-                            }
-
-                            return KeyEventResult.ignored;
+                        Shortcuts(
+                          shortcuts: const <ShortcutActivator, Intent>{
+                            SingleActivator(LogicalKeyboardKey.enter): ActivateIntent(),
                           },
-                          child: ConstrainedBox(
-                            constraints: BoxConstraints(
-                              maxHeight: Get.height * .3,
-                              minHeight: 30,
-                            ),
+                          child: Actions(
+                            actions: <Type, Action<Intent>>{
+                              ActivateIntent: CallbackAction<Intent>(
+                                onInvoke: (intent) {
+                                  if (!kIsWeb) return null;
+                                  final keys = HardwareKeyboard.instance.logicalKeysPressed;
+                                  final shiftPressed = keys.contains(LogicalKeyboardKey.shiftLeft) ||
+                                      keys.contains(LogicalKeyboardKey.shiftRight);
+                                  if (shiftPressed) return null;
+                                  _sendMessage();
+                                  // controller.messageParentFocus.requestFocus();
+                                  return null;
+                                },
+                              ),
+                            },
                             child: Container(
                               margin: const EdgeInsets.symmetric(vertical: 4),
                               decoration: BoxDecoration(
                                 borderRadius: BorderRadius.circular(8),
-                                border: Border.all(
-                                    color: AppTheme.appColor.withOpacity(.2)),
+                                border: Border.all(color: AppTheme.appColor.withOpacity(.2)),
                               ),
                               child: Row(
                                 children: [
                                   Expanded(
-                                    child: TextFormField(
+                                    child: TextField(
                                       controller: controller.textController,
+                                      focusNode: controller.messageParentFocus,
+                                      autofocus: false,
                                       keyboardType: TextInputType.multiline,
-                                      focusNode: controller.messageInputFocus,
                                       textInputAction: TextInputAction.newline,
                                       maxLines: null,
                                       minLines: 1,
-                                      autofocus: true,
-                                      onTap: (){
-                                        controller.messageInputFocus.requestFocus();
-                                      },
-                                      onChanged: (v){
-                                        if(controller.textController.text!=''){
-                                          isVisibleUpload = false;
-                                        }else{
-                                          isVisibleUpload = true;
-                                        }
-                                        controller.update();
-                                      },
                                       decoration: InputDecoration(
                                         isDense: true,
                                         hintText: 'Type Something...',
+                                        hintStyle: BalooStyles.baloonormalTextStyle(),
                                         hintMaxLines: 1,
-                                        hintStyle:
-                                        themeData.textTheme.bodySmall,
                                         contentPadding: const EdgeInsets.all(8),
                                         border: InputBorder.none,
                                         enabledBorder: InputBorder.none,
@@ -1752,127 +1717,38 @@ class _ChatScreenMobileState extends State<ChatScreenMobile> {
                                         errorBorder: InputBorder.none,
                                         focusedBorder: InputBorder.none,
                                       ),
-                                      inputFormatters: [
-                                        FilteringTextInputFormatter.allow(
-                                          RegExp(r'[\s\S]'),
-                                        ),
-                                      ],
+                            
                                     ),
                                   ),
+                            
                                   if (!isTaskMode)
-                                    Visibility(
-                                      visible: isVisibleUpload,
-                                      child: InkWell(
-                                        onTap: () =>
-                                            showUploadOptions(Get.context!),
-                                        child: Container(
-                                          padding: const EdgeInsets.all(5),
-                                          margin: const EdgeInsets.all(5),
-                                          decoration: BoxDecoration(
-                                            borderRadius:
-                                            BorderRadius.circular(8),
-                                            border: Border.all(
-                                                color: appColorGreen),
-                                            color:
-                                            appColorGreen.withOpacity(.1),
-                                          ),
-                                          child: Icon(
-                                            Icons.upload_outlined,
-                                            color: appColorGreen,
-                                          ),
-                                        ),
+                                    Obx(() => Visibility(
+                                      visible: controller.showUpload.value,
+                                      child:InkWell(
+                                        onTap: () => showUploadOptions(Get.context!),
+                                        child: IconButtonWidget(Icons.upload_outlined,isIcon:true),
+                            
                                       ),
+                                    )),
+                            
+                             if (!isTaskMode)
+                                    InkWell(
+                                      onTap: () async {
+                                        openWhatsAppEmojiPicker(
+                                          context: context,
+                                          textController: controller.textController,
+                                          onSend:() {
+                                            WidgetsBinding.instance.addPostFrameCallback((_) {
+                                              controller.messageParentFocus.requestFocus();
+                                            });
+                                          },
+                                          isMobile: false,
+                                        );
+                            
+                                      },
+                                      child: IconButtonWidget(emojiPng),
                                     ),
                                 ],
-                              ),
-                            ),
-                          ),
-                        )*/
-                        Shortcuts(
-                          shortcuts: <ShortcutActivator, Intent>{
-                            const SingleActivator(LogicalKeyboardKey.enter): const ActivateIntent(),
-                          },
-                          child: Actions(
-                            actions: <Type, Action<Intent>>{
-                              ActivateIntent: CallbackAction<Intent>(
-                                onInvoke: (intent) {
-                                  if (!kIsWeb) return null;
-                                  // If shift is pressed, let TextField handle newline naturally
-                                  final keys = HardwareKeyboard.instance.logicalKeysPressed;
-                                  final shiftPressed = keys.contains(LogicalKeyboardKey.shiftLeft) ||
-                                      keys.contains(LogicalKeyboardKey.shiftRight);
-                                  if (shiftPressed) return null;
-
-                                  _sendMessage();
-                                  // controller.messageParentFocus.requestFocus(); // keep focus after send
-                                  return null;
-                                },
-                              ),
-                            },
-                            child: ConstrainedBox(
-                              constraints: BoxConstraints(maxHeight: Get.height * .3, minHeight: 30),
-                              child: Container(
-                                margin: const EdgeInsets.symmetric(vertical: 4),
-                                decoration: BoxDecoration(
-                                  borderRadius: BorderRadius.circular(8),
-                                  border: Border.all(color: AppTheme.appColor.withOpacity(.2)),
-                                ),
-                                child: Row(
-                                  children: [
-                                    Expanded(
-                                      child: TextField(
-                                        controller: controller.textController,
-                                        focusNode: controller.messageParentFocus,
-                                        autofocus: false,
-                                        keyboardType: TextInputType.multiline,
-                                        textInputAction: TextInputAction.newline,
-                                        maxLines: null,
-                                        minLines: 1,
-                                        decoration: InputDecoration(
-                                          isDense: true,
-                                          hintText: 'Type Something...',
-                                          hintStyle: BalooStyles.baloonormalTextStyle(),
-                                          hintMaxLines: 1,
-                                          contentPadding: const EdgeInsets.all(8),
-                                          border: InputBorder.none,
-                                          enabledBorder: InputBorder.none,
-                                          disabledBorder: InputBorder.none,
-                                          errorBorder: InputBorder.none,
-                                          focusedBorder: InputBorder.none,
-                                        ),
-
-                                      ),
-                                    ),
-
-                                    if (!isTaskMode)
-                                      Obx(() => Visibility(
-                                        visible: controller.showUpload.value,
-                                        child:InkWell(
-                                          onTap: () => showUploadOptions(Get.context!),
-                                          child: IconButtonWidget(Icons.upload_outlined,isIcon:true),
-
-                                        ),
-                                      )),
-
- if (!isTaskMode)
-                                      InkWell(
-                                        onTap: () async {
-                                          openWhatsAppEmojiPicker(
-                                            context: context,
-                                            textController: controller.textController,
-                                            onSend:() {
-                                              WidgetsBinding.instance.addPostFrameCallback((_) {
-                                                controller.messageParentFocus.requestFocus();
-                                              });
-                                            },
-                                            isMobile: false,
-                                          );
-
-                                        },
-                                        child: IconButtonWidget(emojiPng),
-                                      ),
-                                  ],
-                                ),
                               ),
                             ),
                           ),
@@ -1890,14 +1766,14 @@ class _ChatScreenMobileState extends State<ChatScreenMobile> {
               _sendMessage();
             },
             child: Container(
-              padding: const EdgeInsets.all(10),
+              padding: const EdgeInsets.all(12),
               decoration: BoxDecoration(
                 borderRadius: BorderRadius.circular(8),
                 color: appColorGreen,
               ),
               child: const Icon(Icons.send, color: Colors.white),
             ),
-          )
+          ).marginOnly(bottom: 5)
         ],
       ),
     );
@@ -1905,8 +1781,9 @@ class _ChatScreenMobileState extends State<ChatScreenMobile> {
 
   _sendMessage() {
     if (controller.textController.text.isNotEmpty) {
+      final socketc =Get.find<SocketController>();
       if (controller.user?.userCompany?.isGroup == 1) {
-        Get.find<SocketController>().sendMessage(
+        socketc.sendMessage(
           receiverId: controller.user?.userId ?? 0,
           message: controller.textController.text.trim(),
           groupId: controller.user?.userCompany?.userCompanyId ?? 0,
@@ -1921,7 +1798,7 @@ class _ChatScreenMobileState extends State<ChatScreenMobile> {
 
         controller.update();
       } else if (controller.user?.userCompany?.isBroadcast == 1) {
-        Get.find<SocketController>().sendMessage(
+        socketc.sendMessage(
           receiverId: controller.user?.userId ?? 0,
           message: controller.textController.text.trim(),
           brID: controller.user?.userCompany?.userCompanyId ?? 0,
@@ -1934,7 +1811,7 @@ class _ChatScreenMobileState extends State<ChatScreenMobile> {
         controller.replyToMessage = null;
         controller.update();
       } else {
-        Get.find<SocketController>().sendMessage(
+        socketc.sendMessage(
             receiverId: controller.user?.userId ?? 0,
             message: controller.textController.text.trim(),
             isGroup: 0,
@@ -2269,6 +2146,7 @@ class _ChatScreenMobileState extends State<ChatScreenMobile> {
                         toUser: data.toUser,
                         message: msg,
                         replyToId: data.chatId,
+                        repliedMediaId: firstMedia.chatMediaId,
                         replyToText: firstMedia.orgFileName,
                       );
 
@@ -2331,17 +2209,9 @@ class _ChatScreenMobileState extends State<ChatScreenMobile> {
                       }
                     }),*/
 
-              //separator or divider
-              if (isMe)
-                Divider(
-                  color: Colors.black54,
-                  endIndent: mq.width * .04,
-                  indent: mq.width * .04,
-                ),
-
-              //edit option
-
-              if (data.message != "" && isMe && diffMinutes <= 15 )
+              if ((data.message != "" || data.message != null) &&
+                  isMe &&
+                  diffMinutes <= 15 && (data.media??[]).isEmpty)
                 _OptionItem(
                     icon:  Icon(Icons.edit, color: appColorGreen,  size: 18),
                     name: 'Edit Message',
@@ -2351,7 +2221,8 @@ class _ChatScreenMobileState extends State<ChatScreenMobile> {
                     }),
 
               // delete option
-              if (APIs.me?.userId == controller.myCompany?.createdBy && isMe)
+              if ((data.message != "" ||(data.media??[]).isNotEmpty) &&
+                  isMe && diffMinutes <= 15)
                 _OptionItem(
                     icon: const Icon(Icons.delete_forever,
                         color: Colors.red, size: 18),

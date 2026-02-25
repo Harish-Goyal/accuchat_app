@@ -7,7 +7,7 @@ import 'package:AccuChat/utils/text_style.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_slidable/flutter_slidable.dart';
 import 'package:get/get.dart';
-import 'package:flutter/foundation.dart' show kIsWeb; // added for web checks
+import 'package:flutter/foundation.dart' show kIsWeb;
 
 import '../Controllers/role_list_controller.dart';
 

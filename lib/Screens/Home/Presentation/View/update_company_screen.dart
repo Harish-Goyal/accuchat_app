@@ -157,10 +157,18 @@ class UpdateCompanyScreen extends GetView<UpdateCompanyController> {
                                                 .phoneController,
                                             focusNode:
                                             controller.phoneFocus,
+                                            inputFormatters: <TextInputFormatter>[
+                                              FilteringTextInputFormatter.digitsOnly,
+                                              LengthLimitingTextInputFormatter(10),
+                                            ]
+                                            ,
                                             onFieldSubmitted: (_) =>
                                                 FocusScope.of(context)
                                                     .requestFocus(controller
                                                     .addressFocus),
+                                            validator: (value){
+                                              return (value?.isEmpty??false)?null:value?.validateMobile(controller.phoneController.text);
+                                            },
                                           ),
                                         ),
                                         SizedBox(

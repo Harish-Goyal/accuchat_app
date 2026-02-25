@@ -53,8 +53,8 @@ Future<bool> requestStoragePermission() async {
   }
 }
 
-void showCompanyErrorDialog() {
-  Get.dialog(
+Future<void> showCompanyErrorDialog() async {
+  await Get.dialog(
     Center(
       child: Container(
         width: 300,

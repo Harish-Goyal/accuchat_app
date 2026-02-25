@@ -22,6 +22,7 @@ import '../../../../../../Constants/colors.dart';
 import '../../../../../../Constants/themes.dart';
 import '../../../../../../main.dart';
 import '../../../../../../utils/chat_presence.dart';
+import '../../../../../../utils/custom_container.dart';
 import '../../../../../../utils/custom_flashbar.dart';
 import '../../../../../../utils/emogi_checker.dart';
 import '../../../../../../utils/emogi_picker_web.dart';
@@ -95,8 +96,8 @@ class TaskThreadScreenWeb extends GetView<TaskThreadController> {
           vGap(8),
           Container(
             width: Get.width,
-            padding: EdgeInsets.all(12),
-            margin: EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+            padding: const EdgeInsets.all(12),
+            margin: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
             decoration: BoxDecoration(
                 color: getTaskStatusColor(controller
                         .taskMessage?.currentStatus?.name?.capitalizeFirst)
@@ -184,7 +185,7 @@ class TaskThreadScreenWeb extends GetView<TaskThreadController> {
                     mainAxisSize: MainAxisSize.min,
                     children: [
                       ConstrainedBox(
-                        constraints: BoxConstraints(maxHeight: 60),
+                        constraints: const BoxConstraints(maxHeight: 60),
                         child: DefaultSelectionStyle(
                           selectionColor: appColorPerple
                               .withOpacity(0.3), // text select background
@@ -248,7 +249,7 @@ class TaskThreadScreenWeb extends GetView<TaskThreadController> {
           child: shimmerEffectWidget(
             showShimmer: controller.showPostShimmer,
             shimmerWidget: shimmerlistView(
-                child: ChatHistoryShimmer(
+                child: const ChatHistoryShimmer(
             )),
             child: groupListView(),
           ),
@@ -300,7 +301,6 @@ class TaskThreadScreenWeb extends GetView<TaskThreadController> {
                   iconColor: appColorGreen,
                   onRightSwipe: (detail) {
                     final lockedData =data;
-                    // Set the message being replied to
                     controller.refIdis = lockedData.taskCommentId;
                     controller.userIDSender = lockedData.fromUser?.userId;
                     controller.userNameReceiver = lockedData.toUser?.userCompany?.displayName ?? '';
@@ -323,13 +323,26 @@ class TaskThreadScreenWeb extends GetView<TaskThreadController> {
             child: Text('Say Hii! 👋', style: TextStyle(fontSize: 20)));
   }
 
+
   Widget _createGroupHeader(GroupCommentsElement element) {
+    final isToday = DateUtils.isSameDay(element.date, DateTime.now());
+    final dateText =
+    isToday ? "Today" : DateFormat.yMMMd().format(element.date);
     return Container(
       color: Colors.transparent,
       child: Row(
         children: [
           Expanded(child: divider(color: appColorGreen.withOpacity(.3))),
-          Text(DateFormat.yMMMd().format(element.date)),
+          CustomContainer(
+            elevation: 2,
+            vPadding: 3,
+            hPadding: 7,
+            color: AppTheme.whiteColor,
+            childWidget: Text(
+              dateText,
+              style: BalooStyles.balooregularTextStyle(size: 12.5),
+            ),
+          ),
           Expanded(child: divider(color: appColorGreen.withOpacity(.3))),
         ],
       ),
@@ -654,14 +667,14 @@ class TaskThreadScreenWeb extends GetView<TaskThreadController> {
                           Expanded(
                               child:_buildTextField()
                           ),
-                          if (!isTaskMode)
-                            InkWell(
-                              onTap: () async {
-                                showUploadOptions(context);
-                              },
-                              child: IconButtonWidget(Icons.upload_outlined,
-                                  isIcon: true),
-                            ),
+                          // if (isTaskMode)
+                          //   InkWell(
+                          //     onTap: () async {
+                          //       showUploadOptions(context);
+                          //     },
+                          //     child: IconButtonWidget(Icons.upload_outlined,
+                          //         isIcon: true),
+                          //   ),
                           if (!isTaskMode)
                             InkWell(
                               onTap: () async {

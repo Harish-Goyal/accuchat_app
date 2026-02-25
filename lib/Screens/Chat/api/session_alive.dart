@@ -69,7 +69,7 @@ class Session extends GetxService {
 
        }
      }).onError((v,e){
-       showCompanyErrorDialog();
+
      });
 
     } catch (_) {

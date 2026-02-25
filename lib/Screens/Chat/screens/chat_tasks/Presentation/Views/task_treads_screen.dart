@@ -630,7 +630,7 @@ class TaskThreadScreen extends GetView<TaskThreadController> {
                             ),
 
 
-                              Visibility(
+                              /*Visibility(
                                 visible: controller.isVisibleUpload,
                                 child: InkWell(
                                   onTap: () =>
@@ -652,7 +652,7 @@ class TaskThreadScreen extends GetView<TaskThreadController> {
                                     ),
                                   ),
                                 ),
-                              ),
+                              ),*/
                           ],
                         ),
                       ),

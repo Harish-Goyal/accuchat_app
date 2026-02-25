@@ -159,14 +159,12 @@ class _WifiPulseIconState extends State<_WifiPulseIcon>
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-
     return AnimatedBuilder(
       animation: _c,
       builder: (context, _) {
-        final t = _c.value; // 0..1
+        final t = _c.value;
         final scale = 1.0 + (t * 0.06);
         final glow = 0.20 + (t * 0.22);
-
         return Transform.scale(
           scale: scale,
           child: Container(

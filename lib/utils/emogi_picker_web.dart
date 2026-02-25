@@ -68,21 +68,7 @@ void openWhatsAppEmojiPicker({
                           ),
                         ),
                       ),
-                      const SizedBox(width: 8),
-                      IconButton(
-                        tooltip: "Backspace",
-                        onPressed: backspace,
-                        icon:  Icon(Icons.backspace_outlined,color: appColorGreen),
-                      ),
-                      if (onSend != null)
-                        IconButton(
-                          tooltip: "Send",
-                          onPressed: () {
 
-                            onSend();
-                          },
-                          icon:  Icon(Icons.send,color: appColorGreen,),
-                        ),
                     ],
                   ),
                 ),

@@ -6,7 +6,6 @@ import 'package:device_info_plus/device_info_plus.dart';
 import 'package:http/http.dart' as http;
 
 class ClientEnv {
-  /// Collects environment info for attaching to your login request.
   static Future<Map<String, dynamic>> collect(BuildContext context) async {
     final data = <String, dynamic>{
       'app': {
@@ -31,7 +30,7 @@ class ClientEnv {
     if (kIsWeb) {
       final web = await deviceInfo.webBrowserInfo;
       data['browser'] = {
-        'browserName': web.browserName.name, // chrome, firefox, safari, etc.
+        'browserName': web.browserName.name,
         'userAgent': web.userAgent,
         'appName': web.appName,
         'appVersion': web.appVersion,

@@ -14,12 +14,11 @@ import 'package:flutter/material.dart';
 import 'package:AccuChat/Screens/Reload/reload_factory.dart';
 import 'package:flutter_snake_navigationbar/flutter_snake_navigationbar.dart';
 import 'package:get/get.dart';
+import 'package:sidebarx/sidebarx.dart';
 import '../../../../main.dart';
-import '../../../../routes/app_routes.dart';
 import '../../../../utils/chat_presence.dart';
 import '../../../../utils/register_image.dart';
 import '../../../Chat/api/apis.dart';
-import '../Controller/company_service.dart';
 
 class AccuChatDashboard extends StatelessWidget {
   final controller = Get.put(DashboardController());
@@ -39,15 +38,14 @@ class AccuChatDashboard extends StatelessWidget {
             body: Row(
               children: [
                 if (isWideScreen)
-                  SizedBox(width: Get.width * .13, child: buildSideNav(con)),
+                  buildSideNavSidebarX(con,context),
                 Expanded(
                   child: con.screens.isEmpty
                       ? const SizedBox()
-                      :  ConstrainedBox(
-                            constraints: const BoxConstraints(maxWidth: 1000),
-                            child: con.screens[con.currentIndex],
-
-                      ),
+                      : ConstrainedBox(
+                    constraints: const BoxConstraints(maxWidth: 1000),
+                    child: con.screens[con.currentIndex],
+                  ),
                 ),
               ],
             ),
@@ -62,7 +60,424 @@ class AccuChatDashboard extends StatelessWidget {
     );
   }
 
-  Widget buildSideNav(DashboardController controller) {
+
+  Widget buildSideNavSidebarX(DashboardController controller,context) {
+    return Container(
+      decoration: BoxDecoration(
+        border: Border.symmetric(
+          vertical: BorderSide(color: Colors.grey.shade200),
+        ),
+      ),
+      child: SidebarX(
+        controller: controller.sidebarXController,
+        animationDuration: const Duration(milliseconds: 200),
+        theme: SidebarXTheme(
+          margin: const EdgeInsets.all(6),
+          decoration: BoxDecoration(
+            color: appColorGreen.withOpacity(.1),
+            borderRadius: BorderRadius.circular(2),
+          ),
+          hoverColor: appColorGreen.withOpacity(.2),
+          hoverTextStyle: BalooStyles.baloosemiBoldTextStyle(),
+          textStyle: BalooStyles.baloomediumTextStyle(color: Colors.black87,),
+          selectedTextStyle: BalooStyles.baloomediumTextStyle(color: Colors.white),
+          iconTheme: const IconThemeData(color: Colors.black45, size: 20),
+          selectedIconTheme: const IconThemeData(color: Colors.white, size: 20),
+          itemDecoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(12),
+          ),
+          selectedItemDecoration: BoxDecoration(
+            color: appColorGreen,
+            borderRadius: BorderRadius.circular(12),
+          ),
+
+        ),
+        extendedTheme: const SidebarXTheme(width: 140),
+        items: [
+          SidebarXItem(
+            label: 'Chats',
+            iconBuilder: (selected, hovered) => Image.asset(
+              chatHome,
+              height: 20,
+              color: selected ? Colors.white : Colors.grey,
+            ).paddingSymmetric(horizontal: 5),
+            onTap: () => _handleSidebarTap(controller, 0,context),
+          ),
+          SidebarXItem(
+            label: 'Tasks',
+            iconBuilder: (selected, hovered) =>
+               Image.asset(
+                tasksHome,
+                height: 20,
+                color: selected ? Colors.white : Colors.grey,
+              ).paddingSymmetric(horizontal: 5),
+
+            onTap: () => _handleSidebarTap(controller, 1,context),
+          ),
+          SidebarXItem(
+            label: 'Gallery',
+            iconBuilder: (selected, hovered) => Image.asset(
+              galleryIcon,
+              height: 20,
+              color: selected ? Colors.white : Colors.grey,
+            ).paddingSymmetric(horizontal: 5),
+            onTap: () => _handleSidebarTap(controller, 2,context),
+          ),
+          SidebarXItem(
+            label: 'Companies',
+            iconBuilder: (selected, hovered) => Obx(() {
+              return Stack(
+                clipBehavior: Clip.none,
+                children: [
+                  Image.asset(
+                    connectedAppIcon,
+                    height: 20,
+                    color: selected ? Colors.white : Colors.grey,
+                  ).paddingSymmetric(horizontal: 5),
+                  controller.newCompanyChat.value
+                      ? Positioned(
+                    top: -5,
+                    right: -10,
+                    child: BottomNavBudge(
+                      budgeCount:
+                      "${Get.find<ChatHomeController>()?.selectedChat.value?.pendingCount ?? ''}",
+                    ),
+                  )
+                      : const SizedBox(),
+                ],
+              );
+            }),
+            onTap: () => _handleSidebarTap(controller, 3,context),
+          ),
+        ],
+
+        footerItems: [
+          SidebarXItem(
+            label: 'Settings',
+            iconWidget: Image.asset(
+              settingPng,
+              height: 20,
+            ).paddingSymmetric(horizontal: 5),
+            onTap: () => _handleSidebarTap(controller, 4,context),
+          ),
+        ],
+      ),
+    );
+  }
+
+  /*  Widget buildSideNavSidebarX(DashboardController controller) {
+    return Container(
+      decoration: BoxDecoration(
+        border: Border.symmetric(
+          vertical: BorderSide(color: Colors.grey.shade200),
+        ),
+      ),
+      child: SidebarX(
+        controller: controller.sidebarXController,
+        theme: SidebarXTheme(
+          margin: const EdgeInsets.all(10),
+          decoration: BoxDecoration(
+            color: appColorGreen.withOpacity(.1),
+            borderRadius: BorderRadius.circular(14),
+          ),
+          hoverColor: appColorGreen.withOpacity(.2),
+          hoverTextStyle: BalooStyles.baloosemiBoldTextStyle(),
+          textStyle: BalooStyles.baloomediumTextStyle().copyWith(
+            color: Colors.black87,
+          ),
+
+          selectedTextStyle: BalooStyles.baloomediumTextStyle().copyWith(
+            color: Colors.white,
+          ),
+          iconTheme: const IconThemeData(color: Colors.black45, size: 22),
+          selectedIconTheme: const IconThemeData(color: Colors.white, size: 22),
+          itemDecoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(12),
+          ),
+          selectedItemDecoration: BoxDecoration(
+            color: appColorGreen,
+            borderRadius: BorderRadius.circular(12),
+          ),
+
+        ),
+        extendedTheme: const SidebarXTheme(width: 180),
+        footerBuilder: (context, extended) {
+          return Padding(
+            padding: const EdgeInsets.all(10),
+            child: InkWell(
+              borderRadius: BorderRadius.circular(12),
+              hoverColor: Colors.transparent,   // ✅ no hover
+              splashColor: Colors.transparent,  // ✅ no splash
+              highlightColor: Colors.transparent, // ✅ no highlight
+              onTap: () {
+                if (kIsWeb) unregisterImage();
+                Get.toNamed(AppRoutes.all_settings);
+              },
+              child: Container(
+                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
+                child: Row(
+                  mainAxisAlignment:
+                  extended ? MainAxisAlignment.start : MainAxisAlignment.center,
+                  children: [
+                    Image.asset(settingPng, height: 22, color: Colors.grey),
+                    if (extended) ...[
+                      const SizedBox(width: 12),
+                      Text('Settings',
+                          style: BalooStyles.baloomediumTextStyle()
+                              .copyWith(color: Colors.black87)),
+                    ],
+                  ],
+                ),
+              ),
+            ),
+          );
+        },
+
+        items: [
+          SidebarXItem(
+            label: 'Chats',
+            iconBuilder: (selected, hovered) => Image.asset(
+              chatHome,
+              height: 22,
+              color: selected ? Colors.white : Colors.grey,
+            ).paddingSymmetric(horizontal: 8),
+            onTap: () => _handleSidebarTap(controller, 0),
+          ),
+          SidebarXItem(
+            label: 'Tasks',
+            iconBuilder: (selected, hovered) => Obx(() {
+              return Stack(
+                clipBehavior: Clip.none,
+                children: [
+                  Image.asset(
+                    tasksHome,
+                    height: 22,
+                    color: selected ? Colors.white : Colors.grey,
+                  ).paddingSymmetric(horizontal: 8),
+                  controller.newTask.value
+                      ? Positioned(
+                    top: -5,
+                    right: -10,
+                    child: BottomNavBudge(
+                      budgeCount:
+                      "${Get.find<ChatHomeController>()?.selectedChat.value?.pendingCount ?? ''}",
+                    ),
+                  )
+                      : const SizedBox(),
+                ],
+              );
+            }),
+            onTap: () => _handleSidebarTap(controller, 1),
+          ),
+          SidebarXItem(
+            label: 'Gallery',
+            iconBuilder: (selected, hovered) => Image.asset(
+              galleryIcon,
+              height: 22,
+              color: selected ? Colors.white : Colors.grey,
+            ).paddingSymmetric(horizontal: 8),
+            onTap: () => _handleSidebarTap(controller, 2),
+          ),
+          SidebarXItem(
+            label: 'Your Companies',
+            iconBuilder: (selected, hovered) => Obx(() {
+              return Stack(
+                clipBehavior: Clip.none,
+                children: [
+                  Image.asset(
+                    connectedAppIcon,
+                    height: 22,
+                    color: selected ? Colors.white : Colors.grey,
+                  ).paddingSymmetric(horizontal: 8),
+                  controller.newCompanyChat.value
+                      ? Positioned(
+                    top: -5,
+                    right: -10,
+                    child: BottomNavBudge(
+                      budgeCount:
+                      "${Get.find<ChatHomeController>()?.selectedChat.value?.pendingCount ?? ''}",
+                    ),
+                  )
+                      : const SizedBox(),
+                ],
+              );
+            }),
+            onTap: () => _handleSidebarTap(controller, 3),
+          ),
+        ],
+
+        /// ✅ Settings fixed at bottom (replaces your bottom InkWell)
+       *//* footerItems: [
+          SidebarXItem(
+            label: 'Settings',
+            iconWidget: Image.asset(
+              settingPng,
+              height: 22,
+            ).paddingSymmetric(horizontal: 8),
+            onTap: () {
+              if (kIsWeb) unregisterImage();
+              Get.toNamed(AppRoutes.all_settings);
+            },
+          ),
+        ],*//*
+      ),
+    );
+  }*/
+
+  Future<void> _handleSidebarTap(DashboardController controller, int index,context) async {
+    await controller.getCompany();
+    if (isCompanySwitched) {
+      Dialogs.showSnackbar(context, "Your Company has been change please wait for reload");
+      ReloadControllerImpl().refreshApp();
+      isCompanySwitched = false;
+    }
+    controller.updateIndex(index);
+    final isSetting = index == 4;
+    // if (isSetting) {
+    //   // if (kIsWeb) unregisterImage();
+    //   // Get.toNamed(AppRoutes.all_settings);
+    //   return;
+    // }
+
+
+    isTaskMode = index == 1;
+
+
+    if (index == 0) {
+      ChatHomeController? homec;
+      bool isOpen = false;
+
+      if (Get.isRegistered<ChatHomeController>()) {
+        homec = Get.find<ChatHomeController>();
+      } else {
+        homec = Get.put(ChatHomeController());
+        isOpen = true;
+      }
+
+      final _tagid = ChatPresence.activeChatId.value;
+      final _tag = "chat_${_tagid ?? 'mobile'}";
+
+      if (Get.isRegistered<ChatScreenController>(tag: _tag)) {
+        if (homec!.filteredList.isNotEmpty) {
+          final user = homec.filteredList[0];
+          final chatc = Get.find<ChatScreenController>(tag: _tag);
+
+          chatc.replyToMessage = null;
+          homec.selectedChat.value = user;
+          chatc.user = user;
+          chatc.textController.clear();
+          chatc.update();
+          chatc.showPostShimmer = true;
+
+          if (!isOpen) {
+            chatc.getUserByIdApi(userId: user.userId);
+          }
+
+          if (homec.selectedChat.value?.pendingCount != 0) {
+            chatc.markAllVisibleAsReadOnOpen(
+              APIs.me.userCompany?.userCompanyId,
+              chatc.user?.userCompany?.userCompanyId,
+              chatc.user?.userCompany?.isGroup == 1 ? 1 : 0,
+            );
+          }
+        }
+      } else {
+        if (homec!.filteredList.isNotEmpty) {
+          final user = homec.filteredList[0];
+          final userCid = user.userCompany?.userCompanyId;
+          final newTag = "chat_${userCid ?? 'mobile'}";
+
+          final chatc = Get.put(ChatScreenController(user: user), tag: newTag);
+          chatc.showPostShimmer = true;
+          chatc.replyToMessage = null;
+
+          homec.selectedChat.value = user;
+          chatc.user = user;
+
+          if (homec.selectedChat.value?.pendingCount != 0) {
+            chatc.markAllVisibleAsReadOnOpen(
+              APIs.me.userCompany?.userCompanyId,
+              chatc.user?.userCompany?.userCompanyId,
+              chatc.user?.userCompany?.isGroup == 1 ? 1 : 0,
+            );
+          }
+
+          homec.selectedChat.refresh();
+          chatc.update();
+        }
+      }
+    }
+
+    // ========== TASKS ==========
+    if (index == 1) {
+      final TaskHomeController taskhomec;
+      bool isOpen = false;
+
+      if (Get.isRegistered<TaskHomeController>()) {
+        taskhomec = Get.find<TaskHomeController>();
+      } else {
+        taskhomec = Get.put(TaskHomeController());
+        isOpen = true;
+      }
+
+      final _tagid = TaskPresence.activeTaskId.value;
+      final _tag = "task_${_tagid ?? 'mobile'}";
+
+      if (Get.isRegistered<TaskController>(tag: _tag)) {
+        final taskC = Get.find<TaskController>(tag: _tag);
+        taskC.replyToMessage = null;
+
+        if (taskhomec.filteredList.isNotEmpty) {
+          final user = taskhomec.filteredList[0];
+          taskhomec.selectedChat.value = user;
+          taskC.user = taskhomec.selectedChat.value;
+          taskC.textController.clear();
+          taskC.update();
+          taskC.showPostShimmer = true;
+          taskC.getUserByIdApi(userId: user.userId);
+        }
+      } else {
+        if (taskhomec.filteredList.isNotEmpty) {
+          final user = taskhomec.filteredList[0];
+          final tagId = user.userCompany?.userCompanyId;
+          final newTag = "task_${tagId ?? 'mobile'}";
+
+          final taskC = Get.put(TaskController(user: user), tag: newTag);
+          taskhomec.selectedChat.value = user;
+
+          taskC.user = user;
+          taskC.textController.clear();
+          taskC.page = 1;
+          taskC.update();
+        }
+      }
+    }
+
+    // ========== GALLERY ==========
+    if (index == 2) {
+      if (kIsWeb) unregisterImage();
+      if (Get.isRegistered<GalleryController>()) {
+        final homec = Get.find<GalleryController>();
+        homec.getCompany();
+        homec.resetPagination();
+        homec.hitApiToGetFolder(reset: true);
+        homec.update();
+      } else {
+        final homec = Get.put(GalleryController());
+        homec.getCompany();
+        homec.resetPagination();
+        homec.hitApiToGetFolder(reset: true);
+        homec.update();
+      }
+    }
+
+    // ========== COMPANIES ==========
+    if (index == 3) {
+      // keep whatever you do for "Your Companies" screen (if any)
+    }
+  }
+
+/*  Widget buildSideNav(DashboardController controller) {
     return Column(
       children: [
         Expanded(
@@ -72,17 +487,15 @@ class AccuChatDashboard extends StatelessWidget {
               ),
               child: NavigationRail(
                 selectedIndex: controller.currentIndex,
+
                 onDestinationSelected: (index) async {
                  await controller.getCompany();
-
-
                  if(isCompanySwitched){
                    Dialogs.showSnackbar(Get.context!, "Your Company has been change please wait to reload");
                    final reloadCon = Get.put(ReloadControllerImpl());
                    reloadCon.refreshApp();
                    isCompanySwitched=false;
                  }
-
                  controller.updateIndex(index);
                   final isSetting = index == 4;
                   if (isSetting) {
@@ -215,7 +628,7 @@ class AccuChatDashboard extends StatelessWidget {
                 indicatorColor: appColorGreen,
                 labelType: NavigationRailLabelType.all,
                 backgroundColor: Colors.white,
-                elevation: 1,
+                elevation: 5,
                 destinations: [
                   NavigationRailDestination(
                       icon:Stack(
@@ -228,8 +641,8 @@ class AccuChatDashboard extends StatelessWidget {
                                 ? Colors.white
                                 : Colors.grey,
                           ),
-                          /*homec!.selectedChat.value?.pendingCount==0||homec!.selectedChat.value?.pendingCount==null ?SizedBox():*/
-                          /*   controller.newChat.value
+                          *//*homec!.selectedChat.value?.pendingCount==0||homec!.selectedChat.value?.pendingCount==null ?SizedBox():*//*
+                          *//*   controller.newChat.value
                               ? Positioned(
                                   top: -5,
                                   right: -10,
@@ -239,7 +652,7 @@ class AccuChatDashboard extends StatelessWidget {
                                       budgeCount: "${b.otherCompanyDot.value}",
                                     );
                                   }))
-                              : SizedBox()*/
+                              : SizedBox()*//*
                         ],
                       ),
 
@@ -334,7 +747,7 @@ class AccuChatDashboard extends StatelessWidget {
         )
       ],
     );
-  }
+  }*/
 
 /*
   @override

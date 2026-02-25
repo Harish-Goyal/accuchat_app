@@ -12,6 +12,7 @@ import 'package:AccuChat/Screens/Home/Presentation/View/show_company_members.dar
 import 'package:AccuChat/Services/APIs/api_ends.dart';
 import 'package:AccuChat/Services/subscription/billing_controller.dart';
 import 'package:AccuChat/main.dart';
+import 'package:AccuChat/utils/circleContainer.dart';
 import 'package:AccuChat/utils/helper_widget.dart';
 import 'package:AccuChat/utils/networl_shimmer_image.dart';
 import 'package:AccuChat/utils/text_style.dart';
@@ -320,7 +321,7 @@ class CompaniesScreen extends GetView<CompaniesController> {
                           children: [
                             const Flexible(
                               child: SectionHeader(
-                                title: 'Your Companies',
+                                title: 'Companies',
                                 icon: connectedAppIcon,
                               ),
                             ),
@@ -447,15 +448,10 @@ class CompaniesScreen extends GetView<CompaniesController> {
                                                           mainAxisSize:
                                                               MainAxisSize.min,
                                                           children: [
-                                                            // Obx(() {
-                                                            //   final b = AppBadgeController.to;
-                                                            //   final cid = companyData.companyId!;
-                                                            //   final total = (b.otherChatByCompany[cid] ?? 0) + (b.otherTaskByCompany[cid] ?? 0);
-                                                            //   return SizedBox(
-                                                            //     width: 25,
-                                                            //     child:total > 0 ? Badge(child:Text("$total") ) : null,
-                                                            //   );
-                                                            // }),
+                                                            companyData.companyId ==
+                                                                controller.selCompany
+                                                                    ?.companyId?  CircleContainer(setSize: 6,colorIS: Colors.greenAccent,).paddingOnly(right: 4):SizedBox(),
+
                                                             Text(
                                                               (companyData
                                                                       .companyName ??

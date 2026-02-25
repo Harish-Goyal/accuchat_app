@@ -11,6 +11,7 @@ import 'package:swipe_to/swipe_to.dart';
 import '../../../../../../Services/APIs/api_ends.dart';
 import '../../../../../../main.dart';
 import '../../../../../../utils/chat_presence.dart';
+import '../../../../../../utils/circleContainer.dart';
 import '../../../../../../utils/common_textfield.dart';
 import '../../../../../../utils/custom_dialogue.dart';
 import '../../../../../../utils/custom_flashbar.dart';
@@ -19,6 +20,7 @@ import '../../../../../../utils/helper_widget.dart';
 import '../../../../../../utils/networl_shimmer_image.dart';
 import '../../../../../../utils/product_shimmer_widget.dart';
 import '../../../../../../utils/text_style.dart';
+import '../../../../../Home/Presentation/Controller/home_controller.dart';
 import '../../../auth/models/get_uesr_Res_model.dart';
 import '../Controllers/all_user_controller.dart';
 import '../Controllers/task_controller.dart';
@@ -52,6 +54,7 @@ class TaskHomeScreen extends GetView<TaskHomeController> {
                       automaticallyImplyLeading: false,
                       backgroundColor: Colors.white, // white color
                       elevation: 1, // remove shadow
+                      bottom: PreferredSize(preferredSize: Size(Get.width*.75, 5), child: divider(color: Colors.grey.shade300,thikness: 1.1)),
                       scrolledUnderElevation:
                           0, // ✨ prevents color change on scroll
                       surfaceTintColor: Colors.white,
@@ -59,7 +62,9 @@ class TaskHomeScreen extends GetView<TaskHomeController> {
                           ? InkWell(
                               hoverColor: Colors.transparent,
                               onTap: () {
-                                Get.toNamed(AppRoutes.all_settings);
+                                  Get.find<DashboardController>().updateIndex(4);
+
+
                               },
                               child: Row(
                                 children: [
@@ -89,16 +94,25 @@ class TaskHomeScreen extends GetView<TaskHomeController> {
                                                   color: AppTheme.appColor,
                                                   size: 16),
                                         ).paddingOnly(left: 4, top: 4),
-                                        Text(
-                                          (controller.myCompany?.companyName ??
-                                              ''),
-                                          style:
+                                        Row(
+                                          crossAxisAlignment: CrossAxisAlignment.center,
+                                          mainAxisAlignment: MainAxisAlignment.center,
+                                          mainAxisSize: MainAxisSize.min,
+
+                                          children: [
+                                            CircleContainer(colorIS: Colors.greenAccent,setSize: 5.0,),
+                                            Text(
+                                              (controller.myCompany?.companyName ??
+                                                  ''),
+                                              style:
                                               BalooStyles.baloomediumTextStyle(
-                                            color: appColorYellow,
-                                          ),
-                                          maxLines: 1,
-                                          overflow: TextOverflow.ellipsis,
-                                        ).paddingOnly(left: 4, top: 2),
+                                              color: appColorYellow,
+                                              ),
+                                              maxLines: 1,
+                                              overflow: TextOverflow.ellipsis,
+                                            ).paddingOnly(left: 4, top: 2),
+                                          ],
+                                        ),
                                       ],
                                     ),
                                   ),
@@ -128,8 +142,12 @@ class TaskHomeScreen extends GetView<TaskHomeController> {
                                   : InkWell(
                                       hoverColor: Colors.transparent,
                                       onTap: () {
-                                        Get.toNamed(AppRoutes.all_settings);
-                                      },
+                                        if(kIsWeb&& Get.width>600){
+                                          Get.find<DashboardController>().updateIndex(4);
+                                        }else{
+                                          Get.toNamed(AppRoutes.all_settings);
+                                        }
+                                        },
                                       child: Row(
                                         children: [
                                           SizedBox(
@@ -160,18 +178,27 @@ class TaskHomeScreen extends GetView<TaskHomeController> {
                                                               AppTheme.appColor,
                                                           size: 16),
                                                 ).paddingOnly(left: 4, top: 4),
-                                                Text(
-                                                  (controller.myCompany
-                                                          ?.companyName ??
-                                                      ''),
-                                                  style: BalooStyles
-                                                      .baloomediumTextStyle(
-                                                    color: appColorYellow,
-                                                  ),
-                                                  maxLines: 1,
-                                                  overflow:
-                                                      TextOverflow.ellipsis,
-                                                ).paddingOnly(left: 4, top: 2),
+                                                Row(
+                                                  crossAxisAlignment: CrossAxisAlignment.center,
+                                                  mainAxisAlignment: MainAxisAlignment.center,
+                                                  mainAxisSize: MainAxisSize.min,
+
+                                                  children: [
+                                                    CircleContainer(colorIS: Colors.greenAccent,setSize: 5.0,),
+                                                    Text(
+                                                      (controller.myCompany
+                                                              ?.companyName ??
+                                                          ''),
+                                                      style: BalooStyles
+                                                          .baloomediumTextStyle(
+                                                        color: appColorYellow,
+                                                      ),
+                                                      maxLines: 1,
+                                                      overflow:
+                                                          TextOverflow.ellipsis,
+                                                    ).paddingOnly(left: 4, top: 2),
+                                                  ],
+                                                ),
                                               ],
                                             ),
                                           ),
@@ -360,7 +387,7 @@ class TaskHomeScreen extends GetView<TaskHomeController> {
                           return Row(
                             children: [
                               SizedBox(
-                                  width: 320, child: _recentTaskBody(false,w)),
+                                  width: w < 700? 250:320, child: _recentTaskBody(false,w)),
                               Expanded(
                                 child: selected == null
                                     ? const Center(
@@ -426,7 +453,7 @@ class TaskHomeScreen extends GetView<TaskHomeController> {
           ),
           child: SizedBox(
             width:kIsWeb? Get.width * 0.5:Get.width*.9,
-            height: Get.height * 0.8,
+            height: Get.height * 0.9,
             child: AllUserScreen(),
           ),
         ),

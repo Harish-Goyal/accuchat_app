@@ -33,12 +33,10 @@ class TaskHomeController extends GetxController{
   void onInit() {
     super.onInit();
     getCompany();
+    resetPaginationForNewChat();
+    hitAPIToGetRecentTasksUser();
 
-    Future.delayed(const Duration(milliseconds: 500),(){
-      resetPaginationForNewChat();
-      hitAPIToGetRecentTasksUser();
-    }
-    );
+
     scrollListener();
 
     // SystemChannels.lifecycle.setMessageHandler((message) {
@@ -90,9 +88,7 @@ class TaskHomeController extends GetxController{
     } else {
       scrollController.addListener(() {
         if (!scrollController.hasClients) return;
-
         final position = scrollController.position;
-
         if (position.maxScrollExtent >0) {
           if (!isPageLoading.value && hasMore.value) {
             hitAPIToGetRecentTasksUser();
@@ -107,7 +103,7 @@ class TaskHomeController extends GetxController{
 
   void resetPaginationForNewChat() {
     page = 1;
-    hasMore.value = true;
+    hasMore.value = false;
     filteredList.clear();
     showPostShimmer.value = true;
     isPageLoading.value = false;

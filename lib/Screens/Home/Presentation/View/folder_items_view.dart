@@ -37,7 +37,7 @@ class FolderItemsScreen extends GetView<GalleryItemController> {
         if (Get.key.currentState?.canPop() ?? false) {
           Get.back();
         } else {
-          Get.offAllNamed(AppRoutes.home); // ya jis screen pe jana ho
+          Get.offAllNamed(AppRoutes.home);
         }
         return false;
       },
@@ -353,11 +353,10 @@ class _MediaCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-
     return MouseRegion(
-      cursor: SystemMouseCursors.click, // ✅ web
+      cursor: SystemMouseCursors.click,
       child: Material(
-        color: isSelected ? appColorPerple.withOpacity(.3) : Colors.white,
+        color: isSelected ? appColorPerple.withOpacity(.1) : Colors.white,
         elevation: 2.5,
         shadowColor: Colors.black12,
         borderRadius: BorderRadius.circular(14),

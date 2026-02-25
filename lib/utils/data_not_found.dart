@@ -5,9 +5,10 @@ import '../Constants/assets.dart';
 import '../Constants/themes.dart';
 
 class DataNotFoundText extends StatelessWidget {
-   DataNotFoundText({super.key,this.texts});
+   DataNotFoundText({super.key,this.texts,this.height});
 
   String? texts;
+  double? height;
 
   @override
   Widget build(BuildContext context) {
@@ -21,6 +22,6 @@ class DataNotFoundText extends StatelessWidget {
               // bottomLeft: Radius.circular(15),
               bottomRight: Radius.circular(15)),
         ),
-        child: Image.asset(noDataFoundPng));
+        child: Image.asset(noDataFoundPng,height: height,width: height,));
   }
 }

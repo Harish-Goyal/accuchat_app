@@ -77,7 +77,7 @@ class GrBrMembersController extends GetxController{
   hitAPIToGetMembers() async {
     isLoading = true;
     update();
-    Get.find<PostApiServiceImpl>()
+    await Get.find<PostApiServiceImpl>()
         .getGrBrMemberApiCall(id:
     groupOrBr?.userCompany?.userCompanyId,mode: groupOrBr?.userCompany?.isGroup==1?
     "group":"broadcast")
@@ -157,10 +157,11 @@ class GrBrMembersController extends GetxController{
         .addMemberToGrBrApiCall(dataBody: req)
         .then((value) async {
       customLoader.hide();
-      final _tagid = ChatPresence.activeChatId.value;
-      final _tag = "chat_${_tagid ?? 'mobile'}";
-      Get.find<ChatScreenController>(tag: _tag).hitAPIToGetMembers(groupOrBr);
+      isLoading =true;
       hitAPIToGetMembers();
+      // final _tagid = ChatPresence.activeChatId.value;
+      // final _tag = "chat_${_tagid ?? 'mobile'}";
+      // Get.find<ChatScreenController>(tag: _tag).hitAPIToGetMembers(groupOrBr);
       update();
     }).onError((error, stackTrace) {
       customLoader.hide();

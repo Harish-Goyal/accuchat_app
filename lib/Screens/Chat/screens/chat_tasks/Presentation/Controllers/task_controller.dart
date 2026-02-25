@@ -294,7 +294,6 @@ class TaskController extends GetxController {
         "currentUserId": user?.userId.toString(),
         "taskMsgId": groupElement?.taskMsg.taskId.toString(),
       };
-      // Load binding manually
       TaskThreadBinding().dependencies();
        await  showDialog(
         context: context,
@@ -302,18 +301,18 @@ class TaskController extends GetxController {
         builder: (_) {
           return Center(
             child: ConstrainedBox(
-              constraints: const BoxConstraints(
-                maxWidth: 600,
-                maxHeight:500,
+              constraints:  BoxConstraints(
+                maxWidth: 800,
+                maxHeight:Get.height,
               ),
               child: Material(
                 color: Colors.white,
                 borderRadius: BorderRadius.circular(22),
                 clipBehavior: Clip.antiAlias,
-                child: TaskThreadScreenWeb(),   // <- Your original Screen
+                child: TaskThreadScreenWeb(),
               ),
             ),
-          ).marginAll(20);
+          ).marginAll(15);
         },
       ).then((_) {
         Get.delete<TaskThreadController>(force: true);
@@ -1212,9 +1211,9 @@ class TaskController extends GetxController {
     searchDelay = Timer(const Duration(milliseconds: 400), () {
       searchQuery = query.trim().toLowerCase();
       page = 1;
-      hasMore = true;
-      taskHisList = [];
-      update();
+      // hasMore = true;
+      // taskHisList = [];
+      // update();
       hitAPIToGetTaskHistory(search: searchQuery.isEmpty ? null : searchQuery);
     });
 
@@ -1578,8 +1577,7 @@ class TaskController extends GetxController {
         isUploading = true;
         update();
         // await APIs.sendChatImage(user!, File(image.path));
-        isUploading = false;
-        update();
+
       }
     }
 
@@ -1689,7 +1687,6 @@ class TaskController extends GetxController {
 
       con.openConversation(selectedUser);
     }
-
     socket.forwardTaskMessage(
       taskID: taskId,
       receiverId: receiverId,
@@ -1702,7 +1699,6 @@ class TaskController extends GetxController {
           ? selectedUser?.userName ?? ''
           : selectedUser?.phone?? ''
     );
-
     afterSendNavigate();
   }
 

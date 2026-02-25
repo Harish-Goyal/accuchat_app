@@ -26,17 +26,15 @@ class AllUserScreen extends GetView<AllUserController> {
   }
 
   void selectUser(UserDataAPI user) {
-    Get.back(result: user); // ✅ return to caller
+    Get.back(result: user);
   }
 
   @override
   Widget build(BuildContext context) {
     return SafeArea(
-        child: Scaffold(
+      child: Scaffold(
       appBar: _buildAppBar(),
-      // ---------------- WEB RESPONSIVE WRAPPER ADDED ----------------
       body: _mainBody(),
-      // ---------------- END RESPONSIVE WRAPPER ----------------
     ));
   }
 
@@ -47,7 +45,7 @@ class AllUserScreen extends GetView<AllUserController> {
             ? const IndicatorLoading()
             : ConstrainedBox(
                 constraints: const BoxConstraints(
-                  maxWidth: kIsWeb ? 600 : double.infinity, // FIX WIDTH ON WEB
+                  maxWidth: kIsWeb ? 600 : double.infinity,
                 ),
                 child: Container(
                   margin:
@@ -101,7 +99,7 @@ class AllUserScreen extends GetView<AllUserController> {
             final memData = controller.filteredList[i];
             return ListTile(
               leading: SizedBox(
-                width: 50,
+                width: 45,
                 child: CustomCacheNetworkImage(
                   "${ApiEnd.baseUrlMedia}${controller.filteredList[i].userImage ?? ''}",
                   height: 45,
@@ -116,13 +114,13 @@ class AllUserScreen extends GetView<AllUserController> {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    memData.userId == APIs.me?.userId
+                    memData.userId == APIs.me.userId
                         ? "Me"
-                        : memData?.userCompany?.displayName != null
-                            ? memData?.userCompany?.displayName ?? ''
-                            : memData?.userName != null
-                                ? memData?.userName ?? ''
-                                : memData?.phone ?? '',
+                        : memData.userCompany?.displayName != null
+                            ? memData.userCompany?.displayName ?? ''
+                            : memData.userName != null
+                                ? memData.userName ?? ''
+                                : memData.phone ?? '',
                     style: BalooStyles.baloosemiBoldTextStyle(),
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,

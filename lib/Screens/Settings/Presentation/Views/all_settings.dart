@@ -1,8 +1,11 @@
 import 'package:AccuChat/Constants/colors.dart';
 import 'package:AccuChat/Screens/Home/Presentation/Controller/home_controller.dart';
+import 'package:AccuChat/Screens/Home/Presentation/Controller/profile_controller.dart';
+import 'package:AccuChat/Screens/Home/Presentation/View/profile_screen.dart';
 import 'package:AccuChat/Screens/Settings/Presentation/Views/static_page.dart';
 import 'package:AccuChat/Services/APIs/api_ends.dart';
 import 'package:AccuChat/routes/app_routes.dart';
+import 'package:AccuChat/utils/circleContainer.dart';
 import 'package:AccuChat/utils/custom_container.dart';
 import 'package:AccuChat/utils/custom_flashbar.dart';
 import 'package:AccuChat/utils/helper_widget.dart';
@@ -49,21 +52,76 @@ class AllSettingsScreen extends GetView<AllSettingsController> {
     );
   }
 
+  Future<void> openProfileDialog() async {
+    final c=  Get.put(HProfileController());
+
+    try {
+      await Get.dialog(
+        Dialog(
+          clipBehavior: Clip.antiAlias,
+          insetPadding: const EdgeInsets.all(12),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(12),
+          ),
+          child: SizedBox(
+            width: 600,
+            height: Get.height * 0.9,
+            child: ProfileScreen(),
+          ),
+        ),
+        barrierDismissible: true,
+      );
+    } finally {
+      if (Get.isRegistered<HProfileController>()) {
+        Get.delete<HProfileController>();
+      }
+    }
+  }
+
+  Future<void> openPvcDialog(cnt) async {
+    try {
+      await Get.dialog(
+        Dialog(
+          clipBehavior: Clip.antiAlias,
+          insetPadding: const EdgeInsets.all(12),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(12),
+          ),
+          child: SizedBox(
+            width: 600,
+            height: Get.height * 0.9,
+            child: HtmlViewer(
+              htmlContent: cnt,
+            ),
+          ),
+        ),
+        barrierDismissible: true,
+      );
+    }catch(e){
+      print("Something went wrong");
+    }
+  }
+
   Widget _buildContent(BuildContext context, AllSettingsController controller, bool isWide) {
     return ListView(
       children: [
         InkWell(
+          borderRadius: BorderRadius.circular(12),
           onTap: (){
-            try {
-              Get.back();
-              final con = Get.find<DashboardController>();
-              con.updateIndex(3);
-              con.update();
-            }catch(v){
-            }
+            print(controller.myCompany?.phone??"");
+            // try {
+            //   Get.back();
+            //   final con = Get.find<DashboardController>();
+            //   con.updateIndex(3);
+            //   con.update();
+            // }catch(v){
+            // }
           },
           child: CustomContainer(
-            elevation: 1,
+            elevation: 6,
+            vPadding: 6,
+            hPadding: 6,
+            brcolor: greyColor,
             childWidget: Row(
               crossAxisAlignment: CrossAxisAlignment.center,
               children: [
@@ -80,21 +138,28 @@ class AllSettingsScreen extends GetView<AllSettingsController> {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Text(
-                        controller.myCompany?.companyName??"",
-                        style: BalooStyles.baloosemiBoldTextStyle(),
-                        overflow: TextOverflow.ellipsis,
-                        maxLines: 1,
+                      Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          CircleContainer(colorIS: Colors.greenAccent,setSize: 6,),
+                          hGap(5),
+                          Text(
+                            controller.myCompany?.companyName??"",
+                            style: BalooStyles.baloosemiBoldTextStyle(),
+                            overflow: TextOverflow.ellipsis,
+                            maxLines: 1,
+                          ),
+                        ],
                       ),
                       vGap(4),
+                      if(controller.myCompany?.phone!='' || controller.myCompany?.email!='')
                       Text(
                         controller.myCompany?.phone!=null?
                         controller.myCompany?.phone??"": controller.myCompany?.email??'',
                         style: BalooStyles.balooregularTextStyle(),
                         overflow: TextOverflow.ellipsis,
                         maxLines: 1,
-                      ),
-                      vGap(4),
+                      ).paddingOnly(bottom: 4),
                       Text(
                         "You are now connected to ${controller.myCompany?.companyName??""}",
                         style: BalooStyles.balooregularTextStyle(color: appColorGreen,size: 12),
@@ -127,7 +192,12 @@ class AllSettingsScreen extends GetView<AllSettingsController> {
           icon: Icons.person_3_outlined,
           title: 'Profile',
           onTap: () {
-            Get.toNamed(AppRoutes.h_profile);
+            if(kIsWeb && Get.width>600){
+              openProfileDialog();
+            }else{
+              Get.toNamed(AppRoutes.h_profile);
+            }
+
           },
         ),  _buildTile(
           icon: Icons.insert_invitation_outlined,
@@ -143,18 +213,29 @@ class AllSettingsScreen extends GetView<AllSettingsController> {
           icon: Icons.privacy_tip_outlined,
           title: 'Privacy Policy',
           onTap: () {
-            Get.to(() => HtmlViewer(
-              htmlContent: controller.pvcContent,
-            ));
+            if(kIsWeb && Get.width>600){
+              openPvcDialog(controller.pvcContent);
+            }else{
+              Get.to(() => HtmlViewer(
+                htmlContent: controller.pvcContent,
+              ));
+            }
+
+
           },
         ),
         _buildTile(
           icon: Icons.info_outline,
           title: 'About Us',
           onTap: () {
-            Get.to(() => HtmlViewer(
-              htmlContent: controller.aboutUsContent,
-            ));
+            if(kIsWeb && Get.width>600){
+              openPvcDialog(controller.aboutUsContent);
+            }else{
+              Get.to(() => HtmlViewer(
+                htmlContent: controller.aboutUsContent,
+              ));
+            }
+
           },
         ),
        _buildTile(
@@ -179,7 +260,7 @@ class AllSettingsScreen extends GetView<AllSettingsController> {
           icon: Icons.logout,
           title: 'Logout',
           onTap: () async {
-            showResponsiveLogoutDialog();
+            await showResponsiveLogoutDialog(context);
           },
         ),
         const SizedBox(height: kIsWeb ? 16 : 0),

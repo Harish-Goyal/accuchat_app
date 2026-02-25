@@ -82,6 +82,7 @@ class ChatHisList {
   String? replyToTime;
   String? replyToName;
   String? replyToMedia;
+  int? repliedMediaId;
   List<MediaList>? media;
 
   ChatHisList({this.chatId,this.replyToId,
@@ -91,6 +92,7 @@ class ChatHisList {
     this.pendingCount,
     this.replyToTime,
     this.replyToMedia,
+    this.repliedMediaId,
     this.replyToName,
     this.media,this.isGroupChat,this.broadcastUserId,this.isActivity, this.fromUser, this.toUser, this.message, this.sentOn});
 

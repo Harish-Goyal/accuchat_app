@@ -237,15 +237,18 @@ class AddGroupMemController extends GetxController {
         .addMemberToGrBrApiCall(dataBody: req)
         .then((value) async {
           customLoader.hide();
-          toast("Member added!");hitAPIToAllGetMember();
+          Get.back();
+          toast("Member added!");
+          // hitAPIToAllGetMember();
+          isLoading = true;
+          hitAPIToGetMembers();
+
           final _tagid = ChatPresence.activeChatId.value;
           final _tag = "chat_${_tagid ?? 'mobile'}";
-         await Get.find<ChatScreenController>(tag: _tag).hitAPIToGetMembers(group);
-          await Get.find<GrBrMembersController>().hitAPIToGetMembers();
-          Get.back();
+          await Get.find<ChatScreenController>(tag: _tag).hitAPIToGetMembers(group);
 
-      update();
     }).onError((error, stackTrace) {
+      Get.back();
       customLoader.hide();
     });
   }

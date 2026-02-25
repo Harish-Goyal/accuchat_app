@@ -9,14 +9,19 @@ import '../../../../../../Constants/assets.dart';
 import '../../../../../../Constants/colors.dart';
 import '../../../../../../Constants/themes.dart';
 import '../../../../../../Services/APIs/api_ends.dart';
+import '../../../../../../Services/APIs/auth_service/auth_api_services_impl.dart';
+import '../../../../../../Services/hive_boot.dart';
 import '../../../../../../Services/storage_service.dart';
 import '../../../../../../routes/app_routes.dart';
 import '../../../../../../utils/custom_dialogue.dart';
 import '../../../../../../utils/gradient_button.dart';
 import '../../../../../../utils/networl_shimmer_image.dart';
+import '../../../../../../utils/shares_pref_web.dart';
 import '../../../../../../utils/text_style.dart';
 import '../../../../../Home/Presentation/Controller/company_service.dart';
 import '../../../../../Home/Presentation/View/home_screen.dart';
+import '../../../../api/session_alive.dart';
+import '../../../../models/get_company_res_model.dart';
 
 class LandingPage extends GetView<LandingScreenController> {
   const LandingPage({Key? key}) : super(key: key);
@@ -33,9 +38,7 @@ class LandingPage extends GetView<LandingScreenController> {
             actions: [
               InkWell(
                   onTap: ()async {
-                    showResponsiveLogoutDialog();
-
-
+                    showResponsiveLogoutDialog(context);
                   },
                   child: Container(
                       padding: EdgeInsets.all(10),
@@ -95,15 +98,46 @@ class LandingPage extends GetView<LandingScreenController> {
                                         customLoader.show();
                                         if(Get.isRegistered<CompanyService>()) {
                                           final svc = CompanyService.to;
-                                          await svc.select(company);
+                                          await svc.select(company!);
                                         }else{
+                                          await StorageService.init();
+                                          await HiveBoot.init();
+                                          await HiveBoot.openBoxOnce<CompanyData>(selectedCompanyBox);
+                                          // await Get.putAsync<CompanyService>(
+                                          //       () async => await CompanyService().init(),
+                                          //   permanent: true,
+                                          // );
                                           await Get.putAsync<CompanyService>(
                                                 () async => await CompanyService().init(),
-                                            // permanent: true,
+                                            permanent: true,
                                           );
                                           final svc = CompanyService.to;
-                                          await svc.select(company);
+                                          await svc.select(company!);
                                         }
+
+                                        Get.putAsync<Session>(() async {
+                                          final s = Session(Get.find<AuthApiServiceImpl>(), Get.find<AppStorage>());
+
+                                          CompanyData? selCompany;
+                                          try {
+                                            final svc = CompanyService.to;
+                                            // OPTIONAL: if you add a `Future<void> ready` in CompanyService, await it here:
+                                            selCompany = svc.selected; // may be null on clean install
+                                          } catch (_) {}
+                                          // company may not exist yet on fresh install:
+                                          await s.initSafe(companyId: selCompany?.companyId??0);
+                                          return s;
+                                        }, permanent: true);
+
+                                        // if(!Get.isRegistered<CompanyService>()) {
+                                        //   await StorageService.init();
+                                        //   await HiveBoot.init();
+                                        //   await HiveBoot.openBoxOnce<CompanyData>(selectedCompanyBox);
+                                        //   await Get.putAsync<CompanyService>(
+                                        //         () async => await CompanyService().init(),
+                                        //     permanent: true,
+                                        //   );
+                                        // }
 
                                         StorageService.setLoggedIn(true);
                                         customLoader.hide();
@@ -115,23 +149,45 @@ class LandingPage extends GetView<LandingScreenController> {
                                       customLoader.show();
                                       if(Get.isRegistered<CompanyService>()) {
                                         final svc = CompanyService.to;
-                                        await svc.select(company);
+                                        await svc.select(company!);
                                       }else{
+                                        await StorageService.init();
+                                        await HiveBoot.init();
+                                        await HiveBoot.openBoxOnce<CompanyData>(selectedCompanyBox);
+                                        // await Get.putAsync<CompanyService>(
+                                        //       () async => await CompanyService().init(),
+                                        //   permanent: true,
+                                        // );
                                         await Get.putAsync<CompanyService>(
                                               () async => await CompanyService().init(),
                                           permanent: true,
                                         );
-
                                         final svc = CompanyService.to;
-                                        await svc.select(company);
+                                        await svc.select(company!);
                                       }
+                                      Get.putAsync<Session>(() async {
+                                        final s = Session(Get.find<AuthApiServiceImpl>(), Get.find<AppStorage>());
 
+                                        CompanyData? selCompany;
+                                        try {
+                                          final svc = CompanyService.to;
+                                          // OPTIONAL: if you add a `Future<void> ready` in CompanyService, await it here:
+                                          selCompany = svc.selected; // may be null on clean install
+                                        } catch (_) {}
+                                        // company may not exist yet on fresh install:
+                                        await s.initSafe(companyId: selCompany?.companyId??0);
+                                        return s;
+                                      }, permanent: true);
 
-                                      // final svc = CompanyService.to;
-                                      // await svc.select(company);
-                                      // final svc = Get.put<CompanyService>(CompanyService());
-                                      //
-                                      // await svc.init().then((v) async =>await svc.select(company));
+                                      // if(!Get.isRegistered<CompanyService>()) {
+                                      //   await StorageService.init();
+                                      //   await HiveBoot.init();
+                                      //   await HiveBoot.openBoxOnce<CompanyData>(selectedCompanyBox);
+                                      //   await Get.putAsync<CompanyService>(
+                                      //         () async => await CompanyService().init(),
+                                      //     permanent: true,
+                                      //   );
+                                      // }
 
                                       StorageService.setLoggedIn(true);
                                       customLoader.hide();
@@ -571,8 +627,8 @@ class LandingPage extends GetView<LandingScreenController> {
 
 
 }
-void showResponsiveLogoutDialog() {
-  final ctx = Get.context!;
+Future<void> showResponsiveLogoutDialog(ctx) async {
+  // final ctx = Get.context!;
   final size = MediaQuery.of(ctx).size;
 
   // Responsive width breakpoints (desktop / tablet / large phone / phone)
@@ -591,7 +647,7 @@ void showResponsiveLogoutDialog() {
 
   final maxHeight = size.height * 0.90;
 
-  Get.dialog(
+  await Get.dialog(
     // Keeps dialog within safe areas and nicely centered
     SafeArea(
       child: Center(

@@ -105,7 +105,7 @@ class GalleryController extends GetxController
 
   _init() {
     tabController = TabController(length: 2, vsync: this);
-    scrollController = ScrollController();
+
     getCompany();
     resetPagination();
     hitApiToGetFolder(reset: true);
@@ -174,11 +174,14 @@ class GalleryController extends GetxController
 
     Get.find<PostApiServiceImpl>()
         .uploadFolderMediaApiCall(dataBody: reqData)
-        .then((value) {
+        .then((value) async {
       Get.back();
       customLoader.hide();
       resetPagination();
       hitApiToGetFolder(reset: true);
+      if (Get.isRegistered<GalleryController>()) {
+        await Get.delete<GalleryController>( force: true);
+      }
 
       Get.to(()=>FolderItemsScreen(folderData: folder),
         binding: BindingsBuilder(() {
@@ -258,7 +261,7 @@ class GalleryController extends GetxController
   RxBool hasMore = false.obs;
   RxBool isPageLoading = false.obs;
   RxInt page = 1.obs;
-  late ScrollController scrollController;
+  ScrollController scrollController= ScrollController();
 
   void scrollListener() {
     scrollController.addListener(() {
@@ -413,12 +416,16 @@ class GalleryController extends GetxController
 
       Get.find<PostApiServiceImpl>()
           .uploadFolderMediaApiCall(dataBody: formData)
-          .then((value) {
+          .then((value) async {
         Get.back();
         isUploading.value  = false;
         customLoader.hide();
         resetPagination();
         hitApiToGetFolder();
+        if (Get.isRegistered<GalleryController>()) {
+          await Get.delete<GalleryController>( force: true);
+        }
+
         Get.to(()=>FolderItemsScreen(folderData: folder),
           binding: BindingsBuilder(() {
             final tag = 'folder_${folder?.userGalleryId}';
@@ -505,10 +512,14 @@ class GalleryController extends GetxController
 
       Get.find<PostApiServiceImpl>()
           .uploadFolderMediaApiCall(dataBody: formData)
-          .then((value) {
+          .then((value) async {
         Navigator.of(ctx).pop();
         isUploading.value  = false;
         customLoader.hide();
+        if (Get.isRegistered<GalleryController>()) {
+          await Get.delete<GalleryController>( force: true);
+        }
+
         Get.to(()=>FolderItemsScreen(folderData: folder),
           binding: BindingsBuilder(() {
             final tag = 'folder_${folder?.userGalleryId}';

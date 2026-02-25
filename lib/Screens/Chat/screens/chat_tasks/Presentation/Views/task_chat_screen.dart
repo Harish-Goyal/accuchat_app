@@ -1025,8 +1025,10 @@ class _TaskScreenState extends State<TaskScreen> {
                   controller.update();
                   if (!controller.isSearching) {
                     controller.searchQuery = '';
-                    controller.onSearch('');
+                    controller.resetPaginationForNewChat();
                     controller.seacrhCon.clear();
+                    controller.onSearch('');
+
                   }
                   controller.update();
                 },
@@ -1281,8 +1283,9 @@ class _TaskScreenState extends State<TaskScreen> {
           InkWell(
             onTap: () async {
               if (controller.textController.text.isNotEmpty) {
+                final socketCon = Get.find<SocketController>();
                 if (controller.user?.userCompany?.isGroup == 1) {
-                  Get.find<SocketController>().sendMessage(
+                  socketCon.sendMessage(
                     receiverId: controller.user?.userId ?? 0,
                     message: controller.textController.text.trim(),
                     groupId: controller.user?.userCompany?.userCompanyId ?? 0,
@@ -1292,11 +1295,8 @@ class _TaskScreenState extends State<TaskScreen> {
                     alreadySave: false,
                     replyToId: controller.replyToMessage?.chatId,
                   );
-                  controller.textController.clear();
-                  controller.replyToMessage = null;
-                  controller.update();
                 } else if (controller.user?.userCompany?.isBroadcast == 1) {
-                  Get.find<SocketController>().sendMessage(
+                  socketCon.sendMessage(
                     receiverId: controller.user?.userId ?? 0,
                     message: controller.textController.text.trim(),
                     brID: controller.user?.userCompany?.userCompanyId ?? 0,
@@ -1305,11 +1305,9 @@ class _TaskScreenState extends State<TaskScreen> {
                     companyId: controller.user?.userCompany?.companyId,
                     alreadySave: false,
                   );
-                  controller.textController.clear();
-                  controller.replyToMessage = null;
-                  controller.update();
+
                 } else {
-                  Get.find<SocketController>().sendMessage(
+                  socketCon.sendMessage(
                     receiverId: controller.user?.userId ?? 0,
                     message: controller.textController.text.trim(),
                     isGroup: 0,
@@ -1319,10 +1317,11 @@ class _TaskScreenState extends State<TaskScreen> {
                     replyToId: controller.replyToMessage
                         ?.chatId, // working for reply if  replyToMessage not null than send msg is work for reply msf
                   );
-                  controller.textController.clear();
-                  controller.replyToMessage = null;
-                  controller.update();
+
                 }
+                controller.textController.clear();
+                controller.replyToMessage = null;
+                controller.update();
               }
             },
             child: Container(

@@ -87,7 +87,7 @@ class GalleryTab extends GetView<GalleryController> {
                           ),
 
                         vGap(8),
-                        Expanded(child: _listView()),
+                        (controller.folderList??[]).isNotEmpty ? Expanded(child: _listView()):_listView(),
                       ],
                     ),
                   );
@@ -208,7 +208,10 @@ class GalleryTab extends GetView<GalleryController> {
                   controller.searchResults?.clear();
                   Get.back();
                 },
-                onOpenMedia: (media) {
+                onOpenMedia: (media) async {
+                  if (Get.isRegistered<GalleryController>()) {
+                    await  Get.delete<GalleryController>( force: true);
+                  }
                   controller.isSearchingIcon = false;
                   controller.searchCtrl.clear();
                   controller.searchResults?.clear();
@@ -230,12 +233,9 @@ class GalleryTab extends GetView<GalleryController> {
                   onFolderTap: (v) {},
                   onLeafTap: (v) {},
                   controller: controller,
-                ):AspectRatio(
-          aspectRatio: .1,
-          child: SizedBox(
-            height: 100,
-              width: 100,
-              child: DataNotFoundText()))),
+                ):Center(child: SizedBox(
+        height: Get.height*.5,
+          child: DataNotFoundText(height: 150,)))),
     );
   }
 }
@@ -368,10 +368,10 @@ class _GalleryGrid extends StatelessWidget {
               controller: controller.scrollController,
               physics: const AlwaysScrollableScrollPhysics(),
               gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-                crossAxisCount:(kIsWeb&&Get.width>600)? cross:4,
+                crossAxisCount:(kIsWeb&&Get.width>600)? cross:3,
                 crossAxisSpacing: 10,
                 mainAxisSpacing: 10,
-                childAspectRatio: 1,
+                childAspectRatio: (kIsWeb&&Get.width>600)?1:.85,
               ),
               itemCount: items.length + (controller.hasMore.value ? 1 : 0),
               itemBuilder: (_, i) {
@@ -381,7 +381,11 @@ class _GalleryGrid extends StatelessWidget {
                 final node = items[i];
                 return _GalleryTile(
                   folder: node,
-                  onTap:(){
+                  onTap:() async {
+                    if (Get.isRegistered<GalleryController>()) {
+                     await Get.delete<GalleryController>( force: true);
+                    }
+
                     Get.to(()=>FolderItemsScreen(folderData: node),
                       binding: BindingsBuilder(() {
                         final tag = 'folder_${node.userGalleryId}';
@@ -464,7 +468,7 @@ class _GalleryTile extends StatelessWidget {
                   /* return */
                   Text(
                     folder.folderName ?? '',
-                    maxLines: 21,
+                    maxLines: 3,
                     overflow: TextOverflow.ellipsis,
                     textAlign: TextAlign.center,
                     style: BalooStyles.balooregularTextStyle(),

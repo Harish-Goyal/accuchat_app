@@ -5,7 +5,6 @@ import 'package:AccuChat/utils/custom_flashbar.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import '../../../../Services/APIs/local_keys.dart';
 import '../../../../Services/APIs/post/post_api_service_impl.dart';
 import '../../../../utils/text_style.dart';
 import '../../../Chat/api/apis.dart';
@@ -74,9 +73,10 @@ class CompanyMemberController extends GetxController{
           customLoader.hide();
       toast(value.message??'');
       Get.find<CompaniesController>().hitAPIToGetCompanies();
-          final svc = CompanyService.to;
-          svc.clear();
+          // final svc = CompanyService.to;
+          // svc.clear();
       _getCompany();
+      page =1;
       hitAPIToGetMember();
       update();
     }).onError((error, stackTrace) {
@@ -86,13 +86,11 @@ class CompanyMemberController extends GetxController{
   }
 
 
-
   late ScrollController scrollController;
   bool isPageLoading =false;
   bool hasMore =false;
   int page = 1;
   String searchText = '';
-
   RxBool isSearching = false.obs;
   Timer? searchDelay;
   void onSearch(String query) {

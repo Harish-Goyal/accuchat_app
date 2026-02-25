@@ -6,6 +6,8 @@ import 'package:AccuChat/Screens/Chat/screens/chat_tasks/Presentation/Controller
 import 'package:AccuChat/Screens/Home/Presentation/Controller/compnaies_controller.dart';
 import 'package:AccuChat/Screens/Home/Presentation/Controller/gallery_controller.dart';
 import 'package:AccuChat/Screens/Home/Presentation/Controller/socket_controller.dart';
+import 'package:AccuChat/Screens/Settings/Presentation/Controllers/all_settings_controller.dart';
+import 'package:AccuChat/Screens/Settings/Presentation/Views/all_settings.dart';
 import 'package:AccuChat/utils/loading_indicator.dart';
 import 'package:AccuChat/utils/text_style.dart';
 import 'package:connectivity_plus/connectivity_plus.dart';
@@ -13,6 +15,7 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:get/get.dart';
+import 'package:sidebarx/sidebarx.dart';
 import '../../../../Services/APIs/auth_service/auth_api_services_impl.dart';
 import '../../../../Services/APIs/local_keys.dart';
 import '../../../../Services/APIs/post/post_api_service_impl.dart';
@@ -44,11 +47,11 @@ class DashboardController extends GetxController with WidgetsBindingObserver {
   RxBool newCompanyChat =false.obs;
   RxBool newTask =false.obs;
 
-  void updateIndex(int index) {
-    print("Updating index to: $index");
-    currentIndex = index;
-    update();
-  }
+  // void updateIndex(int index) {
+  //   print("Updating index to: $index");
+  //   currentIndex = index;
+  //   update();
+  // }
 
   bool _inited = false;
 
@@ -76,7 +79,14 @@ class DashboardController extends GetxController with WidgetsBindingObserver {
       icon: Image.asset(connectedAppIcon,height: 22),
       label: 'Companies',
     ),
-  ];
+ if(kIsWeb)
+   BottomNavigationBarItem(
+     icon: Image.asset(settingPng,height: 22),
+     label: 'Settings',
+   ),
+
+
+ ];
 
   // --- add: ensure we always have something to render
   void _ensureFallbackNavIfEmpty() {
@@ -89,6 +99,15 @@ class DashboardController extends GetxController with WidgetsBindingObserver {
   }
 
   List<Widget> screens = [];
+
+ final SidebarXController sidebarXController =
+ SidebarXController(selectedIndex: 0, extended: true);
+
+ void updateIndex(int index) {
+   currentIndex = index;
+   sidebarXController.selectIndex(index);
+   update(); // if you use GetBuilder
+ }
 
   List<BottomNavigationBarItem> barItems = [];
   initscres() async {
@@ -109,6 +128,9 @@ class DashboardController extends GetxController with WidgetsBindingObserver {
     try { Get.lazyPut(() => TaskHomeController(), fenix: true); } catch (_) {}
     try { Get.lazyPut(() => GalleryController(), fenix: true); } catch (_) {}
     try { Get.lazyPut(() => CompaniesController(), fenix: true); } catch (_) {}
+    if(kIsWeb){
+      try { Get.lazyPut(() => AllSettingsController(), fenix: true); } catch (_) {}
+    }
 
     callNetworkCheck();
 
@@ -144,7 +166,15 @@ class DashboardController extends GetxController with WidgetsBindingObserver {
         return GalleryTab();
       case 'Companies Button':
         if (kIsWeb) unregisterImage();
-        return CompaniesScreen();
+        return const CompaniesScreen();
+      case 'Setting Button':
+        if (kIsWeb) unregisterImage();
+        if(kIsWeb){
+          return const AllSettingsScreen();
+        } else{
+          return const SizedBox();
+        }
+
       default:
         return const Center(child: IndicatorLoading());
 
@@ -162,6 +192,14 @@ class DashboardController extends GetxController with WidgetsBindingObserver {
         return galleryIcon;
       case 'Companies Button':
         return connectedAppIcon;
+      case 'Setting Button':
+        if(kIsWeb){
+          return settingPng;
+        } else{
+          return '';
+        }
+
+
       default:
         return appIcon;
     }
@@ -196,8 +234,8 @@ class DashboardController extends GetxController with WidgetsBindingObserver {
     }
   }
 
-  void _showNoNetworkDialog(BuildContext context) {
-    showDialog(
+  Future<void> _showNoNetworkDialog(BuildContext context) async {
+   await showDialog(
       context: context,
       barrierDismissible: false,
       builder: (BuildContext context) {
@@ -209,7 +247,6 @@ class DashboardController extends GetxController with WidgetsBindingObserver {
           actions: [
             TextButton(
               onPressed: () {
-                // Exit the app if the user presses 'Exit'
                 SystemNavigator.pop();
               },
               child: const Text('Exit'),
@@ -271,6 +308,7 @@ class DashboardController extends GetxController with WidgetsBindingObserver {
         NavigationItem(navigationItem: 'Task Button', isActive: 1, sortingOrder: 2, navigationPlace: bottom_nav_key),
         NavigationItem(navigationItem: 'Gallery Button', isActive: 1, sortingOrder: 3, navigationPlace: bottom_nav_key),
         NavigationItem(navigationItem: 'Companies Button', isActive: 1, sortingOrder: 4, navigationPlace: bottom_nav_key),
+        if(kIsWeb) NavigationItem(navigationItem: 'Setting Button', isActive: 1, sortingOrder: 5, navigationPlace: bottom_nav_key),
       ];
     }
 
@@ -317,11 +355,11 @@ class DashboardController extends GetxController with WidgetsBindingObserver {
         .getUserApiCall(companyId: comid)
         .then((value) async {
       userData = value.data!;
-      await APIs.getFirebaseMessagingToken();
+      // await APIs.getFirebaseMessagingToken();
       saveUser(userData);
       _navigationLogic();
     }).onError((error, stackTrace) {
-      showCompanyErrorDialog();
+      // showCompanyErrorDialog();
       customLoader.hide();
       errorDialog(error.toString());
       update();
@@ -335,7 +373,7 @@ class DashboardController extends GetxController with WidgetsBindingObserver {
     }
     await hitAPIToGetAllRolesAPI();
 
-    Future.delayed(Duration(milliseconds: 800), () {
+    Future.delayed(const Duration(milliseconds: 800), () {
       if (myCompany?.userCompanies?.userCompanyRoleId != null ||
           myCompany?.userCompanies?.userCompanyRole != null) {
         final selectedRoleId = myCompany?.userCompanies?.userCompanyRoleId;
@@ -360,7 +398,7 @@ class DashboardController extends GetxController with WidgetsBindingObserver {
 
       } else {
         hitAPIToGetNavPermissions();
-        Future.delayed(Duration(milliseconds: 500), () {
+        Future.delayed(const Duration(milliseconds: 500), () {
           getUserNavigation();
           initscres();
         });

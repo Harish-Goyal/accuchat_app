@@ -69,7 +69,7 @@ class ProfileScreen extends GetView<HProfileController> {
             actions: [
               IconButton(
                 onPressed: () async {
-                  showResponsiveLogoutDialog();
+                  await showResponsiveLogoutDialog(context);
                 },
                 icon: Row(
                   mainAxisSize: MainAxisSize.min,
@@ -154,10 +154,10 @@ class ProfileScreen extends GetView<HProfileController> {
                               },
                             ),
 
-                            const SizedBox(height: 16),
-                            SettingsScreen(),
+                            // const SizedBox(height: 16),
+                            // SettingsScreen(),
 
-                            const SizedBox(height: 8),
+                            vGap(15),
                             TextButton(
                               child: Text(
                                 "Delete Account",

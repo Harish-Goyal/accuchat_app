@@ -274,7 +274,6 @@ class ChatHomeController extends GetxController{
     });
   }
 
-
 }
 
 

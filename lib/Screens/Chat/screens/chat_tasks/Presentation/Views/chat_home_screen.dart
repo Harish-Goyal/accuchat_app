@@ -5,7 +5,9 @@ import 'package:AccuChat/Screens/Chat/screens/auth/models/get_uesr_Res_model.dar
 import 'package:AccuChat/Screens/Chat/screens/chat_tasks/Presentation/Views/chat_screen.dart';
 import 'package:AccuChat/Screens/Chat/screens/chat_tasks/Presentation/Views/chat_task_shimmmer.dart';
 import 'package:AccuChat/Screens/Chat/screens/chat_tasks/Presentation/Views/task_chat_screen.dart';
+import 'package:AccuChat/Screens/Home/Presentation/Controller/home_controller.dart';
 import 'package:AccuChat/routes/app_routes.dart';
+import 'package:AccuChat/utils/circleContainer.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
@@ -97,9 +99,10 @@ class ChatsHomeScreen extends GetView<ChatHomeController> {
       title:kIsWeb && w>600 ?InkWell(
         hoverColor: Colors.transparent,
         onTap: () {
-          Get.toNamed(AppRoutes.all_settings);
+          Get.find<DashboardController>().updateIndex(4);
         },
         child: Row(
+          mainAxisSize: MainAxisSize.min,
           children: [
             SizedBox(
               width: 40,
@@ -124,14 +127,23 @@ class ChatsHomeScreen extends GetView<ChatHomeController> {
                     style: BalooStyles.balooboldTitleTextStyle(
                         color: AppTheme.appColor, size: 16),
                   ).paddingOnly(left: 4, top: 4),
-                  Text(
-                    (controller.myCompany?.companyName ?? ''),
-                    style: BalooStyles.baloomediumTextStyle(
-                      color: appColorYellow,
-                    ),
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                  ).paddingOnly(left: 4, top: 2),
+                  Row(
+                    crossAxisAlignment: CrossAxisAlignment.center,
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    mainAxisSize: MainAxisSize.min,
+
+                    children: [
+                      CircleContainer(colorIS: Colors.greenAccent,setSize: 5.0,),
+                      Text(
+                        (controller.myCompany?.companyName ?? ''),
+                        style: BalooStyles.baloomediumTextStyle(
+                          color: appColorYellow,
+                        ),
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                      ).paddingOnly(left: 4, top: 2),
+                    ],
+                  ),
                 ],
               ),
             ),
@@ -188,14 +200,23 @@ class ChatsHomeScreen extends GetView<ChatHomeController> {
                             style: BalooStyles.balooboldTitleTextStyle(
                                 color: AppTheme.appColor, size: 16),
                           ).paddingOnly(left: 4, top: 4),
-                          Text(
-                            (controller.myCompany?.companyName ?? ''),
-                            style: BalooStyles.baloomediumTextStyle(
-                              color: appColorYellow,
-                            ),
-                            maxLines: 1,
-                            overflow: TextOverflow.ellipsis,
-                          ).paddingOnly(left: 4, top: 2),
+                          Row(
+                            crossAxisAlignment: CrossAxisAlignment.center,
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            mainAxisSize: MainAxisSize.min,
+
+                            children: [
+                              CircleContainer(colorIS: Colors.greenAccent,setSize: 5.0,),
+                              Text(
+                                (controller.myCompany?.companyName ?? ''),
+                                style: BalooStyles.baloomediumTextStyle(
+                                  color: appColorYellow,
+                                ),
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
+                              ).paddingOnly(left: 4, top: 2),
+                            ],
+                          ),
                         ],
                       ),
                     ),
@@ -228,6 +249,7 @@ class ChatsHomeScreen extends GetView<ChatHomeController> {
                 controller.isSearching.refresh();
                 if (!controller.isSearching.value) {
                   controller.searchQuery = '';
+                  controller.resetPaginationForNewChat();
                   controller.onSearch('');
                   controller.seacrhCon.clear();
                 }
@@ -248,7 +270,11 @@ class ChatsHomeScreen extends GetView<ChatHomeController> {
                   context: Get.context!,
                   builder: (_) => BroadcastCreateDialog());
             } else if (value == 'settings') {
-              Get.toNamed(AppRoutes.all_settings);
+              if(kIsWeb&& Get.width>600){
+                Get.find<DashboardController>().updateIndex(4);
+              }else{
+                Get.toNamed(AppRoutes.all_settings);
+              }
             }
           },
           itemBuilder: (context) => [
@@ -354,7 +380,7 @@ class ChatsHomeScreen extends GetView<ChatHomeController> {
           ),
           child: SizedBox(
             width:kIsWeb? Get.width * 0.5:Get.width*.9,
-            height: Get.height * 0.8,
+            height: Get.height * 0.9,
             child:  AllUserScreen(),
           ),
         ),
@@ -380,7 +406,6 @@ class ChatsHomeScreen extends GetView<ChatHomeController> {
             return _recentChatsList(controller, true, w); // your existing list
           }
 
-          // ---------------- TABLET (Drawer + Recents) ----------------
           if (w < 600) {
             return Row(
               children: [
@@ -400,7 +425,7 @@ class ChatsHomeScreen extends GetView<ChatHomeController> {
           return Row(
             children: [
               SizedBox(
-                  width: 320, child: _recentChatsList(controller, false, w)),
+                  width:w < 700? 250:320, child: _recentChatsList(controller, false, w)),
               Expanded(
                 child: selected == null
                     ? const Center(

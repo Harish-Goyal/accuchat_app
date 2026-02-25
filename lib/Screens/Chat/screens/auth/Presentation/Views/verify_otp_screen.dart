@@ -21,14 +21,11 @@ class VerifyOtpScreen extends GetView<VerifyOtpController> {
     return GetBuilder<VerifyOtpController>(
       builder: (controller) {
         return Scaffold(
-
           appBar: backAppBar(title: 'Verify OTP'),
-
           body: SafeArea(
             child: LayoutBuilder(
               builder: (context, constraints) {
                 final isWide = constraints.maxWidth > 600;
-
                 return Center(
                   child: ConstrainedBox(
                     constraints: BoxConstraints(maxWidth: isWide ? 500 : double.infinity),
@@ -44,7 +41,6 @@ class VerifyOtpScreen extends GetView<VerifyOtpController> {
                                 textAlign: TextAlign.center,
                               ).paddingSymmetric(horizontal: 15),
                               vGap(30),
-
                               PinFieldAutoFill(
                                 codeLength: 6,
                                 controller: controller.otpFieldController,

@@ -47,7 +47,6 @@ class RecentGuard {
   }
 }
 
-
 class SocketController extends GetxController with WidgetsBindingObserver {
   late IO.Socket? socket;
   bool initialized = false;
@@ -74,9 +73,7 @@ class SocketController extends GetxController with WidgetsBindingObserver {
           socket?.connect();
         } catch (_) {}
       }
-      // Idempotently re-wire listeners and re-select company on resume
-      // allListerer();           // ensures .off() then .on() again
-      connectUserEmitter(myCompany?.companyId); // re-emit company context
+      connectUserEmitter(myCompany?.companyId);
     }
   }
 
@@ -84,7 +81,7 @@ class SocketController extends GetxController with WidgetsBindingObserver {
     initial();
     final svc = CompanyService.to;
     final myCompany = svc.selected;
-    connectUserEmitter(myCompany?.companyId); // already in your code
+    connectUserEmitter(myCompany?.companyId);
     // allListerer();
   }
 
@@ -184,27 +181,32 @@ class SocketController extends GetxController with WidgetsBindingObserver {
         final _tagid = ChatPresence.activeChatId.value;
         final _tag = "chat_${_tagid ?? 'mobile'}";
         ChatScreenController? chatDetailController;
-        if(!kIsWeb || Get.width<600){
-          chatDetailController =
-              Get.find<ChatScreenController>();
-        }else{
+        if (!kIsWeb || Get.width < 600) {
+          chatDetailController = Get.find<ChatScreenController>();
+        } else {
           if (Get.isRegistered<ChatScreenController>(tag: _tag)) {
-            chatDetailController =
-                Get.find<ChatScreenController>(tag: _tag);
+            chatDetailController = Get.find<ChatScreenController>(tag: _tag);
+          } else {
+            final user = receivedMessageDataModal.toUser;
+            final _tagid = user?.userCompany?.userCompanyId;
+            final _tag = "chat_${_tagid ?? 'mobile'}";
+            chatDetailController = Get.put<ChatScreenController>(
+                ChatScreenController(user: user),
+                tag: _tag);
           }
         }
 
-
-        final key = chatDetailController!.msgKey(receivedMessageDataModal);
+        final key = chatDetailController.msgKey(receivedMessageDataModal);
         if (!chatDetailController.markOnce(key)) {
           debugPrint("Duplicate message ignored: $key");
           return;
         }
-        final selectedUserId = chatDetailController?.user?.userId
+        final selectedUserId = chatDetailController.user?.userId
             ?.toString(); // 1-1 userId OR group userId
         final incomingIsGroup = receivedMessageDataModal.isGroupChat == 1;
         final activeCompanyId = APIs.me.userCompany?.companyId;
-        final msgCompanyId = receivedMessageDataModal.fromUser?.userCompany?.companyId;
+        final msgCompanyId =
+            receivedMessageDataModal.fromUser?.userCompany?.companyId;
 
         if (activeCompanyId == null || msgCompanyId == null) return;
         if (activeCompanyId != msgCompanyId) return;
@@ -212,8 +214,7 @@ class SocketController extends GetxController with WidgetsBindingObserver {
         String? incomingGroupId;
         if (incomingIsGroup) {
           final toIsGroup =
-              (receivedMessageDataModal.toUser?.userCompany?.isGroup ==
-                  1);
+              (receivedMessageDataModal.toUser?.userCompany?.isGroup == 1);
           final fromIsGroup =
               (receivedMessageDataModal.fromUser?.userCompany?.isGroup == 1);
 
@@ -224,14 +225,12 @@ class SocketController extends GetxController with WidgetsBindingObserver {
             incomingGroupId =
                 receivedMessageDataModal.fromUser?.userId?.toString();
           } else {
-            // fallback (agar kabhi backend group user flag na bheje)
-            incomingGroupId = msgTo; // mostly group id yahi hoga
+            incomingGroupId = msgTo;
           }
         }
 
         final selectedIsGroup =
-            chatDetailController?.user?.userCompany?.isGroup ==
-                1; // selected chat is group?
+            chatDetailController?.user?.userCompany?.isGroup == 1;
 
         final isMessageForThisChat = incomingIsGroup
             ? (selectedIsGroup &&
@@ -242,7 +241,6 @@ class SocketController extends GetxController with WidgetsBindingObserver {
                     (msgFrom == meId && msgTo == selectedUserId)));
 
         if (isMessageForThisChat) {
-          // safe to insert the message
           ChatHisList chatMessageItems = ChatHisList(
             chatId: receivedMessageDataModal.chatId,
             fromUser: receivedMessageDataModal.fromUser,
@@ -262,22 +260,21 @@ class SocketController extends GetxController with WidgetsBindingObserver {
             replyToName: receivedMessageDataModal.replyToName,
             media: receivedMessageDataModal.media,
           );
-          final alreadyInList = chatDetailController?.chatHisList?.any((x) =>
-          (x.chatId == chatMessageItems.chatId) &&
-              (x.sentOn == chatMessageItems.sentOn) &&
-              (x.fromUser?.userId == chatMessageItems.fromUser?.userId) &&
-              (x.toUser?.userId == chatMessageItems.toUser?.userId) &&
-              (x.message == chatMessageItems.message)
-          ) ?? false;
+          final alreadyInList = chatDetailController.chatHisList?.any((x) =>
+                  (x.chatId == chatMessageItems.chatId) &&
+                  (x.sentOn == chatMessageItems.sentOn) &&
+                  (x.fromUser?.userId == chatMessageItems.fromUser?.userId) &&
+                  (x.toUser?.userId == chatMessageItems.toUser?.userId) &&
+                  (x.message == chatMessageItems.message)) ??
+              false;
 
           if (alreadyInList) return;
-          chatDetailController?.chatHisList?.insert(0, chatMessageItems);
-          chatDetailController?.chatCatygory
+          chatDetailController.chatHisList?.insert(0, chatMessageItems);
+          chatDetailController.chatCatygory
               .insert(0, GroupChatElement(DateTime.now(), chatMessageItems));
-          chatDetailController?.rebuildFlatRows();
-          chatDetailController?.update();
+          chatDetailController.rebuildFlatRows();
+          chatDetailController.update();
         }
-
 
         final fromUcId =
             receivedMessageDataModal.fromUser?.userCompany?.userCompanyId;
@@ -285,22 +282,23 @@ class SocketController extends GetxController with WidgetsBindingObserver {
         final toUcId =
             receivedMessageDataModal.toUser?.userCompany?.userCompanyId;
 
-        final fromIsGroupUc = receivedMessageDataModal.fromUser?.userCompany?.isGroup == 1;
-        final toIsGroupUc   = receivedMessageDataModal.toUser?.userCompany?.isGroup == 1;
+        final fromIsGroupUc =
+            receivedMessageDataModal.fromUser?.userCompany?.isGroup == 1;
+        final toIsGroupUc =
+            receivedMessageDataModal.toUser?.userCompany?.isGroup == 1;
 
 // ✅ For home list + active chat matching, decide the “thread UC” correctly
         final int? threadUcId = incomingIsGroup
-            ? (toIsGroupUc ? toUcId : (fromIsGroupUc ? fromUcId : toUcId)) // fallback to toUcId
+            ? (toIsGroupUc ? toUcId : (fromIsGroupUc ? fromUcId : toUcId))
             : fromUcId;
 
 // ✅ Now find/update the correct thread only
         final index = homeController.filteredList.indexWhere(
-              (e) => e.userCompany?.userCompanyId == threadUcId,
+          (e) => e.userCompany?.userCompanyId == threadUcId,
         );
 
 // ✅ open chat check must also use threadUcId (not fromUcId)
         final isThisChatOpen = ChatPresence.activeChatId.value == threadUcId;
-
 
         if (isThisChatOpen &&
             receivedMessageDataModal.toUser?.userId == APIs.me.userId) {
@@ -330,12 +328,12 @@ class SocketController extends GetxController with WidgetsBindingObserver {
           }
 
           // Update last message preview
-          homeController.filteredList[index].lastMessage = LastMessage(
-            message: receivedMessageDataModal.message,
-            messageTime: receivedMessageDataModal.sentOn,
-          );
-
-          homeController.filteredList.refresh();
+          // homeController.filteredList[index].lastMessage = LastMessage(
+          //   message: receivedMessageDataModal.message,
+          //   messageTime: receivedMessageDataModal.sentOn,
+          // );
+          //
+          // homeController.filteredList.refresh();
         }
       } catch (e) {
         debugPrint(e.toString());
@@ -364,26 +362,31 @@ class SocketController extends GetxController with WidgetsBindingObserver {
       debugPrint("Listing task......4");
       debugPrint("send_task_listener ${jsonEncode(messages.toString())}");
       try {
+        TaskData receivedMessageDataModal = TaskData.fromJson(messages);
         final _tagid = TaskPresence.activeTaskId.value;
         final _tag = "task_${_tagid ?? 'mobile'}";
         TaskController? taskController;
-        if(!kIsWeb || Get.width<600){
-          taskController =
-              Get.find<TaskController>();
-        }else{
+        if (!kIsWeb || Get.width < 600) {
+          taskController = Get.find<TaskController>();
+        } else {
           if (Get.isRegistered<TaskController>(tag: _tag)) {
+            taskController = Get.find<TaskController>(tag: _tag);
+          } else {
+            final user = receivedMessageDataModal.toUser;
+            final _tagid = user?.userCompany?.userCompanyId;
+            final _tag = "task_${_tagid ?? 'mobile'}";
             taskController =
-                Get.find<TaskController>(tag: _tag);
+                Get.put<TaskController>(TaskController(user: user), tag: _tag);
           }
         }
 
-        TaskData receivedMessageDataModal = TaskData.fromJson(messages);
-        final selectedUserId = taskController?.user?.userId?.toString();
+        final selectedUserId = taskController.user?.userId?.toString();
         final meId = APIs.me.userId?.toString();
         final msgFrom = receivedMessageDataModal.fromUser?.userId?.toString();
         final msgTo = receivedMessageDataModal.toUser?.userId?.toString();
         final activeCompanyId = APIs.me.userCompany?.companyId;
-        final msgCompanyId = receivedMessageDataModal.fromUser?.userCompany?.companyId;
+        final msgCompanyId =
+            receivedMessageDataModal.fromUser?.userCompany?.companyId;
 
         if (activeCompanyId == null || msgCompanyId == null) return;
         if (activeCompanyId != msgCompanyId) {
@@ -391,7 +394,7 @@ class SocketController extends GetxController with WidgetsBindingObserver {
           return;
         }
         var dashCon;
-        if(Get.isRegistered<DashboardController>()){
+        if (Get.isRegistered<DashboardController>()) {
           dashCon = Get.find<DashboardController>();
         }
         final isMessageForThisChat =
@@ -414,12 +417,12 @@ class SocketController extends GetxController with WidgetsBindingObserver {
             statusHistory: receivedMessageDataModal.statusHistory,
             members: receivedMessageDataModal.members,
           );
-          taskController?.taskHisList?.insert(0, chatMessageItems);
-          taskController?.taskCategory
+          taskController.taskHisList?.insert(0, chatMessageItems);
+          taskController.taskCategory
               .insert(0, GroupTaskElement(DateTime.now(), chatMessageItems));
           // }
-          dashCon.newTask.value=true;
-          taskController?.update();
+          dashCon.newTask.value = true;
+          taskController.update();
         }
         Get.find<TaskHomeController>().hitAPIToGetRecentTasksUser();
       } catch (e) {
@@ -433,7 +436,7 @@ class SocketController extends GetxController with WidgetsBindingObserver {
     });
 
     socket?.off('add_task_comment_listener');
-  /*  socket?.on('add_task_comment_listener', (messages) {
+    /*  socket?.on('add_task_comment_listener', (messages) {
       debugPrint(
           "add_task_comment_listener ${jsonEncode(messages.toString())}");
       try {
@@ -491,8 +494,7 @@ class SocketController extends GetxController with WidgetsBindingObserver {
       }
     });*/
 
-
-  socket?.on('add_task_comment_listener', (messages) {
+    socket?.on('add_task_comment_listener', (messages) {
       debugPrint("Comments Listing task......4");
       debugPrint(
           "add_task_comment_listener ${jsonEncode(messages.toString())}");
@@ -535,7 +537,6 @@ class SocketController extends GetxController with WidgetsBindingObserver {
       debugPrint("Listing update message......8");
       debugPrint("update message listener ${jsonEncode(payload.toString())}");
       try {
-
         final updated = ChatHisList.fromJson(payload);
 
         final meId = APIs.me.userId?.toString();
@@ -591,30 +592,24 @@ class SocketController extends GetxController with WidgetsBindingObserver {
     socket?.on('update_task_listener', (payload) {
       debugPrint("Listing task message listener......9");
       debugPrint("update task  listener ${jsonEncode(payload.toString())}");
-
       try {
         final _tagid = TaskPresence.activeTaskId.value;
         final _tag = "task_${_tagid ?? 'mobile'}";
         TaskController? taskController;
-        if(!kIsWeb || Get.width<600){
-          taskController =
-              Get.find<TaskController>();
-        }else{
+        if (!kIsWeb || Get.width < 600) {
+          taskController = Get.find<TaskController>();
+        } else {
           if (Get.isRegistered<TaskController>(tag: _tag)) {
-            taskController =
-                Get.find<TaskController>(tag: _tag);
+            taskController = Get.find<TaskController>(tag: _tag);
           }
         }
         final updated = TaskData.fromJson(payload);
-
         final meId = APIs.me.userId?.toString();
         final fromId = updated.fromUser?.userId?.toString();
         final toId = updated.toUser?.userId?.toString();
-
         if (fromId == meId || toId == meId) {
           final list = taskController?.taskHisList ?? [];
           final idx = list.indexWhere((t) => t.taskId == updated.taskId);
-
           if (idx != -1) {
             // ✅ UPDATE IN PLACE — NO INSERT
             final old = list[idx];
@@ -678,7 +673,7 @@ class SocketController extends GetxController with WidgetsBindingObserver {
   String buildChatTagFromMessage(ChatHisList m) {
     final meId = APIs.me?.userId?.toString();
     final fromId = m.fromUser?.userId?.toString();
-    final toId   = m.toUser?.userId?.toString();
+    final toId = m.toUser?.userId?.toString();
 
     // for 1-1: other side id
     final otherId = (fromId == meId) ? toId : fromId;
@@ -686,16 +681,24 @@ class SocketController extends GetxController with WidgetsBindingObserver {
     return "chat_${otherId ?? 'mobile'}";
   }
 
-
   void updateResentWeb() {
     socket?.off('update_recent_list');
 
     socket?.on('update_recent_list', (messages) {
       debugPrint("update_recent_list listener......");
-      debugPrint("update_recent_list  listener ${jsonEncode(messages.toString())}");
+      debugPrint(
+          "update_recent_list  listener ${jsonEncode(messages.toString())}");
       try {
         final updated = UserDataAPI.fromJson(messages);
+        final myUcId = APIs.me.userCompany?.userCompanyId;
+        final updatedUcId = updated.userCompany?.userCompanyId;
 
+//         if (myUcId == null || updatedUcId == null) return;
+//
+// // Ignore self updates (important!)
+//         if (updatedUcId == myUcId && updated.userCompany?.isGroup != 1) {
+//           return;
+//         }
         final activeCompanyId = APIs.me.userCompany?.companyId;
         final msgCompanyId = updated.userCompany?.companyId;
 
@@ -705,20 +708,7 @@ class SocketController extends GetxController with WidgetsBindingObserver {
         if (!Get.isRegistered<ChatHomeController>()) return;
         final chatController = Get.find<ChatHomeController>();
 
-
         final list = chatController.filteredList;
-
-        final loggedInUserCompanyId = APIs.me.userCompany?.userCompanyId;
-
-        // Skip updates for the logged-in user "Me"
-        // final isLoggedInUserInList = list.any((e){
-        //  return e.userId == loggedInUserCompanyId;
-        // });
-        // if (isLoggedInUserInList) {
-        //   print("loggedInUserCompanyId");
-        //   print(isLoggedInUserInList);
-        //   return; // Skip if it's the logged-in user's recent message
-        // }
 
         final isGroupRow = updated.userCompany?.isGroup == 1;
 
@@ -734,8 +724,6 @@ class SocketController extends GetxController with WidgetsBindingObserver {
           }
         }
 
-
-
         final key = updated.userCompany?.userCompanyId;
         final index =
             list.indexWhere((e) => e.userCompany?.userCompanyId == key);
@@ -744,10 +732,8 @@ class SocketController extends GetxController with WidgetsBindingObserver {
         final selectedUcId =
             chatController.selectedChat.value?.userCompany?.userCompanyId;
 
-        final isCurrentlyOpen =
-        (selectedUcId != null &&
+        final isCurrentlyOpen = (selectedUcId != null &&
             selectedUcId == updated.userCompany?.userCompanyId);
-
 
         if (index != -1) {
           // print("index");
@@ -755,16 +741,18 @@ class SocketController extends GetxController with WidgetsBindingObserver {
           final existing = list[index];
           // print("existing.userCompany?.displayName");
           // print(existing.userCompany?.displayName);
-
+          // if(APIs.me.userId != existing.userId){
           existing.lastMessage = updated.lastMessage;
+          // }
+
           DashboardController? dashCon;
-          if(Get.isRegistered<DashboardController>()){
+          if (Get.isRegistered<DashboardController>()) {
             dashCon = Get.find<DashboardController>();
           }
           if (isCurrentlyOpen) {
             existing.pendingCount = 0;
-            dashCon?.newCompanyChat.value=false;
-            dashCon?.newChat.value=false;
+            dashCon?.newCompanyChat.value = false;
+            dashCon?.newChat.value = false;
           } else {
             existing.pendingCount =
                 updated.pendingCount ?? existing.pendingCount;
@@ -774,13 +762,12 @@ class SocketController extends GetxController with WidgetsBindingObserver {
           if (index != 0) {
             // print("list[index].userCompany?.displayName");
             // print(list[index].userCompany?.displayName);
-              list.removeAt(index);
-              list.insert(0, existing);
+            list.removeAt(index);
+            list.insert(0, existing);
           }
           // print("existing.userId");
           // print(existing.userId);
         } else {
-
           if (isCurrentlyOpen) updated.pendingCount = 0;
           list.insert(0, updated);
           // print("updated.userId");
@@ -893,6 +880,7 @@ class SocketController extends GetxController with WidgetsBindingObserver {
     socket?.off('update_recent_task_list');
 
     socket?.on('update_recent_task_list', (messages) {
+      debugPrint("update_recent_task_list ${jsonEncode(messages.toString())}");
       try {
         final updated = UserDataAPI.fromJson(messages);
 
@@ -1085,24 +1073,17 @@ class SocketController extends GetxController with WidgetsBindingObserver {
 
   void registerUpdateRecentTaskUserListenerMobile() {
     socket?.off('update_recent_task_list');
-
     socket?.on('update_recent_task_list', (messages) {
       try {
         final updated = UserDataAPI.fromJson(messages);
-
-        // ✅ 1) Company mismatch => DO NOTHING
         final activeCompanyId = APIs.me.userCompany?.companyId;
         final msgCompanyId = updated.userCompany?.companyId;
-
         if (activeCompanyId == null || msgCompanyId == null) return;
-        if (activeCompanyId != msgCompanyId) return; // ✅ ignore other company
+        if (activeCompanyId != msgCompanyId) return;
 
         if (!Get.isRegistered<TaskHomeController>()) return;
         final taskhomeC = Get.find<TaskHomeController>();
-
         final list = taskhomeC.filteredList;
-
-        // ✅ 2) Use unique key if possible (recommended)
         final key = updated.userCompany?.userCompanyId;
 
         final idx = (key != null)
@@ -1112,17 +1093,15 @@ class SocketController extends GetxController with WidgetsBindingObserver {
         if (idx != -1) {
           final existing = list[idx];
           var dashCon;
-          if(Get.isRegistered<DashboardController>()){
+          if (Get.isRegistered<DashboardController>()) {
             dashCon = Get.find<DashboardController>();
           }
-          // update last preview + pending if you want (optional but useful)
+
           existing.lastMessage = updated.lastMessage;
           existing.pendingCount = updated.pendingCount ?? existing.pendingCount;
-
-          // move to top
           list.removeAt(idx);
           list.insert(0, existing);
-          dashCon.newTask.value=true;
+          dashCon.newTask.value = true;
         } else {
           list.insert(0, updated);
         }
@@ -1136,10 +1115,10 @@ class SocketController extends GetxController with WidgetsBindingObserver {
 
   void connectUserEmitter(companyId) {
     try {
-      if (companyId != null && APIs.me?.userId != null) {
+      if (companyId != null && APIs.me.userId != null) {
         socket?.emit('select_company', {
           'company_id': companyId,
-          'user_id': APIs.me!.userId,
+          'user_id': APIs.me.userId,
         });
         debugPrint("user connected");
       }
@@ -1151,6 +1130,7 @@ class SocketController extends GetxController with WidgetsBindingObserver {
   void _registerDeleteListener() {
     socket?.off('delete_message_listener');
     socket?.on('delete_message_listener', (data) {
+      debugPrint("delete_message_listener ${jsonEncode(data.toString())}");
       try {
         Map<String, dynamic> map;
         if (data is Map) {
@@ -1239,13 +1219,11 @@ class SocketController extends GetxController with WidgetsBindingObserver {
     final _tagid = TaskPresence.activeTaskId.value;
     final _tag = "task_${_tagid ?? 'mobile'}";
     TaskController? taskController;
-    if(!kIsWeb || Get.width<600){
-      taskController =
-          Get.find<TaskController>();
-    }else{
+    if (!kIsWeb || Get.width < 600) {
+      taskController = Get.find<TaskController>();
+    } else {
       if (Get.isRegistered<TaskController>(tag: _tag)) {
-        taskController =
-            Get.find<TaskController>(tag: _tag);
+        taskController = Get.find<TaskController>(tag: _tag);
       }
     }
 
@@ -1270,7 +1248,6 @@ class SocketController extends GetxController with WidgetsBindingObserver {
     msg?.currentStatus = null;
     msg?.statusHistory = null;
     msg?.media = <TaskMedia>[];
-
     // 3) put back & rebuild your date groups
     taskController?.taskHisList?[idx] = msg!;
     taskController?.taskHisList!.removeAt(idx);
@@ -1346,17 +1323,16 @@ class SocketController extends GetxController with WidgetsBindingObserver {
     socket?.on('read_message_listener', (data) {
       debugPrint("read_message_listener: ${jsonEncode(data)}");
       var dashCon;
-      if(Get.isRegistered<DashboardController>()){
+      if (Get.isRegistered<DashboardController>()) {
         dashCon = Get.find<DashboardController>();
       }
       final _tagid = ChatPresence.activeChatId.value;
       final _tag = "chat_${_tagid ?? 'mobile'}";
       final homeController = Get.find<ChatHomeController>();
       final ChatScreenController chatScreenController;
-      if(!kIsWeb || Get.width<600){
-        chatScreenController =
-            Get.find<ChatScreenController>();
-      }else{
+      if (!kIsWeb || Get.width < 600) {
+        chatScreenController = Get.find<ChatScreenController>();
+      } else {
         chatScreenController = Get.find<ChatScreenController>(tag: _tag);
       }
       final int fromUcId = data['from_uc_id'];
@@ -1369,8 +1345,8 @@ class SocketController extends GetxController with WidgetsBindingObserver {
 
       if (index != -1) {
         homeController.filteredList[index].pendingCount = 0;
-        dashCon.newChat.value=false;
-        dashCon.newCompanyChat.value=false;
+        dashCon.newChat.value = false;
+        dashCon.newCompanyChat.value = false;
       }
 
       // 2️⃣ Update read_on in currently open chat
@@ -1427,7 +1403,6 @@ class SocketController extends GetxController with WidgetsBindingObserver {
         });
         debugPrint(
             "Message sent: $message ,receiverId: $toId ,fromid: ${APIs.me.userId}, comapnyid: ${APIs.me.userCompany?.userCompanyId}");
-
       } catch (e) {
         debugPrint(e.toString());
       }
@@ -1436,7 +1411,7 @@ class SocketController extends GetxController with WidgetsBindingObserver {
     }
   }
 
-  Future<void>  sendMessage({
+  Future<void> sendMessage({
     int? receiverId,
     String? message,
     var companyId,
@@ -1448,6 +1423,7 @@ class SocketController extends GetxController with WidgetsBindingObserver {
     int isGroup = 0,
     String? type,
     int? replyToId,
+    int? mediaId,
     String? replyToText,
     int isForward = 0,
     String pushToken = '',
@@ -1455,23 +1431,23 @@ class SocketController extends GetxController with WidgetsBindingObserver {
   }) async {
     if (socket != null && socket!.connected) {
       debugPrint("Message sent:---------- $message");
-      final Map<String,dynamic> map = {
-        "type":type,
-        "groupId":groupId,
-        "brID":brID,
-        "companyId":companyId,
-        "receiverId":receiverId,
-        "replyToId":replyToId,
-        "replyToText":replyToText,
-        "message":message,
-        "isGroup":isGroup,
-        "alreadySave":alreadySave,
-        "chatId":chatId,
-        "isForward":isForward,
-        "forwardChatId":forwardChatId,
+      final Map<String, dynamic> map = {
+        "type": type,
+        "groupId": groupId,
+        "brID": brID,
+        "companyId": companyId,
+        "receiverId": receiverId,
+        "replyToId": replyToId,
+        "replyToText": replyToText,
+        "message": message,
+        "isGroup": isGroup,
+        "alreadySave": alreadySave,
+        "chatId": chatId,
+        "isForward": isForward,
+        "forwardChatId": forwardChatId,
+        "mediaId": mediaId,
       };
-      print("map========");
-      debugPrint(map.toString(),wrapWidth: 2000);
+      debugPrint(map.toString(), wrapWidth: 2000);
       try {
         socket?.emit('send_message', {
           "mode": type,
@@ -1480,6 +1456,7 @@ class SocketController extends GetxController with WidgetsBindingObserver {
           "company_id": companyId,
           "to_user_id": receiverId,
           "reply_to_id": replyToId,
+          "chat_media_id": mediaId,
           "reply_to_text": replyToText,
           "text": message,
           'is_group': isGroup,
@@ -1489,12 +1466,11 @@ class SocketController extends GetxController with WidgetsBindingObserver {
           "forward_source_chat_id": forwardChatId,
         });
 
-
         debugPrint(
             "Message sent: $message ,receiverId: $receiverId,replyToId: $replyToId, Broadcast user id,: $brID , forwardChatId: $forwardChatId, fromid: ${APIs.me.userId}, comapnyid: ${APIs.me.userCompany?.userCompanyId}, group id: $groupId, alreadySaved: ${alreadySave}");
         var token = StorageService.getToken();
         debugPrint("authorization token is ********* $token");
-        if(forwardChatId!=null){
+        if (forwardChatId != null) {
           Dialogs.showSnackbar(Get.context!, "Message forwarded to $username");
         }
 
@@ -1694,7 +1670,8 @@ class SocketController extends GetxController with WidgetsBindingObserver {
           "company_id": companyId,
           "to_id": receiverId,
         });
-        Dialogs.showSnackbar(Get.context!,"Task Forwarded Successfully to this $user!");
+        Dialogs.showSnackbar(
+            Get.context!, "Task Forwarded Successfully to this $user!");
         debugPrint("Message sent:TaskID $taskID ,receiverId: $receiverId ");
         final svc = CompanyService.to;
         final myCompany = svc.selected;

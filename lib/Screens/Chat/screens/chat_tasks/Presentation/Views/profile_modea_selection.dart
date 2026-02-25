@@ -174,10 +174,10 @@ class _MediaGrid extends StatelessWidget {
                   url,
                   height: double.infinity,
                   width: double.infinity,
-                  borderWidth: 3,
+                  borderWidth: 1,
                   boxFit: BoxFit.cover,
-                  borderColor: Colors.red,
-                  radiusAll: 8,
+                  borderColor: greyColor,
+                  radiusAll: 6,
                 ),
               ),
             );

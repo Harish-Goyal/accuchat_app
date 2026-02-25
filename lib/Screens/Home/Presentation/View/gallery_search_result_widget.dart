@@ -214,6 +214,7 @@ class GlobalSearchResultTile extends StatelessWidget {
                       if (isFolder) {
                         onOpenFolder(item.folderName ?? "");
                       } else {
+
                         onOpenMedia(item);
                       }
                     },
