@@ -1,6 +1,8 @@
 import 'package:AccuChat/Screens/Chat/models/get_company_res_model.dart';
 import 'package:AccuChat/Screens/Settings/Model/get_nav_permission_res_model.dart';
 import 'package:AccuChat/Screens/Settings/Presentation/Controllers/role_list_controller.dart';
+import 'package:firebase_crashlytics/firebase_crashlytics.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:get/get.dart';
@@ -45,13 +47,17 @@ class CreateRoleController extends GetxController {
   bool isLoadingPer = true;
 
   hitAPIToGetNavPermissions() async {
-    Get.find<PostApiServiceImpl>()
+    await Get.find<PostApiServiceImpl>()
         .getNavigationPermissionApiCall()
         .then((value) async {
       isLoadingPer=false;
       navPermissionData = value.data??[];
       update();
     }).onError((error, stackTrace) {
+      if(!kIsWeb) {
+        FirebaseCrashlytics.instance.recordError(
+            error, stackTrace, reason: 'apiCall failed');
+      }
       isLoadingPer=false;
       update();
     });
@@ -67,7 +73,7 @@ class CreateRoleController extends GetxController {
       "navigation_items": selectedPermissionsIds
     };
 
-    Get.find<PostApiServiceImpl>()
+    await Get.find<PostApiServiceImpl>()
         .createRoleApiCall(dataBody: reqData)
         .then((value) {
       customLoader.hide();
@@ -76,6 +82,10 @@ class CreateRoleController extends GetxController {
       toast(value.message??'');
       update();
     }).onError((error, stackTrace) {
+      if(!kIsWeb) {
+        FirebaseCrashlytics.instance.recordError(
+            error, stackTrace, reason: 'apiCall failed');
+      }
       update();
       Get.back();
       customLoader.hide();

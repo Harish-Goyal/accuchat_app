@@ -1,6 +1,7 @@
 import 'package:AccuChat/Screens/Chat/screens/auth/models/get_uesr_Res_model.dart';
 import 'package:AccuChat/Screens/Home/Presentation/Controller/company_service.dart';
 import 'package:AccuChat/utils/custom_flashbar.dart';
+import 'package:firebase_crashlytics/firebase_crashlytics.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
@@ -50,7 +51,7 @@ class CompaniesController extends GetxController {
   hitAPIToGetCompanies() async {
     loadingCompany = true;
     update();
-    Get.find<PostApiServiceImpl>()
+    await Get.find<PostApiServiceImpl>()
         .getJoinedCompanyListApiCall()
         .then((value) async {
       loadingCompany = false;
@@ -58,6 +59,10 @@ class CompaniesController extends GetxController {
       joinedCompaniesList = value.data ?? [];
       update();
     }).onError((error, stackTrace) {
+      if(!kIsWeb) {
+        FirebaseCrashlytics.instance.recordError(
+            error, stackTrace, reason: 'apiCall failed');
+      }
       loadingCompany = false;
       update();
     });
@@ -86,13 +91,17 @@ class CompaniesController extends GetxController {
   hitAPIToGetPendingInvites() async {
     isLoadingInvited = true;
     update();
-    Get.find<PostApiServiceImpl>()
+    await Get.find<PostApiServiceImpl>()
         .pendingInviteListApiCall()
         .then((value) async {
       pendingInvitesList = value.data ?? [];
       isLoadingInvited = false;
       update();
     }).onError((error, stackTrace) {
+      if(!kIsWeb) {
+        FirebaseCrashlytics.instance.recordError(
+            error, stackTrace, reason: 'apiCall failed');
+      }
       isLoadingInvited = false;
       update();
     });
@@ -112,7 +121,10 @@ class CompaniesController extends GetxController {
       isLoadingPending = false;
       sentInviteList = value.data ?? [];
     }).onError((error, stackTrace) {
-      toast(error.toString());
+      if(!kIsWeb) {
+        FirebaseCrashlytics.instance.recordError(
+            error, stackTrace, reason: 'apiCall failed');
+      }
       customLoader.hide();
     });
   }
@@ -336,7 +348,7 @@ class CompaniesController extends GetxController {
 
   deleteCompanyApi(comId) async {
     customLoader.show();
-    Get.find<PostApiServiceImpl>()
+    await Get.find<PostApiServiceImpl>()
         .deleteCompanyApiCall(compId: comId)
         .then((value) async {
       toast(value.message);
@@ -345,6 +357,10 @@ class CompaniesController extends GetxController {
       update();
       Get.offAllNamed(AppRoutes.landing_r);
     }).onError((error, stackTrace) {
+      if(!kIsWeb) {
+        FirebaseCrashlytics.instance.recordError(
+            error, stackTrace, reason: 'apiCall failed');
+      }
       update();
       customLoader.hide();
       errorDialog(error.toString());

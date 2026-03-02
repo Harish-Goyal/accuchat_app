@@ -210,11 +210,11 @@ class CompanyMembers extends GetView<CompanyMemberController> {
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
                                 Text(
-                                  memData.userName != null
-                                      ? memData.userName ?? ''
-                                      : memData.userCompany?.displayName !=
-                                              null
-                                          ? memData.userCompany?.displayName ??
+                                  memData.userCompany?.displayName != null
+                                      ? memData.userCompany?.displayName ?? ''
+                                      :  memData.userName !=
+                                      null
+                                          ? memData.userName ??
                                               ''
                                           : memData.phone ?? '',
                                   style: BalooStyles.baloosemiBoldTextStyle(),
@@ -231,7 +231,7 @@ class CompanyMembers extends GetView<CompanyMemberController> {
                                             ? memData.phone ?? ''
                                             : memData.email ?? '',
                                         style:
-                                            BalooStyles.balooregularTextStyle(),
+                                            BalooStyles.balooregularTextStyle(color: greyText),
                                         maxLines: 1,
                                         overflow: TextOverflow.ellipsis,
                                       )

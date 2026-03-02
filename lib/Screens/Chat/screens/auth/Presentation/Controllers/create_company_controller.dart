@@ -3,6 +3,7 @@ import 'dart:convert';
 import 'package:AccuChat/Screens/Chat/api/apis.dart';
 import 'package:AccuChat/Screens/Chat/models/get_company_res_model.dart';
 import 'package:AccuChat/Services/APIs/post/post_api_service_impl.dart';
+import 'package:firebase_crashlytics/firebase_crashlytics.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
@@ -158,89 +159,105 @@ class CreateCompanyController extends GetxController {
       }
 
       final api = Get.find<PostApiServiceImpl>();
-      final resp = await api.createCompanyAPICall(dataBody: form);
+      await api.createCompanyAPICall(dataBody: form).then((resp) async {
 
-      companyResponse = resp.data!;
-      _clearFields();
-      StorageService.setLoggedIn(true);
-      StorageService.setCompanyCreated(true);
 
-      // Persist company selection for refresh-safe access
-      if(Get.isRegistered<CompanyService>()) {
-        final svc = CompanyService.to;
-        await svc.select(companyResponse);
-      }
-      customLoader.show();
-      if(Get.isRegistered<CompanyService>()) {
-        final svc = CompanyService.to;
-        await svc.select(companyResponse!);
-      }else{
-        await StorageService.init();
-        await HiveBoot.init();
-        await HiveBoot.openBoxOnce<CompanyData>(selectedCompanyBox);
-        // await Get.putAsync<CompanyService>(
-        //       () async => await CompanyService().init(),
-        //   permanent: true,
-        // );
-        await Get.putAsync<CompanyService>(
-              () async => await CompanyService().init(),
-          permanent: true,
-        );
-        final svc = CompanyService.to;
-        await svc.select(companyResponse!);
-      }
+        companyResponse = resp.data!;
+        _clearFields();
+        StorageService.setLoggedIn(true);
+        StorageService.setCompanyCreated(true);
 
-      Get.putAsync<Session>(() async {
-        final s = Session(Get.find<AuthApiServiceImpl>(), Get.find<AppStorage>());
-
-        CompanyData? selCompany;
-        try {
+        // Persist company selection for refresh-safe access
+        if(Get.isRegistered<CompanyService>()) {
           final svc = CompanyService.to;
-          // OPTIONAL: if you add a `Future<void> ready` in CompanyService, await it here:
-          selCompany = svc.selected; // may be null on clean install
-        } catch (_) {}
-        // company may not exist yet on fresh install:
-        await s.initSafe(companyId: selCompany?.companyId??0);
-        return s;
-      }, permanent: true);
+          await svc.select(companyResponse);
+        }
+        customLoader.show();
+        if(Get.isRegistered<CompanyService>()) {
+          final svc = CompanyService.to;
+          await svc.select(companyResponse!);
+        }else{
+          await StorageService.init();
+          await HiveBoot.init();
+          await HiveBoot.openBoxOnce<CompanyData>(selectedCompanyBox);
+          // await Get.putAsync<CompanyService>(
+          //       () async => await CompanyService().init(),
+          //   permanent: true,
+          // );
+          await Get.putAsync<CompanyService>(
+                () async => await CompanyService().init(),
+            permanent: true,
+          );
+          final svc = CompanyService.to;
+          await svc.select(companyResponse!);
+        }
 
-      // if(!Get.isRegistered<CompanyService>()) {
-      //   await StorageService.init();
-      //   await HiveBoot.init();
-      //   await HiveBoot.openBoxOnce<CompanyData>(selectedCompanyBox);
-      //   await Get.putAsync<CompanyService>(
-      //         () async => await CompanyService().init(),
-      //     permanent: true,
-      //   );
-      // }
+        Get.putAsync<Session>(() async {
+          final s = Session(Get.find<AuthApiServiceImpl>(), Get.find<AppStorage>());
+
+          CompanyData? selCompany;
+          try {
+            final svc = CompanyService.to;
+            // OPTIONAL: if you add a `Future<void> ready` in CompanyService, await it here:
+            selCompany = svc.selected; // may be null on clean install
+          } catch (_) {}
+          // company may not exist yet on fresh install:
+          await s.initSafe(companyId: selCompany?.companyId??0);
+          return s;
+        }, permanent: true);
+
+        // if(!Get.isRegistered<CompanyService>()) {
+        //   await StorageService.init();
+        //   await HiveBoot.init();
+        //   await HiveBoot.openBoxOnce<CompanyData>(selectedCompanyBox);
+        //   await Get.putAsync<CompanyService>(
+        //         () async => await CompanyService().init(),
+        //     permanent: true,
+        //   );
+        // }
 
 
-      // refresh current user/session for that company
-      await APIs.refreshMe(companyId: companyResponse.companyId ?? 0);
+        // refresh current user/session for that company
+        await APIs.refreshMe(companyId: companyResponse.companyId ?? 0);
 
-      customLoader.hide();
-      toast(resp.message ?? 'Company created');
+        customLoader.hide();
+        toast(resp.message ?? 'Company created');
+        if(!kIsWeb){
+          FirebaseCrashlytics.instance.setUserIdentifier(APIs.me.userId.toString());
+          FirebaseCrashlytics.instance.setCustomKey('companyId', companyResponse?.companyId.toString() ?? '');
+          FirebaseCrashlytics.instance.setCustomKey('app', 'AccuChat'); // optional
+        }
+        // ---- Navigate to Invite Member ----
+        if (kIsWeb) {
+          Get.offAllNamed(
+              AppRoutes.home
+          );
+        } else {
+          // Use arguments on mobile
+          Get.offAllNamed(
+            AppRoutes.invite_member,
+            arguments: {
+              'companyName': companyResponse.companyName,
+              'companyId'  : companyResponse.companyId,
+              'invitedBy'  : companyResponse.createdBy,
+            },
+          );
+        }
 
-      // ---- Navigate to Invite Member ----
-      if (kIsWeb) {
-        Get.offAllNamed(
-          AppRoutes.home
-        );
-      } else {
-        // Use arguments on mobile
-        Get.offAllNamed(
-          AppRoutes.invite_member,
-          arguments: {
-            'companyName': companyResponse.companyName,
-            'companyId'  : companyResponse.companyId,
-            'invitedBy'  : companyResponse.createdBy,
-          },
-        );
-      }
+      }).onError((error,stackTrace){
+
+        if(!kIsWeb) {
+          FirebaseCrashlytics.instance.recordError(
+              error, stackTrace, reason: 'apiCall failed');
+        }
+      });
+
+
 
       update();
     } catch (e) {
       customLoader.hide();
+
       errorDialog(e.toString());
       update();
     }

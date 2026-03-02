@@ -11,6 +11,7 @@ import 'package:AccuChat/Screens/Settings/Presentation/Views/all_settings.dart';
 import 'package:AccuChat/utils/loading_indicator.dart';
 import 'package:AccuChat/utils/text_style.dart';
 import 'package:connectivity_plus/connectivity_plus.dart';
+import 'package:firebase_crashlytics/firebase_crashlytics.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -280,7 +281,7 @@ class DashboardController extends GetxController with WidgetsBindingObserver {
     final svc = CompanyService.to;
     myCompany = svc.selected;
     if (!svc.hasCompany){
-      Get.offAllNamed(AppRoutes.landing_r);
+      showCompanyErrorDialog();
       return;
     }
     // update();
@@ -289,12 +290,17 @@ class DashboardController extends GetxController with WidgetsBindingObserver {
 
   List<RolesData> rolesList = [];
   Future<void> hitAPIToGetAllRolesAPI() async {
-    Get.find<PostApiServiceImpl>()
+    await Get.find<PostApiServiceImpl>()
         .getCompanyRolesApiCall(myCompany?.companyId)
         .then((value) async {
       rolesList = value.data ?? [];
       update();
     }).onError((error, stackTrace) {
+
+      if(!kIsWeb) {
+        FirebaseCrashlytics.instance.recordError(
+            error, stackTrace, reason: 'apiCall failed');
+      }
       update();
     });
   }
@@ -324,7 +330,7 @@ class DashboardController extends GetxController with WidgetsBindingObserver {
   bool isLoadingPer = true;
 
   hitAPIToGetNavPermissions() async {
-    Get.find<PostApiServiceImpl>()
+    await Get.find<PostApiServiceImpl>()
         .getNavPerUSerApiCall(
             comId: myCompany?.companyId ?? 0,
             userComId: userData.userCompany?.userCompanyRoleId ?? 0)
@@ -334,6 +340,10 @@ class DashboardController extends GetxController with WidgetsBindingObserver {
       saveNavigation(userNav ?? []);
       update();
     }).onError((error, stackTrace) {
+      if(!kIsWeb) {
+        FirebaseCrashlytics.instance.recordError(
+            error, stackTrace, reason: 'apiCall failed');
+      }
       isLoadingPer = false;
       update();
     });
@@ -359,7 +369,11 @@ class DashboardController extends GetxController with WidgetsBindingObserver {
       saveUser(userData);
       _navigationLogic();
     }).onError((error, stackTrace) {
-      // showCompanyErrorDialog();
+      showCompanyErrorDialog();
+      if(!kIsWeb) {
+        FirebaseCrashlytics.instance.recordError(
+            error, stackTrace, reason: 'apiCall failed');
+      }
       customLoader.hide();
       errorDialog(error.toString());
       update();

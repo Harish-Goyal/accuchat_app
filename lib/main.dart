@@ -1,8 +1,10 @@
+import 'dart:async';
 import 'package:AccuChat/Screens/Home/Presentation/Controller/home_controller.dart';
 import 'package:AccuChat/routes/app_pages.dart';
 import 'package:AccuChat/routes/app_routes.dart';
 import 'package:AccuChat/utils/no_network.dart';
 import 'package:firebase_core/firebase_core.dart';
+import 'package:firebase_crashlytics/firebase_crashlytics.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
@@ -16,7 +18,6 @@ import 'Constants/app_theme.dart';
 import 'Screens/Chat/helper/local_notification_channel.dart';
 import 'Screens/Chat/models/get_company_res_model.dart';
 import 'Screens/Home/Presentation/Controller/company_service.dart';
-import 'Screens/Home/Presentation/Controller/socket_controller.dart';
 import 'Services/APIs/auth_service/auth_api_services_impl.dart';
 import 'Services/APIs/post/post_api_service_impl.dart';
 import 'Services/hive_boot.dart';
@@ -46,6 +47,7 @@ class GlobalVariable {
 
 Future<void>? _bootOnce;
 
+
 Future<void> main() async {
   Get.put(NoNetworkController(), permanent: true);
   SystemChrome.setSystemUIOverlayStyle(const SystemUiOverlayStyle(
@@ -59,6 +61,10 @@ Future<void> main() async {
   await Firebase.initializeApp(
     options: DefaultFirebaseOptions.currentPlatform,
   );
+
+  FlutterError.onError = (details) {
+    FirebaseCrashlytics.instance.recordFlutterError(details);
+  };
 
   FirebaseMessaging.onBackgroundMessage(
     firebaseMessagingBackgroundHandler,
@@ -101,7 +107,14 @@ Future<void> main() async {
   SystemChrome.setPreferredOrientations(
           [DeviceOrientation.portraitUp, DeviceOrientation.portraitDown])
       .then((value) {
-    runApp(const MyApp());
+    runZonedGuarded(() {
+      runApp(const MyApp());
+    }, (error, stack) {
+      if(!kIsWeb){
+        FirebaseCrashlytics.instance.recordError(error, stack, fatal: true);
+      }
+    });
+
 
     WidgetsBinding.instance.addPostFrameCallback((_) {
       _bootOnce ??=
@@ -109,6 +122,7 @@ Future<void> main() async {
     });
   });
 }
+
 
 const selectedCompanyBox = 'selected_company_box';
 Future<void> _deferredBoot() async {

@@ -7,6 +7,7 @@ import 'package:AccuChat/Screens/Chat/screens/chat_tasks/Presentation/Controller
 import 'package:AccuChat/Screens/Chat/screens/chat_tasks/Presentation/Controllers/task_thread_controller.dart';
 import 'package:AccuChat/Screens/Chat/screens/chat_tasks/Presentation/Views/taskThreadScreenWEb.dart';
 import 'package:file_picker/file_picker.dart';
+import 'package:firebase_crashlytics/firebase_crashlytics.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
 import 'package:get/get.dart';
@@ -207,6 +208,11 @@ class TaskController extends GetxController {
       openConversation(user);
       update();
     }).onError((error, stackTrace) {
+
+     if(!kIsWeb) {
+       FirebaseCrashlytics.instance.recordError(
+           error, stackTrace, reason: 'apiCall failed');
+     }
       update();
       errorDialog(error.toString());
     }).whenComplete(() {});
@@ -243,11 +249,15 @@ class TaskController extends GetxController {
   hitAPIToGetTaskStatus() async {
     isLoadings = true;
     update();
-    Get.find<PostApiServiceImpl>().getTaskStatusApiCall().then((value) async {
+   await Get.find<PostApiServiceImpl>().getTaskStatusApiCall().then((value) async {
       isLoadings = false;
       taskStatus = value.data ?? [];
       update();
     }).onError((error, stackTrace) {
+     if(!kIsWeb) {
+       FirebaseCrashlytics.instance.recordError(
+           error, stackTrace, reason: 'apiCall failed');
+     }
       isLoadings = false;
       update();
     });
@@ -617,12 +627,9 @@ class TaskController extends GetxController {
         'task_media': mediaFiles, // server expects an array field
       });
 
-      final resp = await Get.find<PostApiServiceImpl>().uplaodTaskAttachmentsAPICall(
+    await Get.find<PostApiServiceImpl>().uplaodTaskAttachmentsAPICall(
         dataBody: formData,
-        // If your service exposes progress:
-        // onSendProgress: (s, t) => setUploadProgress(s, t),
-      );
-
+      ).then((resp){
       isUploading = false;
       update();
 
@@ -641,6 +648,16 @@ class TaskController extends GetxController {
       } catch (e) {
         debugPrint('sendTaskMessage (with files) error: $e');
       }
+
+    }).onError((error,stackTrace){
+
+      if(!kIsWeb) {
+        FirebaseCrashlytics.instance.recordError(
+            error, stackTrace, reason: 'apiCall failed');
+      }
+    });
+
+
     } catch (e) {
       isUploading = false;
       update();
@@ -918,32 +935,36 @@ class TaskController extends GetxController {
               'task_media': mediaFiles,
             });
 
-            final resp =
             await Get.find<PostApiServiceImpl>().uplaodTaskAttachmentsAPICall(
               dataBody: formData,
-            );
-
-            isUploading = false;
-            update();
-
-            final attachments = resp.data?.files ?? [];
-
-            try {
-              Get.find<SocketController>().updateTaskMessage(
-                taskID: task.taskId,
-                receiverId: user?.userCompany?.userCompanyId,
-                companyId: myCompany?.companyId,
-                taskTitle: titleController.text.trim(),
-                taskDes: descController.text.trim(),
-                taskDeadline: time,
-                // 👇 Fresh full list from API
-                attachmentsList: attachments,
-              );
-              Get.back();
+            ).then((resp){
+              isUploading = false;
               update();
-            } catch (e) {
-              debugPrint(e.toString());
-            }
+
+              final attachments = resp.data?.files ?? [];
+
+              try {
+                Get.find<SocketController>().updateTaskMessage(
+                  taskID: task.taskId,
+                  receiverId: user?.userCompany?.userCompanyId,
+                  companyId: myCompany?.companyId,
+                  taskTitle: titleController.text.trim(),
+                  taskDes: descController.text.trim(),
+                  taskDeadline: time,
+                  // 👇 Fresh full list from API
+                  attachmentsList: attachments,
+                );
+                Get.back();
+                update();
+              } catch (e) {
+                debugPrint(e.toString());
+              }
+            }).onError((error,stackTrace){
+              if(!kIsWeb) {
+                FirebaseCrashlytics.instance.recordError(
+                    error, stackTrace, reason: 'apiCall failed');
+              }
+            });
 
             // ===========================
             //   CASE 2: NO ATTACHMENTS
@@ -1230,41 +1251,48 @@ class TaskController extends GetxController {
     isPageLoading = true;
     update();
     try {
-      final value = await Get.find<PostApiServiceImpl>().getTaskHistoryApiCall(
+      await Get.find<PostApiServiceImpl>().getTaskHistoryApiCall(
           userComId: user?.userCompany?.userCompanyId,
           page: page,
           statusId: statusId ?? '',
           searchText: search,
           fromDate: fromDate,
           toDate: toDate
-      );
-      showPostShimmer = false;
-      taskHisRes = value;
-      final rows = value.data?.rows ?? [];
-      if (rows.isNotEmpty) {
-        if (page == 1) {
-          taskHisList = rows;
+      ).then((value){
+        showPostShimmer = false;
+        taskHisRes = value;
+        final rows = value.data?.rows ?? [];
+        if (rows.isNotEmpty) {
+          if (page == 1) {
+            taskHisList = rows;
+          } else {
+            taskHisList?.addAll(rows);
+          }
+          page++;
         } else {
-          taskHisList?.addAll(rows);
+          if (!isFilter) {
+            // isPageLoading = false;
+            hasMore = false;
+          } else {
+            hasMore = false;
+            taskHisList = [];
+            taskCategory = [];
+          }
         }
-        page++;
-      } else {
-        if (!isFilter) {
-          // isPageLoading = false;
-          hasMore = false;
-        } else {
-          hasMore = false;
-          taskHisList = [];
-          taskCategory = [];
+        taskCategory = (taskHisList ?? []).map((item) {
+          DateTime? datais;
+          if (item.createdOn != null) {
+            datais = DateTime.parse(item.createdOn ?? '');
+          }
+          return GroupTaskElement(datais ?? DateTime.now(), item);
+        }).toList();
+      }).onError((error,stackTrace){
+        if(!kIsWeb) {
+          FirebaseCrashlytics.instance.recordError(
+              error, stackTrace, reason: 'apiCall failed');
         }
-      }
-      taskCategory = (taskHisList ?? []).map((item) {
-        DateTime? datais;
-        if (item.createdOn != null) {
-          datais = DateTime.parse(item.createdOn ?? '');
-        }
-        return GroupTaskElement(datais ?? DateTime.now(), item);
-      }).toList();
+      });
+
 
     } catch (e) {
       showPostShimmer = false;

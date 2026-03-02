@@ -2,6 +2,7 @@ import 'package:AccuChat/Screens/Chat/screens/auth/Presentation/Controllers/land
 import 'package:AccuChat/Services/APIs/local_keys.dart';
 import 'package:AccuChat/main.dart';
 import 'package:AccuChat/utils/helper_widget.dart';
+import 'package:firebase_crashlytics/firebase_crashlytics.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
@@ -20,6 +21,7 @@ import '../../../../../../utils/shares_pref_web.dart';
 import '../../../../../../utils/text_style.dart';
 import '../../../../../Home/Presentation/Controller/company_service.dart';
 import '../../../../../Home/Presentation/View/home_screen.dart';
+import '../../../../api/apis.dart';
 import '../../../../api/session_alive.dart';
 import '../../../../models/get_company_res_model.dart';
 
@@ -141,6 +143,13 @@ class LandingPage extends GetView<LandingScreenController> {
 
                                         StorageService.setLoggedIn(true);
                                         customLoader.hide();
+                                        if(!kIsWeb){
+                                          FirebaseCrashlytics.instance.setUserIdentifier(APIs.me.userId.toString());
+                                          FirebaseCrashlytics.instance.setCustomKey('companyId', company.companyId.toString() ?? '');
+                                          FirebaseCrashlytics.instance.setCustomKey('app', 'AccuChat'); // optional
+
+                                        }
+
                                         Get.offAllNamed(AppRoutes.home);
 
                                       },
@@ -191,6 +200,12 @@ class LandingPage extends GetView<LandingScreenController> {
 
                                       StorageService.setLoggedIn(true);
                                       customLoader.hide();
+                                      if(!kIsWeb){
+                                        FirebaseCrashlytics.instance.setUserIdentifier(APIs.me.userId.toString());
+                                        FirebaseCrashlytics.instance.setCustomKey('companyId', company.companyId.toString() ?? '');
+                                        FirebaseCrashlytics.instance.setCustomKey('app', 'AccuChat'); // optional
+
+                                      }
                                       Get.offAllNamed(AppRoutes.home);
 
                                     },

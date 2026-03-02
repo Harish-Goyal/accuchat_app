@@ -1,6 +1,7 @@
 import 'package:AccuChat/Extension/text_field_extenstion.dart';
 import 'package:AccuChat/Screens/Home/Presentation/Controller/invite_member_with_role_controller.dart';
 import 'package:AccuChat/utils/text_style.dart';
+import 'package:firebase_crashlytics/firebase_crashlytics.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
 import 'package:get/get.dart';
@@ -113,7 +114,7 @@ class InviteMemberController extends GetxController {
     isLoadingMember = true;
     update();
     final int cId = int.parse(companyId.toString());
-    Get.find<PostApiServiceImpl>()
+    await Get.find<PostApiServiceImpl>()
         .getAllMembersApiCall(comid:cId)
         .then((value) async {
       allInvitedAndJoinedMemberList = value.data ?? [];
@@ -121,6 +122,10 @@ class InviteMemberController extends GetxController {
       _absorbInvitedFromAPI();
       update();
     }).onError((error, stackTrace) {
+      if(!kIsWeb) {
+        FirebaseCrashlytics.instance.recordError(
+            error, stackTrace, reason: 'apiCall failed');
+      }
       isLoadingMember = false;
       update();
     });

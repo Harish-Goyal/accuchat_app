@@ -1,3 +1,5 @@
+import 'package:firebase_crashlytics/firebase_crashlytics.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:get/get.dart';
@@ -48,7 +50,7 @@ class CreateFolderDialogController extends GetxController {
       "key_words": "Gallery,Test2"
     };
 
-    Get.find<PostApiServiceImpl>()
+   await Get.find<PostApiServiceImpl>()
         .createRoleApiCall(dataBody: reqData)
         .then((value) {
       customLoader.hide();
@@ -56,6 +58,10 @@ class CreateFolderDialogController extends GetxController {
       toast(value.message??'');
       update();
     }).onError((error, stackTrace) {
+      if(!kIsWeb) {
+        FirebaseCrashlytics.instance.recordError(
+            error, stackTrace, reason: 'apiCall failed');
+      }
       update();
       Get.back();
       customLoader.hide();

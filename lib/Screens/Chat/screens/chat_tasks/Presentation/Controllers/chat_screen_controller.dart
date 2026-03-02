@@ -4,6 +4,7 @@ import 'package:AccuChat/Constants/colors.dart';
 import 'package:AccuChat/Screens/Chat/models/chat_his_res_model.dart';
 import 'package:AccuChat/Screens/Chat/models/chat_history_response_model.dart';
 import 'package:file_picker/file_picker.dart';
+import 'package:firebase_crashlytics/firebase_crashlytics.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
 import 'package:get/get.dart';
@@ -676,8 +677,7 @@ class ChatScreenController extends GetxController {
 
 
   getUserByIdApi({int? userId}) async {
-    print("calling.........");
-    Get.find<PostApiServiceImpl>()
+    await Get.find<PostApiServiceImpl>()
         .getUserByApiCall(userID: userId, comid: myCompany?.companyId)
         .then((value) async {
       user = value.data;
@@ -686,6 +686,11 @@ class ChatScreenController extends GetxController {
 
       update();
     }).onError((error, stackTrace) {
+
+      if(!kIsWeb) {
+        FirebaseCrashlytics.instance.recordError(
+            error, stackTrace, reason: 'apiCall failed');
+      }
       update();
       errorDialog(error.toString());
     }).whenComplete(() {});
@@ -755,7 +760,7 @@ class ChatScreenController extends GetxController {
   hitAPIToGetMembers(UserDataAPI? user) async {
     isLoading = true;
     update();
-    Get.find<PostApiServiceImpl>()
+   await Get.find<PostApiServiceImpl>()
         .getGrBrMemberApiCall(
             id: user?.userCompany?.userCompanyId,
             mode: user?.userCompany?.isGroup == 1 ? "group" : "broadcast")
@@ -764,6 +769,10 @@ class ChatScreenController extends GetxController {
       members = value.data?.members ?? [];
       update();
     }).onError((error, stackTrace) {
+     if(!kIsWeb) {
+       FirebaseCrashlytics.instance.recordError(
+           error, stackTrace, reason: 'apiCall failed');
+     }
       isLoading = false;
       update();
     });
@@ -802,43 +811,50 @@ class ChatScreenController extends GetxController {
     update();
 
     try {
-      final value = await Get.find<PostApiServiceImpl>().getChatHistoryApiCall(
+      await Get.find<PostApiServiceImpl>().getChatHistoryApiCall(
         userComId: user?.userCompany?.userCompanyId,
         page: page,
         searchText: searchQuery ?? '',
-      );
+      ).then((value){
+        showPostShimmer = false;
+        chatHisResModelAPI = value;
+        final rows = value.data?.rows ?? [];
 
-      showPostShimmer = false;
-      chatHisResModelAPI = value;
-      final rows = value.data?.rows ?? [];
-
-      if (rows.isNotEmpty) {
-        if (page == 1) {
-          chatHisList = rows; // Overwrite for new search
+        if (rows.isNotEmpty) {
+          if (page == 1) {
+            chatHisList = rows; // Overwrite for new search
+          } else {
+            chatHisList?.addAll(rows); // Add to list if it's a paged request
+          }
+          page++;
         } else {
-          chatHisList?.addAll(rows); // Add to list if it's a paged request
+          hasMore = false; // No more results, set flag
         }
-        page++;
-      } else {
-        hasMore = false; // No more results, set flag
-      }
 
-      chatCatygory = (chatHisList ?? []).map((item) {
-        DateTime dt = DateTime.now();
-        if (item.sentOn != null && item.sentOn!.isNotEmpty) {
-          dt = DateTime.parse(item.sentOn!).toLocal();
+        chatCatygory = (chatHisList ?? []).map((item) {
+          DateTime dt = DateTime.now();
+          if (item.sentOn != null && item.sentOn!.isNotEmpty) {
+            dt = DateTime.parse(item.sentOn!).toLocal();
+          }
+          return GroupChatElement(dt, item);
+        }).toList();
+
+        if ((user?.pendingCount ?? 0) != 0) {
+          markAllVisibleAsReadOnOpen(
+            user?.userCompany?.userCompanyId,
+            APIs.me.userCompany?.userCompanyId,
+            user?.userCompany?.isGroup == 1 ? 1 : 0,
+          );
         }
-        return GroupChatElement(dt, item);
-      }).toList();
+        rebuildFlatRows();
+      }).onError((error,stackTrace){
+        if(!kIsWeb) {
+          FirebaseCrashlytics.instance.recordError(
+              error, stackTrace, reason: 'apiCall failed');
+        }
+      });
 
-      if ((user?.pendingCount ?? 0) != 0) {
-        markAllVisibleAsReadOnOpen(
-          user?.userCompany?.userCompanyId,
-          APIs.me.userCompany?.userCompanyId,
-          user?.userCompany?.isGroup == 1 ? 1 : 0,
-        );
-      }
-      rebuildFlatRows();
+
     } catch (e) {
       showPostShimmer = false;
     } finally {
@@ -1132,13 +1148,12 @@ class ChatScreenController extends GetxController {
       final formData = multi.FormData.fromMap(fields);
 
       final svc = Get.find<PostApiServiceImpl>();
-      final resp = await svc.uploadMediaApiCall(
+    await svc.uploadMediaApiCall(
         dataBody: formData,
-      );
-
+      ).then((resp){
       isUploading = false;
       update();
-    final socketc=  Get.find<SocketController>();
+      final socketc=  Get.find<SocketController>();
       try {
         socketc.sendMessage(
           receiverId: user?.userId ?? 0,
@@ -1149,8 +1164,8 @@ class ChatScreenController extends GetxController {
           type: user?.userCompany?.isGroup == 1
               ? 'group'
               : user?.userCompany?.isBroadcast == 1
-                  ? "broadcast"
-                  : 'direct',
+              ? "broadcast"
+              : 'direct',
           groupId: user?.userCompany?.userCompanyId,
           brID: user?.userCompany?.userCompanyId,
         );
@@ -1160,6 +1175,14 @@ class ChatScreenController extends GetxController {
       } catch (e) {
         print('Socket sendMessage error: $e');
       }
+    }).onError((error,stackTrace){
+      if(!kIsWeb) {
+        FirebaseCrashlytics.instance.recordError(
+            error, stackTrace, reason: 'apiCall failed');
+      }
+    });
+
+
     } catch (e) {
       isUploading = false;
       update();
@@ -1327,33 +1350,40 @@ class ChatScreenController extends GetxController {
         });
       }
 
-      final resp = await Get.find<PostApiServiceImpl>().uploadMediaApiCall(
+   await Get.find<PostApiServiceImpl>().uploadMediaApiCall(
         dataBody: formData,
-      );
+      ).then((resp){
+     isUploading = false;
+     update();
+     final socketc =Get.find<SocketController>();
+     try {
+       socketc.sendMessage(
+         receiverId: resp.data?.chat?.toUserId ?? 0,
+         message: resp.data?.chat?.chatText ?? "",
+         isGroup: 0,
+         alreadySave: true,
+         type: user?.userCompany?.isGroup == 1
+             ? 'group'
+             : user?.userCompany?.isBroadcast == 1
+             ? "broadcast"
+             : '',
+         chatId: resp.data?.chat?.chatId ?? 0,
+         groupId: user?.userCompany?.userCompanyId,
+         brID: user?.userCompany?.userCompanyId,
+       );
+       // toast(resp.message ?? 'Uploaded');
+       update();
+     } catch (e) {
+       print('Socket sendMessage error: $e');
+     }
+   }).onError((error,stackTrace){
+     if(!kIsWeb) {
+       FirebaseCrashlytics.instance.recordError(
+           error, stackTrace, reason: 'apiCall failed');
+     }
+   });
 
-      isUploading = false;
-      update();
-      final socketc =Get.find<SocketController>();
-      try {
-        socketc.sendMessage(
-          receiverId: resp.data?.chat?.toUserId ?? 0,
-          message: resp.data?.chat?.chatText ?? "",
-          isGroup: 0,
-          alreadySave: true,
-          type: user?.userCompany?.isGroup == 1
-              ? 'group'
-              : user?.userCompany?.isBroadcast == 1
-                  ? "broadcast"
-                  : '',
-          chatId: resp.data?.chat?.chatId ?? 0,
-          groupId: user?.userCompany?.userCompanyId,
-          brID: user?.userCompany?.userCompanyId,
-        );
-        // toast(resp.message ?? 'Uploaded');
-        update();
-      } catch (e) {
-        print('Socket sendMessage error: $e');
-      }
+
     } catch (e) {
       isUploading = false;
       update();

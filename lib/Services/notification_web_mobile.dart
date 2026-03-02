@@ -1,5 +1,6 @@
 import 'dart:convert';
 import 'package:AccuChat/Screens/Chat/screens/auth/models/get_uesr_Res_model.dart';
+import 'package:firebase_crashlytics/firebase_crashlytics.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/material.dart';
@@ -170,7 +171,7 @@ class NotificationServicess {
   static CompanyData? companyResponse = CompanyData();
 
   static getCompanyByIdApi({int? companyId, required UserDataAPI user,type}) async {
-    Get.find<PostApiServiceImpl>()
+    await Get.find<PostApiServiceImpl>()
         .getCompanyByIdApiCall(companyId)
         .then((value) async {
       customLoader.hide();
@@ -187,6 +188,10 @@ class NotificationServicess {
       customLoader.hide();
     }).onError((error, stackTrace) {
       customLoader.hide();
+      if(!kIsWeb) {
+        FirebaseCrashlytics.instance.recordError(
+            error, stackTrace, reason: 'apiCall failed');
+      }
       errorDialog(error.toString());
     }).whenComplete(() {});
   }

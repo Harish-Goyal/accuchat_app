@@ -1,6 +1,7 @@
 import 'dart:convert';
 
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_crashlytics/firebase_crashlytics.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
@@ -187,7 +188,7 @@ class LocalNotificationService {
 
   static getCompanyByIdApi({int? companyId, required UserDataAPI user,type}) async {
     customLoader.show();
-    Get.find<PostApiServiceImpl>()
+    await Get.find<PostApiServiceImpl>()
         .getCompanyByIdApiCall(companyId)
         .then((value) async {
       customLoader.hide();
@@ -206,6 +207,10 @@ class LocalNotificationService {
 
       customLoader.hide();
     }).onError((error, stackTrace) {
+      if(!kIsWeb) {
+        FirebaseCrashlytics.instance.recordError(
+            error, stackTrace, reason: 'apiCall failed');
+      }
       customLoader.hide();
       errorDialog(error.toString());
     }).whenComplete(() {});

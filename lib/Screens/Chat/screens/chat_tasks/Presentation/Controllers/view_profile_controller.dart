@@ -1,5 +1,6 @@
 import 'package:AccuChat/Screens/Chat/screens/auth/models/get_uesr_Res_model.dart';
 import 'package:AccuChat/main.dart';
+import 'package:firebase_crashlytics/firebase_crashlytics.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
@@ -94,7 +95,7 @@ void _onScroll2() {
    formattedDate = DateFormat('d MMM yyyy').format(parsedDate);
  }
   getUserByIdApi({int? userId}) async {
-    Get.find<PostApiServiceImpl>()
+   await Get.find<PostApiServiceImpl>()
         .getUserByApiCall(userID: userId,comid: myCompany?.companyId)
         .then((value) async {
       isLoading =false;
@@ -105,6 +106,11 @@ void _onScroll2() {
       _fireApiForCurrentTab();
       update();
     }).onError((error, stackTrace) {
+
+     if(!kIsWeb) {
+       FirebaseCrashlytics.instance.recordError(
+           error, stackTrace, reason: 'apiCall failed');
+     }
       update();
       isLoading =false;
       update();
@@ -226,7 +232,7 @@ void _onScroll2() {
     isPageLoading1 = true;
     update();
 
-      Get.find<PostApiServiceImpl>()
+     await Get.find<PostApiServiceImpl>()
           .getAllMediaAPI(page: page,comId: myCompany?.companyId,source: isTaskMode?'task':'chat',mediaType:type,userCId: user?.userCompany?.userCompanyId )
           .then((value) async {
       isLoading = false;
@@ -252,6 +258,11 @@ void _onScroll2() {
       update();
 
     }).onError((error, stackTrace) {
+
+       if(!kIsWeb) {
+         FirebaseCrashlytics.instance.recordError(
+             error, stackTrace, reason: 'apiCall failed');
+       }
       isLoading = false;
       isPageLoading1 = false;
       update();

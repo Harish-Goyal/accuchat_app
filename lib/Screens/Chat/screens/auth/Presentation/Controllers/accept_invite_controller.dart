@@ -1,5 +1,7 @@
 import 'package:AccuChat/Screens/Chat/models/get_company_res_model.dart';
 import 'package:AccuChat/Services/APIs/post/post_api_service_impl.dart';
+import 'package:firebase_crashlytics/firebase_crashlytics.dart';
+import 'package:flutter/foundation.dart';
 import 'package:get/get.dart';
 import '../../../../../../Services/APIs/auth_service/auth_api_services_impl.dart';
 import '../../../../../../Services/hive_boot.dart';
@@ -28,7 +30,7 @@ class AcceptInviteController extends GetxController {
 
   hitAPIToAcceptInvite(inviteId,comId) async {
     customLoader.show();
-    Get.find<PostApiServiceImpl>()
+    await Get.find<PostApiServiceImpl>()
         .acceptInviteApiCall(id: inviteId)
         .then((value)  async {
       customLoader.hide();
@@ -43,6 +45,10 @@ class AcceptInviteController extends GetxController {
 
     }).onError((error, stackTrace) {
       customLoader.hide();
+      if(!kIsWeb) {
+        FirebaseCrashlytics.instance.recordError(
+            error, stackTrace, reason: 'apiCall failed');
+      }
       errorDialog(error.toString());
       update();
     });
@@ -54,7 +60,7 @@ class AcceptInviteController extends GetxController {
 
  getCompanyByIdApi({int? companyId}) async {
     customLoader.show();
-    Get.find<PostApiServiceImpl>()
+    await Get.find<PostApiServiceImpl>()
         .getCompanyByIdApiCall(companyId)
         .then((value) async {
       customLoader.hide();
@@ -98,8 +104,17 @@ class AcceptInviteController extends GetxController {
       await APIs.refreshMe(companyId: companyResponse?.companyId ?? 0);
       StorageService.setLoggedIn(true);
       StorageService.setCompanyCreated(true);
+      if(!kIsWeb){
+        FirebaseCrashlytics.instance.setUserIdentifier(APIs.me.userId.toString());
+        FirebaseCrashlytics.instance.setCustomKey('companyId', companyResponse?.companyId.toString() ?? '');
+        FirebaseCrashlytics.instance.setCustomKey('app', 'AccuChat'); // optional
+      }
       Get.offAllNamed(AppRoutes.home);
     }).onError((error, stackTrace) {
+      if(!kIsWeb) {
+        FirebaseCrashlytics.instance.recordError(
+            error, stackTrace, reason: 'apiCall failed');
+      }
       update();
       Get.back();
       customLoader.hide();
@@ -110,7 +125,7 @@ class AcceptInviteController extends GetxController {
   hitAPIToGetPendingInvites() async {
     isLoading = true;
     update();
-    Get.find<PostApiServiceImpl>()
+    await Get.find<PostApiServiceImpl>()
         .pendingInviteListApiCall()
         .then((value) async {
       pendingInvitesList = value.data ?? [];
@@ -118,6 +133,10 @@ class AcceptInviteController extends GetxController {
       update();
     }).onError((error, stackTrace) {
       isLoading = false;
+      if(!kIsWeb) {
+        FirebaseCrashlytics.instance.recordError(
+            error, stackTrace, reason: 'apiCall failed');
+      }
       update();
     });
   }

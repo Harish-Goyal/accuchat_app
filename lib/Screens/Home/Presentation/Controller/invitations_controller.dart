@@ -2,6 +2,7 @@ import 'package:AccuChat/Screens/Home/Models/get_pending_sent_invites_res_model.
 import 'package:AccuChat/Services/APIs/post/post_api_service_impl.dart';
 import 'package:AccuChat/main.dart';
 import 'package:AccuChat/utils/custom_flashbar.dart';
+import 'package:firebase_crashlytics/firebase_crashlytics.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/foundation.dart';
 import 'package:get/get.dart';
@@ -41,13 +42,17 @@ class InvitationsController extends GetxController {
   hitAPIToGetSentInvites() async {
     isLoading =true;
     update();
-    Get.find<PostApiServiceImpl>()
+    await Get.find<PostApiServiceImpl>()
         .getPendingSentInvitesApiCall(comapnyID)
         .then((value) async {
       sentInviteList = value.data ?? [];
       isLoading =false;
       update();
     }).onError((error, stackTrace) {
+      if(!kIsWeb) {
+        FirebaseCrashlytics.instance.recordError(
+            error, stackTrace, reason: 'apiCall failed');
+      }
       isLoading =false;
       update();
     });
@@ -61,13 +66,17 @@ class InvitationsController extends GetxController {
   hitAPIToDeleteInvitations(inviteID) async {
     FocusManager.instance.primaryFocus!.unfocus();
     customLoader.show();
-    Get.find<PostApiServiceImpl>().deleteSentInvitesApiCall(inviteID).then((value) async {
+    await Get.find<PostApiServiceImpl>().deleteSentInvitesApiCall(inviteID).then((value) async {
       customLoader.hide();
       toast(value.message);
       hitAPIToGetSentInvites();
       update();
     }).onError((error, stackTrace) {
       customLoader.hide();
+      if(!kIsWeb) {
+        FirebaseCrashlytics.instance.recordError(
+            error, stackTrace, reason: 'apiCall failed');
+      }
       errorDialog(error.toString());
       update();
     });

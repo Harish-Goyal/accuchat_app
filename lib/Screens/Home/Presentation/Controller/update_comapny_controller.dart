@@ -3,6 +3,7 @@ import 'package:AccuChat/Screens/Home/Presentation/Controller/compnaies_controll
 import 'package:AccuChat/routes/app_routes.dart';
 import 'package:AccuChat/utils/web_file_picekr.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_crashlytics/firebase_crashlytics.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -74,7 +75,7 @@ class UpdateCompanyController extends GetxController {
   }
 
   getCompanyByIdApi({int? companyId}) async {
-    Get.find<PostApiServiceImpl>()
+    await  Get.find<PostApiServiceImpl>()
         .getCompanyByIdApiCall(companyId)
         .then((value) async {
       companyResponse = value.data!;
@@ -82,13 +83,17 @@ class UpdateCompanyController extends GetxController {
       initData();
     }).onError((error, stackTrace) {
       update();
+      if(!kIsWeb) {
+        FirebaseCrashlytics.instance.recordError(
+            error, stackTrace, reason: 'apiCall failed');
+      }
       errorDialog(error.toString());
     }).whenComplete(() {});
   }
 
   deleteCompanyApi() async {
     customLoader.show();
-    Get.find<PostApiServiceImpl>()
+    await Get.find<PostApiServiceImpl>()
         .deleteCompanyApiCall(compId: companyResponse?.companyId)
         .then((value) async {
       toast(value.message);
@@ -98,6 +103,10 @@ class UpdateCompanyController extends GetxController {
       Get.offAllNamed(AppRoutes.landing_r);
 
     }).onError((error, stackTrace) {
+      if(!kIsWeb) {
+        FirebaseCrashlytics.instance.recordError(
+            error, stackTrace, reason: 'apiCall failed');
+      }
       update();
       customLoader.hide();
       errorDialog(error.toString());
@@ -142,7 +151,7 @@ class UpdateCompanyController extends GetxController {
         reqData.files.add(MapEntry('logo', mf));
       }
     }
-    Get.find<PostApiServiceImpl>()
+    await Get.find<PostApiServiceImpl>()
         .createCompanyAPICall(dataBody: reqData)
         .then((value) async {
       toast(value.message ?? '');
@@ -161,6 +170,11 @@ class UpdateCompanyController extends GetxController {
 
     }).onError((error, stackTrace) {
       update();
+
+      if(!kIsWeb) {
+        FirebaseCrashlytics.instance.recordError(
+            error, stackTrace, reason: 'apiCall failed');
+      }
       Get.back();
       customLoader.hide();
       errorDialog(error.toString());

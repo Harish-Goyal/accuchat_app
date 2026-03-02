@@ -2,6 +2,7 @@ import 'dart:io';
 import 'package:AccuChat/Extension/text_field_extenstion.dart';
 import 'package:AccuChat/Screens/Home/Presentation/Controller/gallery_controller.dart';
 import 'package:AccuChat/Screens/Home/Presentation/Controller/genere_controller.dart';
+import 'package:AccuChat/Services/APIs/api_ends.dart';
 import 'package:AccuChat/utils/loading_indicator.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
@@ -14,6 +15,7 @@ import '../../../../../../utils/custom_dialogue.dart';
 import '../../../../../../utils/gradient_button.dart';
 import '../../../../../../utils/helper.dart';
 import '../../../../../../utils/helper_widget.dart';
+import '../../../../../../utils/networl_shimmer_image.dart';
 import '../../../../../../utils/text_style.dart';
 import '../../../../../Home/Models/get_folder_res_model.dart';
 import '../../../../../Home/Models/pickes_file_item.dart';
@@ -118,11 +120,11 @@ class _SaveToCustomFolderDialogState extends State<SaveToCustomFolderDialog> {
                   Wrap(
                     spacing: 8,
                     runSpacing: 8,
-                    children: _items.map((file) {
+                    children: _items.map((PickedFileItem f) {
                       return _PreviewTile(
-                        file: file,
+                        file: f,
                         onRemove: () {
-                          setState(() => _items.remove(file));
+                          setState(() => _items.remove(f));
                           // setState(() => galleryC.images.remove(file));
                         },
                       );
@@ -404,41 +406,56 @@ class _PreviewTile extends StatelessWidget {
 
   Widget _buildPreview() {
     final name = file.name;
-
+    // Mobile fallback: local file path
+    // if (!kIsWeb && file.path != null && file.path!.isNotEmpty && !isImageVideo(file.path!)) {
+    //   return _box(
+    //     child: ClipRRect(
+    //       borderRadius: BorderRadius.circular(8),
+    //       child: Image.file(File(file.path!), fit: BoxFit.cover),
+    //     ),
+    //   );
+    // }
     // ✅ IMAGE PREVIEW
-    if (file.isImage) {
-      // Prefer bytes if available (web + sometimes mobile withData:true)
-      if (file.byte != null) {
-        return _box(
-          child: ClipRRect(
-            borderRadius: BorderRadius.circular(8),
-            child: Image.memory(file.byte!, fit: BoxFit.cover),
-          ),
-        );
-      }
+      // ✅ IMAGE PREVIEW
+      if (file.isImage) {
 
-      // Mobile fallback: local file path
-      if (!kIsWeb && file.path != null && file.path!.isNotEmpty) {
-        return _box(
-          child: ClipRRect(
-            borderRadius: BorderRadius.circular(8),
-            child: Image.file(File(file.path!), fit: BoxFit.cover),
-          ),
-        );
-      }
+        // 1️⃣ Web / memory image
+        if (file.byte != null) {
+          return _box(
+            child: ClipRRect(
+              borderRadius: BorderRadius.circular(8),
+              child: Image.memory(file.byte!, fit: BoxFit.cover),
+            ),
+          );
+        }
 
-      // Network fallback (chat media)
-      if (file.url != null && file.url!.isNotEmpty) {
-        return _box(
-          child: ClipRRect(
-            borderRadius: BorderRadius.circular(8),
-            child: Image.network(file.url!, fit: BoxFit.cover),
-          ),
-        );
-      }
+        // 2️⃣ Network image
+        if (isNetworkImage(file.url)) {
+          return _box(
+            child: ClipRRect(
+              borderRadius: BorderRadius.circular(8),
+              child: CustomCacheNetworkImage(
+                file.url!,
+                radiusAll: 8,
+                borderColor: greyText,
+                boxFit: BoxFit.cover,
+              ),
+            ),
+          );
+        }
 
-      return _box(child: const Icon(Icons.broken_image));
-    }
+        // 3️⃣ Mobile local file
+        if (!kIsWeb && isLocalFile(file.path)) {
+          return _box(
+            child: ClipRRect(
+              borderRadius: BorderRadius.circular(8),
+              child: Image.file(File(file.path!), fit: BoxFit.cover),
+            ),
+          );
+        }
+
+        return _box(child: const Icon(Icons.broken_image));
+      }
 
     // ✅ DOCUMENT PREVIEW (tile)
     if (file.isDocument || isDocumentName(name)) {

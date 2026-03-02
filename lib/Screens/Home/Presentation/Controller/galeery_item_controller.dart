@@ -1,3 +1,4 @@
+import 'package:firebase_crashlytics/firebase_crashlytics.dart';
 import 'package:get/get.dart';
 import 'dart:async';
 import 'package:dio/dio.dart' as multi;
@@ -116,29 +117,37 @@ class GalleryItemController extends GetxController{
     if (pageItem.value == 1) isLoadingItems.value = true;
 
     try {
-      final res = await Get.find<PostApiServiceImpl>().getFolderItemsApiCall(
+       await Get.find<PostApiServiceImpl>().getFolderItemsApiCall(
         page: pageItem.value,
         ucID: myCompany?.userCompanies?.userCompanyId,
         folderName: folderData?.folderName,
         searchText: searchText,
-      );
+      ).then((res){
+         final rows = (res.data?.rows ?? []);
 
-      // ✅ Map rows to FolderData if API returns Map/dynamic
-      final rows = (res.data?.rows ?? []);
+         if (pageItem.value == 1) {
+           filterFolderItems.assignAll(rows); // ✅ better than addAll for first page
+         } else {
+           filterFolderItems.addAll(rows);
+         }
 
-      if (pageItem.value == 1) {
-        filterFolderItems.assignAll(rows); // ✅ better than addAll for first page
-      } else {
-        filterFolderItems.addAll(rows);
-      }
+         if (rows.isNotEmpty) {
+           pageItem.value++;
+           const pageSize = 15;
+           hasMoreItems.value = rows.length == pageSize;
+         } else {
+           hasMoreItems.value = false;
+         }
+       }).onError((error,stackTrace){
+         if(!kIsWeb) {
+           FirebaseCrashlytics.instance.recordError(
+               error, stackTrace, reason: 'apiCall failed');
+         }
+       });
 
-      if (rows.isNotEmpty) {
-        pageItem.value++;
-        const pageSize = 15;
-        hasMoreItems.value = rows.length == pageSize;
-      } else {
-        hasMoreItems.value = false;
-      }
+
+       // ✅ Map rows to FolderData if API returns Map/dynamic
+
 
     } catch (e) {
       // handle/log
@@ -240,7 +249,7 @@ class GalleryItemController extends GetxController{
       "title": newFolderName,
       // "new_name": newFolderName,
     };
-    Get.find<PostApiServiceImpl>()
+    await Get.find<PostApiServiceImpl>()
         .editFolderItemsApiCall(dataBody: reqData)
         .then((value) {
       customLoader.hide();
@@ -249,6 +258,11 @@ class GalleryItemController extends GetxController{
       // toast(value.message ?? '');
       update();
     }).onError((error, stackTrace) {
+
+      if(!kIsWeb) {
+        FirebaseCrashlytics.instance.recordError(
+            error, stackTrace, reason: 'apiCall failed');
+      }
       update();
       Get.back();
       customLoader.hide();
@@ -263,7 +277,7 @@ class GalleryItemController extends GetxController{
       "user_gallery_id":id,
       // "new_name": newFolderName,
     };
-    Get.find<PostApiServiceImpl>()
+    await Get.find<PostApiServiceImpl>()
         .deleteFolderItemsApiCall(dataBody: reqData)
         .then((value) {
       Get.back();
@@ -273,6 +287,11 @@ class GalleryItemController extends GetxController{
       // toast(value.message ?? '');
       update();
     }).onError((error, stackTrace) {
+
+      if(!kIsWeb) {
+        FirebaseCrashlytics.instance.recordError(
+            error, stackTrace, reason: 'apiCall failed');
+      }
       update();
       Get.back();
       customLoader.hide();
@@ -418,7 +437,7 @@ class GalleryItemController extends GetxController{
 
       final formData = multi.FormData.fromMap(fields);
 
-      Get.find<PostApiServiceImpl>()
+      await Get.find<PostApiServiceImpl>()
           .uploadFolderMediaApiCall(dataBody: formData)
           .then((value) {
         customLoader.hide();
@@ -429,6 +448,11 @@ class GalleryItemController extends GetxController{
         Get.back();
         toast(value.message ?? '');
       }).onError((error, stackTrace) {
+
+        if(!kIsWeb) {
+          FirebaseCrashlytics.instance.recordError(
+              error, stackTrace, reason: 'apiCall failed');
+        }
         isUploading.value  = false;
         customLoader.hide();
         errorDialog(error.toString());

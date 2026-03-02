@@ -2,6 +2,8 @@
 import 'dart:typed_data';
 
 import 'package:AccuChat/Screens/Chat/screens/auth/models/get_uesr_Res_model.dart';
+import 'package:AccuChat/Screens/Settings/Presentation/Controllers/all_settings_controller.dart';
+import 'package:firebase_crashlytics/firebase_crashlytics.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/foundation.dart';
 import 'package:get/get.dart';
@@ -12,6 +14,7 @@ import '../../../../Services/APIs/local_keys.dart';
 import '../../../../Services/APIs/post/post_api_service_impl.dart';
 import '../../../../main.dart';
 import '../../../../utils/custom_flashbar.dart';
+import '../../../../utils/helper_widget.dart';
 import '../../../Chat/api/apis.dart';
 import '../../../Chat/models/get_company_res_model.dart';
 import 'company_service.dart';
@@ -64,7 +67,12 @@ class HProfileController extends GetxController {
       _initData(userData);
 
     }).onError((error, stackTrace) {
+      showCompanyErrorDialog();
       isLoading = false;
+      if(!kIsWeb) {
+        FirebaseCrashlytics.instance.recordError(
+            error, stackTrace, reason: 'apiCall failed');
+      }
       errorDialog(error.toString());
       update();
     });
@@ -73,13 +81,18 @@ class HProfileController extends GetxController {
 
   hitAPIToDeleteAccount() async {
     customLoader.show();
-    Get.find<PostApiServiceImpl>()
+   await Get.find<PostApiServiceImpl>()
         .deleteUserAccountApiCall(userID: APIs.me.userId??0)
         .then((value) async {
       customLoader.hide();
       logoutLocal();
       update();
     }).onError((error, stackTrace) {
+
+     if(!kIsWeb) {
+       FirebaseCrashlytics.instance.recordError(
+           error, stackTrace, reason: 'apiCall failed');
+     }
       customLoader.hide();
     });
   }
@@ -132,8 +145,14 @@ class HProfileController extends GetxController {
       hitAPIToGetUser();
       await APIs.refreshMe(companyId: myCompany?.companyId ?? 0);
 
+      Get.find<AllSettingsController>().update();
+
       update();
     }).onError((error, stackTrace) {
+      if(!kIsWeb) {
+        FirebaseCrashlytics.instance.recordError(
+            error, stackTrace, reason: 'apiCall failed');
+      }
       customLoader.hide();
       errorDialog(error.toString());
       update();

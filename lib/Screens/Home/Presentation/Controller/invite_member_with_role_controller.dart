@@ -1,3 +1,4 @@
+import 'package:firebase_crashlytics/firebase_crashlytics.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/foundation.dart';
 import 'package:get/get.dart';
@@ -146,7 +147,7 @@ class InviteUserRoleController extends GetxController {
       "companyId": int.parse(companyId.toString()),
       "companyUserInvites": selectedInvitesContacts.map((v)=>v.toJson()).toList()
     };
-    Get.find<PostApiServiceImpl>()
+    await Get.find<PostApiServiceImpl>()
         .sendInvitesToJoinCompanyAPI(dataBody: postData)
         .then((value) async {
       toast(value.message);
@@ -156,6 +157,11 @@ class InviteUserRoleController extends GetxController {
       customLoader.hide();
     }).onError((error, stackTrace) {
       update();
+
+      if(!kIsWeb) {
+        FirebaseCrashlytics.instance.recordError(
+            error, stackTrace, reason: 'apiCall failed');
+      }
     });
   }
 
@@ -165,7 +171,7 @@ class InviteUserRoleController extends GetxController {
   GetCompanyRolesResModel companyRolesResModel = GetCompanyRolesResModel();
   List<RolesData> rolesList=[];
   hitAPIToGetAllRolesAPI() async {
-    Get.find<PostApiServiceImpl>()
+    await   Get.find<PostApiServiceImpl>()
         .getCompanyRolesApiCall(companyId)
         .then((value) async {
       isLoadingRoles=false;
@@ -190,6 +196,10 @@ class InviteUserRoleController extends GetxController {
       }
     }).onError((error, stackTrace) {
       isLoadingRoles=false;
+      if(!kIsWeb) {
+        FirebaseCrashlytics.instance.recordError(
+            error, stackTrace, reason: 'apiCall failed');
+      }
       update();
     });
   }

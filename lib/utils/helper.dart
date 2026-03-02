@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:AccuChat/utils/text_style.dart';
 import 'package:AccuChat/utils/web_file_picekr.dart';
 import 'package:dio/dio.dart' as dio;
@@ -17,6 +19,17 @@ String fileExt(String name) {
   final dot = lower.lastIndexOf('.');
   if (dot == -1) return '';
   return lower.substring(dot + 1);
+}
+
+bool isNetworkImage(String? path) {
+  if (path == null || path.isEmpty) return false;
+  final uri = Uri.tryParse(path);
+  return uri != null &&
+      (uri.scheme == 'http' || uri.scheme == 'https');
+}
+bool isLocalFile(String? path) {
+  if (path == null || path.isEmpty) return false;
+  return File(path).existsSync();
 }
 
 bool isDocumentName(String name) {

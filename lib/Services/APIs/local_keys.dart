@@ -1,5 +1,4 @@
 import 'dart:convert';
-
 import 'package:AccuChat/Screens/Chat/screens/auth/models/get_uesr_Res_model.dart';
 import 'package:AccuChat/Screens/Home/Presentation/Controller/company_service.dart';
 import 'package:AccuChat/Screens/Home/Presentation/Controller/socket_controller.dart';
@@ -101,7 +100,7 @@ Future<void> _disablePushOnLogout() async {
   final fcm = FirebaseMessaging.instance;
   try {
     await fcm.deleteToken();
-  } catch (_) {Get.offAllNamed(AppRoutes.login_r);}
+  } catch (_) { customLoader.hide();}
 }
 
 Future<void> logoutLocal() async {
@@ -110,7 +109,7 @@ Future<void> logoutLocal() async {
   _isLoggingOut = true;
 
   // Show the loader initially
-  // customLoader.show();
+  customLoader.show();
 
   try {
     // Disable push notifications
@@ -120,38 +119,35 @@ Future<void> logoutLocal() async {
     if (Get.isRegistered<SocketController>()) {
       try {
         Get.find<SocketController>().disconnect();
-      } catch (_) {}
+      } catch (_) { customLoader.hide();}
       Get.delete<SocketController>(force: true);
     }
 
     // Clear session, controllers, and stored data
-    Get.delete<Session>(force: true);
-    Get.delete<ChatScreenController>(force: true);
-    Get.delete<ChatHomeController>(force: true);
 
-    if (Get.isRegistered<AppStorage>()) {
-      await AppStorage().clear();
-      Get.delete<AppStorage>(force: true);
-    }
-    if (Get.isRegistered<StorageService>()) {
-      await StorageService.clear();
-
-      Get.delete<StorageService>(force: true);
-    }
 
     // If CompanyService is registered, close it
-    if (Get.isRegistered<CompanyService>()) {
       try {
+        Get.delete<Session>(force: true);
+        Get.delete<ChatScreenController>(force: true);
+        Get.delete<ChatHomeController>(force: true);
+        await AppStorage().clear();
+        Get.delete<AppStorage>(force: true);
+        await StorageService.clear();
+        Get.delete<StorageService>(force: true);
         await CompanyService.to.closeBox();
-      } catch (_) {}
-      Get.delete<CompanyService>(force: true);
+        Get.delete<CompanyService>(force: true);
+      } catch (_) {
+      customLoader.hide();
     }
+
+
 
     // Close Hive data
     try {
       await HiveBoot.closeAndDeleteAll(deleteFromDisk: true);
     } catch (_) {
-      Get.offAllNamed(AppRoutes.login_r);
+      customLoader.hide();
     }
 
   } catch (e) {
@@ -160,12 +156,16 @@ Future<void> logoutLocal() async {
     _isLoggingOut = false;
 
     // Navigate to login screen after a small delay
-    await Future.delayed(const Duration(milliseconds: 50));
-    Get.offAllNamed(AppRoutes.login_r);
+    // await Future.delayed(const Duration(milliseconds: 50));
+    // Get.offAllNamed(AppRoutes.login_r);
   } finally {
+    // if(kIsWeb){
+    //   ReloadControllerImpl().refreshApp();
+    // }
+
     // Close any current snackbars (this ensures no overlays remain)
-    try { Get.closeCurrentSnackbar(); } catch (_) {}
-    try { Get.closeAllSnackbars(); } catch (_) {}
+    try { Get.closeCurrentSnackbar(); } catch (_) { customLoader.hide();}
+    try { Get.closeAllSnackbars(); } catch (_) { customLoader.hide();}
 
     // Hide the loader again if it was not hidden before (redundant safeguard)
     customLoader.hide();
@@ -176,6 +176,7 @@ Future<void> logoutLocal() async {
     // Navigate after a tiny delay
     await Future.delayed(const Duration(milliseconds: 50));
     Get.offAllNamed(AppRoutes.login_r);
+
   }
 }
 

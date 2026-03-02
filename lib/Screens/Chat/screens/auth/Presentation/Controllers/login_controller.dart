@@ -1,5 +1,6 @@
 import 'package:AccuChat/Screens/Chat/helper/dialogs.dart';
 import 'package:AccuChat/routes/app_routes.dart';
+import 'package:firebase_crashlytics/firebase_crashlytics.dart';
 import 'package:flutter/foundation.dart';
 import 'package:get/get.dart';
 import 'dart:async';
@@ -77,6 +78,10 @@ class LoginGController extends GetxController {
       update();
       // openBottomSheet();
     }).onError((error, stackTrace) {
+      if(!kIsWeb) {
+        FirebaseCrashlytics.instance.recordError(
+            error, stackTrace, reason: 'apiCall failed');
+      }
       customLoader.hide();
       errorDialog(error.toString());
       isOtpInProgress = false;

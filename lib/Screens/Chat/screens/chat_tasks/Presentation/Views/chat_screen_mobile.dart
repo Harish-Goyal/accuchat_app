@@ -144,9 +144,7 @@ class _ChatScreenMobileState extends State<ChatScreenMobile> {
       itemPositionsListener.itemPositions
           .removeListener(onPositionsChanged);
     } catch (_) {}
-    if (Get.isRegistered<ChatScreenController>()) {
-      Get.delete<ChatScreenController>(force: true);
-    }
+
     super.dispose();
   }
 
@@ -754,10 +752,10 @@ class _ChatScreenMobileState extends State<ChatScreenMobile> {
                             _showBottomSheet(sentByMe, data: data);
                         }
                       },
-                      child: Container(
+                      child:((data.media ?? []).isNotEmpty || data.message !='' || data.message !=null)?Container(
                         padding: EdgeInsets.symmetric(
                           horizontal:
-                          (data.media ?? []).isNotEmpty ? 12 : 15,
+                          (data.media ?? []).isNotEmpty ? 8 : 15,
                           vertical:
                           (data.media ?? []).isNotEmpty ? 0 : 10,
                         ),
@@ -796,7 +794,7 @@ class _ChatScreenMobileState extends State<ChatScreenMobile> {
                                 topRight: Radius.circular((data.media ?? []).isNotEmpty ? 15 : 30),
                                 bottomRight: Radius.circular((data.media ?? []).isNotEmpty ? 15 : 30))),
                         child: messageTypeView(data, sentByMe: sentByMe),
-                      ).marginOnly(left: (0), top: 0),
+                      ).marginOnly(left: (0), top: 0):SizedBox(),
                     ),
                   ],
                 ),
@@ -1731,7 +1729,7 @@ class _ChatScreenMobileState extends State<ChatScreenMobile> {
                                       ),
                                     )),
                             
-                             if (!isTaskMode)
+                             /*if (!isTaskMode)
                                     InkWell(
                                       onTap: () async {
                                         openWhatsAppEmojiPicker(
@@ -1747,7 +1745,7 @@ class _ChatScreenMobileState extends State<ChatScreenMobile> {
                             
                                       },
                                       child: IconButtonWidget(emojiPng),
-                                    ),
+                                    ),*/
                                 ],
                               ),
                             ),
@@ -2160,34 +2158,47 @@ class _ChatScreenMobileState extends State<ChatScreenMobile> {
                   : const SizedBox(),
               ((data.media ?? []).isNotEmpty && data.media?.length == 1)?
               _OptionItem(
-                  icon:  Icon(Icons.document_scanner,
-                      color: appColorYellow, size: 18),
+                  icon: Icon(Icons.document_scanner,
+                      color: appColorGreen, size: 16),
                   name: 'Save to Smart Gallery',
                   onTap: () async {
+                    final mediachat = data.media?.first;
                     try {
-                      final mediachat  = data.media?.first;
                       Get.back();
-                      final saveC = Get.isRegistered<SaveToGalleryController>()
+                      final saveC =
+                      Get.isRegistered<SaveToGalleryController>()
                           ? Get.find<SaveToGalleryController>()
                           : Get.put(SaveToGalleryController());
 
                       await saveC.hitApiToGetFolder();
+                      // openSaveToGallerySheet(fileId: "12", sourceType: "chat", sourceId: "09",defaultName: "chat_0998782377");
+                      final picked = [
+                        PickedFileItem(
+                          name: mediachat?.orgFileName ?? '',
+                          // byte: image.bytes,         // web always, mobile if withData true
+                          path:
+                          "${ApiEnd.baseUrlMedia}${mediachat?.fileName}", // mobile path
+                          kind: PickedKind.image,
+                          url:
+                          "${ApiEnd.baseUrlMedia}${mediachat?.fileName}",
+                        )
+                      ];
+                      saveC.docNameController.text =
+                          mediachat?.orgFileName ?? '';
 
-                      final picked=  [PickedFileItem(
-                        name: mediachat?.orgFileName??'',
-                        // byte: image.bytes,         // web always, mobile if withData true
-                        path: "${ApiEnd.baseUrlMedia}${mediachat?.fileName}",          // mobile path
-                        kind: PickedKind.image,
-                        url: "${ApiEnd.baseUrlMedia}${mediachat?.fileName}",
-                      )];
-                      saveC.docNameController.text = mediachat?.orgFileName??'';
-                      showDialog(
-                          context: Get.context!,
-                          builder: (_) => SaveToCustomFolderDialog(
-                            isDirect: true,
-                            multi: false,
-                            user: controller.user,filesImages: picked,isImage: true, isFromChat: true,
-                            chatId: mediachat?.chatMediaId, folderData: null,));
+                      await Get.dialog(
+                        SaveToCustomFolderDialog(
+                          user: controller.user,
+                          filesImages: picked,
+                          isImage: true,
+                          isFromChat: true,
+                          chatId: mediachat?.chatMediaId,
+                          multi: false,
+                          isDirect: true,
+                          folderData: null,
+                        ),
+                        barrierDismissible: false,
+                      );
                     } catch (e) {
                       toast('Something went wrong!');
                     }
@@ -2228,6 +2239,7 @@ class _ChatScreenMobileState extends State<ChatScreenMobile> {
                         color: Colors.red, size: 18),
                     name: 'Delete Message',
                     onTap: () async {
+
                       Get.find<SocketController>().deleteMsgEmitter(
                           mode: controller.user?.userCompany?.isGroup == 1
                               ? "group"
@@ -2238,6 +2250,7 @@ class _ChatScreenMobileState extends State<ChatScreenMobile> {
                           groupId: controller.user?.userCompany?.isGroup == 1
                               ? controller.user?.userCompany?.userCompanyId
                               : null);
+                      Get.back();
                     }),
 
               (
@@ -2252,7 +2265,6 @@ class _ChatScreenMobileState extends State<ChatScreenMobile> {
                     if (kIsWeb) {
                       final msg = data.message ?? '';
                       if(msg!='') {
-                        print("Sharing");
                         ShareHelper.shareOnWhatsApp(msg);
                       }else{
                         ShareHelper.shareOnWhatsApp("${ApiEnd.baseUrlMedia}${data.media?.first.fileName??''}");
@@ -2261,7 +2273,6 @@ class _ChatScreenMobileState extends State<ChatScreenMobile> {
                     }else{
                       final msg = data.message ?? '';
                       if(msg!='') {
-                        print("printing.........$msg");
                         ShareHelper.shareOnWhatsApp(msg);
                       }else{
                       await ShareHelper.shareNetworkFile(

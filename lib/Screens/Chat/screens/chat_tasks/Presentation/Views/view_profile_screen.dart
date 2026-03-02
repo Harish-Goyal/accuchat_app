@@ -112,6 +112,7 @@ class ViewProfileScreen extends GetView<ViewProfileController> {
                       'About:',
                       style: BalooStyles.baloosemiBoldTextStyle(),
                     ),
+                    vGap(3),
                     (about != null && about.isNotEmpty)? Container(
                       padding: const EdgeInsets.all(8),
                       decoration: BoxDecoration(
@@ -120,8 +121,8 @@ class ViewProfileScreen extends GetView<ViewProfileController> {
                       ),
                       child: Text(
                               controller.user?.about ?? 'I am using Accuchat!',
-                              style: BalooStyles.baloonormalTextStyle(size: 13),
-                              maxLines: 2,
+                              style: BalooStyles.baloonormalTextStyle(size: 13,color: darkGreyColor),
+                              maxLines: 3,
                               overflow: TextOverflow.ellipsis)
                           .paddingSymmetric(horizontal: 8),
                     ):Container(
@@ -132,8 +133,8 @@ class ViewProfileScreen extends GetView<ViewProfileController> {
                       ),
                       child: Text(
                           'I am using Accuchat!',
-                          style: BalooStyles.baloonormalTextStyle(size: 13),
-                          maxLines: 2,
+                          style: BalooStyles.baloonormalTextStyle(size: 13,color: darkGreyColor),
+                          maxLines: 3,
                           overflow: TextOverflow.ellipsis)
                           .paddingSymmetric(horizontal: 8),
                     ),

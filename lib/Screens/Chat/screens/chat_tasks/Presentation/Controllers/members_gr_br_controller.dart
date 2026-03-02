@@ -1,6 +1,7 @@
 import 'package:AccuChat/Screens/Chat/screens/chat_tasks/Presentation/Controllers/chat_home_controller.dart';
 import 'package:AccuChat/Screens/Chat/screens/chat_tasks/Presentation/Controllers/chat_screen_controller.dart';
 import 'package:dio/dio.dart' as multi;
+import 'package:firebase_crashlytics/firebase_crashlytics.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
@@ -50,7 +51,7 @@ class GrBrMembersController extends GetxController{
 
   getUserByIdApi({int? userId,comId}) async {
 
-    Get.find<PostApiServiceImpl>()
+   await  Get.find<PostApiServiceImpl>()
         .getUserByApiCall(userID: userId,comid: comId)
         .then((value) async {
       groupOrBr = value.data;
@@ -58,6 +59,11 @@ class GrBrMembersController extends GetxController{
       hitAPIToGetMembers();
       update();
     }).onError((error, stackTrace) {
+
+     if(!kIsWeb) {
+       FirebaseCrashlytics.instance.recordError(
+           error, stackTrace, reason: 'apiCall failed');
+     }
       update();
       errorDialog(error.toString());
     }).whenComplete(() {});
@@ -87,6 +93,10 @@ class GrBrMembersController extends GetxController{
 
       update();
     }).onError((error, stackTrace) {
+      if(!kIsWeb) {
+        FirebaseCrashlytics.instance.recordError(
+            error, stackTrace, reason: 'apiCall failed');
+      }
       isLoading = false;
       update();
     });
@@ -105,7 +115,7 @@ class GrBrMembersController extends GetxController{
       "is_group":isGroup,
       "is_broadcast": isBroadcast,
     });
-    Get.find<PostApiServiceImpl>()
+   await Get.find<PostApiServiceImpl>()
         .addEditGroupBroadcastApiCall(dataBody: reqData)
         .then((value) async {
       customLoader.hide();
@@ -135,6 +145,10 @@ class GrBrMembersController extends GetxController{
       update();
     }).onError((error, stackTrace) {
       update();
+      if(!kIsWeb) {
+        FirebaseCrashlytics.instance.recordError(
+            error, stackTrace, reason: 'apiCall failed');
+      }
       Get.back();
       customLoader.hide();
       errorDialog(error.toString());
@@ -153,7 +167,7 @@ class GrBrMembersController extends GetxController{
       'is_admin':mode=='set_admin'?1:0
     };
 
-    Get.find<PostApiServiceImpl>()
+   await Get.find<PostApiServiceImpl>()
         .addMemberToGrBrApiCall(dataBody: req)
         .then((value) async {
       customLoader.hide();
@@ -164,6 +178,11 @@ class GrBrMembersController extends GetxController{
       // Get.find<ChatScreenController>(tag: _tag).hitAPIToGetMembers(groupOrBr);
       update();
     }).onError((error, stackTrace) {
+
+     if(!kIsWeb) {
+       FirebaseCrashlytics.instance.recordError(
+           error, stackTrace, reason: 'apiCall failed');
+     }
       customLoader.hide();
     });
   }
@@ -177,7 +196,7 @@ class GrBrMembersController extends GetxController{
       "is_broadcast": isGroup ? 0 : 1,    // 0 = group, 1 = broadcast
     };
 
-    Get.find<PostApiServiceImpl>()
+    await Get.find<PostApiServiceImpl>()
         .deleteGrBrApiCall(dataBody: req)
         .then((value) async {
       customLoader.hide();
@@ -185,6 +204,11 @@ class GrBrMembersController extends GetxController{
       Get.offAllNamed(AppRoutes.home);
       update();
     }).onError((error, stackTrace) {
+
+      if(!kIsWeb) {
+        FirebaseCrashlytics.instance.recordError(
+            error, stackTrace, reason: 'apiCall failed');
+      }
       customLoader.hide();
     });
   }

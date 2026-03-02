@@ -3,6 +3,7 @@ import 'package:AccuChat/Screens/Chat/models/get_company_res_model.dart';
 import 'package:AccuChat/Screens/Home/Presentation/Controller/company_service.dart';
 import 'package:AccuChat/Services/APIs/post/post_api_service_impl.dart';
 import 'package:AccuChat/utils/helper_widget.dart';
+import 'package:firebase_crashlytics/firebase_crashlytics.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
@@ -38,7 +39,7 @@ class LandingScreenController extends GetxController {
 
 
   hitAPIToGetCompanies() async {
-    Get.find<PostApiServiceImpl>()
+  await  Get.find<PostApiServiceImpl>()
         .getJoinedCompanyListApiCall()
         .then((value) async {
       loadingCompany = false;
@@ -46,6 +47,10 @@ class LandingScreenController extends GetxController {
       joinedCompaniesList = companyResModel.data??[];
       update();
     }).onError((error, stackTrace) {
+      if(!kIsWeb) {
+        FirebaseCrashlytics.instance.recordError(
+            error, stackTrace, reason: 'apiCall failed');
+      }
       loadingCompany = false;
       update();
     });
@@ -57,7 +62,7 @@ class LandingScreenController extends GetxController {
     customLoader.show();
     isLoadingPendingInvites=true;
     update();
-    Get.find<PostApiServiceImpl>()
+    await  Get.find<PostApiServiceImpl>()
         .pendingInviteListApiCall(userInput:userInput )
         .then((value) async {
       pendingInvites=value.data??[];
@@ -92,6 +97,10 @@ class LandingScreenController extends GetxController {
 
 
     }).onError((error, stackTrace) {
+      if(!kIsWeb) {
+        FirebaseCrashlytics.instance.recordError(
+            error, stackTrace, reason: 'apiCall failed');
+      }
       isLoadingPendingInvites=false;
       update();
       customLoader.hide();

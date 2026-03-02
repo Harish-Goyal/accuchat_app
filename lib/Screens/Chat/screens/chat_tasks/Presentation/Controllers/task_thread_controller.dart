@@ -3,6 +3,7 @@ import 'package:AccuChat/Screens/Chat/models/task_res_model.dart';
 import 'package:AccuChat/Screens/Chat/screens/auth/models/get_uesr_Res_model.dart';
 import 'package:AccuChat/utils/custom_flashbar.dart';
 import 'package:file_picker/file_picker.dart';
+import 'package:firebase_crashlytics/firebase_crashlytics.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
@@ -78,13 +79,17 @@ class TaskThreadController extends GetxController {
   hitAPIToGetAllTaskMember() async {
     isLoadingM = true;
     update();
-    Get.find<PostApiServiceImpl>()
+    await Get.find<PostApiServiceImpl>()
         .getTaskMemberApiCall(taskMessage?.taskId)
         .then((value) async {
       isLoadingM = false;
       allUsersList = value.data ?? [];
       update();
     }).onError((error, stackTrace) {
+      if(!kIsWeb) {
+        FirebaseCrashlytics.instance.recordError(
+            error, stackTrace, reason: 'apiCall failed');
+      }
       isLoadingM = false;
       update();
     });
@@ -102,19 +107,24 @@ class TaskThreadController extends GetxController {
 
 
   getUserByIdApi({int? userId}) async {
-    Get.find<PostApiServiceImpl>()
+   await Get.find<PostApiServiceImpl>()
         .getUserByApiCall(userID: userId,comid: myCompany?.companyId)
         .then((value) async {
       currentUser = value.data;
       update();
     }).onError((error, stackTrace) {
+
+     if(!kIsWeb) {
+       FirebaseCrashlytics.instance.recordError(
+           error, stackTrace, reason: 'apiCall failed');
+     }
       update();
       errorDialog(error.toString());
     }).whenComplete(() {});
   }
 
   getTaskByIdApi({int? taskid}) async {
-    Get.find<PostApiServiceImpl>()
+    await Get.find<PostApiServiceImpl>()
         .getTaskByIdApiCall(taskid)
         .then((value) async {
       taskMessage = value.data;
@@ -123,6 +133,10 @@ class TaskThreadController extends GetxController {
       hitAPIToGetAllTaskMember();
       update();
     }).onError((error, stackTrace) {
+      if(!kIsWeb) {
+        FirebaseCrashlytics.instance.recordError(
+            error, stackTrace, reason: 'apiCall failed');
+      }
       update();
       errorDialog(error.toString());
     }).whenComplete(() {});
@@ -203,7 +217,7 @@ class TaskThreadController extends GetxController {
 
     isPageLoading = true;
     update();
-    Get.find<PostApiServiceImpl>()
+    await Get.find<PostApiServiceImpl>()
         .getCommentsOnTaskApiCall(
         taskId: taskMessage?.taskId,
         page: page,
@@ -236,6 +250,10 @@ class TaskThreadController extends GetxController {
       update();
 
     }).onError((error, stackTrace) {
+      if(!kIsWeb) {
+        FirebaseCrashlytics.instance.recordError(
+            error, stackTrace, reason: 'apiCall failed');
+      }
       showPostShimmer = false;
       isPageLoading = false;
       update();

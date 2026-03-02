@@ -1,6 +1,8 @@
 import 'dart:async';
 import 'dart:convert';
 
+import 'package:firebase_crashlytics/firebase_crashlytics.dart';
+import 'package:flutter/foundation.dart';
 import 'package:get/get.dart';
 
 import '../../../Services/APIs/auth_service/auth_api_services_impl.dart';
@@ -68,8 +70,11 @@ class Session extends GetxService {
          _user.value = fresh;
 
        }
-     }).onError((v,e){
-
+     }).onError((e,s){
+       if(!kIsWeb) {
+         FirebaseCrashlytics.instance.recordError(
+             e, s, reason: 'apiCall failed');
+       }
      });
 
     } catch (_) {

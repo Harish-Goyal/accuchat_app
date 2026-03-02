@@ -1,10 +1,9 @@
 import 'dart:async';
-
 import 'package:AccuChat/Screens/Chat/models/recent_chat_user_res_model.dart';
 import 'package:AccuChat/Screens/Home/Presentation/Controller/socket_controller.dart';
+import 'package:firebase_crashlytics/firebase_crashlytics.dart';
 import 'package:flutter/foundation.dart';
 import 'package:get/get.dart';
-import 'package:AccuChat/Screens/Home/Presentation/Controller/home_controller.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -44,7 +43,7 @@ class ChatHomeController extends GetxController{
   CompanyResModel companyResModel = CompanyResModel();
   hitAPIToGetCompanies() async {
     loadingCompany.value = true;
-    Get.find<PostApiServiceImpl>()
+    await Get.find<PostApiServiceImpl>()
         .getJoinedCompanyListApiCall()
         .then((value) async {
       loadingCompany.value = false;
@@ -56,6 +55,10 @@ class ChatHomeController extends GetxController{
       );
       update();
     }).onError((error, stackTrace) {
+      if(!kIsWeb) {
+        FirebaseCrashlytics.instance.recordError(
+            error, stackTrace, reason: 'apiCall failed');
+      }
       loadingCompany.value = false;
     });
   }
@@ -100,10 +103,9 @@ class ChatHomeController extends GetxController{
       // selectedCompany.value = svc.selected;
       update();
     }
-
     final svc = CompanyService.to;
     if (!svc.hasCompany){
-      Get.offAllNamed(AppRoutes.landing_r);
+      showCompanyErrorDialog();
       return;
     }
   }
@@ -122,7 +124,10 @@ class ChatHomeController extends GetxController{
       isLoadingPending = false;
       sentInviteList = value.data ?? [];
     }).onError((error, stackTrace) {
-      toast(error.toString());
+      if(!kIsWeb) {
+        FirebaseCrashlytics.instance.recordError(
+            error, stackTrace, reason: 'apiCall failed');
+      }
       customLoader.hide();
     });
   }
@@ -206,6 +211,10 @@ class ChatHomeController extends GetxController{
       update();
 
     }).onError((error, stackTrace) {
+     if(!kIsWeb) {
+       FirebaseCrashlytics.instance.recordError(
+           error, stackTrace, reason: 'apiCall failed');
+     }
       showPostShimmer.value = false;
       isPageLoading.value = false;
 
@@ -222,7 +231,7 @@ class ChatHomeController extends GetxController{
       "is_group":isGroup,
       "is_broadcast": isBroadcast,
     });
-    Get.find<PostApiServiceImpl>()
+   await Get.find<PostApiServiceImpl>()
         .addEditGroupBroadcastApiCall(dataBody: reqData)
         .then((value) {
       customLoader.hide();
@@ -248,6 +257,10 @@ class ChatHomeController extends GetxController{
 
       update();
     }).onError((error, stackTrace) {
+     if(!kIsWeb) {
+       FirebaseCrashlytics.instance.recordError(
+           error, stackTrace, reason: 'apiCall failed');
+     }
       update();
       Get.back();
       customLoader.hide();

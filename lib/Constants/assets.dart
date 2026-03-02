@@ -29,6 +29,7 @@ const String translationPng = "assets/icons/translation.png";
 const String pausePng = "assets/icons/video-pause-button.png";
 const String wifiPng = "assets/icons/wifi.png";
 const String chaticon = "assets/icons/chatsicon.png";
+const String arrowDownPng = "assets/icons/arrow-down-sign-to-navigate.png";
 const String changePassPNG = "assets/images/change_pass.png";
 const String noDataFoundPng = "assets/images/no_data_found.png";
 const String workInProgressPng = "assets/images/work-in-progress.png";

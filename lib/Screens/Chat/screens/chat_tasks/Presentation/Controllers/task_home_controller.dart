@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'package:firebase_crashlytics/firebase_crashlytics.dart';
 import 'package:flutter/foundation.dart';
 import 'package:get/get.dart';
 import 'package:flutter/cupertino.dart';
@@ -61,7 +62,7 @@ class TaskHomeController extends GetxController{
     myCompany = svc.selected;
     update();
     if (!svc.hasCompany){
-      Get.offAllNamed(AppRoutes.landing_r);
+      showCompanyErrorDialog();
       return;
     }
   }
@@ -119,7 +120,7 @@ class TaskHomeController extends GetxController{
     }
     isPageLoading.value = true;
     update();
-    Get.find<PostApiServiceImpl>()
+    await Get.find<PostApiServiceImpl>()
         .getRecentTaskUserApiCall(comId:myCompany?.companyId,page: page,searchText: search??'')
         .then((value) async {
       isLoading.value = false;
@@ -147,6 +148,10 @@ class TaskHomeController extends GetxController{
       update();
 
     }).onError((error, stackTrace) {
+      if(!kIsWeb) {
+        FirebaseCrashlytics.instance.recordError(
+            error, stackTrace, reason: 'apiCall failed');
+      }
       showPostShimmer.value = false;
       isPageLoading.value = false;
       update();
@@ -205,7 +210,7 @@ class TaskHomeController extends GetxController{
       "is_group":isGroup,
       "is_broadcast": isBroadcast,
     });
-    Get.find<PostApiServiceImpl>()
+    await Get.find<PostApiServiceImpl>()
         .addEditGroupBroadcastApiCall(dataBody: reqData)
         .then((value) {
       customLoader.hide();
@@ -216,6 +221,10 @@ class TaskHomeController extends GetxController{
       hitAPIToGetRecentTasksUser();
       update();
     }).onError((error, stackTrace) {
+      if(!kIsWeb) {
+        FirebaseCrashlytics.instance.recordError(
+            error, stackTrace, reason: 'apiCall failed');
+      }
       update();
       Get.back();
       customLoader.hide();

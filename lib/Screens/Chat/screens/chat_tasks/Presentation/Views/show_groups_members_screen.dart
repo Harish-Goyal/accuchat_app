@@ -46,10 +46,11 @@ class GroupMembersScreen extends GetView<GrBrMembersController> {
         child: Column(
           children: [
             const SizedBox(height: 10),
-            const CircleAvatar(
-              radius: 40,
+             CircleAvatar(
+              radius: 35,
               backgroundColor: Colors.white,
-              backgroundImage: AssetImage(groupIcn),
+              backgroundImage: AssetImage( controller.groupOrBr?.userCompany?.isGroup==1?
+              groupIcn: broadcastIcon),
             ),
 
             CustomTextField(

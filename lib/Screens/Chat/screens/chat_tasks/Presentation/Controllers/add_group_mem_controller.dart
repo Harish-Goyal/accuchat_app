@@ -3,6 +3,7 @@ import 'package:AccuChat/Screens/Chat/api/apis.dart';
 import 'package:AccuChat/Screens/Chat/screens/auth/models/get_uesr_Res_model.dart';
 import 'package:AccuChat/Screens/Chat/screens/chat_tasks/Presentation/Controllers/chat_screen_controller.dart';
 import 'package:AccuChat/main.dart';
+import 'package:firebase_crashlytics/firebase_crashlytics.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/foundation.dart';
 import 'package:get/get.dart';
@@ -54,7 +55,7 @@ class AddGroupMemController extends GetxController {
 
   getUserByIdApi({int? userId}) async {
 
-    Get.find<PostApiServiceImpl>()
+    await Get.find<PostApiServiceImpl>()
         .getUserByApiCall(userID: userId,comid: myCompany?.companyId)
         .then((value) async {
       group = value.data;
@@ -62,6 +63,11 @@ class AddGroupMemController extends GetxController {
 
       update();
     }).onError((error, stackTrace) {
+
+      if(!kIsWeb) {
+        FirebaseCrashlytics.instance.recordError(
+            error, stackTrace, reason: 'apiCall failed');
+      }
       update();
       errorDialog(error.toString());
     }).whenComplete(() {});
@@ -154,7 +160,7 @@ class AddGroupMemController extends GetxController {
     }
     isPageLoading = true;
     update();
-    Get.find<PostApiServiceImpl>()
+    await Get.find<PostApiServiceImpl>()
         .getComMemApiCall(myCompany?.companyId,page,search)
         .then((value) async {
       isLoading = false;
@@ -186,6 +192,10 @@ class AddGroupMemController extends GetxController {
       update();
 
     }).onError((error, stackTrace) {
+      if(!kIsWeb) {
+        FirebaseCrashlytics.instance.recordError(
+            error, stackTrace, reason: 'apiCall failed');
+      }
       isLoading = false;
       isPageLoading = false;
       update();
@@ -233,7 +243,7 @@ class AddGroupMemController extends GetxController {
       "member_id": selectedUserIds,
       "is_group": isGroup ? 1 : 0,
     };
-    Get.find<PostApiServiceImpl>()
+    await Get.find<PostApiServiceImpl>()
         .addMemberToGrBrApiCall(dataBody: req)
         .then((value) async {
           customLoader.hide();
@@ -248,6 +258,11 @@ class AddGroupMemController extends GetxController {
           await Get.find<ChatScreenController>(tag: _tag).hitAPIToGetMembers(group);
 
     }).onError((error, stackTrace) {
+
+      if(!kIsWeb) {
+        FirebaseCrashlytics.instance.recordError(
+            error, stackTrace, reason: 'apiCall failed');
+      }
       Get.back();
       customLoader.hide();
     });
@@ -258,7 +273,7 @@ class AddGroupMemController extends GetxController {
   hitAPIToGetMembers() async {
     isLoading = true;
     update();
-    Get.find<PostApiServiceImpl>()
+    await Get.find<PostApiServiceImpl>()
         .getGrBrMemberApiCall(id:
     group?.userCompany?.userCompanyId,mode: group?.userCompany?.isGroup==1?
     "group":"broadcast")
@@ -272,6 +287,10 @@ class AddGroupMemController extends GetxController {
       hitAPIToAllGetMember();
       update();
     }).onError((error, stackTrace) {
+      if(!kIsWeb) {
+        FirebaseCrashlytics.instance.recordError(
+            error, stackTrace, reason: 'apiCall failed');
+      }
       isLoading = false;
       update();
     });

@@ -1553,6 +1553,7 @@ class _TaskScreenState extends State<TaskScreen> {
                     name: 'Delete',
                     onTap: () async {
                       if (data.currentStatus?.name == "Pending") {
+                        Get.back();
                         Get.find<SocketController>().deleteTaskEmitter(
                             taskId: data.taskId ?? 0,
                             comid: controller.myCompany?.companyId);

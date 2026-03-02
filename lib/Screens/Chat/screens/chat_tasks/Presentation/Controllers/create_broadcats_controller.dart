@@ -1,5 +1,6 @@
 import 'dart:async';
 
+import 'package:firebase_crashlytics/firebase_crashlytics.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
 import 'package:get/get.dart';
@@ -110,7 +111,7 @@ class CreateBroadcastsController extends GetxController{
     }
     isPageLoading = true;
     update();
-    Get.find<PostApiServiceImpl>()
+    await Get.find<PostApiServiceImpl>()
         .getComMemApiCall(myCompany?.companyId,page,search)
         .then((value) async {
       isLoading = false;
@@ -135,6 +136,10 @@ class CreateBroadcastsController extends GetxController{
       update();
 
     }).onError((error, stackTrace) {
+      if(!kIsWeb) {
+        FirebaseCrashlytics.instance.recordError(
+            error, stackTrace, reason: 'apiCall failed');
+      }
       isLoading = false;
       isPageLoading = false;
       update();
@@ -158,7 +163,7 @@ class CreateBroadcastsController extends GetxController{
       "is_group":"0",
       "is_broadcast": "1",
     });
-    Get.find<PostApiServiceImpl>()
+    await Get.find<PostApiServiceImpl>()
         .addEditGroupBroadcastApiCall(dataBody: reqData)
         .then((value) {
       customLoader.hide();
@@ -171,6 +176,10 @@ class CreateBroadcastsController extends GetxController{
       Dialogs.showSnackbar(Get.context!, "Scroll down to see your latest create 'Broadcast'");
       update();
     }).onError((error, stackTrace) {
+      if(!kIsWeb) {
+        FirebaseCrashlytics.instance.recordError(
+            error, stackTrace, reason: 'apiCall failed');
+      }
       update();
       customLoader.hide();
       errorDialog(error.toString());

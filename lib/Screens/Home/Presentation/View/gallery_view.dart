@@ -12,7 +12,11 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import '../../../../Constants/colors.dart' as AppTheme;
+import '../../../../Services/APIs/api_ends.dart';
+import '../../../../utils/circleContainer.dart';
 import '../../../../utils/confirmation_dialog.dart';
+import '../../../../utils/networl_shimmer_image.dart';
 import '../../../../utils/show_upload_option_galeery.dart';
 import '../../../Chat/helper/dialogs.dart';
 import '../../../Chat/models/gallery_node.dart';
@@ -105,8 +109,10 @@ class GalleryTab extends GetView<GalleryController> {
   }
 
   AppBar _searchBarWidget() {
-    return AppBar(      scrolledUnderElevation: 0,
+    return AppBar(
+      scrolledUnderElevation: 0,
       surfaceTintColor: Colors.white,
+      automaticallyImplyLeading: false,
       title: controller.isSearchingIcon
           ? TextField(
               controller: controller.searchCtrl,
@@ -126,10 +132,58 @@ class GalleryTab extends GetView<GalleryController> {
                     .hitApiToGetSearchResultItems(controller.query.trim());
               },
             ).marginSymmetric(vertical: 10)
-          : const SectionHeader(
-              title: 'Your Smart Gallery',
-              icon: galleryIcon,
+          :  Row(
+        mainAxisAlignment: MainAxisAlignment.start,
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          SizedBox(
+            width: 40,
+            child: CustomCacheNetworkImage(
+              "${ApiEnd.baseUrlMedia}${controller.myCompany?.logo ?? ''}",
+              radiusAll: 100,
+              height: 40,
+              width: 40,
+              borderColor: appColorYellow,
+              defaultImage: appIcon,
+              boxFit: BoxFit.cover,
             ),
+          ).paddingAll(3),
+          Expanded(
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.end,
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  'Your Smart Gallery',
+                  style: BalooStyles.baloomediumTextStyle(
+                      size: 14),
+                ).paddingOnly(left: 4, top: 4),
+                Row(
+                  crossAxisAlignment: CrossAxisAlignment.center,
+                  mainAxisAlignment: MainAxisAlignment.start,
+                  mainAxisSize: MainAxisSize.min,
+
+                  children: [
+                    CircleContainer(colorIS: Colors.greenAccent,setSize: 5.0,),
+                    Text(
+                      (controller.myCompany?.companyName ?? ''),
+                      style: BalooStyles.baloomediumTextStyle(
+                        color: appColorYellow,
+                      ),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                    ).paddingOnly(left: 4, top: 2),
+                  ],
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+
+
+
       bottom: PreferredSize(
           preferredSize: const Size.fromHeight(64), child: _beautifiedTabBar()),
       actions: [
@@ -234,7 +288,7 @@ class GalleryTab extends GetView<GalleryController> {
                   onLeafTap: (v) {},
                   controller: controller,
                 ):Center(child: SizedBox(
-        height: Get.height*.5,
+        height: Get.height*.4,
           child: DataNotFoundText(height: 150,)))),
     );
   }
@@ -360,47 +414,48 @@ class _GalleryGrid extends StatelessWidget {
     return LayoutBuilder(
       builder: (context, constraints) {
         final cross = (constraints.maxWidth ~/120).clamp(2, 12);
-        return Obx(
-          () => RefreshIndicator(
+        return RefreshIndicator(
             onRefresh: () async => controller.refreshGallery(),
-            child: GridView.builder(
-              // padding: const EdgeInsets.only(bottom: 12, top: 4),
-              controller: controller.scrollController,
-              physics: const AlwaysScrollableScrollPhysics(),
-              gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-                crossAxisCount:(kIsWeb&&Get.width>600)? cross:3,
-                crossAxisSpacing: 10,
-                mainAxisSpacing: 10,
-                childAspectRatio: (kIsWeb&&Get.width>600)?1:.85,
+            child: Container(
+              height: Get.height*.5,
+              child: GridView.builder(
+                // padding: const EdgeInsets.only(bottom: 12, top: 4),
+                controller: controller.scrollController,
+                physics: const AlwaysScrollableScrollPhysics(),
+                gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+                  crossAxisCount:(kIsWeb&&Get.width>600)? cross:3,
+                  crossAxisSpacing: 10,
+                  mainAxisSpacing: 10,
+                  childAspectRatio: (kIsWeb && Get.width>600)?1:.85,
+                ),
+                itemCount: items.length + (controller.hasMore.value ? 1 : 0),
+                itemBuilder: (_, i) {
+                  if (i == items.length) {
+                    return const IndicatorLoading();
+                  }
+                  final node = items[i];
+                  return _GalleryTile(
+                    folder: node,
+                    onTap:() async {
+                      if (Get.isRegistered<GalleryController>()) {
+                       await Get.delete<GalleryController>( force: true);
+                      }
+
+                      Get.to(()=>FolderItemsScreen(folderData: node),
+                        binding: BindingsBuilder(() {
+                          final tag = 'folder_${node.userGalleryId}';
+                          if (Get.isRegistered<GalleryItemController>(tag: tag)) {
+                            Get.delete<GalleryItemController>(tag: tag, force: true);
+                          }
+                          Get.lazyPut<GalleryItemController>(() => GalleryItemController(folderData: node), tag: tag);
+
+                        }),);
+                    } ,
+                  );
+                },
               ),
-              itemCount: items.length + (controller.hasMore.value ? 1 : 0),
-              itemBuilder: (_, i) {
-                if (i == items.length) {
-                  return const IndicatorLoading();
-                }
-                final node = items[i];
-                return _GalleryTile(
-                  folder: node,
-                  onTap:() async {
-                    if (Get.isRegistered<GalleryController>()) {
-                     await Get.delete<GalleryController>( force: true);
-                    }
-
-                    Get.to(()=>FolderItemsScreen(folderData: node),
-                      binding: BindingsBuilder(() {
-                        final tag = 'folder_${node.userGalleryId}';
-                        if (Get.isRegistered<GalleryItemController>(tag: tag)) {
-                          Get.delete<GalleryItemController>(tag: tag, force: true);
-                        }
-                        Get.lazyPut<GalleryItemController>(() => GalleryItemController(folderData: node), tag: tag);
-
-                      }),);
-                  } ,
-                );
-              },
             ),
-          ),
-        );
+          );
       },
     );
   }
@@ -455,10 +510,10 @@ class _GalleryTile extends StatelessWidget {
         ),
         child: Stack(
           children: [
-            // Main content
             Padding(
               padding: const EdgeInsets.all(5),
               child: Column(
+                mainAxisSize: MainAxisSize.min,
                 children: [
                   Expanded(child: preview),
                   vGap(5),
@@ -527,79 +582,81 @@ class _GalleryTile extends StatelessWidget {
               ),
             ),
 
-            // Top-right menu (only for folder)
-            // if (node.isFolder)
             Positioned(
               top: 4,
               right: 4,
               child: Material(
                 color: Colors.transparent,
-                child: PopupMenuButton<FolderMenuAction>(
-                  tooltip: "More",
-                  padding: EdgeInsets.zero,
-                  position: PopupMenuPosition.under,
-                  borderRadius: BorderRadius.circular(12),
-                  color: Colors.white,
-                  onSelected: (action) {
-                    switch (action) {
-                      case FolderMenuAction.rename:
-                        toast("Under Development!");
-                        // controller.startRename(id: folder.userGalleryId??0, currentName: folder.folderName??'');
-                        break;
-                      case FolderMenuAction.delete:
-                        // showResponsiveConfirmationDialog(onConfirm:  () async {
-                        //   Get.back();
-                        // },title: "Delete ${node.name} Folder(Permanently Deleted)");
-                        showResponsiveConfirmationDialog(
-                            onConfirm: () {
-                              controller.hitApiToDeleteFolder(folder.userGalleryId);
-                            },
-                            title: "Confirm Delete",
-                            subtitle:
-                                "Delete ${folder.folderName} (Permanently Deleted)");
-                        break;
-                      case FolderMenuAction.share:
-                        controller.handleOnShareWithinAccuchat(context: context);
-                        break;
-                      case FolderMenuAction.sharew:
-                        toast("Under Development!");
-                        break;
-                    }
-                  },
-                  itemBuilder: (context) => const [
-                    PopupMenuItem(
-                      value: FolderMenuAction.rename,
-                      child: Text("Rename"),
+                child: SizedBox(
+                  height: 20,
+                  width: 20,
+                  child: PopupMenuButton<FolderMenuAction>(
+                    tooltip: "More",
+                    padding: EdgeInsets.zero,
+                    position: PopupMenuPosition.under,
+                    borderRadius: BorderRadius.circular(12),
+                    color: Colors.white,
+                    onSelected: (action) {
+                      switch (action) {
+                        case FolderMenuAction.rename:
+                          toast("Under Development!");
+                          // controller.startRename(id: folder.userGalleryId??0, currentName: folder.folderName??'');
+                          break;
+                        case FolderMenuAction.delete:
+                          // showResponsiveConfirmationDialog(onConfirm:  () async {
+                          //   Get.back();
+                          // },title: "Delete ${node.name} Folder(Permanently Deleted)");
+                          showResponsiveConfirmationDialog(
+                              onConfirm: () {
+                                controller.hitApiToDeleteFolder(folder.userGalleryId);
+                              },
+                              title: "Confirm Delete",
+                              subtitle:
+                                  "Delete ${folder.folderName} (Permanently Deleted)");
+                          break;
+                        case FolderMenuAction.share:
+                          controller.handleOnShareWithinAccuchat(context: context);
+                          break;
+                        case FolderMenuAction.sharew:
+                          toast("Under Development!");
+                          break;
+                      }
+                    },
+                    itemBuilder: (context) => const [
+                      PopupMenuItem(
+                        value: FolderMenuAction.rename,
+                        child: Text("Rename"),
+                      ),
+                      PopupMenuItem(
+                        value: FolderMenuAction.share,
+                        child: Text("Share"),
+                      ),
+                      PopupMenuDivider(),
+                      PopupMenuItem(
+                        value: FolderMenuAction.delete,
+                        child: Text("Delete"),
+                      ),
+                    ],
+                    child: InkWell(
+                      // important: tap on menu should NOT open folder
+                      onTap: null,
+                      borderRadius: BorderRadius.circular(100),
+                      child: Container(
+                          padding: const EdgeInsets.all(4),
+                          margin: const EdgeInsets.all(4),
+                          decoration: BoxDecoration(
+                              color: Colors.white,
+                              shape: BoxShape.circle,
+                              boxShadow: [
+                                BoxShadow(
+                                    color: Colors.grey.shade200, blurRadius: 10)
+                              ]),
+                          child: const Icon(
+                            Icons.more_vert,
+                            size: 18,
+                            color: Colors.black87,
+                          )),
                     ),
-                    PopupMenuItem(
-                      value: FolderMenuAction.share,
-                      child: Text("Share"),
-                    ),
-                    PopupMenuDivider(),
-                    PopupMenuItem(
-                      value: FolderMenuAction.delete,
-                      child: Text("Delete"),
-                    ),
-                  ],
-                  child: InkWell(
-                    // important: tap on menu should NOT open folder
-                    onTap: null,
-                    borderRadius: BorderRadius.circular(100),
-                    child: Container(
-                        padding: const EdgeInsets.all(4),
-                        margin: const EdgeInsets.all(4),
-                        decoration: BoxDecoration(
-                            color: Colors.white,
-                            shape: BoxShape.circle,
-                            boxShadow: [
-                              BoxShadow(
-                                  color: Colors.grey.shade200, blurRadius: 10)
-                            ]),
-                        child: const Icon(
-                          Icons.more_vert,
-                          size: 18,
-                          color: Colors.black87,
-                        )),
                   ),
                 ),
               ),

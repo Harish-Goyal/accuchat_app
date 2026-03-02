@@ -3,6 +3,7 @@ import 'dart:io';
 
 import 'package:AccuChat/Screens/Chat/api/session_alive.dart';
 import 'package:device_info_plus/device_info_plus.dart';
+import 'package:firebase_crashlytics/firebase_crashlytics.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
@@ -60,6 +61,10 @@ class VerifyOtpController extends GetxController{
 
       // openBottomSheet();
     }).onError((error, stackTrace) {
+      if(!kIsWeb) {
+        FirebaseCrashlytics.instance.recordError(error, stackTrace, reason: 'apiCall failed');
+      }
+
       customLoader.hide();
       errorDialog(error.toString());
       isFill = false;
@@ -115,6 +120,10 @@ class VerifyOtpController extends GetxController{
 
         update();
       }).onError((error, stackTrace) {
+        if(!kIsWeb) {
+          FirebaseCrashlytics.instance.recordError(
+              error, stackTrace, reason: 'apiCall failed');
+        }
         customLoader.hide();
         errorDialog(error.toString());
         update();

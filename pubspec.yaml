@@ -107,6 +107,8 @@ dependencies:
   swipe_to: ^1.0.6
   animated_search_bar: ^2.7.2
   url_launcher: ^6.3.0
+  sentry: ^9.14.0
+  firebase_crashlytics:
   #  build_runner:
   # smooth_star_rating_null_safety: ^1.0.4+2
 

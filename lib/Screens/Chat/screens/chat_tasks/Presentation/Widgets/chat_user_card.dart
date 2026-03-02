@@ -126,7 +126,6 @@ class _ChatUserCardState extends State<ChatUserCard>
                   homec.selectedChat.refresh();
                   taskC.update();
                   homec.update();
-
                 } else {
                   Get.toNamed(AppRoutes.tasks_li_r,
                       arguments: {'user': widget.user});

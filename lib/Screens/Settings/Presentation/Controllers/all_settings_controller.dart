@@ -1,3 +1,5 @@
+import 'package:firebase_crashlytics/firebase_crashlytics.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:permission_handler/permission_handler.dart';
@@ -194,7 +196,7 @@ class AllSettingsController extends GetxController {
   bool isLoadingPer = true;
 
   hitAPIToGetNavPermissions() async {
-    Get.find<PostApiServiceImpl>()
+    await  Get.find<PostApiServiceImpl>()
         .getNavPerUSerApiCall(comId: myCompany?.companyId??0,userComId: APIs.me.userCompany?.userCompanyRoleId??0)
         .then((value) async {
       isLoadingPer=false;
@@ -202,6 +204,10 @@ class AllSettingsController extends GetxController {
       getUserNavigation();
       update();
     }).onError((error, stackTrace) {
+      if(!kIsWeb) {
+        FirebaseCrashlytics.instance.recordError(
+            error, stackTrace, reason: 'apiCall failed');
+      }
       isLoadingPer=false;
       update();
     });
@@ -247,11 +253,7 @@ class AllSettingsController extends GetxController {
 
 
 
-  UserDataAPI? me = UserDataAPI();
-  _getMe()async{
-    me = getUser();
-    update();
-  }
+
 
 
 
@@ -292,7 +294,6 @@ class AllSettingsController extends GetxController {
   void onInit() {
     super.onInit();
     _getCompany();
-    _getMe();
   }
 
 }

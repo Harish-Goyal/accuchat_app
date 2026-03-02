@@ -3,6 +3,7 @@ import 'package:AccuChat/Screens/Chat/api/session_alive.dart';
 import 'package:AccuChat/Screens/Chat/screens/auth/models/get_uesr_Res_model.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:device_info_plus/device_info_plus.dart';
+import 'package:firebase_crashlytics/firebase_crashlytics.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/foundation.dart';
 import 'package:get/get.dart';
@@ -175,6 +176,11 @@ class APIs {
         .registerPushTokenApiCall(dataBody: dataBody)
         .then((value) async {})
         .onError((error, stackTrace) {
+
+       if(!kIsWeb) {
+         FirebaseCrashlytics.instance.recordError(
+             error, stackTrace, reason: 'apiCall failed');
+       }
     });
   }
 

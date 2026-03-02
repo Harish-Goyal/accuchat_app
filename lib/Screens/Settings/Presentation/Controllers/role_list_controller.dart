@@ -37,7 +37,7 @@ class RoleListController extends GetxController {
   GetCompanyRolesResModel companyRolesResModel = GetCompanyRolesResModel();
   List<RolesData> rolesList=[];
   hitAPIToGetAllRolesAPI() async {
-    Get.find<PostApiServiceImpl>()
+    await Get.find<PostApiServiceImpl>()
         .getCompanyRolesApiCall(company?.companyId)
         .then((value) async {
       isLoadingRoles=false;

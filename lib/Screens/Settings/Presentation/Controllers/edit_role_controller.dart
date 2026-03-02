@@ -1,5 +1,6 @@
 
 import 'package:AccuChat/Screens/Settings/Presentation/Controllers/role_list_controller.dart';
+import 'package:firebase_crashlytics/firebase_crashlytics.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -80,13 +81,17 @@ class EditRoleController extends GetxController {
   bool isLoadingPer = true;
 
   hitAPIToGetNavPermissions() async {
-    Get.find<PostApiServiceImpl>()
+    await Get.find<PostApiServiceImpl>()
         .getNavigationPermissionApiCall()
         .then((value) async {
       isLoadingPer=false;
       navPermissionData = value.data??[];
       update();
     }).onError((error, stackTrace) {
+      if(!kIsWeb) {
+        FirebaseCrashlytics.instance.recordError(
+            error, stackTrace, reason: 'apiCall failed');
+      }
       isLoadingPer=false;
       update();
     });
@@ -144,7 +149,7 @@ class EditRoleController extends GetxController {
       "navigation_items": selectedPermissionsIds
     };
 
-    Get.find<PostApiServiceImpl>()
+   await Get.find<PostApiServiceImpl>()
         .updateRoleApiCall(dataBody: reqData,roleId: roleData?.userCompanyRoleId)
         .then((value) {
       customLoader.hide();
@@ -153,6 +158,10 @@ class EditRoleController extends GetxController {
       Get.find<RoleListController>().hitAPIToGetAllRolesAPI();
       update();
     }).onError((error, stackTrace) {
+     if(!kIsWeb) {
+       FirebaseCrashlytics.instance.recordError(
+           error, stackTrace, reason: 'apiCall failed');
+     }
       update();
       Get.back();
       customLoader.hide();

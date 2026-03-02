@@ -1,3 +1,5 @@
+import 'package:firebase_crashlytics/firebase_crashlytics.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:get/get.dart';
@@ -77,25 +79,33 @@ class SaveToGalleryController extends GetxController {
     if (page == 1) isLoading = true;
     update();
     try {
-      final res = await Get.find<PostApiServiceImpl>().getFolderApiCall(
+     await Get.find<PostApiServiceImpl>().getFolderApiCall(
         ucId: myCompany?.userCompanies?.userCompanyId,
         page: page,
-      );
+      ).then((res){
+       isLoading = false;
 
-      isLoading = false;
+       final rows = res.data?.rows ?? [];
 
-      final rows = res.data?.rows ?? [];
+       if (rows.isNotEmpty) {
+         folderList?.addAll(rows);
+         page++;
+         const pageSize = 15;
+         hasMore = rows.length == pageSize;
+       } else {
+         hasMore = false;
+       }
+       update();
+       _ensureScrollableAndPrefetch();
+     }).onError((error,stackTrace){
+       if(!kIsWeb) {
+         FirebaseCrashlytics.instance.recordError(
+             error, stackTrace, reason: 'apiCall failed');
+       }
+     });
 
-      if (rows.isNotEmpty) {
-        folderList?.addAll(rows);
-        page++;
-        const pageSize = 15;
-        hasMore = rows.length == pageSize;
-      } else {
-        hasMore = false;
-      }
-      update();
-      _ensureScrollableAndPrefetch();
+
+
     } catch (e) {
       isLoading = false;
       update();
@@ -128,7 +138,7 @@ class SaveToGalleryController extends GetxController {
       "title":docNameController.text.trim(),
       "key_words":keywords
     };
-    Get.find<PostApiServiceImpl>()
+   await Get.find<PostApiServiceImpl>()
         .saveMediaFromChatApiCall(dataBody: reqData)
         .then((value) {
       Get.back();
@@ -138,6 +148,11 @@ class SaveToGalleryController extends GetxController {
 
       update();
     }).onError((error, stackTrace) {
+
+     if(!kIsWeb) {
+       FirebaseCrashlytics.instance.recordError(
+           error, stackTrace, reason: 'apiCall failed');
+     }
       update();
       Get.back();
       customLoader.hide();

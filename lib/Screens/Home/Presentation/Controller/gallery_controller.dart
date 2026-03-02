@@ -3,6 +3,7 @@ import 'dart:io';
 import 'dart:typed_data';
 import 'package:AccuChat/Screens/Chat/screens/chat_tasks/Presentation/Controllers/save_in_accuchat_gallery_controller.dart';
 import 'package:dio/dio.dart' as multi;
+import 'package:firebase_crashlytics/firebase_crashlytics.dart';
 import 'package:path/path.dart' as p;
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/cupertino.dart';
@@ -144,7 +145,7 @@ class GalleryController extends GetxController
       "name": nameController.text.trim(),
       "user_company_id": myCompany?.userCompanies?.userCompanyId,
     };
-    Get.find<PostApiServiceImpl>()
+    await Get.find<PostApiServiceImpl>()
         .createFolderApiCall(dataBody: reqData)
         .then((value) {
       nameController.clear();
@@ -155,6 +156,11 @@ class GalleryController extends GetxController
       toast(value.message ?? '');
       update();
     }).onError((error, stackTrace) {
+
+      if(!kIsWeb) {
+        FirebaseCrashlytics.instance.recordError(
+            error, stackTrace, reason: 'apiCall failed');
+      }
       update();
       Get.back();
       customLoader.hide();
@@ -172,7 +178,7 @@ class GalleryController extends GetxController
       "key_words":  myCompany?.userCompanies?.userCompanyId,
     });
 
-    Get.find<PostApiServiceImpl>()
+   await Get.find<PostApiServiceImpl>()
         .uploadFolderMediaApiCall(dataBody: reqData)
         .then((value) async {
       Get.back();
@@ -194,6 +200,11 @@ class GalleryController extends GetxController
       toast(value.message ?? '');
       update();
     }).onError((error, stackTrace) {
+
+     if(!kIsWeb) {
+       FirebaseCrashlytics.instance.recordError(
+           error, stackTrace, reason: 'apiCall failed');
+     }
       update();
       Get.back();
       customLoader.hide();
@@ -207,7 +218,7 @@ class GalleryController extends GetxController
       "user_company_id": myCompany?.userCompanies?.userCompanyId,
       "user_gallery_id": id,
     };
-    Get.find<PostApiServiceImpl>()
+    await Get.find<PostApiServiceImpl>()
         .deleteFolderApiCall(dataBody: reqData)
         .then((value) {
       Get.back();
@@ -216,6 +227,11 @@ class GalleryController extends GetxController
       toast(value.message ?? '');
       update();
     }).onError((error, stackTrace) {
+
+      if(!kIsWeb) {
+        FirebaseCrashlytics.instance.recordError(
+            error, stackTrace, reason: 'apiCall failed');
+      }
       update();
       Get.back();
       customLoader.hide();
@@ -230,7 +246,7 @@ class GalleryController extends GetxController
       "old_name": folderName,
       "new_name": newFolderName,
     };
-    Get.find<PostApiServiceImpl>()
+   await Get.find<PostApiServiceImpl>()
         .editFolderApiCall(dataBody: reqData)
         .then((value) {
       customLoader.hide();
@@ -238,6 +254,11 @@ class GalleryController extends GetxController
       // toast(value.message ?? '');
       update();
     }).onError((error, stackTrace) {
+
+     if(!kIsWeb) {
+       FirebaseCrashlytics.instance.recordError(
+           error, stackTrace, reason: 'apiCall failed');
+     }
       update();
       Get.back();
       customLoader.hide();
@@ -297,24 +318,31 @@ class GalleryController extends GetxController
     if (page.value == 1) isLoading.value = true;
 
     try {
-      final res = await Get.find<PostApiServiceImpl>().getFolderApiCall(
+      await Get.find<PostApiServiceImpl>().getFolderApiCall(
         ucId: myCompany?.userCompanies?.userCompanyId,
         page: page,
-      );
+      ).then((res){
+        isLoading.value = false;
 
-      isLoading.value = false;
+        final rows = res.data?.rows ?? [];
 
-      final rows = res.data?.rows ?? [];
+        if (rows.isNotEmpty) {
+          folderList.addAll(rows);
+          page.value++;
+          const pageSize = 15; // match backend
+          hasMore.value = rows.length == pageSize;
+        } else {
+          hasMore.value = false;
+        }
+        _ensureScrollableAndPrefetch();
+      }).onError((error,stackTrace){
+        if(!kIsWeb) {
+          FirebaseCrashlytics.instance.recordError(
+              error, stackTrace, reason: 'apiCall failed');
+        }
+      });
 
-      if (rows.isNotEmpty) {
-        folderList.addAll(rows);
-        page.value++;
-        const pageSize = 15; // match backend
-        hasMore.value = rows.length == pageSize;
-      } else {
-        hasMore.value = false;
-      }
-      _ensureScrollableAndPrefetch();
+
     } catch (e) {
       isLoading.value = false;
     } finally {
@@ -330,18 +358,24 @@ class GalleryController extends GetxController
   List<FolderData>? searchResults = [];
 
   hitApiToGetSearchResultItems(searchTxt) async {
-    Get.find<PostApiServiceImpl>()
+   await Get.find<PostApiServiceImpl>()
         .getGalleryGlobalSearchApiCall(
             ucId: myCompany?.userCompanies?.userCompanyId,
             search: searchTxt)
         .then((value) {
       searchResults = value.data?.rows ?? [];
       update();
-    }).onError((error, stackTrace) {
-      update();
-      customLoader.hide();
-      errorDialog(error.toString());
-    }).whenComplete(() {});
+   }).onError((error,stackTrace){
+     if(!kIsWeb) {
+       FirebaseCrashlytics.instance.recordError(
+           error, stackTrace, reason: 'apiCall failed');
+     }
+     update();
+     customLoader.hide();
+     errorDialog(error.toString());
+   });
+
+
   }
 
   final RxString openedFolder = "".obs;
@@ -414,7 +448,7 @@ class GalleryController extends GetxController
           'file_path': docParts, // array of docs
         });
 
-      Get.find<PostApiServiceImpl>()
+     await Get.find<PostApiServiceImpl>()
           .uploadFolderMediaApiCall(dataBody: formData)
           .then((value) async {
         Get.back();
@@ -442,6 +476,11 @@ class GalleryController extends GetxController
         toast(value.message ?? '');
       }).onError((error, stackTrace) {
         isUploading.value  = false;
+
+        if(!kIsWeb) {
+          FirebaseCrashlytics.instance.recordError(
+              error, stackTrace, reason: 'apiCall failed');
+        }
         Get.back();
         customLoader.hide();
         errorDialog(error.toString());
@@ -510,7 +549,7 @@ class GalleryController extends GetxController
 
       final formData = multi.FormData.fromMap(fields);
 
-      Get.find<PostApiServiceImpl>()
+      await Get.find<PostApiServiceImpl>()
           .uploadFolderMediaApiCall(dataBody: formData)
           .then((value) async {
         Navigator.of(ctx).pop();
@@ -531,6 +570,11 @@ class GalleryController extends GetxController
 
         toast(value.message ?? '');
       }).onError((error, stackTrace) {
+
+        if(!kIsWeb) {
+          FirebaseCrashlytics.instance.recordError(
+              error, stackTrace, reason: 'apiCall failed');
+        }
         isUploading.value  = false;
         Get.back();
         customLoader.hide();

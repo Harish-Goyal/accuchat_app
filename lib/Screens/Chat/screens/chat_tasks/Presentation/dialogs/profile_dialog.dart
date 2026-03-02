@@ -32,7 +32,8 @@ class ProfileDialog extends StatelessWidget {
         child: AlertDialog(
           backgroundColor: Colors.white.withOpacity(.9),
           contentPadding: EdgeInsets.zero,
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+          shape:
+              RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
           insetPadding: kIsWeb
               ? const EdgeInsets.symmetric(horizontal: 24, vertical: 24)
               : EdgeInsets.zero,
@@ -94,8 +95,11 @@ class ProfileDialog extends StatelessWidget {
                 // Profile Image
                 Expanded(
                   child: InkWell(
-                    onTap: (){
-                      Get.to(()=>ProfileZoom(imagePath: "${ApiEnd.baseUrlMedia}${user?.userImage ?? ''}",heroTag: "DetailedProfile"));
+                    onTap: () {
+                      Get.to(() => ProfileZoom(
+                          imagePath:
+                              "${ApiEnd.baseUrlMedia}${user?.userImage ?? ''}",
+                          heroTag: "DetailedProfile"));
                     },
                     child: Hero(
                       tag: "DetailedProfile",
@@ -105,12 +109,16 @@ class ProfileDialog extends StatelessWidget {
                           aspectRatio: 1,
                           child: ClipRRect(
                             borderRadius:
-                            BorderRadius.circular(dialogHeight * 0.45),
+                                BorderRadius.circular(dialogHeight * 0.45),
                             child: CustomCacheNetworkImage(
                               width: dialogWidth * .6,
                               height: dialogWidth * .6,
                               "${ApiEnd.baseUrlMedia}${user?.userImage ?? ''}",
-                              defaultImage: userIcon,
+                              defaultImage: user?.userCompany?.isGroup == 1
+                                  ? groupIcn
+                                  : user?.userCompany?.isBroadcast == 1
+                                      ? broadcastIcon
+                                      : ICON_profile,
                               radiusAll: dialogHeight * 0.5,
                               boxFit: BoxFit.cover,
                               borderColor: greyText,

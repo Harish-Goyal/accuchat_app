@@ -2,6 +2,7 @@ import 'dart:async';
 import 'package:AccuChat/Screens/Home/Presentation/Controller/compnaies_controller.dart';
 import 'package:AccuChat/main.dart';
 import 'package:AccuChat/utils/custom_flashbar.dart';
+import 'package:firebase_crashlytics/firebase_crashlytics.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
@@ -67,7 +68,7 @@ class CompanyMemberController extends GetxController{
 
   hitAPIToRemoveMember(memId) async {
     customLoader.show();
-    Get.find<PostApiServiceImpl>()
+    await  Get.find<PostApiServiceImpl>()
         .removeComMemberApiCall(compId: companyId,memberId: memId)
         .then((value) async {
           customLoader.hide();
@@ -80,6 +81,10 @@ class CompanyMemberController extends GetxController{
       hitAPIToGetMember();
       update();
     }).onError((error, stackTrace) {
+      if(!kIsWeb) {
+        FirebaseCrashlytics.instance.recordError(
+            error, stackTrace, reason: 'apiCall failed');
+      }
       update();
       customLoader.hide();
     });
@@ -156,7 +161,7 @@ class CompanyMemberController extends GetxController{
    isPageLoading = true;
    update();
    try {
-     Get.find<PostApiServiceImpl>()
+     await  Get.find<PostApiServiceImpl>()
          .getComMemApiCall(companyId, page, search)
          .then((value) async {
        isLoading.value = false;
@@ -179,6 +184,10 @@ class CompanyMemberController extends GetxController{
        isPageLoading = false;
        update();
      }).onError((error, stackTrace) {
+       if(!kIsWeb) {
+         FirebaseCrashlytics.instance.recordError(
+             error, stackTrace, reason: 'apiCall failed');
+       }
        isLoading.value = false;
        isPageLoading = false;
        update();

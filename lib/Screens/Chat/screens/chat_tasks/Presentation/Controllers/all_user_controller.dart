@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:AccuChat/main.dart';
+import 'package:firebase_crashlytics/firebase_crashlytics.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/foundation.dart';
 import 'package:get/get.dart';
@@ -120,7 +121,7 @@ class AllUserController extends GetxController{
     }
     isPageLoading = true;
     update();
-    Get.find<PostApiServiceImpl>()
+    await Get.find<PostApiServiceImpl>()
         .getComMemApiCall(myCompany?.companyId,page,search)
         .then((value) async {
       isLoading.value = false;
@@ -146,6 +147,10 @@ class AllUserController extends GetxController{
       update();
 
     }).onError((error, stackTrace) {
+      if(!kIsWeb) {
+        FirebaseCrashlytics.instance.recordError(
+            error, stackTrace, reason: 'apiCall failed');
+      }
       isLoading.value = false;
       isPageLoading = false;
       update();
@@ -157,7 +162,7 @@ class AllUserController extends GetxController{
   hitAPIToGetRecentChats(String? searchT) async {
     isLoading.value=true;
     update();
-    Get.find<PostApiServiceImpl>()
+    await Get.find<PostApiServiceImpl>()
         .getRecentChatUserApiCall(comId:myCompany?.companyId,page: page,searchText: searchT??'')
         .then((value) async {
       isLoading.value = false;
@@ -165,6 +170,10 @@ class AllUserController extends GetxController{
       filteredList.value = members;
       update();
     }).onError((error, stackTrace) {
+      if(!kIsWeb) {
+        FirebaseCrashlytics.instance.recordError(
+            error, stackTrace, reason: 'apiCall failed');
+      }
       isLoading.value = false;
       update();
     });

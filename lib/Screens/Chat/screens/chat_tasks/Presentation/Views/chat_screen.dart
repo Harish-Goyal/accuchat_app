@@ -1104,12 +1104,6 @@ final isMedia = (data.media??[]).isNotEmpty;
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.end,
           children: [
-            // !sentByMe?  isHoved?  InkWell(
-            //   onTap: (){
-            //     _showBottomSheet(sentByMe, data: data);
-            //   },
-            //     child: const Icon(Icons.keyboard_arrow_down_outlined,size: 25,color: Colors.black,)):const SizedBox():const SizedBox()
-
             Flexible(
               child: Container(
                 key: ValueKey('msg-${data.chatId}'),
@@ -1298,7 +1292,7 @@ final isMedia = (data.media??[]).isNotEmpty;
             borderRadius: BorderRadius.circular(50),
             onTap: (){
               _showBottomSheet(sentByMe, data: data);
-            },child: const Icon(Icons.keyboard_arrow_down_outlined,size: 23,color: Colors.black,)):const SizedBox()
+            },child: Image.asset(arrowDownPng,height: 15,)):const SizedBox()
         ,
       ],
     ):Stack(
@@ -1462,7 +1456,7 @@ final isMedia = (data.media??[]).isNotEmpty;
             borderRadius: BorderRadius.circular(50),
             onTap: (){
               _showBottomSheet(sentByMe, data: data);
-            },child: const Icon(Icons.keyboard_arrow_down_outlined,size: 25,color: Colors.black,)):const SizedBox()
+            },child:  Image.asset(arrowDownPng,height: 15,)):const SizedBox()
       ],
     );
   }
@@ -1944,15 +1938,11 @@ final isMedia = (data.media??[]).isNotEmpty;
   void _hideEmojiPicker() {
     _emojiOverlay?.remove();
     _emojiOverlay = null;
-    if (mounted) setState(() => _emojiVisible = false);
+    if (mounted){ setState(() => _emojiVisible = false);}
   }
 
   // bottom chat input field
   Widget _chatInput(BuildContext context) {
-    // ✅ don't put controller every rebuild
-    // if(widget.user?.userId != controller.user?.userId){
-    //   widget.user = controller.user;
-    // }
 
     void _appendSpeechToInput() {
       final text = speechC.getCombinedText().trim();
@@ -2641,7 +2631,7 @@ final isMedia = (data.media??[]).isNotEmpty;
                           saveC.docNameController.text =
                               mediachat?.orgFileName ?? '';
 
-                          Get.dialog(
+                         await Get.dialog(
                             SaveToCustomFolderDialog(
                               user: widget.user,
                               filesImages: picked,
@@ -2692,6 +2682,7 @@ final isMedia = (data.media??[]).isNotEmpty;
                         color: Colors.red, size: 16),
                     name: 'Delete Message',
                     onTap: () async {
+
                       Get.find<SocketController>().deleteMsgEmitter(
                           mode: widget.user?.userCompany?.isGroup == 1
                               ? "group"
@@ -2702,6 +2693,7 @@ final isMedia = (data.media??[]).isNotEmpty;
                           groupId: widget.user?.userCompany?.isGroup == 1
                               ? widget.user?.userCompany?.userCompanyId
                               : null);
+                      Get.back();
                     }),
 
               (
@@ -2714,7 +2706,6 @@ final isMedia = (data.media??[]).isNotEmpty;
                       onTap: () async {
                         if (kIsWeb) {
                           final msg = data.message ?? '';
-
                           if (msg != '') {
                             ShareHelper.shareOnWhatsApp(msg);
                           } else {
