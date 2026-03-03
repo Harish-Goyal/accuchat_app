@@ -14,12 +14,17 @@ import '../Controllers/view_profile_controller.dart';
 import 'images_gallery_page.dart';
 
 class ProfileMediaSectionGetX extends StatelessWidget {
-  final String baseUrl; // e.g., ApiEnd.baseUrlMedia
+  final String baseUrl;
   const ProfileMediaSectionGetX({super.key, required this.baseUrl});
 
   @override
   Widget build(BuildContext context) {
-    final controller = Get.find<ViewProfileController>();
+    ViewProfileController controller;
+    if(Get.isRegistered<ViewProfileController>()) {
+      controller = Get.find<ViewProfileController>();
+    }else{
+      controller = Get.put(ViewProfileController());
+    }
 
     return
       DefaultTabController(

@@ -23,8 +23,6 @@ class ViewProfileScreen extends GetView<ViewProfileController> {
   Widget build(BuildContext context) {
     return GetBuilder<ViewProfileController>(builder: (controller) {
       final about = controller.user?.about?.trim();
-
-
       return GestureDetector(
         onTap: () => FocusScope.of(context).unfocus(),
         child: Scaffold(

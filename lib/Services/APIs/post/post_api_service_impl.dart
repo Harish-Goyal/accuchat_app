@@ -41,7 +41,7 @@ import '../local_keys.dart';
 
 class PostApiServiceImpl extends GetxService implements PostApiService {
   late DioClient? dioClient;
-  final l = kIsWeb?25:15;
+  final l = kIsWeb?15:15;
 
   @override
   void onInit() {

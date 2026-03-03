@@ -332,8 +332,10 @@ class GalleryController extends GetxController
           const pageSize = 15; // match backend
           hasMore.value = rows.length == pageSize;
         } else {
+
           hasMore.value = false;
         }
+        // isPageLoading.value = false;
         _ensureScrollableAndPrefetch();
       }).onError((error,stackTrace){
         if(!kIsWeb) {

@@ -4,16 +4,21 @@ import 'package:AccuChat/Screens/Home/Presentation/Controller/company_service.da
 import 'package:AccuChat/Screens/Home/Presentation/Controller/socket_controller.dart';
 import 'package:AccuChat/Screens/Settings/Model/get_nav_permission_res_model.dart';
 import 'package:AccuChat/routes/app_routes.dart';
+import 'package:firebase_crashlytics/firebase_crashlytics.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
+import 'package:flutter/foundation.dart';
 import 'package:get/get.dart';
+import '../../Screens/Chat/api/apis.dart';
 import '../../Screens/Chat/api/session_alive.dart';
 import '../../Screens/Chat/screens/chat_tasks/Presentation/Controllers/chat_home_controller.dart';
 import '../../Screens/Chat/screens/chat_tasks/Presentation/Controllers/chat_screen_controller.dart';
 import '../../Screens/Settings/Model/get_company_roles_res_moel.dart';
+import '../../utils/custom_flashbar.dart';
 import '../hive_boot.dart';
 import '../../main.dart';
 import '../../utils/shares_pref_web.dart';
 import '../storage_service.dart';
+import 'auth_service/auth_api_services_impl.dart';
 const String isFirstTime = 'isFirstTime';
 const String isCompanyCreated = 'isCompanyCreated';
 const String isFirstTimeChatKey = 'isFirstTimeChatKey';
@@ -101,6 +106,24 @@ Future<void> _disablePushOnLogout() async {
   try {
     await fcm.deleteToken();
   } catch (_) { customLoader.hide();}
+}
+
+
+Future<void> hitAPIToDeletePushToken() async {
+  customLoader.show();
+  await Get.find<AuthApiServiceImpl>()
+      .deletePushTokenApiCall()
+      .then((value) async {
+    customLoader.hide();
+     logoutLocal();
+  }).onError((error, stackTrace) {
+    if (!kIsWeb) {
+      FirebaseCrashlytics.instance
+          .recordError(error, stackTrace, reason: 'apiCall failed');
+    }
+    customLoader.hide();
+    errorDialog(error.toString());
+  });
 }
 
 Future<void> logoutLocal() async {

@@ -1,6 +1,4 @@
-
 import 'dart:typed_data';
-
 import 'package:AccuChat/Screens/Chat/screens/auth/models/get_uesr_Res_model.dart';
 import 'package:AccuChat/Screens/Settings/Presentation/Controllers/all_settings_controller.dart';
 import 'package:firebase_crashlytics/firebase_crashlytics.dart';
@@ -26,10 +24,10 @@ class HProfileController extends GetxController {
 
   String profileImg = '';
   Uint8List? webImageBytes;
- TextEditingController nameC=TextEditingController();
- TextEditingController aboutC=TextEditingController();
- TextEditingController phoneC=TextEditingController();
- TextEditingController mailC=TextEditingController();
+  TextEditingController nameC = TextEditingController();
+  TextEditingController aboutC = TextEditingController();
+  TextEditingController phoneC = TextEditingController();
+  TextEditingController mailC = TextEditingController();
   @override
   void onInit() {
     _getCompany();
@@ -50,49 +48,72 @@ class HProfileController extends GetxController {
   CompanyData? myCompany = CompanyData();
   _getCompany() async {
     final svc = CompanyService.to;
-    myCompany =svc.selected;
+    myCompany = svc.selected;
     hitAPIToGetUser();
   }
 
   hitAPIToGetUser() async {
-   isLoading = true;
-   update();
-    // FocusManager.instance.primaryFocus!.unfocus();
-    Get.find<AuthApiServiceImpl>().getUserApiCall(companyId: myCompany?.companyId??0).then((value) async {
+    isLoading = true;
+    update();
+    await Get.find<AuthApiServiceImpl>()
+        .getUserApiCall(companyId: myCompany?.companyId ?? 0)
+        .then((value) async {
       isLoading = false;
       update();
       userData = value.data!;
       saveUser(userData);
-
       _initData(userData);
-
     }).onError((error, stackTrace) {
       showCompanyErrorDialog();
       isLoading = false;
-      if(!kIsWeb) {
-        FirebaseCrashlytics.instance.recordError(
-            error, stackTrace, reason: 'apiCall failed');
+      if (!kIsWeb) {
+        FirebaseCrashlytics.instance
+            .recordError(error, stackTrace, reason: 'apiCall failed');
       }
       errorDialog(error.toString());
       update();
     });
   }
 
+  Future<void> hitAPIToRemoveUserPic() async {
+    customLoader.show();
+    await Get.find<AuthApiServiceImpl>()
+        .removeUserProfileApiCall()
+        .then((value) async {
+      customLoader.hide();
+      toast(value.message);
+      hitAPIToGetUser();
+      await APIs.refreshMe(companyId: myCompany?.companyId ?? 0);
+      Get.find<AllSettingsController>().update();
+      Get.back();
+    }).onError((error, stackTrace) {
+      if (!kIsWeb) {
+        FirebaseCrashlytics.instance
+            .recordError(error, stackTrace, reason: 'apiCall failed');
+      }
+      customLoader.hide();
+      errorDialog(error.toString());
+      update();
+    });
+  }
+
+
 
   hitAPIToDeleteAccount() async {
     customLoader.show();
-   await Get.find<PostApiServiceImpl>()
-        .deleteUserAccountApiCall(userID: APIs.me.userId??0)
+    await Get.find<PostApiServiceImpl>()
+        .deleteUserAccountApiCall(userID: APIs.me.userId ?? 0)
         .then((value) async {
+      toast(value.message);
       customLoader.hide();
+      // hitAPIToDeletePushToken();
       logoutLocal();
       update();
     }).onError((error, stackTrace) {
-
-     if(!kIsWeb) {
-       FirebaseCrashlytics.instance.recordError(
-           error, stackTrace, reason: 'apiCall failed');
-     }
+      if (!kIsWeb) {
+        FirebaseCrashlytics.instance
+            .recordError(error, stackTrace, reason: 'apiCall failed');
+      }
       customLoader.hide();
     });
   }
@@ -100,13 +121,10 @@ class HProfileController extends GetxController {
   hitAPIToUpdateUser() async {
     FocusManager.instance.primaryFocus!.unfocus();
     customLoader.show();
-
-
     var reqData = multi.FormData.fromMap({
       "user_name": nameC.text.trim(),
       "about": aboutC.text.trim(),
     });
-
 
     if (kIsWeb) {
       if (webImageBytes != null) {
@@ -114,7 +132,7 @@ class HProfileController extends GetxController {
           MapEntry(
             "user_image",
             multi.MultipartFile.fromBytes(
-              webImageBytes!,                       // Uint8List
+              webImageBytes!, // Uint8List
               filename: "profile_${DateTime.now().millisecondsSinceEpoch}.jpg",
               contentType: MediaType("image", "jpeg"),
             ),
@@ -122,21 +140,20 @@ class HProfileController extends GetxController {
         );
       }
     } else {
-    if (image != '' && image != null ) {
-      reqData.files.add(MapEntry(
-          "user_image",
-          await multi.MultipartFile.fromFile(
-            image ?? '',
-            filename: (image ?? '').split('/').last,
-            contentType: MediaType("image", "jpeg"),
-          )));
-
+      if (image != '' && image != null) {
+        reqData.files.add(MapEntry(
+            "user_image",
+            await multi.MultipartFile.fromFile(
+              image ?? '',
+              filename: (image ?? '').split('/').last,
+              contentType: MediaType("image", "jpeg"),
+            )));
+      }
     }
-    }
 
-    Get.find<AuthApiServiceImpl>().updateUserApiCall(
-      dataBody: reqData
-    ).then((value) async {
+    await Get.find<AuthApiServiceImpl>()
+        .updateUserApiCall(dataBody: reqData)
+        .then((value) async {
       customLoader.hide();
       userData = value.data!;
 
@@ -149,15 +166,13 @@ class HProfileController extends GetxController {
 
       update();
     }).onError((error, stackTrace) {
-      if(!kIsWeb) {
-        FirebaseCrashlytics.instance.recordError(
-            error, stackTrace, reason: 'apiCall failed');
+      if (!kIsWeb) {
+        FirebaseCrashlytics.instance
+            .recordError(error, stackTrace, reason: 'apiCall failed');
       }
       customLoader.hide();
       errorDialog(error.toString());
       update();
     });
   }
-
-
 }

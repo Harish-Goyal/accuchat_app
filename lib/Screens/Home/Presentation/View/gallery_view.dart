@@ -417,7 +417,7 @@ class _GalleryGrid extends StatelessWidget {
         return RefreshIndicator(
             onRefresh: () async => controller.refreshGallery(),
             child: Container(
-              height: Get.height*.5,
+              height: Get.height*.45,
               child: GridView.builder(
                 // padding: const EdgeInsets.only(bottom: 12, top: 4),
                 controller: controller.scrollController,
@@ -428,7 +428,7 @@ class _GalleryGrid extends StatelessWidget {
                   mainAxisSpacing: 10,
                   childAspectRatio: (kIsWeb && Get.width>600)?1:.85,
                 ),
-                itemCount: items.length + (controller.hasMore.value ? 1 : 0),
+                itemCount: items.length,
                 itemBuilder: (_, i) {
                   if (i == items.length) {
                     return const IndicatorLoading();

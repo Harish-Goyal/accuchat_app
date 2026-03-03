@@ -4,6 +4,7 @@ import 'package:AccuChat/Constants/colors.dart';
 import 'package:AccuChat/Extension/text_field_extenstion.dart';
 import 'package:AccuChat/Screens/Home/Presentation/Controller/profile_controller.dart';
 import 'package:AccuChat/Services/APIs/api_ends.dart';
+import 'package:AccuChat/utils/custom_flashbar.dart';
 import 'package:AccuChat/utils/gradient_button.dart';
 import 'package:AccuChat/utils/loading_indicator.dart';
 import 'package:file_picker/file_picker.dart';
@@ -186,6 +187,8 @@ class ProfileScreen extends GetView<HProfileController> {
     });
   }
 
+
+
   Future<void> showDeleteAccountDialog(BuildContext context, int userId) async {
     final w = MediaQuery.of(context).size.width;
     EdgeInsets inset;
@@ -248,6 +251,79 @@ class ProfileScreen extends GetView<HProfileController> {
 
 }
 
+
+void showPictureOptionsBottomSheet({
+  required VoidCallback onEdit,
+  required VoidCallback onRemove,
+}) {
+  Get.bottomSheet(
+      Container(
+        decoration: const BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.vertical(
+            top: Radius.circular(20),
+          ),
+        ),
+        child: SafeArea(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              // Drag handle
+              Container(
+                margin: const EdgeInsets.only(top: 10, bottom: 15,left: 200,right: 200),
+                height: 4,
+                width: Get.width,
+                decoration: BoxDecoration(
+                  color: Colors.grey.shade300,
+                  borderRadius: BorderRadius.circular(10),
+                ),
+              ),
+
+              /// EDIT OPTION
+              SizedBox(
+                width: 300,
+                child: ListTile(
+                  leading: const Icon(Icons.edit_outlined, color: Colors.blue),
+                  title: Text(
+                    "Edit Picture",
+                    style: BalooStyles.baloosemiBoldTextStyle(),
+                  ),
+                  onTap: () {
+                    Get.back();
+                    onEdit();
+                  },
+                ),
+              ),
+
+             divider(),
+
+              /// REMOVE OPTION
+              SizedBox(
+                width: 300,
+                child: ListTile(
+                  leading: const Icon(Icons.delete, color: Colors.red),
+                  title: Text(
+                    "Remove Picture",
+                    style: BalooStyles.baloosemiBoldTextStyle(),
+                  ),
+                  onTap: () {
+                    Get.back();
+                    onRemove();
+                  },
+                ),
+              ),
+
+              const SizedBox(height: 10),
+            ],
+          ),
+        ),
+      ),
+      isScrollControlled: true,
+      backgroundColor: Colors.white
+  );
+}
+
 class _ProfileAvatar extends StatelessWidget {
   const _ProfileAvatar({
     required this.controller,
@@ -283,22 +359,30 @@ class _ProfileAvatar extends StatelessWidget {
           right: 0,
           child: MaterialButton(
             elevation: 1,
-            onPressed: () async {
-              if (kIsWeb) {
-                // WEB: pick image using file_picker
-                FilePickerResult? result = await FilePicker.platform.pickFiles(
-                  type: FileType.image,
-                  allowMultiple: false,
-                );
+            onPressed: ()  {
+              showPictureOptionsBottomSheet(
+                onEdit: () async {
+                  if (kIsWeb) {
+                    // WEB: pick image using file_picker
+                    FilePickerResult? result = await FilePicker.platform.pickFiles(
+                      type: FileType.image,
+                      allowMultiple: false,
+                    );
 
-                if (result != null) {
-                  controller.webImageBytes = result.files.first.bytes;
-                  controller.update();
-                }
-              } else {
-                // MOBILE: show bottom sheet
-                _showBottomSheet();
+                    if (result != null) {
+                      controller.webImageBytes = result.files.first.bytes;
+                      controller.update();
+                    }
+                  } else {
+                    // MOBILE: show bottom sheet
+                    _showBottomSheet();
+                  }
+                }, onRemove: () {
+                  toast("Under Development");
+                  // controller.hitAPIToRemoveUserPic();
               }
+              );
+
             },
             shape: const CircleBorder(),
             color: Colors.white,

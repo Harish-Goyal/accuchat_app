@@ -1,6 +1,6 @@
 class ApiEnd {
-  // static const String baseUrl = "http://192.168.1.66:3001/";
-  // static const String baseUrlMedia = "http://192.168.1.66:3001";
+  // static const String baseUrl = "http://192.168.1.30:3001/";
+  // static const String baseUrlMedia = "http://192.168.1.30:3001";
   static const String baseUrl = "https://api.accuchat.in/";
   static const String baseUrlMedia = "https://api.accuchat.in";
   // static const String baseUrl = "https://www.api.accuchat.in:3001/";
@@ -24,6 +24,8 @@ class ApiEnd {
   static const String acceptInviteEnd = "api/invites/accept/";
   static const String getUserEnd = "api/user";
   static const String updateUserEnd = "api/user/update";
+  static const String deletePushTokenEnd = "api/user/delete-push-token";
+  static const String updateUserDeleteProfilePicEnd = "api/user/delete-profile-pic";
   static const String addRoleEnd = "api/role/add";
   static const String navigationPermissionEnd = "api/navigation-items";
   static const String userNAvEnd = "api/user-company-navigation";

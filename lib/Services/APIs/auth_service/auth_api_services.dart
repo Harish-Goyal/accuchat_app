@@ -14,5 +14,6 @@ abstract class AuthenticationApi {
   Future<LoginResModel> logoutApiCall({FormData? dataBody});
   Future<GetUserResModel> getUserApiCall({Map<String, dynamic>? dataBody,companyId});
   Future<GetUserResModel> updateUserApiCall({FormData? dataBody});
-
+  Future<SuccessResponseModel> removeUserProfileApiCall();
+  Future<SuccessResponseModel> deletePushTokenApiCall();
 }

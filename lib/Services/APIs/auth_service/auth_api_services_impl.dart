@@ -145,8 +145,31 @@ class AuthApiServiceImpl extends GetxService
   }
 
   @override
+  Future<SuccessResponseModel> removeUserProfileApiCall() async {
+    try {
+      final response = await dioClient!.post(ApiEnd.updateUserDeleteProfilePicEnd,
+          skipAuth: false,
+      );
+      return SuccessResponseModel.fromJson(response);
+    } catch (e) {
+      return Future.error(NetworkExceptions.getDioException(e));
+    }
+  }
+
+  @override
+  Future<SuccessResponseModel> deletePushTokenApiCall() async {
+    try {
+      final response = await dioClient!.delete(ApiEnd.deletePushTokenEnd,
+          skipAuth: false,
+      );
+      return SuccessResponseModel.fromJson(response);
+    } catch (e) {
+      return Future.error(NetworkExceptions.getDioException(e));
+    }
+  }
+
+  @override
   Future<LoginResModel> logoutApiCall({FormData? dataBody}) {
-    // TODO: implement logoutApiCall
     throw UnimplementedError();
   }
 

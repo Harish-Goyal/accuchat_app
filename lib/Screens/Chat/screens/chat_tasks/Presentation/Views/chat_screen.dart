@@ -201,7 +201,10 @@ class _ChatScreenState extends State<ChatScreen> {
     if (Get.isRegistered<ChatScreenController>(tag: _tag)) {
       Get.delete<ChatScreenController>(tag:_tag,force: true);
     }
-    _hideEmojiPicker();
+    if(mounted){
+      _hideEmojiPicker();
+    }
+
     super.dispose();
   }
 
@@ -1745,7 +1748,7 @@ final isMedia = (data.media??[]).isNotEmpty;
                         }
                       }
                       if (value == 'Exit') {
-                        toast("Under development");
+                        controller.hitAPIToExitMember(widget.user?.userCompany?.userCompanyId);
                       }
                       if (value == 'Edit') {
                         if (kIsWeb) {
@@ -1774,7 +1777,7 @@ final isMedia = (data.media??[]).isNotEmpty;
                           ],
                         ),
                       ),
-                      /*PopupMenuItem(
+                     if(APIs.me.userCompany?.userCompanyId !=widget.user?.createdBy) PopupMenuItem(
               value: 'Exit',
               child: Row(
                 children: [
@@ -1787,7 +1790,7 @@ final isMedia = (data.media??[]).isNotEmpty;
                   Text('Exit',style: BalooStyles.baloonormalTextStyle()),
                 ],
               ),
-            ),*/
+            ),
                       PopupMenuItem(
                         value: 'Edit',
                         child: Row(
@@ -1941,19 +1944,16 @@ final isMedia = (data.media??[]).isNotEmpty;
     if (mounted){ setState(() => _emojiVisible = false);}
   }
 
+
   // bottom chat input field
   Widget _chatInput(BuildContext context) {
-
     void _appendSpeechToInput() {
       final text = speechC.getCombinedText().trim();
       if (text.isEmpty) return;
-
       WidgetsBinding.instance.addPostFrameCallback((_) {
         if (!mounted) return;
-
         // ✅ only set if TextField still exists
         if (!controller.textController.hasListeners) return;
-
         controller.textController.value = TextEditingValue(
           text: text,
           selection: TextSelection.collapsed(offset: text.length),

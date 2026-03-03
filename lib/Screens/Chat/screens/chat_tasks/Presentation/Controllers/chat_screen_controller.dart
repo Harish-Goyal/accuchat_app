@@ -15,6 +15,7 @@ import 'package:mime/mime.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:scrollable_positioned_list/scrollable_positioned_list.dart';
 import '../../../../../../Services/APIs/post/post_api_service_impl.dart';
+import '../../../../../../main.dart';
 import '../../../../../../utils/chat_presence.dart';
 import '../../../../../../utils/custom_flashbar.dart';
 import '../../../../../../utils/helper.dart';
@@ -193,6 +194,40 @@ class ChatScreenController extends GetxController {
 
     update();
   }
+
+  hitAPIToExitMember(ucId) async {
+    customLoader.show();
+    Map<String, dynamic> req = {
+      "group_id": ucId,
+      "company_id": myCompany?.companyId,
+      "member_id":APIs.me.userCompany?.userCompanyId,
+      "mode":"remove",
+      "is_group": 1 ,
+      'is_admin':0
+    };
+
+    await Get.find<PostApiServiceImpl>()
+        .addMemberToGrBrApiCall(dataBody: req)
+        .then((value) async {
+      customLoader.hide();
+      final homec = Get.find<ChatHomeController>();
+      homec.hitAPIToGetRecentChats(page: 1);
+      Future.delayed(const Duration(milliseconds: 500),(){
+        if(homec.filteredList.isNotEmpty){
+          openConversation(homec.filteredList[0]);
+        }
+      });
+
+      update();
+    }).onError((error, stackTrace) {
+      if(!kIsWeb) {
+        FirebaseCrashlytics.instance.recordError(
+            error, stackTrace, reason: 'apiCall failed');
+      }
+      customLoader.hide();
+    });
+  }
+
 
   /* void rebuildFlatRows() {
     chatRows = [];

@@ -704,6 +704,7 @@ Future<void> showResponsiveLogoutDialog(ctx) async {
                               vPadding: 6,
                               onTap: () async {
                                 logoutLocal();
+                                // hitAPIToDeletePushToken();
                               },
                             ),
                           ),

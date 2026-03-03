@@ -424,7 +424,7 @@ class SocketController extends GetxController with WidgetsBindingObserver {
           dashCon.newTask.value = true;
           taskController.update();
         }
-        Get.find<TaskHomeController>().hitAPIToGetRecentTasksUser();
+        // Get.find<TaskHomeController>().hitAPIToGetRecentTasksUser();
       } catch (e) {
         debugPrint(e.toString());
       }
