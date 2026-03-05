@@ -460,7 +460,8 @@ class _TaskScreenState extends State<TaskScreen> {
       {List<StatusHistory>? statusHis, CurrentStatus? status}) {
     return PopupMenuButton<int>(
       tooltip: 'Status History',
-      elevation: 2,
+      elevation: 8,
+
       offset: const Offset(0, 8),
       color: Colors.white,
       borderRadius: BorderRadius.circular(30),
@@ -497,16 +498,17 @@ class _TaskScreenState extends State<TaskScreen> {
     }
 
     // Sort ASC and collapse consecutive same statuses
-    final items = [...history]..sort((a, b) => DateTime.parse(a.createdOn ?? '')
-        .compareTo(DateTime.parse(b.createdOn ?? '')));
-    final cleaned = <StatusHistory>[];
-    for (final e in items) {
-      final m = e;
-      StatusHistory;
-      if (cleaned.isEmpty || cleaned.last.taskStatusId != m.taskStatusId) {
-        cleaned.add(m);
-      }
-    }
+
+    // final items = [...history]..sort((a, b) => DateTime.parse(a.createdOn ?? '')
+    //     .compareTo(DateTime.parse(b.createdOn ?? '')));
+    // final cleaned = <StatusHistory>[];
+    // for (final e in items) {
+    //   final m = e;
+    //   StatusHistory;
+    //   if (cleaned.isEmpty || cleaned.last.taskStatusId != m.taskStatusId) {
+    //     cleaned.add(m);
+    //   }
+    // }
 
     final list = <PopupMenuEntry<int>>[
       PopupMenuItem<int>(
@@ -517,7 +519,7 @@ class _TaskScreenState extends State<TaskScreen> {
     ];
 
     // Show latest first
-    for (final e in cleaned.reversed) {
+    for (final e in history) {
       final id = e.taskStatusId as int;
       final statusName = (e.statusName ?? '');
       final fromname = (e.from_name ?? '');

@@ -1,148 +1,85 @@
-
 /* eslint-disable no-undef */
 
-// Import Firebase scripts (compat is simplest in SW)
-importScripts("https://www.gstatic.com/firebasejs/10.12.5/firebase-app-compat.js");
-importScripts("https://www.gstatic.com/firebasejs/10.12.5/firebase-messaging-compat.js");
+// ---- Always log when SW loads (so you can confirm it's the NEW file)
+console.log("[firebase-messaging-sw] loaded", self.location.href);
 
-// Your firebase config (same project)
-firebase.initializeApp({
-  apiKey: "AIzaSyCaz1HoDpZxb584tFIAMhHiaz5ORSD0TYk",
-  authDomain: "accuchat-d5e99.firebaseapp.com",
-  projectId: "accuchat-d5e99",
-  storageBucket: "accuchat-d5e99.firebasestorage.app",
-  messagingSenderId: "975726861063",
-  appId: "1:975726861063:web:393a1548c3e686091083a2",
-  // measurementId optional
-});
-const messaging = firebase.messaging();
-
-// Background push handler (when tab is not focused/closed)
-messaging.onBackgroundMessage((payload) => {
-  console.log("[sw] onBackgroundMessage", payload);
-
-  const title = payload?.notification?.title || "New message";
-  const options = {
-    body: payload?.notification?.body || "",
-    data: payload?.data || {},      // keep for click
-  };
-
-  self.registration.showNotification(title, options);
+// ---- Basic SW lifecycle (helps take control immediately)
+self.addEventListener("install", () => {
+  console.log("[firebase-messaging-sw] install");
+  self.skipWaiting();
 });
 
-// Notification tap handler
+self.addEventListener("activate", (event) => {
+  console.log("[firebase-messaging-sw] activate");
+  event.waitUntil(self.clients.claim());
+});
+
+let messaging = null;
+
+// ---- Firebase init wrapped safely so SW NEVER crashes
+try {
+  importScripts("https://www.gstatic.com/firebasejs/10.12.5/firebase-app-compat.js");
+  importScripts("https://www.gstatic.com/firebasejs/10.12.5/firebase-messaging-compat.js");
+
+  firebase.initializeApp({
+    apiKey: "AIzaSyCaz1HoDpZxb584tFIAMhHiaz5ORSD0TYk",
+    authDomain: "accuchat-d5e99.firebaseapp.com",
+    projectId: "accuchat-d5e99",
+    storageBucket: "accuchat-d5e99.firebasestorage.app",
+    messagingSenderId: "975726861063",
+    appId: "1:975726861063:web:393a1548c3e686091083a2",
+  });
+
+  messaging = firebase.messaging();
+  console.log("[firebase-messaging-sw] firebase messaging initialized");
+
+  // Background handler
+  messaging.onBackgroundMessage((payload) => {
+    console.log("[firebase-messaging-sw] onBackgroundMessage", payload);
+
+    const n = payload && payload.notification ? payload.notification : {};
+    const data = payload && payload.data ? payload.data : {};
+
+    const title = n.title || "New message";
+    const options = {
+      body: n.body || "",
+      icon: n.icon || "/icons/Icon-192.png",
+      badge: "/icons/Icon-192.png",
+      data: data,
+    };
+
+    self.registration.showNotification(title, options);
+  });
+} catch (e) {
+  // IMPORTANT: do NOT throw. If we throw, registration fails.
+  console.error("[firebase-messaging-sw] Firebase init failed (but SW continues):", e);
+}
+
+// ---- Click handler (works for both Firebase notifications and generic ones)
 self.addEventListener("notificationclick", (event) => {
-  console.log("[sw] notificationclick", event.notification.data);
+  const data = (event.notification && event.notification.data) ? event.notification.data : {};
+  console.log("[firebase-messaging-sw] notificationclick data:", data);
 
-  const data = event.notification.data || {};
-  const params = new URLSearchParams(data).toString();
-  console.log('params',params);
-  // Put your deep link here (best: a URL that includes query params)
-  const url =  "#/notification?${params}");
+  // build query string safely
+  const params = new URLSearchParams();
+  Object.keys(data).forEach((k) => params.set(k, data[k] == null ? "" : String(data[k])));
+
+  const urlToOpen =
+    self.location.origin + "/#/notification" + (params.toString() ? "?" + params.toString() : "");
 
   event.notification.close();
+
   event.waitUntil(
-    clients.matchAll({ type: "window", includeUncontrolled: true }).then((clientList) => {
-      // If app tab already open, focus it + (optional) postMessage
-      for (const client of clientList) {
-        if (client.url.includes(self.location.origin)) {
-          client.focus();
-          client.postMessage({ type: "NOTIF_CLICK", data });
+    clients.matchAll({ type: "window", includeUncontrolled: true }).then((wins) => {
+      for (const w of wins) {
+        if (w.url && w.url.startsWith(self.location.origin)) {
+          w.focus();
+          try { w.navigate(urlToOpen); } catch (_) {}
+          try { w.postMessage({ type: "NOTIF_CLICK", data }); } catch (_) {}
           return;
         }
       }
-      return clients.openWindow(url);
+      return clients.openWindow(urlToOpen);
     })
   );
 });
-
-
-/*
-messaging.onBackgroundMessage((payload) => {
-console.log('🔥 BACKGROUND MESSAGE RECEIVED');
-console.log('Payload:', payload);
-
-  const data = payload.data || {};
-  const title = (payload.notification && payload.notification.title) || "New message";
-  const body  = (payload.notification && payload.notification.body) || "";
- console.log('Data:', data);
-  console.log('Title:', title);
-  console.log('Body:', body);
-
-  self.registration.showNotification(title, {
-    body,
-    data, // 🔥 click time yehi data milega
-  });
-});
-
-// click -> open your app with query params
-self.addEventListener('notificationclick', (event) => {
-  console.log('👉 NOTIFICATION CLICKED');
-  event.notification.close();
-
-  const data = event.notification.data || {};
-  console.log('Click Data:', data);
-
-  const params = new URLSearchParams(data).toString();
-  console.log('Query Params:', params);
-
-
-  // NOTE: if app is hosted in subfolder, change path accordingly
-  const urlToOpen = `/#/notification?${params}`;
-
-  event.waitUntil((async () => {
-    const clientsArr = await clients.matchAll({
-      type: 'window',
-      includeUncontrolled: true
-    });
-
-    for (const client of clientsArr) {
-      console.log('Existing client found:', client.url);
-      await client.navigate(urlToOpen);
-      return client.focus();
-    }
-
-    console.log('Opening new window');
-    return clients.openWindow(urlToOpen);
-  })());
-});
-
-*/
-
-
-
-/*
-
-
-messaging.onBackgroundMessage((payload) => {
-  const n = payload.notification || {};
-  const data = payload.data || {};
-  const type = data.type || 'default';
-
-  self.registration.showNotification(n.title || 'Notification', {
-    body: n.body || '',
-    tag: type,                   // acts like your "channel"
-    icon: '/icons/Icon-192.png',
-    badge: '/icons/Icon-192.png',
-    data: data,                  // pass deep-link params
-    renotify: true
-  });
-});
-
-// Handle notification clicks
-self.addEventListener('notificationclick', (event) => {
-  const url = '/?type=' + (event.notification?.data?.type || 'default');
-  event.notification.close();
-  event.waitUntil(
-    clients.matchAll({ type: 'window', includeUncontrolled: true }).then((wins) => {
-      // focus existing tab if open
-      for (const w of wins) {
-        if ('focus' in w) return w.focus();
-      }
-      // otherwise open new tab
-      return clients.openWindow(url);
-    })
-  );
-}
-);
-*/

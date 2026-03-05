@@ -41,6 +41,63 @@ class APIs {
 
   static Future<String?>? _pendingToken;
 
+
+/*  static Future<void> getFirebaseMessagingToken() async {
+    if (_pendingToken != null) {
+      print("tokenis =======0000");
+      print(_pendingToken);
+      final existing = await _pendingToken!;
+      if (existing != null && existing.isNotEmpty) {
+        me.pushToken = existing;
+        hitAPIToPushRegister(existing);
+      }
+      return;
+    }
+
+    // ---- Permission handling (web + mobile) ----
+    if (kIsWeb) {
+      // On web, use requestPermission (works) and DO NOT return early
+      final settings = await fMessaging.requestPermission(alert: true, badge: true, sound: true);
+      if (settings.authorizationStatus != AuthorizationStatus.authorized) return;
+    } else if (Platform.isIOS || Platform.isMacOS) {
+      final s = await fMessaging.requestPermission(alert: true, badge: true, sound: true);
+      if (s.authorizationStatus != AuthorizationStatus.authorized &&
+          s.authorizationStatus != AuthorizationStatus.provisional) {
+        return;
+      }
+      await fMessaging.setAutoInitEnabled(true);
+    } else if (Platform.isAndroid) {
+      if (await _isAndroid13OrAbove()) {
+        final st = await Permission.notification.status;
+        if (!st.isGranted) {
+          final r = await Permission.notification.request();
+          if (!r.isGranted) return;
+        }
+      }
+      await fMessaging.setAutoInitEnabled(true);
+    }
+
+    // ---- Token fetch for ALL platforms (including web) ----
+    _pendingToken = _getTokenWithBackoff();
+    try {
+      final token = await _pendingToken!;
+      print("tokenis =======12313");
+      print(token);
+      if (token != null && token.isNotEmpty) {
+        me.pushToken = token;
+        hitAPIToPushRegister(token);
+      }
+    } finally {
+      _pendingToken = null;
+    }
+
+    FirebaseMessaging.instance.onTokenRefresh.listen((t) {
+      if (t.isNotEmpty) {
+        me.pushToken = t;
+        hitAPIToPushRegister(t);
+      }
+    });
+  }*/
   static Future<void> getFirebaseMessagingToken() async {
     if (_pendingToken != null) {
       final existing = await _pendingToken!;
@@ -53,12 +110,12 @@ class APIs {
 
     if (kIsWeb) {
       final current = await fMessaging.getNotificationSettings();
-
       if (current.authorizationStatus != AuthorizationStatus.authorized) {
         final s = await fMessaging.requestPermission(alert: true, badge: true, sound: true);
+        print(s.authorizationStatus);
         if (s.authorizationStatus != AuthorizationStatus.authorized) return;
       }
-      return;
+
     } else if (Platform.isIOS || Platform.isMacOS) {
       final s = await fMessaging.requestPermission(alert: true, badge: true, sound: true);
       if (s.authorizationStatus != AuthorizationStatus.authorized &&
@@ -81,6 +138,8 @@ class APIs {
     _pendingToken = _getTokenWithBackoff();
     try {
       final token = await _pendingToken!;
+      print("token0000000");
+      print(token);
       if (token != null && token.isNotEmpty) {
         me.pushToken = token;
         hitAPIToPushRegister(token);
@@ -100,14 +159,44 @@ class APIs {
   // Retries only on transient/IOException conditions; caps attempts.
   static Future<String?> _getTokenWithBackoff() async {
     const int maxAttempts = 3;
-    var delayMs = 500; // 0.5s → 1s → 2s
+    var delayMs = 500;
 
     for (int attempt = 1; attempt <= maxAttempts; attempt++) {
       try {
+        final token = await fMessaging.getToken(
+          vapidKey: kIsWeb ? 'BJt_tuDwKCr6OR8Gibo9KMKsJfSjB3rje9fn7Q31qGPyxAi9SKF11kf8HYOd__Zo7Wubg_xgbhkZzykxRojmN9g' : null,
+        );
+
+        print("attempt $attempt token => $token");
+
+        if (token != null && token.isNotEmpty) return token;
+
+        // token null: not transient usually, but we can retry once or twice
+      } catch (e, st) {
+        print("attempt $attempt getToken error => $e");
+        print(st);
+      }
+
+      if (attempt < maxAttempts) {
+        await Future.delayed(Duration(milliseconds: delayMs));
+        delayMs *= 2;
+      }
+    }
+    return null;
+  }
+/*  static Future<String?> _getTokenWithBackoff() async {
+    const int maxAttempts = 3;
+    var delayMs = 500; // 0.5s → 1s → 2s
+    var token;
+    for (int attempt = 1; attempt <= maxAttempts; attempt++) {
+      try {
         if (kIsWeb) {
-          return await fMessaging.getToken(/* vapidKey: 'YOUR_VAPID' */);
+          token = await fMessaging.getToken();
+          print("token _getTokenWithBackoff");
+          print(token);
+
         } else {
-          return await fMessaging.getToken();
+          token = await fMessaging.getToken();
         }
       } catch (e) {
         final msg = e.toString();
@@ -122,8 +211,8 @@ class APIs {
         delayMs *= 2;
       }
     }
-    return null;
-  }
+    return token;
+  }*/
 
   static Future<bool> _isAndroid13OrAbove() async {
     final info = await DeviceInfoPlugin().androidInfo;
@@ -172,7 +261,7 @@ class APIs {
           : 'ios',
       "device_id": deviceID,
     };
-     Get.find<PostApiServiceImpl>()
+   await  Get.find<PostApiServiceImpl>()
         .registerPushTokenApiCall(dataBody: dataBody)
         .then((value) async {})
         .onError((error, stackTrace) {

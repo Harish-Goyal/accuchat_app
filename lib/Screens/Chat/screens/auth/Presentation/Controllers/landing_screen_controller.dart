@@ -16,7 +16,6 @@ import '../../models/pending_invites_res_model.dart';
 class LandingScreenController extends GetxController {
   @override
   void onInit() {
-
     initWhenl();
     hitAPIToGetCompanies();
     super.onInit();

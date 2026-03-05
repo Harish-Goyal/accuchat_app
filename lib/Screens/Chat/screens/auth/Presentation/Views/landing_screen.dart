@@ -43,8 +43,8 @@ class LandingPage extends GetView<LandingScreenController> {
                     showResponsiveLogoutDialog(context);
                   },
                   child: Container(
-                      padding: EdgeInsets.all(10),
-                      child: Icon(Icons.logout)))
+                      padding: const EdgeInsets.all(10),
+                      child: const Icon(Icons.logout)))
             ],
           ),
         // body
@@ -703,8 +703,8 @@ Future<void> showResponsiveLogoutDialog(ctx) async {
                               ),
                               vPadding: 6,
                               onTap: () async {
-                                logoutLocal();
-                                // hitAPIToDeletePushToken();
+                                // logoutLocal();
+                                hitAPIToDeletePushToken();
                               },
                             ),
                           ),

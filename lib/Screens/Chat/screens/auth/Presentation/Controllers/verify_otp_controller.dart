@@ -49,8 +49,9 @@ class VerifyOtpController extends GetxController{
           await AppStorage().init(boxName: 'accu_chat');
           return AppStorage();
         }, permanent: true);
-        await StorageService.init();
+
       }
+      await StorageService.init();
        StorageService.setFirstTimeTask(isFirstTimeChat);
        StorageService.saveToken(value.data?.token);
        StorageService.saveMobile(emailOrPhone);
@@ -58,6 +59,7 @@ class VerifyOtpController extends GetxController{
        await AppStorage().write(LOCALKEY_token, value.data?.token);
        Get.offAllNamed(AppRoutes.landing_r);
        await APIs.getFirebaseMessagingToken();
+
 
       // openBottomSheet();
     }).onError((error, stackTrace) {

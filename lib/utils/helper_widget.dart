@@ -75,8 +75,31 @@ Future<void> showCompanyErrorDialog() async {
         ),
       ),
     ),
-    barrierDismissible: true,
+    barrierDismissible: false,
   );
+}
+
+bool looksLikeCode(String text) {
+  final t = text.trim();
+  if (t.isEmpty) return false;
+
+  // Markdown fenced code
+  if (t.startsWith("```") && t.endsWith("```")) return true;
+
+  // multi-line + indentation
+  final lines = t.split('\n');
+  final multiLine = lines.length >= 3;
+  final indentedLines = lines.where((l) => l.startsWith('  ') || l.startsWith('\t')).length;
+
+  // common code tokens
+  final hasTokens = RegExp(r'\b(class|import|return|final|var|const|void|function|def|if|else|for|while|public|private)\b')
+      .hasMatch(t);
+
+  final hasSymbols = RegExp(r'[{};=<>\[\]()]').hasMatch(t);
+  final hasArrow = t.contains("=>");
+  final hasColonIndent = RegExp(r':\s*$').hasMatch(lines.last);
+
+  return (multiLine && (indentedLines >= 1 || hasSymbols)) || hasTokens || hasArrow || hasColonIndent;
 }
 
 

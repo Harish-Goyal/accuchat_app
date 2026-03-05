@@ -22,8 +22,8 @@ class NetworkExceptions {
               case 400:
               return ErrorResponseModel.fromJson(error.response?.data).message;
               case 401:
-                // hitAPIToDeletePushToken();
-                logoutLocal();
+                hitAPIToDeletePushToken();
+                // logoutLocal();
                 // Get.offAllNamed(AppRoutes.login_r);
                 // customLoader.hide();
                 return ErrorResponseModel.fromJson(error.response?.data).message;
@@ -35,8 +35,8 @@ class NetworkExceptions {
                 return ErrorResponseModel.fromJson(error.response?.data)
                     .message;
               case 404:
-                logoutLocal();
-                // hitAPIToDeletePushToken();
+                // logoutLocal();
+                hitAPIToDeletePushToken();
                 // Get.offAllNamed(AppRoutes.login_r);
                 // customLoader.hide();
                 return messageData = STRING_notFound;

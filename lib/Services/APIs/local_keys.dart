@@ -1,14 +1,15 @@
 import 'dart:convert';
+import 'package:AccuChat/Screens/Chat/api/apis.dart';
 import 'package:AccuChat/Screens/Chat/screens/auth/models/get_uesr_Res_model.dart';
 import 'package:AccuChat/Screens/Home/Presentation/Controller/company_service.dart';
 import 'package:AccuChat/Screens/Home/Presentation/Controller/socket_controller.dart';
 import 'package:AccuChat/Screens/Settings/Model/get_nav_permission_res_model.dart';
+import 'package:AccuChat/Services/APIs/post/post_api_service_impl.dart';
 import 'package:AccuChat/routes/app_routes.dart';
 import 'package:firebase_crashlytics/firebase_crashlytics.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/foundation.dart';
 import 'package:get/get.dart';
-import '../../Screens/Chat/api/apis.dart';
 import '../../Screens/Chat/api/session_alive.dart';
 import '../../Screens/Chat/screens/chat_tasks/Presentation/Controllers/chat_home_controller.dart';
 import '../../Screens/Chat/screens/chat_tasks/Presentation/Controllers/chat_screen_controller.dart';
@@ -19,6 +20,7 @@ import '../../main.dart';
 import '../../utils/shares_pref_web.dart';
 import '../storage_service.dart';
 import 'auth_service/auth_api_services_impl.dart';
+
 const String isFirstTime = 'isFirstTime';
 const String isCompanyCreated = 'isCompanyCreated';
 const String isFirstTimeChatKey = 'isFirstTimeChatKey';
@@ -105,17 +107,19 @@ Future<void> _disablePushOnLogout() async {
   final fcm = FirebaseMessaging.instance;
   try {
     await fcm.deleteToken();
-  } catch (_) { customLoader.hide();}
+  } catch (_) {
+    customLoader.hide();
+  }
 }
-
 
 Future<void> hitAPIToDeletePushToken() async {
   customLoader.show();
-  await Get.find<AuthApiServiceImpl>()
-      .deletePushTokenApiCall()
+  Map<String, dynamic> dataBody = {"token": APIs.me.pushToken};
+  await Get.find<PostApiServiceImpl>()
+      .unregisterPushTokenApiCall(dataBody: dataBody)
       .then((value) async {
     customLoader.hide();
-     logoutLocal();
+    logoutLocal();
   }).onError((error, stackTrace) {
     if (!kIsWeb) {
       FirebaseCrashlytics.instance
@@ -131,40 +135,33 @@ Future<void> logoutLocal() async {
   if (_isLoggingOut) return;
   _isLoggingOut = true;
 
-  // Show the loader initially
   customLoader.show();
-
   try {
-    // Disable push notifications
     await _disablePushOnLogout();
 
-    // Disconnect from socket if necessary
     if (Get.isRegistered<SocketController>()) {
       try {
         Get.find<SocketController>().disconnect();
-      } catch (_) { customLoader.hide();}
+      } catch (_) {
+        customLoader.hide();
+      }
       Get.delete<SocketController>(force: true);
     }
 
-    // Clear session, controllers, and stored data
-
-
     // If CompanyService is registered, close it
-      try {
-        Get.delete<Session>(force: true);
-        Get.delete<ChatScreenController>(force: true);
-        Get.delete<ChatHomeController>(force: true);
-        await AppStorage().clear();
-        Get.delete<AppStorage>(force: true);
-        await StorageService.clear();
-        Get.delete<StorageService>(force: true);
-        await CompanyService.to.closeBox();
-        Get.delete<CompanyService>(force: true);
-      } catch (_) {
+    try {
+      Get.delete<Session>(force: true);
+      Get.delete<ChatScreenController>(force: true);
+      Get.delete<ChatHomeController>(force: true);
+      await AppStorage().clear();
+      Get.delete<AppStorage>(force: true);
+      await StorageService.clear();
+      Get.delete<StorageService>(force: true);
+      await CompanyService.to.closeBox();
+      Get.delete<CompanyService>(force: true);
+    } catch (_) {
       customLoader.hide();
     }
-
-
 
     // Close Hive data
     try {
@@ -172,7 +169,6 @@ Future<void> logoutLocal() async {
     } catch (_) {
       customLoader.hide();
     }
-
   } catch (e) {
     // Hide the loader if any error occurs
     customLoader.hide();
@@ -185,25 +181,29 @@ Future<void> logoutLocal() async {
     // if(kIsWeb){
     //   ReloadControllerImpl().refreshApp();
     // }
-
+    customLoader.hide();
+    _isLoggingOut = false;
     // Close any current snackbars (this ensures no overlays remain)
-    try { Get.closeCurrentSnackbar(); } catch (_) { customLoader.hide();}
-    try { Get.closeAllSnackbars(); } catch (_) { customLoader.hide();}
+    try {
+      Get.closeCurrentSnackbar();
+    } catch (_) {
+      customLoader.hide();
+    }
+    try {
+      Get.closeAllSnackbars();
+    } catch (_) {
+      customLoader.hide();
+    }
 
     // Hide the loader again if it was not hidden before (redundant safeguard)
-    customLoader.hide();
 
     // Set logging out flag to false
-    _isLoggingOut = false;
 
     // Navigate after a tiny delay
-    await Future.delayed(const Duration(milliseconds: 50));
+    await Future.delayed(const Duration(milliseconds: 200));
     Get.offAllNamed(AppRoutes.login_r);
-
   }
 }
-
-
 
 /*
 Future<void> logoutLocal() async {
@@ -247,8 +247,6 @@ Future<void> logoutLocal() async {
   }
 }*/
 
-
-
 /*
 Future<void> logoutLocal() async {
   customLoader.show();
@@ -288,20 +286,15 @@ Future<void> logoutLocal() async {
   customLoader.hide();
 }*/
 
-
 void saveNavigation(List<NavigationItem> data) {
-  final navJson = data
-      .map((nav) => nav.toJson())
-      .toList();
+  final navJson = data.map((nav) => nav.toJson()).toList();
   StorageService.writeJsonList(navigation_item_key, navJson);
 }
 
 List<NavigationItem>? getNavigation() {
   final json = StorageService.readJsonList(navigation_item_key);
   if (json != null) {
-    final storedNavs = (json)
-        .map((e) => NavigationItem.fromJson(e))
-        .toList();
+    final storedNavs = (json).map((e) => NavigationItem.fromJson(e)).toList();
     return storedNavs;
   }
   return null;
@@ -349,7 +342,3 @@ UserDataAPI? getUser() {
   }
   return null;
 }
-
-
-
-

@@ -106,8 +106,8 @@ class HProfileController extends GetxController {
         .then((value) async {
       toast(value.message);
       customLoader.hide();
-      // hitAPIToDeletePushToken();
-      logoutLocal();
+      hitAPIToDeletePushToken();
+      // logoutLocal();
       update();
     }).onError((error, stackTrace) {
       if (!kIsWeb) {
