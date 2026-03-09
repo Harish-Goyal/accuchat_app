@@ -5,6 +5,7 @@ import 'package:AccuChat/utils/loading_indicator.dart';
 import 'package:AccuChat/utils/text_style.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_svg/svg.dart';
 import 'package:get/get.dart';
 import '../../../../../../Constants/assets.dart';
 import '../../../../../../main.dart';
@@ -153,7 +154,7 @@ class AddGroupMembersScreen extends GetView<AddGroupMemController> {
               ),
             );
           },
-        ),
+        ).paddingOnly(bottom: 50),
       )
     );
   }
@@ -210,7 +211,8 @@ class AddGroupMembersScreen extends GetView<AddGroupMemController> {
                   },
                   icon:  controller.isSearching.value?  const Icon(
                       CupertinoIcons.clear_circled_solid)
-                      : Image.asset(searchPng,height:25,width:25)
+                      :Image.asset(searchPng,height:25,width:25)
+                      // :SvgPicture.asset(searchPng,height:25,width:25)
               );
             }
         ),

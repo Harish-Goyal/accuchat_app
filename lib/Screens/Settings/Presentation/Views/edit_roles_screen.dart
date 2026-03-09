@@ -55,11 +55,119 @@ class EditRoleScreen extends StatelessWidget {
                                 hintText: 'Enter role name',
                                 controller: ctrl.roleNameController,
                                 labletext: 'Role Name',
-                              ),
+                              ).paddingSymmetric(horizontal: 12),
                               vGap(20),
                               Text('Select Permissions', style: BalooStyles.baloonormalTextStyle()),
                               vGap(8),
-                              InkWell(
+                              ListView(
+                                shrinkWrap: true,
+                                padding: EdgeInsets.zero,
+                                children: grouped.entries.map((entry) {
+                                  final place = entry.key;
+                                  final items = entry.value;
+                                  // final allChecked = items.every((p) =>
+                                  //     ctrl.selectedPermissionsIds.contains(p.navigationItemId));
+                                  final anyChecked = items.any((p) =>
+                                      ctrl.selectedPermissionsIds.contains(p.navigationItemId));
+                                  return Container(
+                                    margin: const EdgeInsets.symmetric(vertical: 6,horizontal: 5),
+                                    decoration: BoxDecoration(
+                                      color: Colors.white,
+                                      borderRadius: BorderRadius.circular(12),
+                                      boxShadow: const [
+                                        BoxShadow(
+                                          color: Colors.black12,
+                                          blurRadius: 6,
+                                          offset: Offset(0, 3),
+                                        ),
+                                      ],
+                                    ),
+                                    child: Theme(
+                                      data: Theme.of(context)
+                                          .copyWith(dividerColor: Colors.transparent),
+                                      child: ExpansionTile(
+                                        tilePadding: const EdgeInsets.symmetric(
+                                            horizontal: 16, vertical: 8),
+                                        childrenPadding:
+                                        const EdgeInsets.fromLTRB(16, 0, 16, 12),
+                                        leading: Checkbox(
+                                          activeColor: appColorYellow,
+                                          value: anyChecked,
+                                          onChanged: (checked) {
+                                            if (checked == true) {
+                                              for (var p in items) {
+                                                if (!ctrl.selectedPermissionsIds
+                                                    .contains(p.navigationItemId)) {
+                                                  ctrl.selectedPermissionsIds
+                                                      .add(p.navigationItemId!);
+                                                  ctrl.selectedPermissions
+                                                      .add(p.navigationItem!);
+                                                }
+                                              }
+                                            } else {
+                                              for (var p in items) {
+                                                ctrl.selectedPermissionsIds
+                                                    .remove(p.navigationItemId);
+                                                ctrl.selectedPermissions
+                                                    .remove(p.navigationItem);
+                                              }
+                                            }
+                                            ctrl.update();
+                                          },
+                                        ),
+                                        title: Row(
+                                          children: [
+                                            Expanded(
+                                              child: Text(
+                                                place.toUpperCase(),
+                                                style: BalooStyles.baloonormalTextStyle()
+                                                ,
+                                                maxLines: 1,
+                                                overflow: TextOverflow.ellipsis,
+                                              ),
+                                            ),
+                                          ],
+                                        ),
+
+                                        children: items.map((perm) {
+                                          final checked = ctrl.selectedPermissionsIds
+                                              .contains(perm.navigationItemId);
+                                          return CheckboxListTile(
+                                            activeColor: appColorYellow,
+                                            value: checked,
+                                            title: Text(
+                                              perm.navigationItem ?? '',
+                                              style: BalooStyles.balooregularTextStyle(),
+                                              maxLines: 1,
+                                              overflow: TextOverflow.ellipsis,
+                                            ),
+                                            controlAffinity:
+                                            ListTileControlAffinity.leading,
+                                            visualDensity: kIsWeb
+                                                ? const VisualDensity(horizontal: -2, vertical: -2)
+                                                : VisualDensity.standard,
+                                            onChanged: (v) {
+                                              if (v == true) {
+                                                ctrl.selectedPermissionsIds
+                                                    .add(perm.navigationItemId!);
+                                                ctrl.selectedPermissions
+                                                    .add(perm.navigationItem!);
+                                              } else {
+                                                ctrl.selectedPermissionsIds
+                                                    .remove(perm.navigationItemId);
+                                                ctrl.selectedPermissions
+                                                    .remove(perm.navigationItem);
+                                              }
+                                              ctrl.update();
+                                            },
+                                          );
+                                        }).toList(),
+                                      ),
+                                    ),
+                                  );
+                                }).toList(),
+                              )
+                              /*InkWell(
                                 onTap: () {
                                   showDialog(
                                     context: context,
@@ -223,7 +331,7 @@ class EditRoleScreen extends StatelessWidget {
                                     ],
                                   ),
                                 ),
-                              ),
+                              ),*/
 /*
                                     vGap(8),
                                     if (ctrl.selectedPermissionsIds.isEmpty)
@@ -258,7 +366,7 @@ class EditRoleScreen extends StatelessWidget {
                                         );
                                       }).toList(),
 */
-                              Wrap(
+                              /*Wrap(
                                 spacing: 8,
                                 runSpacing: 8,
                                 children: ctrl.selectedPermissions.map((name) {
@@ -277,7 +385,7 @@ class EditRoleScreen extends StatelessWidget {
                                     },
                                   );
                                 }).toList(),
-                              )
+                              )*/
 
                             ],
                           ),

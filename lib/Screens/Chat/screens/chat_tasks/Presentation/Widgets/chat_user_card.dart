@@ -151,7 +151,6 @@ class _ChatUserCardState extends State<ChatUserCard>
                   final chatc = Get.isRegistered<ChatScreenController>(tag: newTag)
                       ? Get.find<ChatScreenController>(tag: newTag)
                       : Get.put(ChatScreenController(user: widget.user), tag: newTag);
-                  print("chats  carrd tag====$newTag");
                   homec.selectedChat.value = widget.user;
                   chatc.user = widget.user;
                   chatc.update();

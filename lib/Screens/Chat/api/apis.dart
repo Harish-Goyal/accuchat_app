@@ -112,7 +112,6 @@ class APIs {
       final current = await fMessaging.getNotificationSettings();
       if (current.authorizationStatus != AuthorizationStatus.authorized) {
         final s = await fMessaging.requestPermission(alert: true, badge: true, sound: true);
-        print(s.authorizationStatus);
         if (s.authorizationStatus != AuthorizationStatus.authorized) return;
       }
 
@@ -138,8 +137,6 @@ class APIs {
     _pendingToken = _getTokenWithBackoff();
     try {
       final token = await _pendingToken!;
-      print("token0000000");
-      print(token);
       if (token != null && token.isNotEmpty) {
         me.pushToken = token;
         hitAPIToPushRegister(token);
@@ -167,14 +164,10 @@ class APIs {
           vapidKey: kIsWeb ? 'BJt_tuDwKCr6OR8Gibo9KMKsJfSjB3rje9fn7Q31qGPyxAi9SKF11kf8HYOd__Zo7Wubg_xgbhkZzykxRojmN9g' : null,
         );
 
-        print("attempt $attempt token => $token");
-
         if (token != null && token.isNotEmpty) return token;
 
         // token null: not transient usually, but we can retry once or twice
       } catch (e, st) {
-        print("attempt $attempt getToken error => $e");
-        print(st);
       }
 
       if (attempt < maxAttempts) {

@@ -95,7 +95,7 @@ class CreateRoleController extends GetxController {
 
   void onSubmit() {
     if (roleNameController.text.isEmpty || selectedPermission == null) {
-      Dialogs.showSnackbar(Get.context!, 'Please fill all fields');
+      toast( 'Please fill all fields');
       return;
     }
 
@@ -104,7 +104,7 @@ class CreateRoleController extends GetxController {
       'permission': selectedPermission,
     };
 
-    Dialogs.showSnackbar(Get.context!, 'Role created successfully');
+    toast( 'Role created successfully');
     roleNameController.clear();
     selectedPermission = null;
     update();

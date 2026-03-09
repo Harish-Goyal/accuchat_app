@@ -1,15 +1,23 @@
 import 'package:AccuChat/Constants/colors.dart';
+import 'package:AccuChat/Extension/text_field_extenstion.dart';
 import 'package:AccuChat/Screens/Chat/models/chat_history_response_model.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import '../../../../../../Constants/assets.dart';
+import '../../../../../../Constants/themes.dart';
 import '../../../../../../Services/APIs/api_ends.dart';
+import '../../../../../../utils/common_textfield.dart';
+import '../../../../../../utils/custom_dialogue.dart';
+import '../../../../../../utils/custom_flashbar.dart';
 import '../../../../../../utils/helper_widget.dart';
 import '../../../../../../utils/networl_shimmer_image.dart';
 import '../../../../../../utils/text_style.dart';
+import '../../../../api/apis.dart';
 import '../../../../models/all_media_res_model.dart';
 import '../Controllers/gallery_view_controller.dart';
+import '../Controllers/members_gr_br_controller.dart';
 import '../Controllers/view_profile_controller.dart';
 import 'images_gallery_page.dart';
 
@@ -98,11 +106,322 @@ class ProfileMediaSectionGetX extends StatelessWidget {
 }
 
 
+class ProfileMediaSectionGetXGroup extends StatelessWidget {
+  final String baseUrl;
+  const ProfileMediaSectionGetXGroup({super.key, required this.baseUrl});
+
+  @override
+  Widget build(BuildContext context) {
+    GrBrMembersController controller;
+    if(Get.isRegistered<GrBrMembersController>()) {
+      controller = Get.find<GrBrMembersController>();
+    }else{
+      controller = Get.put(GrBrMembersController());
+    }
+
+    return
+      DefaultTabController(
+        length: 3,
+        child: Builder(
+          builder: (context) {
+              final tabCtrl = DefaultTabController.of(context);
+              WidgetsBinding.instance.addPostFrameCallback((_) {
+                controller.attachTabController(tabCtrl);
+              });
+
+            return Column(
+              children: [
+                Container(
+                  padding: const EdgeInsets.symmetric(vertical: 4),
+                  decoration: BoxDecoration(
+                    color: Colors.grey.shade200,
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  child:TabBar(
+                    indicator: BoxDecoration(
+                      color: Colors.white,
+                      borderRadius: BorderRadius.circular(12),
+                      border: Border.all(color:appColorGreen)
+                    ),
+                    indicatorPadding: EdgeInsets.zero,
+                    indicatorSize: TabBarIndicatorSize.tab,
+                    dividerColor: Colors.transparent,
+                    labelColor: Colors.black,
+                    unselectedLabelColor: Colors.black54,
+                    padding: EdgeInsets.zero,
+                    tabs: const [
+                      Tab(text: 'Members'),
+                      Tab(text: 'Photos & Videos'),
+                      Tab(text: 'Documents'),
+                    ],
+                  )
+                ),
+
+                const SizedBox(height: 12),
+
+                SizedBox(
+                  height: 500,
+                  child: TabBarView(
+                    children: [
+                      GetBuilder<GrBrMembersController>(
+                        builder: (controller) {
+                          return Column(
+                            children: [
+                              CustomTextField(
+                                hintText: controller.groupOrBr?.userCompany?.isGroup == 1
+                                    ? "Group Name"
+                                    : "Broadcast Name",
+                                labletext: "",
+                                readOnly:
+                                (controller.groupOrBr?.createdBy == APIs.me?.userCompany?.userCompanyId)
+                                    ? false
+                                    : true,
+                                controller: controller.groupNameController,
+                                onChangee: (v) {
+                                  controller.isUpdate = true;
+                                  controller.update();
+                                },
+                                validator: (value) {
+                                  return value?.isEmptyField(
+                                      messageTitle:
+                                      controller.groupOrBr?.userCompany?.isGroup == 1
+                                          ? "Group Name"
+                                          : "Broadcast Name");
+                                },
+                                prefix: Icon(
+                                  Icons.group,
+                                  color: appColorPerple,
+                                ),
+                              ).marginSymmetric(horizontal: 20, vertical: 5),
+
+                              if (controller.isUpdate)
+                                dynamicButton(
+                                    name: "Update",
+                                    onTap: controller.groupNameController.text.isNotEmpty
+                                        ? () => controller.updateGroupBroadcastApi(
+                                      isGroup: controller.groupOrBr?.userCompany
+                                          ?.isGroup ==
+                                          1
+                                          ? 1
+                                          : 0,
+                                      isBroadcast: controller.groupOrBr?.userCompany
+                                          ?.isBroadcast ==
+                                          1
+                                          ? 1
+                                          : 0,
+                                    )
+                                        : () {
+                                      toast("Name cannot be empty");
+                                    },
+                                    isShowText: true,
+                                    isShowIconText: false,
+                                    gradient: buttonGradient,
+                                    leanIcon: chaticon),
+
+                              const SizedBox(height: 10),
+
+                              Expanded(
+                                child: ListView.builder(
+                                  itemCount: controller.members.length,
+                                  itemBuilder: (context, index) {
+                                    final member = controller.members[index];
+                                    final isAdmin = member.isAdmin == 1 ? true : false;
+                                    final me = APIs.me;
+                                    final bool isSelf =
+                                        member.userId == me?.userId;
+                                    final int? creatorUserId =
+                                        controller.groupOrBr?.createdBy ??
+                                            controller.groupOrBr?.createdBy;
+
+                                    final bool iAmCreator =
+                                        me?.userCompany?.userCompanyId == creatorUserId;
+                                    final bool targetIsCreator =
+                                        member.userCompany?.userCompanyId == creatorUserId;
+
+                                    final bool iAmAdmin = (me?.isAdmin ?? 0) == 1;
+                                    final bool targetIsAdmin = (member.isAdmin ?? 0) == 1;
+
+                                    final bool iAmMemberOnly =
+                                        !iAmCreator && !iAmAdmin;
+
+                                    final bool isGroup =
+                                        (controller.groupOrBr?.userCompany?.isGroup ?? 0) == 1;
+
+                                    final bool showMenu = !isSelf &&
+                                        !iAmMemberOnly &&
+                                        !(iAmAdmin && targetIsCreator);
+
+                                    final bool canMakeAdmin = !targetIsAdmin &&
+                                        (iAmCreator || iAmAdmin);
+
+                                    final bool canRemove = (iAmCreator && !isSelf) ||
+                                        (iAmAdmin && !targetIsCreator && !isSelf);
+
+                                    return
+                                      Container(
+                                        margin: const EdgeInsets.symmetric(
+                                            vertical: 6, horizontal: 10),
+                                        decoration: BoxDecoration(
+                                          color: Colors.white,
+                                          borderRadius: BorderRadius.circular(12),
+                                          boxShadow: kIsWeb
+                                              ? [
+                                            BoxShadow(
+                                              color: Colors.black.withOpacity(0.06),
+                                              blurRadius: 12,
+                                              spreadRadius: 1,
+                                              offset: const Offset(0, 4),
+                                            )
+                                          ]
+                                              : [],
+                                        ),
+
+                                        child: ListTile(
+                                          contentPadding: const EdgeInsets.symmetric(
+                                              vertical: 0, horizontal: 12),
+                                          leading: SizedBox(
+                                            width: 50,
+                                            child: CustomCacheNetworkImage(
+                                              "${ApiEnd.baseUrlMedia}${member.userImage ?? ''}",
+                                              radiusAll: 100,
+                                              height: 50,
+                                              width: 50,
+                                              defaultImage: userIcon,
+                                              borderColor: greyColor,
+                                              boxFit: BoxFit.cover,
+                                            ),
+                                          ),
+
+                                          title: Row(
+                                            mainAxisSize: MainAxisSize.min,
+                                            children: [
+                                              Text(
+                                                member.userCompany?.displayName!=null?
+                                                member.userCompany?.displayName?? '':member.userName!=null?
+                                                member.userName??'':member.phone??'',
+                                                style: BalooStyles.baloonormalTextStyle(),
+                                              ),
+                                              if (isAdmin ?? true)
+                                                Padding(
+                                                  padding: const EdgeInsets.only(left: 6),
+                                                  child: Container(
+                                                    padding: const EdgeInsets.symmetric(
+                                                        horizontal: 6, vertical: 2),
+                                                    decoration: BoxDecoration(
+                                                      color: appColorGreen,
+                                                      borderRadius: BorderRadius.circular(4),
+                                                    ),
+                                                    child: const Text('admin',
+                                                        style: TextStyle(
+                                                            fontSize: 10,
+                                                            color: Colors.white)),
+                                                  ),
+                                                ),
+                                            ],
+                                          ),
+                                          subtitle: Text(
+                                            member.phone == '' ||
+                                                member.phone == null
+                                                ? member.email ?? ''
+                                                : member.phone ?? '',
+                                            style: BalooStyles.baloonormalTextStyle(color: greyText),
+                                          ),
+                                          trailing: showMenu
+                                              ? PopupMenuButton<String>(
+                                            onSelected: (value) {
+                                              if (value == 'make_admin') {
+                                                controller.hitAPIToUpdateMember(
+                                                  mode: "set_admin",
+                                                  isGroup: isGroup,
+                                                  id: member.userCompany?.userCompanyId,
+                                                );
+                                              } else if (value == 'remove') {
+                                                controller.hitAPIToUpdateMember(
+                                                  mode: "remove",
+                                                  isGroup: isGroup,
+                                                  id: member.userCompany?.userCompanyId,
+                                                );
+                                              }
+                                            },
+                                            itemBuilder: (context) => [
+                                              if (canMakeAdmin)
+                                                PopupMenuItem(
+                                                  value: 'make_admin',
+                                                  child: Row(
+                                                    children: [
+                                                      Icon(Icons.circle_rounded,
+                                                          size: 12,
+                                                          color: appColorGreen),
+                                                      hGap(5),
+                                                      Text('Make Admin',
+                                                          style: BalooStyles.baloonormalTextStyle()),
+                                                    ],
+                                                  ),
+                                                ),
+                                              if (canRemove)
+                                                PopupMenuItem(
+                                                  value: 'remove',
+                                                  child: Row(
+                                                    children: [
+                                                      Icon(Icons.remove_circle,
+                                                          size: 12,
+                                                          color: AppTheme.redErrorColor),
+                                                      hGap(5),
+                                                      Text('Remove Member',
+                                                          style: BalooStyles.baloonormalTextStyle()),
+                                                    ],
+                                                  ),
+                                                ),
+                                            ],
+                                            color: Colors.white,
+                                            icon: const Icon(Icons.more_vert),
+                                          )
+                                              : null,
+                                          onTap: () {},
+                                        ),
+                                      );
+                                  },
+                                ),
+                              ),
+                            ],
+                          );
+                        }
+                      ),
+
+                      Obx(() => _MediaGrid(
+                        baseUrl: ApiEnd.baseUrlMedia,
+                        onTapF: (){},
+                        controller: controller,
+                        items: controller.profileMediaList
+                            .where((m) => isImageOrVideo(m))
+                            .toList(),
+                      )),
+
+                      Obx(() => _DocsList(
+                        baseUrl: ApiEnd.baseUrlMedia,
+                        controller: controller,
+                        items: controller.profileMediaList
+                            .where((m) => isDoc(m))
+                            .toList(),
+                      )),
+                    ],
+                  ),
+                ),
+              ],
+            );
+          },
+        ),
+      )
+    ;
+  }
+}
+
+
 class _MediaGrid extends StatelessWidget {
   final String baseUrl;
   final List<Items> items;
   final Function() onTapF;
-  final ViewProfileController controller;
+  final  controller;
   const _MediaGrid({required this.baseUrl, required this.items,required this.controller, required this.onTapF});
 
   int _columnsForWidth(double w) {
@@ -263,7 +582,7 @@ class _MediaGrid extends StatelessWidget {
 class _DocsList extends StatelessWidget {
   final String baseUrl;
   final List<Items> items;
-  final ViewProfileController controller;
+  final  controller;
   const _DocsList({required this.baseUrl, required this.items,required this.controller});
 
   @override

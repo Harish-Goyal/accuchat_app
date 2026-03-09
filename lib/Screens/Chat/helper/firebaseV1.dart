@@ -38,9 +38,9 @@ Future<void> sendFcmPushV1({
   final response = await client.post(url, body: jsonEncode(message));
 
   if (response.statusCode == 200) {
-    debugPrint('✅ FCM v1 Notification sent!');
+    // debugPrint('✅ FCM v1 Notification sent!');
   } else {
-    debugPrint('❌ Failed to send FCM v1 notification: ${response.body}');
+    // debugPrint('❌ Failed to send FCM v1 notification: ${response.body}');
   }
 
   client.close();

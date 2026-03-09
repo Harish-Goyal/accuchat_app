@@ -16,11 +16,11 @@ import '../../../auth/models/get_uesr_Res_model.dart';
 
 class AllUserController extends GetxController{
   AllUserController({required this.isRecent});
-  String? isRecent ='true';
+  String? isRecent ='false';
 
   getArguments(){
     if (kIsWeb) {
-      isRecent = Get.parameters['isRecent'];
+      // isRecent = Get.parameters['isRecent'];
     } else if(Get.arguments!=null){
       isRecent = Get.arguments['isRecent'];
     }

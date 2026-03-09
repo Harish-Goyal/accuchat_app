@@ -5,7 +5,7 @@ import 'error_toast.dart';
 
 toast(
   message, {
-  int seconds = 1,
+  int seconds = 2,
   String? title,
 }) =>
     EdgeAlert.show(Get.context!,

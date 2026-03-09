@@ -11,6 +11,7 @@ import 'package:AccuChat/utils/networl_shimmer_image.dart';
 import 'package:AccuChat/utils/text_style.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_svg/svg.dart';
 import 'package:get/get.dart';
 import '../../../../../../routes/app_routes.dart';
 import '../../../../../../utils/common_textfield.dart';
@@ -42,235 +43,246 @@ class GroupMembersScreen extends GetView<GrBrMembersController> {
     return Center(
       child: ConstrainedBox(
         constraints: const BoxConstraints(
-          maxWidth: kIsWeb ? 650 : double.infinity,
+          maxWidth: kIsWeb ? 750 : double.infinity,
         ),
-        child: Column(
-          children: [
-            const SizedBox(height: 10),
-             CircleAvatar(
-              radius: 35,
-              backgroundColor: Colors.white,
-              backgroundImage: AssetImage( controller.groupOrBr?.userCompany?.isGroup==1?
-              groupIcn: broadcastIcon),
-            ),
-
-            CustomTextField(
-              hintText: controller.groupOrBr?.userCompany?.isGroup == 1
-                  ? "Group Name"
-                  : "Broadcast Name",
-              labletext: "",
-              readOnly:
-              (controller.groupOrBr?.createdBy == APIs.me?.userCompany?.userCompanyId)
-                  ? false
-                  : true,
-              controller: controller.groupNameController,
-              onChangee: (v) {
-                controller.isUpdate = true;
-                controller.update();
-              },
-              validator: (value) {
-                return value?.isEmptyField(
-                    messageTitle:
-                    controller.groupOrBr?.userCompany?.isGroup == 1
-                        ? "Group Name"
-                        : "Broadcast Name");
-              },
-              prefix: Icon(
-                Icons.group,
-                color: appColorPerple,
-              ),
-            ).marginSymmetric(horizontal: 20, vertical: 20),
-
-            if (controller.isUpdate)
-              dynamicButton(
-                  name: "Update",
-                  onTap: controller.groupNameController.text.isNotEmpty
-                      ? () => controller.updateGroupBroadcastApi(
-                    isGroup: controller.groupOrBr?.userCompany
-                        ?.isGroup ==
-                        1
-                        ? 1
-                        : 0,
-                    isBroadcast: controller.groupOrBr?.userCompany
-                        ?.isBroadcast ==
-                        1
-                        ? 1
-                        : 0,
-                  )
-                      : () {
-                    toast("Name cannot be empty");
-                  },
-                  isShowText: true,
-                  isShowIconText: false,
-                  gradient: buttonGradient,
-                  leanIcon: chaticon),
-
-            const SizedBox(height: 10),
-
-            Expanded(
-              child: ListView.builder(
-                itemCount: controller.members.length,
-                itemBuilder: (context, index) {
-                  final member = controller.members[index];
-                  final isAdmin = member.isAdmin == 1 ? true : false;
-                  final me = APIs.me;
-                  final bool isSelf =
-                      member.userId == me?.userId;
-                  final int? creatorUserId =
-                      controller.groupOrBr?.createdBy ??
-                          controller.groupOrBr?.createdBy;
-
-                  final bool iAmCreator =
-                      me?.userCompany?.userCompanyId == creatorUserId;
-                  final bool targetIsCreator =
-                      member.userCompany?.userCompanyId == creatorUserId;
-
-                  final bool iAmAdmin = (me?.isAdmin ?? 0) == 1;
-                  final bool targetIsAdmin = (member.isAdmin ?? 0) == 1;
-
-                  final bool iAmMemberOnly =
-                      !iAmCreator && !iAmAdmin;
-
-                  final bool isGroup =
-                      (controller.groupOrBr?.userCompany?.isGroup ?? 0) == 1;
-
-                  final bool showMenu = !isSelf &&
-                      !iAmMemberOnly &&
-                      !(iAmAdmin && targetIsCreator);
-
-                  final bool canMakeAdmin = !targetIsAdmin &&
-                      (iAmCreator || iAmAdmin);
-
-                  final bool canRemove = (iAmCreator && !isSelf) ||
-                      (iAmAdmin && !targetIsCreator && !isSelf);
-
-                  return
-                    Container(
-                      margin: const EdgeInsets.symmetric(
-                          vertical: 6, horizontal: 10),
-                      decoration: BoxDecoration(
-                        color: Colors.white,
-                        borderRadius: BorderRadius.circular(12),
-                        boxShadow: kIsWeb
-                            ? [
-                          BoxShadow(
-                            color: Colors.black.withOpacity(0.06),
-                            blurRadius: 12,
-                            spreadRadius: 1,
-                            offset: const Offset(0, 4),
-                          )
-                        ]
-                            : [],
-                      ),
-
-                      child: ListTile(
-                        contentPadding: const EdgeInsets.symmetric(
-                            vertical: 0, horizontal: 12),
-                        leading: SizedBox(
-                          width: 50,
-                          child: CustomCacheNetworkImage(
-                            "${ApiEnd.baseUrlMedia}${member.userImage ?? ''}",
-                            radiusAll: 100,
-                            height: 50,
-                            width: 50,
-                            defaultImage: userIcon,
-                            borderColor: greyColor,
-                            boxFit: BoxFit.cover,
-                          ),
-                        ),
-
-                        title: Row(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            Text(
-                              member.userCompany?.displayName!=null?
-                              member.userCompany?.displayName?? '':member.userName!=null?
-                              member.userName??'':member.phone??'',
-                              style: BalooStyles.baloonormalTextStyle(),
-                            ),
-                            if (isAdmin ?? true)
-                              Padding(
-                                padding: const EdgeInsets.only(left: 6),
-                                child: Container(
-                                  padding: const EdgeInsets.symmetric(
-                                      horizontal: 6, vertical: 2),
-                                  decoration: BoxDecoration(
-                                    color: appColorGreen,
-                                    borderRadius: BorderRadius.circular(4),
-                                  ),
-                                  child: const Text('admin',
-                                      style: TextStyle(
-                                          fontSize: 10,
-                                          color: Colors.white)),
-                                ),
-                              ),
-                          ],
-                        ),
-                        subtitle: Text(
-                          member.phone == '' ||
-                              member.phone == null
-                              ? member.email ?? ''
-                              : member.phone ?? '',
-                          style: BalooStyles.baloonormalTextStyle(color: greyText),
-                        ),
-                        trailing: showMenu
-                            ? PopupMenuButton<String>(
-                          onSelected: (value) {
-                            if (value == 'make_admin') {
-                              controller.hitAPIToUpdateMember(
-                                mode: "set_admin",
-                                isGroup: isGroup,
-                                id: member.userCompany?.userCompanyId,
-                              );
-                            } else if (value == 'remove') {
-                              controller.hitAPIToUpdateMember(
-                                mode: "remove",
-                                isGroup: isGroup,
-                                id: member.userCompany?.userCompanyId,
-                              );
-                            }
-                          },
-                          itemBuilder: (context) => [
-                            if (canMakeAdmin)
-                              PopupMenuItem(
-                                value: 'make_admin',
-                                child: Row(
-                                  children: [
-                                    Icon(Icons.circle_rounded,
-                                        size: 12,
-                                        color: appColorGreen),
-                                    hGap(5),
-                                    Text('Make Admin',
-                                        style: BalooStyles.baloonormalTextStyle()),
-                                  ],
-                                ),
-                              ),
-                            if (canRemove)
-                              PopupMenuItem(
-                                value: 'remove',
-                                child: Row(
-                                  children: [
-                                    Icon(Icons.remove_circle,
-                                        size: 12,
-                                        color: AppTheme.redErrorColor),
-                                    hGap(5),
-                                    Text('Remove Member',
-                                        style: BalooStyles.baloonormalTextStyle()),
-                                  ],
-                                ),
-                              ),
-                          ],
-                          color: Colors.white,
-                          icon: const Icon(Icons.more_vert),
-                        )
-                            : null,
-                        onTap: () {},
-                      ),
-                    );
-                },
-              ),
-            ),
-          ],
+        child: SingleChildScrollView(
+          child: Column(
+            children: [
+               Container(
+                 padding: const EdgeInsets.all(8),
+                 decoration: BoxDecoration(
+                   border: Border.all(color:Colors.grey),
+                   shape: BoxShape.circle
+                 ),
+                 child: CircleAvatar(
+                  radius: 35,
+                  
+                  backgroundColor: Colors.white,
+                   child: Image.asset(controller.groupOrBr?.userCompany?.isGroup==1?
+                   // child: SvgPicture.asset(controller.groupOrBr?.userCompany?.isGroup==1?
+                   groupIcn: broadcastIcon),
+                               ),
+               ),
+              vGap(15),
+              const ProfileMediaSectionGetXGroup(baseUrl: ApiEnd.baseUrlMedia),
+              // CustomTextField(
+              //   hintText: controller.groupOrBr?.userCompany?.isGroup == 1
+              //       ? "Group Name"
+              //       : "Broadcast Name",
+              //   labletext: "",
+              //   readOnly:
+              //   (controller.groupOrBr?.createdBy == APIs.me?.userCompany?.userCompanyId)
+              //       ? false
+              //       : true,
+              //   controller: controller.groupNameController,
+              //   onChangee: (v) {
+              //     controller.isUpdate = true;
+              //     controller.update();
+              //   },
+              //   validator: (value) {
+              //     return value?.isEmptyField(
+              //         messageTitle:
+              //         controller.groupOrBr?.userCompany?.isGroup == 1
+              //             ? "Group Name"
+              //             : "Broadcast Name");
+              //   },
+              //   prefix: Icon(
+              //     Icons.group,
+              //     color: appColorPerple,
+              //   ),
+              // ).marginSymmetric(horizontal: 20, vertical: 20),
+              //
+              // if (controller.isUpdate)
+              //   dynamicButton(
+              //       name: "Update",
+              //       onTap: controller.groupNameController.text.isNotEmpty
+              //           ? () => controller.updateGroupBroadcastApi(
+              //         isGroup: controller.groupOrBr?.userCompany
+              //             ?.isGroup ==
+              //             1
+              //             ? 1
+              //             : 0,
+              //         isBroadcast: controller.groupOrBr?.userCompany
+              //             ?.isBroadcast ==
+              //             1
+              //             ? 1
+              //             : 0,
+              //       )
+              //           : () {
+              //         toast("Name cannot be empty");
+              //       },
+              //       isShowText: true,
+              //       isShowIconText: false,
+              //       gradient: buttonGradient,
+              //       leanIcon: chaticon),
+              //
+              // const SizedBox(height: 10),
+              //
+              // Expanded(
+              //   child: ListView.builder(
+              //     itemCount: controller.members.length,
+              //     itemBuilder: (context, index) {
+              //       final member = controller.members[index];
+              //       final isAdmin = member.isAdmin == 1 ? true : false;
+              //       final me = APIs.me;
+              //       final bool isSelf =
+              //           member.userId == me?.userId;
+              //       final int? creatorUserId =
+              //           controller.groupOrBr?.createdBy ??
+              //               controller.groupOrBr?.createdBy;
+              //
+              //       final bool iAmCreator =
+              //           me?.userCompany?.userCompanyId == creatorUserId;
+              //       final bool targetIsCreator =
+              //           member.userCompany?.userCompanyId == creatorUserId;
+              //
+              //       final bool iAmAdmin = (me?.isAdmin ?? 0) == 1;
+              //       final bool targetIsAdmin = (member.isAdmin ?? 0) == 1;
+              //
+              //       final bool iAmMemberOnly =
+              //           !iAmCreator && !iAmAdmin;
+              //
+              //       final bool isGroup =
+              //           (controller.groupOrBr?.userCompany?.isGroup ?? 0) == 1;
+              //
+              //       final bool showMenu = !isSelf &&
+              //           !iAmMemberOnly &&
+              //           !(iAmAdmin && targetIsCreator);
+              //
+              //       final bool canMakeAdmin = !targetIsAdmin &&
+              //           (iAmCreator || iAmAdmin);
+              //
+              //       final bool canRemove = (iAmCreator && !isSelf) ||
+              //           (iAmAdmin && !targetIsCreator && !isSelf);
+              //
+              //       return
+              //         Container(
+              //           margin: const EdgeInsets.symmetric(
+              //               vertical: 6, horizontal: 10),
+              //           decoration: BoxDecoration(
+              //             color: Colors.white,
+              //             borderRadius: BorderRadius.circular(12),
+              //             boxShadow: kIsWeb
+              //                 ? [
+              //               BoxShadow(
+              //                 color: Colors.black.withOpacity(0.06),
+              //                 blurRadius: 12,
+              //                 spreadRadius: 1,
+              //                 offset: const Offset(0, 4),
+              //               )
+              //             ]
+              //                 : [],
+              //           ),
+              //
+              //           child: ListTile(
+              //             contentPadding: const EdgeInsets.symmetric(
+              //                 vertical: 0, horizontal: 12),
+              //             leading: SizedBox(
+              //               width: 50,
+              //               child: CustomCacheNetworkImage(
+              //                 "${ApiEnd.baseUrlMedia}${member.userImage ?? ''}",
+              //                 radiusAll: 100,
+              //                 height: 50,
+              //                 width: 50,
+              //                 defaultImage: userIcon,
+              //                 borderColor: greyColor,
+              //                 boxFit: BoxFit.cover,
+              //               ),
+              //             ),
+              //
+              //             title: Row(
+              //               mainAxisSize: MainAxisSize.min,
+              //               children: [
+              //                 Text(
+              //                   member.userCompany?.displayName!=null?
+              //                   member.userCompany?.displayName?? '':member.userName!=null?
+              //                   member.userName??'':member.phone??'',
+              //                   style: BalooStyles.baloonormalTextStyle(),
+              //                 ),
+              //                 if (isAdmin ?? true)
+              //                   Padding(
+              //                     padding: const EdgeInsets.only(left: 6),
+              //                     child: Container(
+              //                       padding: const EdgeInsets.symmetric(
+              //                           horizontal: 6, vertical: 2),
+              //                       decoration: BoxDecoration(
+              //                         color: appColorGreen,
+              //                         borderRadius: BorderRadius.circular(4),
+              //                       ),
+              //                       child: const Text('admin',
+              //                           style: TextStyle(
+              //                               fontSize: 10,
+              //                               color: Colors.white)),
+              //                     ),
+              //                   ),
+              //               ],
+              //             ),
+              //             subtitle: Text(
+              //               member.phone == '' ||
+              //                   member.phone == null
+              //                   ? member.email ?? ''
+              //                   : member.phone ?? '',
+              //               style: BalooStyles.baloonormalTextStyle(color: greyText),
+              //             ),
+              //             trailing: showMenu
+              //                 ? PopupMenuButton<String>(
+              //               onSelected: (value) {
+              //                 if (value == 'make_admin') {
+              //                   controller.hitAPIToUpdateMember(
+              //                     mode: "set_admin",
+              //                     isGroup: isGroup,
+              //                     id: member.userCompany?.userCompanyId,
+              //                   );
+              //                 } else if (value == 'remove') {
+              //                   controller.hitAPIToUpdateMember(
+              //                     mode: "remove",
+              //                     isGroup: isGroup,
+              //                     id: member.userCompany?.userCompanyId,
+              //                   );
+              //                 }
+              //               },
+              //               itemBuilder: (context) => [
+              //                 if (canMakeAdmin)
+              //                   PopupMenuItem(
+              //                     value: 'make_admin',
+              //                     child: Row(
+              //                       children: [
+              //                         Icon(Icons.circle_rounded,
+              //                             size: 12,
+              //                             color: appColorGreen),
+              //                         hGap(5),
+              //                         Text('Make Admin',
+              //                             style: BalooStyles.baloonormalTextStyle()),
+              //                       ],
+              //                     ),
+              //                   ),
+              //                 if (canRemove)
+              //                   PopupMenuItem(
+              //                     value: 'remove',
+              //                     child: Row(
+              //                       children: [
+              //                         Icon(Icons.remove_circle,
+              //                             size: 12,
+              //                             color: AppTheme.redErrorColor),
+              //                         hGap(5),
+              //                         Text('Remove Member',
+              //                             style: BalooStyles.baloonormalTextStyle()),
+              //                       ],
+              //                     ),
+              //                   ),
+              //               ],
+              //               color: Colors.white,
+              //               icon: const Icon(Icons.more_vert),
+              //             )
+              //                 : null,
+              //             onTap: () {},
+              //           ),
+              //         );
+              //     },
+              //   ),
+              // ),
+            ],
+          ),
         ),
       ),
     );
@@ -279,7 +291,7 @@ class GroupMembersScreen extends GetView<GrBrMembersController> {
 
   Future<void> openAllUserDialog(UserDataAPI? user) async {
     if (Get.isRegistered<AddGroupMemController>()) {
-      Get.delete<AddGroupMemController>(force: true);
+     await Get.delete<AddGroupMemController>(force: true);
     }
 
     final c = Get.put(AddGroupMemController());
@@ -327,8 +339,16 @@ class GroupMembersScreen extends GetView<GrBrMembersController> {
             APIs.me?.userCompany?.userCompanyId)
           PopupMenuButton<String>(
             color: Colors.white,
-            icon: const Icon(Icons.more_vert,
-                color: Colors.black87, size: 18),
+            icon:kIsWeb? Container(
+              padding: const EdgeInsets.all(8),
+              decoration: BoxDecoration(
+                shape: BoxShape.circle,
+                color: appColorGreen
+              ),
+              child: const Icon(Icons.more_vert,
+                  color: Colors.white, size: 18),
+            ):const Icon(Icons.more_vert,
+                color: Colors.black, size: 18),
             onSelected: (value) {
               if (value == 'delete') {
                 showResponsiveConfirmationDialog(onConfirm:  () async {
@@ -384,7 +404,7 @@ class GroupMembersScreen extends GetView<GrBrMembersController> {
                 ),
               ),
             ],
-          )
+          ).marginOnly(right: 10)
       ],
     );
   }

@@ -9,6 +9,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter_svg/svg.dart';
 import 'package:get/get.dart';
 import '../../../../../../utils/common_textfield.dart';
 import '../../../../../../utils/custom_dialogue.dart';
@@ -146,10 +147,11 @@ class _BroadcastsMembersScreenState extends State<BroadcastsMembersScreen> {
       body: Column(
         children: [
           const SizedBox(height: 10),
-          const CircleAvatar(
+           CircleAvatar(
             radius: 40,
             backgroundColor: Colors.white,
-            backgroundImage: AssetImage(broadcastIcon), // static image
+            child: Image.asset(broadcastIcon),
+            // child: SvgPicture.asset(broadcastIcon),
           ),
 
 

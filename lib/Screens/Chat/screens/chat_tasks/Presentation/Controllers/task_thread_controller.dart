@@ -47,7 +47,7 @@ class TaskThreadController extends GetxController {
   getArguments() {
     if(kIsWeb){
       if (Get.parameters != null) {
-        debugPrint("param${Get.parameters['taskMsgId']}");
+        // debugPrint("param${Get.parameters['taskMsgId']}");
         final String? taskMessageId = Get.parameters['taskMsgId'];
         final currentUserID = Get.parameters['currentUserId'];
 

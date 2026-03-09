@@ -62,8 +62,8 @@ void showUploadOptions(BuildContext context, {FolderData? folder}) {
                   saveC.docNameController.text = image.name;
 
                   // Navigator.of(context).pop();
-                  showDialog(
-                      context: Get.context!,
+                  await showDialog(
+                      context: context,
                       builder: (_) => SaveToCustomFolderDialog(
                         user: UserDataAPI(),
                         filesImages: picked,
@@ -109,8 +109,8 @@ void showUploadOptions(BuildContext context, {FolderData? folder}) {
                 folder!=null? null:await saveC.hitApiToGetFolder(reset: true);
                 if (galle.isNotEmpty) {
                   // Navigator.of(context).pop();
-                  showDialog(
-                      context: Get.context!,
+                await  showDialog(
+                      context: context,
                       builder: (_) => SaveToCustomFolderDialog(
                         user: UserDataAPI(),
                         filesImages: galle,
@@ -150,8 +150,8 @@ void showUploadOptions(BuildContext context, {FolderData? folder}) {
   );
 }
 
-void showUploadOptionsWeb(BuildContext context,FolderData? folderdata) {
-  showDialog(
+Future<void> showUploadOptionsWeb(BuildContext context,FolderData? folderdata) async {
+  await showDialog(
     context: context,
     builder: (ctx) => AlertDialog(
       backgroundColor: Colors.white,
@@ -192,8 +192,8 @@ void showUploadOptionsWeb(BuildContext context,FolderData? folderdata) {
                   );
                 }),
               );
-              showDialog(
-                  context: Get.context!,
+             await  showDialog(
+                  context: context,
                   builder: (_) => SaveToCustomFolderDialog(
                     user: UserDataAPI(),
                     filesImages: picked,
@@ -234,8 +234,9 @@ void showUploadOptionsWeb(BuildContext context,FolderData? folderdata) {
             await saveC.hitApiToGetFolder();
             if (docs.isNotEmpty) {
               // Navigator.of(ctx).pop();
-              showDialog(
-                  context: Get.context!,
+
+             await showDialog(
+                  context: context,
                   builder: (_) => SaveToCustomFolderDialog(
                     user: UserDataAPI(),
                     filesImages: picked,

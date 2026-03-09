@@ -13,6 +13,7 @@ import 'package:AccuChat/utils/loading_indicator.dart';
 import 'package:AccuChat/utils/text_style.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_svg/svg.dart';
 import 'package:get/get.dart';
 import 'package:swipe_to/swipe_to.dart';
 import 'package:flutter/foundation.dart' show kIsWeb;
@@ -104,6 +105,7 @@ class CompanyMembers extends GetView<CompanyMemberController> {
                   icon: controller.isSearching.value
                       ? const Icon(CupertinoIcons.clear_circled_solid)
                       : Image.asset(searchPng, height: 25, width: 25))
+                      // : SvgPicture.asset(searchPng, height: 25, width: 25))
               .paddingOnly(right: 8);
         }),
       ],
@@ -275,6 +277,7 @@ class CompanyMembers extends GetView<CompanyMemberController> {
                                             MaterialTapTargetSize.shrinkWrap,
                                       ),
                                       child: Image.asset(tasksHome,
+                                      // child: SvgPicture.asset(tasksHome,
                                           color: appColorYellow, height: 20),
                                     ),
                                   ],

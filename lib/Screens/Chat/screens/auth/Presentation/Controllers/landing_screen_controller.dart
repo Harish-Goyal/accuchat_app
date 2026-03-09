@@ -57,7 +57,7 @@ class LandingScreenController extends GetxController {
 
 
   List<PendingInvitesList> pendingInvites = [];
-  hitAPIToGetPendingInvites(userInput) async {
+  hitAPIToGetPendingInvites(userInput,ctx) async {
     customLoader.show();
     isLoadingPendingInvites=true;
     update();
@@ -70,7 +70,7 @@ class LandingScreenController extends GetxController {
       customLoader.hide();
       if(pendingInvites.isEmpty){
         showDialog(
-          context: Get.context!,
+          context: ctx,
           builder: (_) => AlertDialog(
             title: const Text("Not Invited"),
             backgroundColor: Colors.white,

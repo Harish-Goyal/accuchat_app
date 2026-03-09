@@ -13,10 +13,12 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:AccuChat/Screens/Reload/reload_factory.dart';
 import 'package:flutter_snake_navigationbar/flutter_snake_navigationbar.dart';
+import 'package:flutter_svg/svg.dart';
 import 'package:get/get.dart';
 import 'package:sidebarx/sidebarx.dart';
 import '../../../../main.dart';
 import '../../../../utils/chat_presence.dart';
+import '../../../../utils/custom_flashbar.dart';
 import '../../../../utils/register_image.dart';
 import '../../../Chat/api/apis.dart';
 
@@ -96,7 +98,8 @@ class AccuChatDashboard extends StatelessWidget {
         items: [
           SidebarXItem(
             label: 'Chats',
-            iconBuilder: (selected, hovered) => Image.asset(
+            iconBuilder: (selected, hovered) =>Image.asset(
+            // iconBuilder: (selected, hovered) =>SvgPicture.asset(
               chatHome,
               height: 20,
               color: selected ? Colors.white : Colors.grey,
@@ -106,17 +109,18 @@ class AccuChatDashboard extends StatelessWidget {
           SidebarXItem(
             label: 'Tasks',
             iconBuilder: (selected, hovered) =>
-               Image.asset(
+                Image.asset(
+                // SvgPicture.asset(
                 tasksHome,
                 height: 20,
                 color: selected ? Colors.white : Colors.grey,
               ).paddingSymmetric(horizontal: 5),
-
             onTap: () => _handleSidebarTap(controller, 1,context),
           ),
           SidebarXItem(
             label: 'Gallery',
             iconBuilder: (selected, hovered) => Image.asset(
+            // iconBuilder: (selected, hovered) => SvgPicture.asset(
               galleryIcon,
               height: 20,
               color: selected ? Colors.white : Colors.grey,
@@ -130,6 +134,7 @@ class AccuChatDashboard extends StatelessWidget {
                 clipBehavior: Clip.none,
                 children: [
                   Image.asset(
+                  // SvgPicture.asset(
                     connectedAppIcon,
                     height: 20,
                     color: selected ? Colors.white : Colors.grey,
@@ -140,7 +145,7 @@ class AccuChatDashboard extends StatelessWidget {
                     right: -10,
                     child: BottomNavBudge(
                       budgeCount:
-                      "${Get.find<ChatHomeController>()?.selectedChat.value?.pendingCount ?? ''}",
+                      "${Get.find<ChatHomeController>().selectedChat.value?.pendingCount ?? ''}",
                     ),
                   )
                       : const SizedBox(),
@@ -155,6 +160,7 @@ class AccuChatDashboard extends StatelessWidget {
           SidebarXItem(
             label: 'Settings',
             iconWidget: Image.asset(
+            // iconWidget: SvgPicture.asset(
               settingPng,
               height: 20,
             ).paddingSymmetric(horizontal: 5),
@@ -327,7 +333,7 @@ class AccuChatDashboard extends StatelessWidget {
   Future<void> _handleSidebarTap(DashboardController controller, int index,context) async {
     await controller.getCompany();
     if (isCompanySwitched) {
-      Dialogs.showSnackbar(context, "Your Company has been change please wait for reload");
+      toast( "Your Company has been change please wait for reload");
       ReloadControllerImpl().refreshApp();
       isCompanySwitched = false;
     }

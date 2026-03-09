@@ -63,7 +63,8 @@ class LoginGController extends GetxController {
         .then((value) async {
       customLoader.hide();
       otpSent = true;
-      Dialogs.showSnackbar(Get.context!,"Otp Sent");
+      toast("Otp Sent");
+      // Dialogs.showSnackbar(Get.context!,"Otp Sent");
       if(kIsWeb) {
         Get.toNamed(
           "${AppRoutes.verify_otp}?emailOrPhone=${phoneController.text.trim()}",

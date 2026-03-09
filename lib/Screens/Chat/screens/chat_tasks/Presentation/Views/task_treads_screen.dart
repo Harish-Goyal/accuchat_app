@@ -549,7 +549,7 @@ class TaskThreadScreen extends GetView<TaskThreadController> {
       customLoader.hide();
       await OpenFilex.open(filePath);
     } catch (e) {
-      debugPrint("❌ Failed to open document: $e");
+      // debugPrint("❌ Failed to open document: $e");
       customLoader.hide();
     }
   }

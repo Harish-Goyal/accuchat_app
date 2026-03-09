@@ -5,6 +5,7 @@ import 'package:AccuChat/Screens/voice_to_texx/speach_abstract.dart';
 import 'package:get/get.dart';
 import 'package:js/js.dart';
 
+import '../../utils/custom_flashbar.dart';
 import '../Chat/helper/dialogs.dart';
 
 @JS('__speech__')
@@ -91,7 +92,7 @@ class SpeechControllerImpl  extends SpeechController{
       final err = (e.detail ?? 'speech_error').toString();
       stop(skipOnStopped: true);   // stops + clears buffers now
       _skipNextOnStopped = false;  // safety
-      Dialogs.showSnackbar(Get.context!, err);
+      toast( err);
     });
 
 
@@ -129,7 +130,7 @@ class SpeechControllerImpl  extends SpeechController{
   @override
   void toggle() {
     if (!isSupported) {
-      Dialogs.showSnackbar(Get.context!, 'Voice-to-text is not supported in this browser.');
+      toast( 'Voice-to-text is not supported in this browser.');
       return;
     }
     if (isListening.value) stop(); else start();
@@ -139,7 +140,7 @@ class SpeechControllerImpl  extends SpeechController{
     if (!isSupported) return;
     if (_speech!.blocked()) {
       isListening.value = false;
-      Dialogs.showSnackbar(Get.context!, 'Microphone permission is blocked. Please allow it in browser settings.');
+      toast( 'Microphone permission is blocked. Please allow it in browser settings.');
       return;
     }
     finalText.value = '';

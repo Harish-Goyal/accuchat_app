@@ -5,6 +5,7 @@ import 'package:AccuChat/Screens/Chat/models/chat_history_response_model.dart';
 import 'package:AccuChat/utils/text_style.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_svg/svg.dart';
 import 'package:get/get.dart';
 
 import '../Constants/assets.dart';
@@ -69,6 +70,7 @@ Widget shimmerlistItem(
           child: ClipRRect(
             borderRadius: BorderRadius.circular(30),
             child: Image.asset(
+            // child: SvgPicture.asset(
               appIcon,
               height: height ?? 150,
               width: 100,
@@ -118,6 +120,7 @@ class ShimmerGridImage extends StatelessWidget {
     return ClipRRect(
         borderRadius: BorderRadius.circular(10),
         child: Image.asset(appIcon,
+        // child: SvgPicture.asset(appIcon,
           fit: BoxFit.fill,
         ));
   }
@@ -163,7 +166,8 @@ class ShimmerPostViewWidget extends StatelessWidget {
                 const EdgeInsets.symmetric(horizontal: 16.0, vertical: 16.0),
             child: ClipRRect(
                 borderRadius: BorderRadius.circular(20),
-                child: Image.asset(
+                child:Image.asset(
+                // child:SvgPicture.asset(
                   appIcon,
                   width: Get.width,
                   height: 180,
@@ -235,6 +239,7 @@ class ShimmerPostViewWidget extends StatelessWidget {
       child: Row(
         children: [
           Image.asset(
+          // SvgPicture.asset(
             icon,
             height: Get.height * .027,
             width: Get.height* .027,
@@ -291,6 +296,7 @@ class CommentShimmer extends StatelessWidget {
             ClipRRect(
               borderRadius: BorderRadius.circular(40),
               child: Image.asset(appIcon,
+              // child: SvgPicture.asset(appIcon,
                 width: 40,
                 height: 40,
               ),

@@ -5,6 +5,7 @@ import 'package:AccuChat/utils/text_style.dart';
 import 'package:dio/dio.dart' show Dio;
 import 'package:flutter/foundation.dart';
 import 'package:flutter_linkify/flutter_linkify.dart';
+import 'package:flutter_svg/svg.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:intl/intl.dart';
 import 'package:flutter/material.dart';
@@ -994,6 +995,7 @@ class TaskThreadScreenWeb extends GetView<TaskThreadController> {
         PopupMenuItem(value: 'hi-IN', child: Text('Hindi',style: BalooStyles.baloonormalTextStyle())),
       ],
       child:  Image.asset(translationPng, height: 20,color:speechC.selectedLang=="hi-IN"? appColorGreen:appColorYellow,),
+      // child:  SvgPicture.asset(translationPng, height: 20,color:speechC.selectedLang=="hi-IN"? appColorGreen:appColorYellow,),
     );
   }
 
@@ -1238,7 +1240,7 @@ class TaskThreadScreenWeb extends GetView<TaskThreadController> {
           return InkWell(
             onTap: () {
               if (!speechC.isSupported) {
-                Dialogs.showSnackbar(Get.context!,'Voice-to-text is not supported in this browser.');
+                toast('Voice-to-text is not supported in this browser.');
                 return;
               }
 
@@ -1299,6 +1301,7 @@ class TaskThreadScreenWeb extends GetView<TaskThreadController> {
                     : AppTheme.appColor.withOpacity(.05),
               ),
               child: Image.asset(
+              // child: SvgPicture.asset(
                 listening ? pausePng : micPng,
                 color: listening ? Colors.red : AppTheme.appColor,
                 height: 20,

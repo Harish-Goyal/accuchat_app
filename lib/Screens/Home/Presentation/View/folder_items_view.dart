@@ -7,6 +7,7 @@ import 'package:AccuChat/utils/helper_widget.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_svg/svg.dart';
 import 'package:get/get.dart';
 import '../../../../Constants/assets.dart';
 import '../../../../Constants/colors.dart';
@@ -194,6 +195,7 @@ class FolderItemsScreen extends GetView<GalleryItemController> {
                   icon: c.isSearchingIconItem.value
                       ? const Icon(CupertinoIcons.clear_circled_solid)
                       : Image.asset(searchPng, height: 25, width: 25))
+                      // : SvgPicture.asset(searchPng, height: 25, width: 25))
                   .paddingOnly(top: 0, right: 10),
               c.isSearchingIconItem.value?const SizedBox():  IconButton(
                   onPressed: () {
@@ -375,7 +377,10 @@ class _MediaCard extends StatelessWidget {
                     height: thumbHeight,
                     width: double.infinity,
                     child: isImage
-                        ? CustomCacheNetworkImage(
+                        ?thumbUrl.endsWith('gif')?  ClipRRect(
+                      borderRadius: BorderRadius.circular(12),child: Image.network(thumbUrl,fit: BoxFit.cover,errorBuilder: (context, error, stackTrace) {
+                      return const Icon(Icons.broken_image);
+                    },)):CustomCacheNetworkImage(
                       thumbUrl,
                       height: thumbHeight,
                       width: double.infinity,

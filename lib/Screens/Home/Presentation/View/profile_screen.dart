@@ -11,6 +11,7 @@ import 'package:file_picker/file_picker.dart';
 import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter_svg/svg.dart';
 import 'package:get/get.dart';
 import 'package:image_picker/image_picker.dart';
 import '../../../../Constants/themes.dart';
@@ -427,6 +428,7 @@ class _ProfileAvatar extends StatelessWidget {
               fit: BoxFit.cover,
               errorBuilder: (_, __, ___) =>
                   Image.asset(userIcon, height: 40),
+                  // SvgPicture.asset(userIcon, height: 40),
             ),
           ),
         );

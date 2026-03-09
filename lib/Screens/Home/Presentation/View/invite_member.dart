@@ -13,6 +13,7 @@ import 'package:flutter_contacts/flutter_contacts.dart';
 import 'package:get/get.dart';
 import '../../../../utils/common_textfield.dart';
 import '../../../../utils/custom_dialogue.dart';
+import '../../../../utils/custom_flashbar.dart';
 import '../Controller/invite_member_with_role_controller.dart';
 
 class InviteMembersScreen extends GetView<InviteMemberController> {
@@ -285,9 +286,7 @@ class InviteMembersScreen extends GetView<InviteMemberController> {
                                                       : buttonGradient,
                                                   onTap: c.selectedUser.isEmpty
                                                       ? () {
-                                                          Dialogs.showSnackbar(
-                                                              context,
-                                                              "User is not selected!");
+                                                    toast( "User is not selected!");
                                                         }
                                                       : () async {
                                                           await c

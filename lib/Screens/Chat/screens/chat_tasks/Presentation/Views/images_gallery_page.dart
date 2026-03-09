@@ -7,6 +7,7 @@ import 'package:AccuChat/utils/text_style.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_svg/svg.dart';
 import 'package:get/get.dart';
 import 'package:photo_view/photo_view.dart';
 import 'package:photo_view/photo_view_gallery.dart';
@@ -32,8 +33,8 @@ class GalleryViewerPage extends GetView<GalleryViewerController> {
       builder: (c) {
         return Scaffold(
           backgroundColor: Colors.white,
-
-          appBar: AppBar(      scrolledUnderElevation: 0,
+          appBar: AppBar(
+            scrolledUnderElevation: 0,
             surfaceTintColor: Colors.white,
             backgroundColor: Colors.white,
             foregroundColor: Colors.white,
@@ -199,9 +200,10 @@ class GalleryViewerPage extends GetView<GalleryViewerController> {
             builder: (context, index) {
               final url = controller.urls[index];
               return  PhotoViewGalleryPageOptions(
-                imageProvider: CachedNetworkImageProvider(url,errorListener: (v){
+                imageProvider: url.endsWith("gif")?NetworkImage(url):CachedNetworkImageProvider(url,errorListener: (v){
                   Center(
                     child: Image.asset(appIcon, fit: BoxFit.contain),
+                    // child: SvgPicture.asset(appIcon, fit: BoxFit.contain),
                   );
                 }),
                 heroAttributes: PhotoViewHeroAttributes(tag: url),
@@ -209,6 +211,7 @@ class GalleryViewerPage extends GetView<GalleryViewerController> {
                 maxScale: PhotoViewComputedScale.covered,
                 errorBuilder: (context, error, stackTrace) => Center(
                   child: Image.asset(appIcon, fit: BoxFit.contain),
+                  // child: SvgPicture.asset(appIcon, fit: BoxFit.contain),
                 ),
               );
             },
@@ -219,7 +222,7 @@ class GalleryViewerPage extends GetView<GalleryViewerController> {
           ),
         ),
 
-        if (controller.toast != null)
+        if (controller.toastmsg != null)
           Positioned(
             left: 16,
             right: 16,
@@ -234,7 +237,7 @@ class GalleryViewerPage extends GetView<GalleryViewerController> {
                   border: Border.all(color: Colors.white24),
                 ),
                 child: Text(
-                  controller.toast!,
+                  controller.toastmsg!,
                   style: const TextStyle(color: Colors.white),
                 ),
               ),

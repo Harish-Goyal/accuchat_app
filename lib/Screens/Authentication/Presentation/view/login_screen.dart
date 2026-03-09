@@ -33,7 +33,7 @@ class LoginScreen extends GetView<LoginController> {
                 child: SingleChildScrollView(
                   child: Column(
                     children: <Widget>[
-                      Image.asset(loginPng,height: Get.height*.23,width: Get.width,),
+                      // Image.asset(loginPng,height: Get.height*.23,width: Get.width,),
 
                       // getAppLogo(),
                       vGap(20),

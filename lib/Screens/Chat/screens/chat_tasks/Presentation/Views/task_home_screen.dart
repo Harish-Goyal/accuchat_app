@@ -6,6 +6,7 @@ import 'package:AccuChat/routes/app_routes.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_svg/svg.dart';
 import 'package:get/get.dart';
 import 'package:swipe_to/swipe_to.dart';
 import '../../../../../../Services/APIs/api_ends.dart';
@@ -282,7 +283,8 @@ class TaskHomeScreen extends GetView<TaskHomeController> {
                                     _goToScreen(user, w);
                                   }
                                 },
-                                icon: Image.asset(addNewChatPng,
+                                icon:Image.asset(addNewChatPng,
+                                // icon:SvgPicture.asset(addNewChatPng,
                                     height: 27, width: 27))
                             : const SizedBox(),
                         hGap(10),
@@ -306,7 +308,8 @@ class TaskHomeScreen extends GetView<TaskHomeController> {
                                     icon: controller.isSearching.value
                                         ? const Icon(
                                             CupertinoIcons.clear_circled_solid)
-                                        : Image.asset(searchPng,
+                                        :Image.asset(searchPng,
+                                        // :SvgPicture.asset(searchPng,
                                             height: 25, width: 25));
                               })
                         /*Obx(() {
@@ -500,6 +503,7 @@ class TaskHomeScreen extends GetView<TaskHomeController> {
                         icon: controller.isSearching.value
                             ? const Icon(CupertinoIcons.clear_circled_solid)
                             : Image.asset(searchPng, height: 25, width: 25));
+                            // : SvgPicture.asset(searchPng, height: 25, width: 25));
                   }),
                 ),
                 autofocus: false,
@@ -539,6 +543,7 @@ class TaskHomeScreen extends GetView<TaskHomeController> {
                   crossAxisAlignment: CrossAxisAlignment.center,
                   children: [
                     Image.asset(
+                    // SvgPicture.asset(
                       emptyRecentPng,
                       height: 90,
                     ),

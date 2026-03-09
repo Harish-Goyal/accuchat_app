@@ -88,7 +88,6 @@ class DioClient {
     try {
       if (skipAuth == false) {
         var token = StorageService.getToken();
-        debugPrint("Authorization token is ******* $token");
         if (token != null) {
           options = Options(headers: {
             "Authorization": "Bearer $token",
@@ -127,7 +126,6 @@ class DioClient {
     try {
       if (skipAuth == false) {
         var token =  StorageService.getToken();
-        debugPrint("authorization token is ********* $token");
 
         if (token != null) {
           if (options == null) {
@@ -170,7 +168,6 @@ class DioClient {
     try {
       if (skipAuth == false) {
         var token =  StorageService.getToken();
-        debugPrint("Authorization token is *********  $token");
 
         if (token != null) {
           options ??= Options(headers: {
@@ -207,7 +204,6 @@ class DioClient {
     try {
       if (skipAuth == false) {
         var token =  StorageService.getToken();
-        debugPrint("Authorization token is *********  $token");
 
         if (token != null) {
           options ??= Options(headers: {

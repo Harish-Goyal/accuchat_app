@@ -118,7 +118,7 @@ class VerifyOtpController extends GetxController{
           .then((value) async {
         customLoader.hide();
         otpSent = true;
-        Dialogs.showSnackbar(Get.context!, value.message??'');
+        toast( value.message??'');
 
         update();
       }).onError((error, stackTrace) {
@@ -133,7 +133,7 @@ class VerifyOtpController extends GetxController{
 
       startCooldown(); // restart 60s timer
     } catch (e) {
-      Dialogs.showSnackbar(Get.context! ,e.toString(),
+      toast(e.toString(),
           );
     } finally {
       isSending.value = false;

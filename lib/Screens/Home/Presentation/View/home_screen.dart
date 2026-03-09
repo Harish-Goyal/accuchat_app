@@ -8,6 +8,7 @@ import 'package:AccuChat/utils/networl_shimmer_image.dart';
 import 'package:AccuChat/utils/text_style.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_svg/svg.dart';
 import 'package:get/get.dart';
 import '../../../../Constants/colors.dart';
 import '../../../../main.dart';
@@ -364,6 +365,7 @@ class SectionHeader extends StatelessWidget {
     return Row(
       children: [
         Image.asset(
+        // SvgPicture.asset(
           icon,
           height: 25,
           color: coloricon ?? null,

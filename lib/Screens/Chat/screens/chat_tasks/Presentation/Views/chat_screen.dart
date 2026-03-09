@@ -51,6 +51,9 @@ import '../Widgets/media_view.dart';
 import '../dialogs/save_in_gallery_dialog.dart';
 import 'add_group_members_screens.dart';
 import 'images_gallery_page.dart';
+import 'dart:typed_data';
+import 'package:cross_file/cross_file.dart';
+import 'package:flutter_dropzone/flutter_dropzone.dart';
 
 class _NoGlowScrollBehavior extends ScrollBehavior {
   const _NoGlowScrollBehavior();
@@ -77,14 +80,6 @@ double _maxChatWidth(BuildContext context) {
   if (w >= 1366) return 1300;
   if (w >= 1200) return 1200;
   return 900;
-}
-
-double _maxContentWidth(double w) {
-  if (w >= 1400) return 920;
-  if (w >= 1100) return 820;
-  if (w >= 900) return 720;
-  if (w >= 600) return 560;
-  return w;
 }
 
 EdgeInsets _shellHPadding(BuildContext context) {
@@ -143,6 +138,25 @@ class _ChatScreenState extends State<ChatScreen> {
     });
   }
 
+  DropzoneViewController? _dropzoneController;
+  bool _isDraggingFiles = false;
+  bool _isDropBusy = false;
+
+  static const List<String> _imageExts = [
+    'jpg', 'jpeg', 'png', 'gif', 'webp', 'bmp', 'heic'
+  ];
+
+  static const List<String> _docExts = [
+    'pdf',
+    'doc', 'docx',
+    'txt',
+    'xls', 'xlsx', 'csv',
+    'xml', 'json',
+    'ppt', 'pptx',
+    'zip', 'rar',
+    'html', 'php', 'js', 'jsx', 'css'
+  ];
+
 
  String _tag ='';
   @override
@@ -176,6 +190,8 @@ class _ChatScreenState extends State<ChatScreen> {
 
     _attachPaginationListener();
 
+
+
     final ucId = widget.user?.userCompany?.userCompanyId;
     _tag = "chat_${ucId??'mobile'}";
 
@@ -189,11 +205,17 @@ class _ChatScreenState extends State<ChatScreen> {
 
   }
 
+
+
+
   @override
   void dispose() {
     // speechC.stop(skipOnStopped: true);
     _speechWorker.dispose();
     speechC.onStopped = null;
+    _emojiOverlay?.remove();
+    _emojiOverlay = null;
+    _emojiVisible = false;
     try {
       itemPositionsListener.itemPositions
           .removeListener(onPositionsChanged);
@@ -201,9 +223,7 @@ class _ChatScreenState extends State<ChatScreen> {
     if (Get.isRegistered<ChatScreenController>(tag: _tag)) {
       Get.delete<ChatScreenController>(tag:_tag,force: true);
     }
-    if(mounted){
-      _hideEmojiPicker();
-    }
+
 
     super.dispose();
   }
@@ -229,6 +249,8 @@ class _ChatScreenState extends State<ChatScreen> {
       controller.hitAPIToGetChatHistory("pagination", user: widget.user!);
     }
   }
+
+
 
   Future<void> jumpToRepliedMessage(int targetChatId) async {
     /// Load more pages if message not found
@@ -275,6 +297,126 @@ class _ChatScreenState extends State<ChatScreen> {
   }
 
 
+  String _fileExt(String name) {
+    final parts = name.split('.');
+    if (parts.length < 2) return '';
+    return parts.last.toLowerCase().trim();
+  }
+
+  bool _isImageFileName(String name) => _imageExts.contains(_fileExt(name));
+
+  bool _isDocumentFileName(String name) => _docExts.contains(_fileExt(name));
+
+  bool _isAllowedDroppedFile(String name) {
+    return _isImageFileName(name) || _isDocumentFileName(name);
+  }
+
+  Future<void> _handleDroppedFiles(DropzoneFileInterface file) async {
+    if (!kIsWeb) return;
+    if (_dropzoneController == null) return;
+
+    try {
+      final String fileName = await _dropzoneController!.getFilename(file);
+      final String mimeType = await _dropzoneController!.getFileMIME(file);
+      final int fileSize = await _dropzoneController!.getFileSize(file);
+
+      if (!_isAllowedDroppedFile(fileName)) {
+        toast("Unsupported file: $fileName");
+        return;
+      }
+
+      if (fileSize > maxBytes) {
+        toast("❌ File must be less than 15 MB");
+        return;
+      }
+
+      final Uint8List bytes = await _dropzoneController!.getFileData(file);
+
+      if (_isImageFileName(fileName)) {
+        final xfile = XFile.fromData(
+          bytes,
+          name: fileName,
+          mimeType: mimeType,
+          length: bytes.length,
+        );
+
+        final shouldSend = await showPastedImagePreviewDialog(
+          xfile,
+          webBytes: bytes,
+        );
+
+        if (shouldSend == true) {
+          controller.images.add(xfile);
+          controller.update();
+          await controller.uploadMediaApiCall(
+            type: ChatMediaType.IMAGE.name,
+          );
+        }
+      } else {
+        await controller.receivePickedDocuments([
+          PlatformFile(
+            name: fileName,
+            size: bytes.length,
+            bytes: bytes,
+          ),
+        ]);
+      }
+    } catch (e) {
+      toast("Drop failed: $e");
+    } finally {
+      if (mounted) {
+        setState(() {
+          _isDraggingFiles = false;
+        });
+      }
+    }
+  }
+
+  Widget _buildDropOnInputOnly({required Widget child}) {
+    if (!kIsWeb) return child;
+
+    return Stack(
+      clipBehavior: Clip.none,
+      alignment: Alignment.center,
+      children: [
+        Positioned.fill(
+          child: DropzoneView(
+            operation: DragOperation.copy,
+            cursor: CursorType.grab,
+            onCreated: (ctrl) {
+              _dropzoneController = ctrl;
+            },
+            onHover: () {
+              if (!_isDraggingFiles && mounted) {
+                setState(() => _isDraggingFiles = true);
+              }
+            },
+            onLeave: () {
+              if (_isDraggingFiles && mounted) {
+                setState(() => _isDraggingFiles = false);
+              }
+            },
+            onDropFile: (file) async {
+              await _handleDroppedFiles(file);
+            },
+            onDropFiles: (files) {
+              if(files!.length>1){
+                toast("Only one file can be dropped at a time");
+              }
+
+            },
+            onError: (error) {
+              toast("Dropzone error: $error");
+            },
+          )
+        ),
+
+        child,
+      ],
+    );
+  }
+
+
   // void onPositionsChanged() {
   //
   //   if (controller.isPageLoading || !controller.hasMore) return;
@@ -310,7 +452,7 @@ class _ChatScreenState extends State<ChatScreen> {
             },
             child: SafeArea(
               child: Scaffold(
-                appBar: _appBarWidget(),
+                appBar: _appBarWidget(context),
                 backgroundColor: const Color.fromARGB(255, 234, 248, 255),
                 body: _mainBody(context),
               ),
@@ -321,17 +463,17 @@ class _ChatScreenState extends State<ChatScreen> {
     });
   }
 
-  AppBar _appBarWidget() {
+  AppBar _appBarWidget(ctx) {
     return AppBar(
-      backgroundColor: Colors.white, // white color
-      elevation: 1, // remove shadow
-      scrolledUnderElevation: 0, // ✨ prevents color change on scroll
+      backgroundColor: Colors.white,
+      elevation: 1,
+      scrolledUnderElevation: 0,
       surfaceTintColor: Colors.white,
       automaticallyImplyLeading: false,
       flexibleSpace: MediaQuery(
-        // ✅ clamp text scale for web
-        data: MediaQuery.of(Get.context!)
-            .copyWith(textScaleFactor: _textScaleClamp(Get.context!)),
+
+        data: MediaQuery.of(ctx)
+            .copyWith(textScaleFactor: _textScaleClamp(ctx)),
         child: _appBar(),
       ),
     );
@@ -341,46 +483,52 @@ class _ChatScreenState extends State<ChatScreen> {
     if(widget.user?.userId != controller.user?.userId){
       widget.user = controller.user;
     }
-    return ScrollConfiguration(
-      behavior: const _NoGlowScrollBehavior(),
-      child: Center(
-        child: ConstrainedBox(
-          constraints: BoxConstraints(maxWidth: _maxChatWidth(Get.context!)),
-          child: Padding(
-            padding: _shellHPadding(Get.context!),
-            child: Column(
-              children: [
-                Expanded(child: RepaintBoundary(child: chatMessageBuilder())),
-                if (controller.replyToMessage != null) _replyToMessageWidget(),
-                if (controller.isUploading)
-                  const Align(
-                      alignment: Alignment.centerRight,
-                      child: Padding(
-                          padding:
-                              EdgeInsets.symmetric(vertical: 8, horizontal: 20),
-                          child: CircularProgressIndicator(strokeWidth: 2))),
-                (controller.uploadProgress > 0 &&
-                        controller.uploadProgress < 100)
-                    ? Column(
-                        children: [
-                          LinearProgressIndicator(
-                            value: controller.uploadProgress / 100, // 0.0 → 1.0
-                            backgroundColor: Colors.grey[300],
-                            color: Colors.blue,
-                            minHeight: 6,
-                          ),
-                          const SizedBox(height: 4),
-                          Text(
-                              "${controller.uploadProgress.toStringAsFixed(0)}%"),
-                        ],
-                      )
-                    : const SizedBox.shrink(),
-                _chatInput(context),
-              ],
+    return  ScrollConfiguration(
+        behavior: const _NoGlowScrollBehavior(),
+        child: Center(
+          child: ConstrainedBox(
+            constraints: BoxConstraints(maxWidth: _maxChatWidth(context)),
+            child: Padding(
+              padding: _shellHPadding(context),
+              child: Column(
+                children: [
+                  Expanded(child: RepaintBoundary(child: chatMessageBuilder())),
+                  if (controller.replyToMessage != null) _replyToMessageWidget(),
+                  if (controller.isUploading)
+                    const Align(
+                        alignment: Alignment.centerRight,
+                        child: Padding(
+                            padding:
+                                EdgeInsets.symmetric(vertical: 8, horizontal: 20),
+                            child: CircularProgressIndicator(strokeWidth: 2))),
+                  (controller.uploadProgress > 0 &&
+                          controller.uploadProgress < 100)
+                      ? Column(
+                          children: [
+                            LinearProgressIndicator(
+                              value: controller.uploadProgress / 100, // 0.0 → 1.0
+                              backgroundColor: Colors.grey[300],
+                              color: Colors.blue,
+                              minHeight: 6,
+                            ),
+                            const SizedBox(height: 4),
+                            Text(
+                                "${controller.uploadProgress.toStringAsFixed(0)}%"),
+                          ],
+                        )
+                      : const SizedBox.shrink(),
+                  Container(
+                    constraints: const BoxConstraints(minHeight: 64),
+                    child: _buildDropOnInputOnly(
+                      child: _chatInput(context),
+                    ),
+                  ),
+                ],
+              ),
             ),
           ),
         ),
-      ),
+
     );
   }
 
@@ -512,6 +660,7 @@ class _ChatScreenState extends State<ChatScreen> {
             child: Text('Hindi', style: BalooStyles.baloonormalTextStyle())),
       ],
       child: Image.asset(
+      // child: SvgPicture.asset(
         translationPng,
         height: 20,
         color: speechC.selectedLang == "hi-IN" ? appColorGreen : appColorYellow,
@@ -527,8 +676,7 @@ class _ChatScreenState extends State<ChatScreen> {
           return InkWell(
             onTap: () {
               if (!speechC.isSupported) {
-                Dialogs.showSnackbar(
-                  Get.context!,
+                toast(
                   'Voice-to-text is not supported in this browser.',
                 );
                 return;
@@ -603,6 +751,7 @@ class _ChatScreenState extends State<ChatScreen> {
                     : AppTheme.appColor.withOpacity(.05),
               ),
               child: Image.asset(
+              // child: SvgPicture.asset(
                 listening ? pausePng : micPng,
                 color: listening ? Colors.red : AppTheme.appColor,
                 height: 20,
@@ -770,6 +919,7 @@ class _ChatScreenState extends State<ChatScreen> {
 
                   // },
                   child: _chatMessageTile(
+                    context,
                      index:index,
                       data: element.chatMessageItems,
                       sentByMe: (userid?.toString() ==
@@ -859,33 +1009,7 @@ class _ChatScreenState extends State<ChatScreen> {
         : const Center(
         child: Text('Say Hii! 👋', style: TextStyle(fontSize: 20)));*/
   }
-/*
 
- Widget _createGroupHeader(GroupChatElement element) {
-    final isToday = DateUtils.isSameDay(element.date, DateTime.now());
-    final dateText =
-        isToday ? "Today" : DateFormat.yMMMd().format(element.date);
-    return Container(
-      color: Colors.transparent,
-      child: Row(
-        children: [
-          Expanded(child: divider(color: appColorGreen.withOpacity(.3))),
-          CustomContainer(
-            elevation: 2,
-            vPadding: 3,
-            hPadding: 7,
-            color: AppTheme.whiteColor,
-            childWidget: Text(
-              dateText,
-              style: BalooStyles.balooregularTextStyle(size: 12.5),
-            ),
-          ),
-          Expanded(child: divider(color: appColorGreen.withOpacity(.3))),
-        ],
-      ),
-    );
-  }
-*/
 
   Widget _createGroupHeader(DateTime date) {
     final isToday = DateUtils.isSameDay(date, DateTime.now());
@@ -912,7 +1036,7 @@ class _ChatScreenState extends State<ChatScreen> {
   }
 
   bool isHoved = false;
-  Widget _chatMessageTile(
+  Widget _chatMessageTile(context,
       {required ChatHisList data, required bool sentByMe, formatedTime,int? index}) {
 final isMedia = (data.media??[]).isNotEmpty;
     return data.isActivity == 1
@@ -948,12 +1072,13 @@ final isMedia = (data.media??[]).isNotEmpty;
                           sentByMe)
                       ? IconButton(
                           onPressed: () {
-                            controller.handleForward(chatId: data.chatId);
+                            controller.handleForward(context,chatId: data.chatId);
                           },
                           icon: Transform(
                               alignment: Alignment.center,
                               transform: Matrix4.rotationY(math.pi),
                               child: Image.asset(
+                              // child: SvgPicture.asset(
                                 forwardIcon,
                                 height: 20,
                               ))).paddingOnly(left: 0)
@@ -1000,7 +1125,7 @@ final isMedia = (data.media??[]).isNotEmpty;
                               SystemChannels.textInput
                                   .invokeMethod('TextInput.hide');
                               if (!isTaskMode) {
-                                _showBottomSheet(sentByMe, data: data);
+                                _showBottomSheet(sentByMe,context, data: data);
                               }
                             },
                             onHover: (v) {
@@ -1056,9 +1181,10 @@ final isMedia = (data.media??[]).isNotEmpty;
                           !sentByMe)
                       ? IconButton(
                           onPressed: () {
-                            controller.handleForward(chatId: data.chatId);
+                            controller.handleForward(context,chatId: data.chatId);
                           },
                           icon: Image.asset(
+                          // icon: SvgPicture.asset(
                             forwardIcon,
                             height: 20,
                           )).paddingOnly(right: 0)
@@ -1294,8 +1420,9 @@ final isMedia = (data.media??[]).isNotEmpty;
         (controller.hoveredMessageId == data.chatId.toString())?  InkWell(
             borderRadius: BorderRadius.circular(50),
             onTap: (){
-              _showBottomSheet(sentByMe, data: data);
-            },child: Image.asset(arrowDownPng,height: 15,)):const SizedBox()
+              _showBottomSheet(sentByMe,context, data: data);
+            },child: Image.asset(arrowDownPng,height: 14,color:Colors.black54).paddingAll(3)):const SizedBox()
+            // },child: SvgPicture.asset(arrowDownPng,height: 15,)):const SizedBox()
         ,
       ],
     ):Stack(
@@ -1458,13 +1585,14 @@ final isMedia = (data.media??[]).isNotEmpty;
         (controller.hoveredMessageId == data.chatId.toString())?  InkWell(
             borderRadius: BorderRadius.circular(50),
             onTap: (){
-              _showBottomSheet(sentByMe, data: data);
-            },child:  Image.asset(arrowDownPng,height: 15,)):const SizedBox()
+              _showBottomSheet(sentByMe,context, data: data);
+            },child:  Image.asset(arrowDownPng,height: 14,color:Colors.black54).paddingAll(3)):const SizedBox()
+            // },child:  SvgPicture.asset(arrowDownPng,height: 15,)):const SizedBox()
       ],
     );
   }
 
-  // app bar widget
+
   Widget _appBar() {
     if(widget.user?.userId != controller.user?.userId){
       widget.user = controller.user;
@@ -1553,8 +1681,8 @@ final isMedia = (data.media??[]).isNotEmpty;
                         radiusAll: 100,
                         "${ApiEnd.baseUrlMedia}${widget.user?.userImage ?? ''}",
                         height:
-                            _avatarSize(Get.context!), // ✅ responsive avatar
-                        width: _avatarSize(Get.context!),
+                            _avatarSize(context), // ✅ responsive avatar
+                        width: _avatarSize(context),
                         boxFit: BoxFit.cover,
                         defaultImage: widget.user?.userCompany?.isGroup == 1
                             ? groupIcn
@@ -1674,21 +1802,17 @@ final isMedia = (data.media??[]).isNotEmpty;
       DashboardController? dashC;
       bool isReg = true;
       if (Get.isRegistered<DashboardController>()) {
-        print("Registed dash====");
         dashC = Get.find<DashboardController>();
       } else {
         isReg = false;
-        print("Not Registed dashh====");
         dashC = Get.put(DashboardController());
       }
       await dashC?.getCompany();
       Future.delayed(const Duration(milliseconds: 300));
       TaskHomeController? taskHome;
       if (Get.isRegistered<TaskHomeController>()) {
-        print("Registed====");
         taskHome = Get.find<TaskHomeController>();
       } else {
-        print("Not Registed====");
         taskHome = Get.put(TaskHomeController());
       }
 
@@ -1700,7 +1824,7 @@ final isMedia = (data.media??[]).isNotEmpty;
       dashC?.updateIndex(1);
       isTaskMode = true;
     }catch(e){
-      Dialogs.showSnackbar(context, "Something went wrong please refresh the App");
+      toast("Something went wrong please refresh the App");
     }
     },
     title: "Go to Task",
@@ -1722,6 +1846,7 @@ final isMedia = (data.media??[]).isNotEmpty;
                 icon: controller.isSearching
                     ? const Icon(CupertinoIcons.clear_circled_solid)
                     : Image.asset(searchPng, height: 25, width: 25))
+                    // : SvgPicture.asset(searchPng, height: 25, width: 25))
             .paddingOnly(top: 0, right: 0),
         controller.isSearching ? const SizedBox() : hGap(10),
         controller.isSearching
@@ -1762,6 +1887,8 @@ final isMedia = (data.media??[]).isNotEmpty;
                       }
                     },
                     itemBuilder: (context) => [
+                      if (widget.user?.createdBy ==
+                          APIs.me?.userCompany?.userCompanyId)
                       PopupMenuItem(
                         value: 'AddMember',
                         child: Row(
@@ -1818,7 +1945,7 @@ final isMedia = (data.media??[]).isNotEmpty;
 
   Future<void> openAllUserDialog(UserDataAPI? user) async {
     if (Get.isRegistered<AddGroupMemController>()) {
-      Get.delete<AddGroupMemController>(force: true);
+     await Get.delete<AddGroupMemController>(force: true);
     }
 
     final c = Get.put(AddGroupMemController());
@@ -1835,33 +1962,18 @@ final isMedia = (data.media??[]).isNotEmpty;
               RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
           child: SizedBox(
             width: Get.width * 0.5,
-            height: Get.height * 0.9,
+            height: Get.height * 0.95,
             child: const AddGroupMembersScreen(),
           ),
         ),
         barrierDismissible: true,
       );
     } finally {
-      if (Get.isRegistered<AddGroupMemController>()) {
-        Get.delete<AddGroupMemController>();
-      }
+
     }
   }
 
   bool isVisibleUpload = true;
-
-
-
-
-  void _hardFocusBack() {
-    FocusManager.instance.primaryFocus?.unfocus();
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      if (controller.messageParentFocus.canRequestFocus) {
-        controller.messageParentFocus.requestFocus();
-      }
-    });
-  }
-
 
   void _toggleEmojiPicker() {
     if (_emojiVisible) {
@@ -2309,8 +2421,8 @@ final isMedia = (data.media??[]).isNotEmpty;
           mainAxisSize: MainAxisSize.min,
           children: [
             Text(
-              'On web, use your computer’s picker to select images or documents.\n'
-              'You can choose max 10 images at once.',
+              'On web, you can select files from picker or drag & drop directly into the chat.\n'
+                  'You can choose max 10 images at once.',
               style: TextStyle(fontSize: 13),
             ),
           ],
@@ -2363,11 +2475,34 @@ final isMedia = (data.media??[]).isNotEmpty;
     );
   }
 
-  /// ====== HELPERS (WEB) ======
-
   int maxBytes = 15 * 1024 * 1024;
 
   Future<List<PlatformFile>> _pickWebDocs() async {
+    final result = await FilePicker.platform.pickFiles(
+      allowMultiple: false,
+      type: FileType.custom,
+      allowedExtensions: _docExts,
+      withData: true,
+      withReadStream: false,
+    );
+
+    if (result == null || result.files.isEmpty) return [];
+
+    final f = result.files.single;
+
+    if (f.bytes == null || f.bytes!.isEmpty) {
+      errorDialog("❌ Unable to read selected file");
+      return [];
+    }
+
+    if (f.size > maxBytes) {
+      toast("❌ File must be less than 15 MB");
+      return [];
+    }
+
+    return result.files;
+  }
+/*  Future<List<PlatformFile>> _pickWebDocs() async {
     final result = await FilePicker.platform.pickFiles(
       allowMultiple: false,
       type: FileType.custom,
@@ -2424,21 +2559,21 @@ final isMedia = (data.media??[]).isNotEmpty;
       return [];
     }
     if (f.size > maxBytes) {
-      Dialogs.showSnackbar(Get.context!, "❌ File must be less than 15 MB");
+      toast("❌ File must be less than 15 MB");
       return [];
     }
 
     return result.files;
-  }
+  }*/
 
   // bottom sheet for modifying message details
-  void _showBottomSheet(bool isMe, {required ChatHisList data}) async {
+  void _showBottomSheet(bool isMe,context, {required ChatHisList data}) async {
     DateTime msg = DateTime.parse(data.sentOn ?? '');
     DateTime nowtime = DateTime.now();
 
     int diffMinutes = nowtime.difference(msg).inMinutes;
     await showModalBottomSheet(
-        context: Get.context!,
+        context: context,
         backgroundColor: Colors.white,
         shape: const RoundedRectangleBorder(
             borderRadius: BorderRadius.only(
@@ -2469,7 +2604,7 @@ final isMedia = (data.media??[]).isNotEmpty;
                             .then((value) {
                           //for hiding bottom sheet
                           Get.back();
-                          Dialogs.showSnackbar(Get.context!, 'Text Copied!');
+                          toast('Text Copied!');
                         });
                       })
                   : (data.media ?? []).isNotEmpty
@@ -2658,7 +2793,7 @@ final isMedia = (data.media??[]).isNotEmpty;
                     name: 'Edit Message',
                     onTap: () {
                       Get.back();
-                      _showMessageUpdateDialog(data, Get.context!);
+                      _showMessageUpdateDialog(data, context);
                     }),
 
               /*
@@ -2719,6 +2854,7 @@ final isMedia = (data.media??[]).isNotEmpty;
               if ((data.message?.isNotEmpty ?? false)|| (data.media ?? []).isNotEmpty)
                 _OptionItem(
                     icon:  Image.asset(
+                    // icon:  SvgPicture.asset(
                       forwardIcon,
                       height: 17,
                       color: appColorGreen,
@@ -2727,7 +2863,7 @@ final isMedia = (data.media??[]).isNotEmpty;
                     'Forward',
                     onTap: () {
                       Get.back();
-                      controller.handleForward(chatId: data.chatId);
+                      controller.handleForward(context,chatId: data.chatId);
                     }),
               //separator or divider
               /* if (!widget.isForward)
@@ -2790,6 +2926,7 @@ final isMedia = (data.media??[]).isNotEmpty;
 
     // ... your normal bubble
     return _chatMessageTile(
+        context,
         data: msg,
         sentByMe:
             (APIs.me?.userId.toString() == msg.fromUser?.userId?.toString()
@@ -2801,82 +2938,126 @@ final isMedia = (data.media??[]).isNotEmpty;
   //dialog for updating message content
   void _showMessageUpdateDialog(ChatHisList message, context) {
     controller.updateMsgController.text = message.message ?? '';
+
+    final dialogFocusNode = FocusNode();
+
     showDialog(
-        context: context,
-        builder: (_) => AlertDialog(
-              backgroundColor: Colors.white,
-              contentPadding: const EdgeInsets.only(
-                  left: 24, right: 24, top: 20, bottom: 10),
-              shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(20)),
-              title: Row(
-                children: [
-                  Icon(
-                    Icons.message,
-                    color: appColorGreen,
-                    size: 20,
-                  ),
-                  hGap(5),
-                  Text(
-                    'Update Message',
-                    style: BalooStyles.baloosemiBoldTextStyle(),
-                  )
-                ],
+      context: context,
+      builder: (_) => Focus(
+        autofocus: true,
+        focusNode: dialogFocusNode,
+        onKeyEvent: (node, event) {
+          if (!kIsWeb) return KeyEventResult.ignored;
+
+          if (event is! KeyDownEvent) return KeyEventResult.ignored;
+
+          if (event.logicalKey == LogicalKeyboardKey.enter) {
+            final keys = HardwareKeyboard.instance.logicalKeysPressed;
+
+            final shiftPressed =
+                keys.contains(LogicalKeyboardKey.shiftLeft) ||
+                    keys.contains(LogicalKeyboardKey.shiftRight);
+
+            // Shift+Enter = new line
+            if (shiftPressed) return KeyEventResult.ignored;
+
+            try {
+              final text = controller.updateMsgController.text.trim();
+
+              if (text.isNotEmpty) {
+                Get.find<SocketController>().updateChatMessage(
+                  chatId: message.chatId,
+                  toUcId: message.toUser?.userCompany?.userCompanyId,
+                  message: text,
+                );
+
+                Get.back();
+              } else {
+                Get.back();
+                toast("Message cannot be blank");
+              }
+            } catch (e) {
+              toast(e.toString());
+            }
+
+            return KeyEventResult.handled;
+          }
+
+          if (event.logicalKey == LogicalKeyboardKey.escape) {
+            Get.back();
+            return KeyEventResult.handled;
+          }
+
+          return KeyEventResult.ignored;
+        },
+        child: AlertDialog(
+          backgroundColor: Colors.white,
+          contentPadding:
+          const EdgeInsets.only(left: 24, right: 24, top: 20, bottom: 10),
+          shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(20)),
+          title: Row(
+            children: [
+              Icon(
+                Icons.message,
+                color: appColorGreen,
+                size: 20,
               ),
-
-              content: TextField(
-                controller: controller.updateMsgController,
-                maxLines: null,
-                onChanged: (value) => message.message = value,
-                decoration: InputDecoration(
-                    border: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(15))),
+              hGap(5),
+              Text(
+                'Update Message',
+                style: BalooStyles.baloosemiBoldTextStyle(),
+              )
+            ],
+          ),
+          content: TextField(
+            controller: controller.updateMsgController,
+            maxLines: null,
+            onChanged: (value) => message.message = value,
+            decoration: InputDecoration(
+              border: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(15),
               ),
+            ),
+          ),
+          actions: [
+            MaterialButton(
+              onPressed: () {
+                Get.back();
+              },
+              child: const Text(
+                'Cancel',
+                style: TextStyle(color: Colors.blue, fontSize: 16),
+              ),
+            ),
 
-              //actions
-              actions: [
-                //cancel button
-                MaterialButton(
-                    onPressed: () {
-                      //hide alert dialog
-                      Get.back();
-                    },
-                    child: const Text(
-                      'Cancel',
-                      style: TextStyle(color: Colors.blue, fontSize: 16),
-                    )),
-
-                //update button
-
-                CustomTextButton(
-                    onTap: () {
-                      try {
-                        if (controller.updateMsgController.text
-                            .trim()
-                            .isNotEmpty) {
-                          Get.find<SocketController>().updateChatMessage(
-                              chatId: message.chatId,
-                              toUcId:
-                                  message.toUser?.userCompany?.userCompanyId,
-                              message:
-                                  controller.updateMsgController.text.trim());
-                          Get.back();
-                        } else {
-                          Get.back();
-                          Dialogs.showSnackbar(
-                              context, "Message cannot be blank");
-                        }
-                      } catch (e) {
-                        toast(e.toString());
-                      }
-                    },
-                    title: 'Update')
-              ],
-            ));
+            CustomTextButton(
+              onTap: () {
+                try {
+                  if (controller.updateMsgController.text.trim().isNotEmpty) {
+                    Get.find<SocketController>().updateChatMessage(
+                      chatId: message.chatId,
+                      toUcId: message.toUser?.userCompany?.userCompanyId,
+                      message: controller.updateMsgController.text.trim(),
+                    );
+                    Get.back();
+                  } else {
+                    Get.back();
+                    toast("Message cannot be blank");
+                  }
+                } catch (e) {
+                  toast(e.toString());
+                }
+              },
+              title: 'Update',
+            ),
+          ],
+        ),
+      ),
+    ).whenComplete(() => dialogFocusNode.dispose());
   }
 }
 
-//custom options card (for copy, edit, delete, etc.)
 class _OptionItem extends StatelessWidget {
   final Widget icon;
 

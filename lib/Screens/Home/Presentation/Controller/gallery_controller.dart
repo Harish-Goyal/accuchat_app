@@ -22,6 +22,7 @@ import '../../../Chat/helper/dialogs.dart';
 import '../../../Chat/models/gallery_node.dart';
 import '../../../Chat/models/get_company_res_model.dart';
 import '../../../Chat/screens/auth/models/get_uesr_Res_model.dart';
+import '../../../Chat/screens/chat_tasks/Presentation/Controllers/all_user_controller.dart';
 import '../../../Chat/screens/chat_tasks/Presentation/Widgets/all_users_dialog.dart';
 import '../../../Chat/screens/chat_tasks/Presentation/dialogs/save_in_gallery_dialog.dart';
 import '../../Models/get_folder_res_model.dart';
@@ -712,7 +713,7 @@ class GalleryController extends GetxController
       return [];
     }
     if (f.size > maxBytes) {
-      Dialogs.showSnackbar(Get.context!, "❌ File must be less than 15 MB");
+      toast( "❌ File must be less than 15 MB");
       return [];
     }
 
@@ -782,7 +783,7 @@ class GalleryController extends GetxController
     }
     final actualBytes = await File(f.path!).length(); // reliable on mobile
     if (actualBytes > maxBytes) {
-      Dialogs.showSnackbar(Get.context!, "❌ File must be less than 15 MB");
+      toast( "❌ File must be less than 15 MB");
       return;
     }
 
@@ -846,13 +847,22 @@ class GalleryController extends GetxController
   }
 
   Future<void> handleOnShareWithinAccuchat({context}) async {
+    try{
+      if(!Get.isRegistered<AllUserController>()){
+        Get.put(AllUserController(isRecent: 'false'));
+      }
     final selectedUser = await showDialog<UserDataAPI>(
       context: Get.context!,
       builder: (_) => AllUserScreenDialog(),
     );
     if (selectedUser == null) return;
-    Dialogs.showSnackbar(context, "Under development");
+    toast( "Under development");
 
+    }  finally {
+      if (Get.isRegistered<AllUserController>()) {
+        Get.delete<AllUserController>();
+      }
+    }
   }
 
 }

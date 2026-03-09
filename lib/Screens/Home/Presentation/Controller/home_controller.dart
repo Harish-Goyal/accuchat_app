@@ -15,6 +15,7 @@ import 'package:firebase_crashlytics/firebase_crashlytics.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter_svg/svg.dart';
 import 'package:get/get.dart';
 import 'package:sidebarx/sidebarx.dart';
 import '../../../../Services/APIs/auth_service/auth_api_services_impl.dart';
@@ -67,22 +68,27 @@ class DashboardController extends GetxController with WidgetsBindingObserver {
   List<BottomNavigationBarItem> get _fallbackBarItems =>  [
     BottomNavigationBarItem(
       icon: Image.asset(chatHome,height: 22),
+      // icon: SvgPicture.asset(chatHome,height: 22),
       label: 'Chat',
     ),BottomNavigationBarItem(
       icon: Image.asset(tasksHome,height: 22),
+      // icon: SvgPicture.asset(tasksHome,height: 22),
       label: 'Task',
     ),
     BottomNavigationBarItem(
       icon: Image.asset(galleryIcon,height: 22),
+      // icon: SvgPicture.asset(galleryIcon,height: 22),
       label: 'Gallery',
     ),
     BottomNavigationBarItem(
       icon: Image.asset(connectedAppIcon,height: 22),
+      // icon: SvgPicture.asset(connectedAppIcon,height: 22),
       label: 'Companies',
     ),
  if(kIsWeb)
    BottomNavigationBarItem(
      icon: Image.asset(settingPng,height: 22),
+     // icon: SvgPicture.asset(settingPng,height: 22),
      label: 'Settings',
    ),
 
@@ -107,7 +113,7 @@ class DashboardController extends GetxController with WidgetsBindingObserver {
  void updateIndex(int index) {
    currentIndex = index;
    sidebarXController.selectIndex(index);
-   update(); // if you use GetBuilder
+   update();
  }
 
   List<BottomNavigationBarItem> barItems = [];
@@ -140,6 +146,7 @@ class DashboardController extends GetxController with WidgetsBindingObserver {
     barItems = bottomNavItems.map((NavigationItem nav) {
       return BottomNavigationBarItem(
         icon: Image.asset(
+        // icon: SvgPicture.asset(
           iconFor(nav),
           height: 22,
         ),

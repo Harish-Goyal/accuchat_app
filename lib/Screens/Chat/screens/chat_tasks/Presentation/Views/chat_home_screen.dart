@@ -11,6 +11,7 @@ import 'package:AccuChat/utils/circleContainer.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_svg/svg.dart';
 import 'package:get/get.dart';
 import '../../../../../../Constants/app_theme.dart';
 import '../../../../../../Services/APIs/api_ends.dart';
@@ -53,7 +54,7 @@ class ChatsHomeScreen extends GetView<ChatHomeController> {
             builder: (context, constraints) {
               double w = constraints.maxWidth;
             return Scaffold(
-              appBar: _appBarWidget(w),
+              appBar: _appBarWidget(w,context),
               floatingActionButton: _floatingBotton(w),
               body: _mainBody(),
             );
@@ -88,7 +89,7 @@ class ChatsHomeScreen extends GetView<ChatHomeController> {
           );
   }
 
-  AppBar _appBarWidget(w) {
+  AppBar _appBarWidget(w,conxt) {
     return AppBar(
       automaticallyImplyLeading: false,
       backgroundColor: Colors.white,
@@ -234,11 +235,11 @@ class ChatsHomeScreen extends GetView<ChatHomeController> {
                   }
                 },
                 icon: Image.asset(
+                // icon: SvgPicture.asset(
                   addNewChatPng,
                   height: 27,
                   width: 27,
                   fit: BoxFit.contain,
-                  filterQuality: FilterQuality.high,
                 ))
             : const SizedBox(),
     kIsWeb && w >600 ?const SizedBox(): hGap(10),
@@ -256,7 +257,8 @@ class ChatsHomeScreen extends GetView<ChatHomeController> {
               },
               icon: controller.isSearching.value
                   ? const Icon(CupertinoIcons.clear_circled_solid)
-                  : Image.asset(searchPng, height: 25, width: 25));
+                  :Image.asset(searchPng, height: 25, width: 25));
+                  // :SvgPicture.asset(searchPng, height: 25, width: 25));
         }),
         PopupMenuButton<String>(
           padding: EdgeInsets.zero,
@@ -264,10 +266,10 @@ class ChatsHomeScreen extends GetView<ChatHomeController> {
           onSelected: (value) {
             if (value == 'new_group') {
               showDialog(
-                  context: Get.context!, builder: (_) => _groupDialogWidget());
+                  context: conxt, builder: (_) => _groupDialogWidget(conxt));
             } else if (value == 'new_broadcast') {
               showDialog(
-                  context: Get.context!,
+                  context: conxt,
                   builder: (_) => BroadcastCreateDialog());
             } else if (value == 'settings') {
               if(kIsWeb&& Get.width>600){
@@ -299,7 +301,8 @@ class ChatsHomeScreen extends GetView<ChatHomeController> {
             PopupMenuItem(
               value: 'new_broadcast',
               child: Row(mainAxisSize: MainAxisSize.min, children: [
-                Image.asset(
+    Image.asset(
+                // SvgPicture.asset(
                   broadcastIcon,
                   height: 15,
                   color: appColorYellow,
@@ -316,6 +319,7 @@ class ChatsHomeScreen extends GetView<ChatHomeController> {
               child: Row(
                 mainAxisSize: MainAxisSize.min, children: [
                 Image.asset(
+                // SvgPicture.asset(
                   settingPng,
                   height: 15,
                   color: Colors.black87,
@@ -474,6 +478,7 @@ class ChatsHomeScreen extends GetView<ChatHomeController> {
                   icon: controller.isSearching.value
                       ? const Icon(CupertinoIcons.clear_circled_solid)
                       : Image.asset(searchPng, height: 25, width: 25));
+                      // : SvgPicture.asset(searchPng, height: 25, width: 25));
             }),
           ),
           autofocus: false,
@@ -509,6 +514,7 @@ class ChatsHomeScreen extends GetView<ChatHomeController> {
                     mainAxisSize: MainAxisSize.min,
                     children: [
                       Image.asset(emptyRecentPng, height: 90),
+                      // SvgPicture.asset(emptyRecentPng, height: 90),
                       Text('Click to Start new Chat 👋',
                           style: BalooStyles.baloosemiBoldTextStyle(color: appColorGreen))
                           .paddingAll(12),
@@ -562,7 +568,7 @@ class ChatsHomeScreen extends GetView<ChatHomeController> {
   }
 
 
-  Widget _groupDialogWidget() {
+  Widget _groupDialogWidget(conxt) {
     Widget _dialogBody() {
       return Column(
         crossAxisAlignment: CrossAxisAlignment.center,
@@ -579,7 +585,7 @@ class ChatsHomeScreen extends GetView<ChatHomeController> {
             controller: controller.groupController,
             focusNode: FocusNode(),
             onFieldSubmitted: (String? value) {
-              FocusScope.of(Get.context!).unfocus();
+              FocusScope.of(conxt).unfocus();
             },
             labletext: "Group Name",
           ),

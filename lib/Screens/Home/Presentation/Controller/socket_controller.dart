@@ -123,7 +123,7 @@ class SocketController extends GetxController with WidgetsBindingObserver {
     });
 
     socket?.onReconnectAttempt((_) {
-      debugPrint("🔄 Trying to reconnect...");
+      // debugPrint("🔄 Trying to reconnect...");
     });
 
     socket?.onReconnect((_) {
@@ -181,8 +181,12 @@ class SocketController extends GetxController with WidgetsBindingObserver {
         final _tagid = ChatPresence.activeChatId.value;
         final _tag = "chat_${_tagid ?? 'mobile'}";
         ChatScreenController? chatDetailController;
+        final sender = receivedMessageDataModal.fromUser?.userCompany?.userCompanyId;
+        final receiver = receivedMessageDataModal.toUser?.userCompany?.userCompanyId;
         if (!kIsWeb || Get.width < 600) {
-          chatDetailController = Get.find<ChatScreenController>();
+          if (Get.isRegistered<ChatScreenController>()) {
+            chatDetailController = Get.find<ChatScreenController>();
+          }
         } else {
           if (Get.isRegistered<ChatScreenController>(tag: _tag)) {
             chatDetailController = Get.find<ChatScreenController>(tag: _tag);
@@ -196,14 +200,9 @@ class SocketController extends GetxController with WidgetsBindingObserver {
           }
         }
 
-        final key = chatDetailController.msgKey(receivedMessageDataModal);
-        // if (!chatDetailController.markOnce(key)) {
-        //   debugPrint("Duplicate message ignored: $key");
-        //   return;
-        // }
-        final selectedUserId = chatDetailController.user?.userId
+        final selectedUserId = chatDetailController?.user?.userId
             ?.toString(); // 1-1 userId OR group userId
-        final incomingIsGroup = receivedMessageDataModal.isGroupChat == 1;
+        final incomingIsGroup = receivedMessageDataModal.toUser?.userCompany?.isGroup == 1;
         final activeCompanyId = APIs.me.userCompany?.companyId;
         final msgCompanyId =
             receivedMessageDataModal.fromUser?.userCompany?.companyId;
@@ -260,7 +259,7 @@ class SocketController extends GetxController with WidgetsBindingObserver {
             replyToName: receivedMessageDataModal.replyToName,
             media: receivedMessageDataModal.media,
           );
-          final alreadyInList = chatDetailController.chatHisList?.any((x) =>
+          final alreadyInList = chatDetailController?.chatHisList?.any((x) =>
                   (x.chatId == chatMessageItems.chatId) &&
                   (x.sentOn == chatMessageItems.sentOn) &&
                   (x.fromUser?.userId == chatMessageItems.fromUser?.userId) &&
@@ -269,11 +268,11 @@ class SocketController extends GetxController with WidgetsBindingObserver {
               false;
 
           if (alreadyInList) return;
-          chatDetailController.chatHisList?.insert(0, chatMessageItems);
-          chatDetailController.chatCatygory
+          chatDetailController?.chatHisList?.insert(0, chatMessageItems);
+          chatDetailController?.chatCatygory
               .insert(0, GroupChatElement(DateTime.now(), chatMessageItems));
-          chatDetailController.rebuildFlatRows();
-          chatDetailController.update();
+          chatDetailController?.rebuildFlatRows();
+          chatDetailController?.update();
         }
 
         final fromUcId =
@@ -299,8 +298,31 @@ class SocketController extends GetxController with WidgetsBindingObserver {
 
 // ✅ open chat check must also use threadUcId (not fromUcId)
         final isThisChatOpen = ChatPresence.activeChatId.value == threadUcId;
+        final isReceiverMe =
+            receivedMessageDataModal.toUser?.userId?.toString() == meId;
+        final isUnread = receivedMessageDataModal.readOn == null;
 
-        if (isThisChatOpen &&
+        if (isMessageForThisChat) {
+          // insert message in chat list
+        }
+
+        final shouldEmitRead = isThisChatOpen && isReceiverMe && isUnread;
+
+        debugPrint('shouldEmitRead: $shouldEmitRead | '
+            'isThisChatOpen: $isThisChatOpen | '
+            'isReceiverMe: $isReceiverMe | '
+            'isUnread: $isUnread | '
+            'fromUcId: $fromUcId | toUcId: $toUcId');
+
+        if (shouldEmitRead) {
+          readMsgEmitter(
+            toucID: toUcId ?? 0,
+            fromUcID: fromUcId ?? 0,
+            companyId: APIs.me.userCompany?.companyId,
+            is_group_chat: receivedMessageDataModal.isGroupChat ?? 0,
+          );
+        }
+        /*   if (isThisChatOpen &&
             receivedMessageDataModal.toUser?.userId == APIs.me.userId) {
           readMsgEmitter(
               toucID:
@@ -312,31 +334,10 @@ class SocketController extends GetxController with WidgetsBindingObserver {
                   receivedMessageDataModal.fromUser?.userCompany?.isGroup == 0
                       ? 0
                       : 1);
-        }
+        }*/
 
-        if (index != -1) {
-          // 🔥 CHAT IS OPEN → FORCE unread = 0
-          if (isMessageForThisChat) {
-            // connectUserEmitter(receivedMessageDataModal.fromUser?.userCompany?.userCompanyId);
-            // readMsgEmitter(
-            //     ucID: receivedMessageDataModal.toUser?.userCompany?.userCompanyId??0,
-            //     fromUcID: receivedMessageDataModal.fromUser?.userCompany?.userCompanyId??0,
-            //     companyId: receivedMessageDataModal.fromUser?.userCompany?.companyId,
-            //     is_group_chat: receivedMessageDataModal.toUser?.userCompany?.isGroup == 1
-            //         ? 1
-            //         : 0);
-          }
 
-          // Update last message preview
-          // homeController.filteredList[index].lastMessage = LastMessage(
-          //   message: receivedMessageDataModal.message,
-          //   messageTime: receivedMessageDataModal.sentOn,
-          // );
-          //
-          // homeController.filteredList.refresh();
-        }
       } catch (e) {
-        debugPrint(e.toString());
       }
     });
 
@@ -359,7 +360,6 @@ class SocketController extends GetxController with WidgetsBindingObserver {
 
     socket?.off('send_task_listener');
     socket?.on('send_task_listener', (messages) {
-      debugPrint("Listing task......4");
       debugPrint("send_task_listener ${jsonEncode(messages.toString())}");
       try {
         TaskData receivedMessageDataModal = TaskData.fromJson(messages);
@@ -426,7 +426,6 @@ class SocketController extends GetxController with WidgetsBindingObserver {
         }
         // Get.find<TaskHomeController>().hitAPIToGetRecentTasksUser();
       } catch (e) {
-        debugPrint(e.toString());
       }
     });
 
@@ -1457,7 +1456,7 @@ class SocketController extends GetxController with WidgetsBindingObserver {
     }
   }
 
-  Future<void> sendMessage({
+  Future<void>  sendMessage({
     int? receiverId,
     String? message,
     var companyId,
@@ -1514,14 +1513,9 @@ class SocketController extends GetxController with WidgetsBindingObserver {
 
         debugPrint(
             "Message sent: $message ,receiverId: $receiverId,replyToId: $replyToId, Broadcast user id,: $brID , forwardChatId: $forwardChatId, fromid: ${APIs.me.userId}, comapnyid: ${APIs.me.userCompany?.userCompanyId}, group id: $groupId, alreadySaved: ${alreadySave}");
-        var token = StorageService.getToken();
-        debugPrint("authorization token is ********* $token");
         if (forwardChatId != null) {
-          Dialogs.showSnackbar(Get.context!, "Message forwarded to $username");
+          toast("Message forwarded to $username");
         }
-
-        final svc = CompanyService.to;
-        final myCompany = svc.selected;
 
         // if (pushToken != '' && pushToken != APIs.me.pushToken) {
         //   if (!isTaskMode) {
@@ -1716,8 +1710,7 @@ class SocketController extends GetxController with WidgetsBindingObserver {
           "company_id": companyId,
           "to_id": receiverId,
         });
-        Dialogs.showSnackbar(
-            Get.context!, "Task Forwarded Successfully to this $user!");
+        toast( "Task Forwarded Successfully to this $user!");
         debugPrint("Message sent:TaskID $taskID ,receiverId: $receiverId ");
         final svc = CompanyService.to;
         final myCompany = svc.selected;

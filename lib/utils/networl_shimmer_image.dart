@@ -2,6 +2,7 @@ import 'package:AccuChat/Components/custom_loader.dart';
 import 'package:AccuChat/Constants/assets.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_svg/svg.dart';
 import 'package:get/get.dart';
 
 import 'helper_widget.dart';
@@ -87,13 +88,12 @@ class CustomCacheNetworkImage extends StatelessWidget {
                   height: height,
                   alignment: Alignment.center,
                   child: Image.asset(
+                  // child: SvgPicture.asset(
                     defaultImage ??appIcon,
                     height: width,
                     width: height,
                     // color: color,
-                    fit: (assetImageFitType ?? boxFit) == null
-                        ? BoxFit.cover
-                        : (assetImageFitType ?? boxFit),
+                    fit:BoxFit.contain,
                   )),
             );
           },
@@ -118,6 +118,8 @@ class CustomCacheNetworkImage extends StatelessWidget {
                       : null,
                 ),
                 child: Image.asset(
+                // child: SvgPicture.asset(
+                // child: SvgPicture.asset(
                   defaultImage ?? appIcon,
                   width: width,
                   height: height,

@@ -537,7 +537,7 @@ class CreateCompanyScreen extends GetView<CreateCompanyController> {
                                 ElevatedButton.icon(
                                   icon: const Icon(Icons.cloud_upload_outlined),
                                   label: const Text("Upload Logo (optional)"),
-                                  onPressed: _showBottomSheet,
+                                  onPressed:()=> _showBottomSheet(context),
                                 ),
                                 vGap(18),
 
@@ -591,9 +591,9 @@ class CreateCompanyScreen extends GetView<CreateCompanyController> {
   }
 
 
-  void _showBottomSheet() {
-    showModalBottomSheet(
-      context: Get.context!,
+  Future<void> _showBottomSheet(ctx) async {
+   await  showModalBottomSheet(
+      context: ctx,
       backgroundColor: Colors.white,
       shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.only(
@@ -707,7 +707,7 @@ class CreateCompanyScreen extends GetView<CreateCompanyController> {
                                   imageQuality: 100,
                                 );
                                 if (image != null) {
-                                  await _cropImage(image.path);
+                                  await _cropImage(image.path,ctx);
                                   controller.update();
                                   Get.back();
                                 }
@@ -766,10 +766,10 @@ class CreateCompanyScreen extends GetView<CreateCompanyController> {
     }
 
     // ✅ Mobile: crop
-    await _cropImage(image.path);
+    // await _cropImage(image.path,ctx);
   }
 
-  Future _cropImage(String pickedFile) async {
+  Future _cropImage(String pickedFile,ctx) async {
     final controller = Get.find<CreateCompanyController>();
     final croppedFile = await ImageCropper().cropImage(
       sourcePath: pickedFile,
@@ -796,7 +796,7 @@ class CreateCompanyScreen extends GetView<CreateCompanyController> {
         if (kIsWeb)
           if (kIsWeb)
             WebUiSettings(
-              context: Get.context!,
+              context:ctx,
               presentStyle: WebPresentStyle.dialog,
               size: CropperSize(
                 width: int.parse(((Get.width * .5).toString())),

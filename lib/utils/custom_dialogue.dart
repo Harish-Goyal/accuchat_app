@@ -2,6 +2,7 @@ import 'dart:ui';
 import 'package:AccuChat/Constants/strings.dart';
 import 'package:AccuChat/Constants/themes.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_svg/svg.dart';
 import 'package:get/get.dart';
 import '../Constants/assets.dart';
 import 'text_style.dart';
@@ -159,6 +160,7 @@ class dynamicButton extends StatelessWidget {
           children: [
 
             isShowIconText? Image.asset(leanIcon,height: 20,color: iconColor??null):Container(),
+            // isShowIconText? SvgPicture.asset(leanIcon,height: 20,color: iconColor??null):Container(),
             isShowIconText?hGap(5):hGap(0),
             Text(name,
                 style: BalooStyles.baloosemiBoldTextStyle(
@@ -169,6 +171,7 @@ class dynamicButton extends StatelessWidget {
 
           ],
         ):Image.asset(leanIcon,height: 20,color: iconColor??null),
+        // ):SvgPicture.asset(leanIcon,height: 20,color: iconColor??null),
       ),
     );
   }

@@ -48,7 +48,7 @@ class LocalNotificationService {
     );
 
     FirebaseMessaging.onMessage.listen((RemoteMessage message) {
-      debugPrint('📬 Foreground message: ${message.notification?.title}');
+      // debugPrint('📬 Foreground message: ${message.notification?.title}');
 
       final title = message.notification?.title ?? '';
       final body = message.notification?.body ?? '';
@@ -58,9 +58,9 @@ class LocalNotificationService {
       final senderId = (APIs.me.userId).toString().trim();
       final receiverId = (data['user_id'] ?? '').toString().trim();
 
-      debugPrint(
-          '🔔 FCM received: sender=$senderId, receiver=$receiverId, me=$meId');
-      debugPrint('🔔 Notification Data =${data}');
+      // debugPrint(
+      //     '🔔 FCM received: sender=$senderId, receiver=$receiverId, me=$meId');
+      // debugPrint('🔔 Notification Data =${data}');
 
       if (meId == null || meId.isEmpty) return;
       if (senderId.isEmpty) return;
@@ -91,8 +91,8 @@ class LocalNotificationService {
       final data = message.data;
       String? type;
       type = data['messageType'];
-      debugPrint('🔔 Notification Data onMessageOpenedApp =${message.data}');
-      debugPrint('🔔 Notification tapped. Type: $type');
+      // debugPrint('🔔 Notification Data onMessageOpenedApp =${message.data}');
+      // debugPrint('🔔 Notification tapped. Type: $type');
       UserDataAPI remoteUser = UserDataAPI();
       final normalized = Map<String, dynamic>.from(message.data);
       if(type=='CHAT_SEND'||type=='TASK_SEND'||type=='SEND_TASK_COMMENT'){

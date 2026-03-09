@@ -7,6 +7,7 @@ import 'package:AccuChat/utils/text_style.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_svg/svg.dart';
 import 'package:get/get.dart';
 import '../../../../../../Constants/colors.dart';
 import '../../../../../../utils/helper_widget.dart';
@@ -304,6 +305,7 @@ class AllUserScreen extends GetView<AllUserController> {
               icon: controller.isSearching.value
                   ? const Icon(CupertinoIcons.clear_circled_solid)
                   : Image.asset(searchPng, height: 25, width: 25));
+                  // : SvgPicture.asset(searchPng, height: 25, width: 25));
         }),
       ],
     );

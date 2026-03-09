@@ -6,6 +6,7 @@ import 'package:AccuChat/Services/storage_service.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter_linkify/flutter_linkify.dart';
+import 'package:flutter_svg/svg.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:url_launcher/url_launcher_string.dart';
 import 'package:AccuChat/Screens/Chat/models/chat_history_response_model.dart';
@@ -322,12 +323,13 @@ class TaskScreenMobile extends GetView<TaskController> {
                   (sentByMe)
                       ? IconButton(
                           onPressed: () {
-                            controller.handleForwardMobile(taskData: data);
+                            controller.handleForwardMobile(contexts,taskData: data);
                           },
                           icon: Transform(
                               alignment: Alignment.center,
                               transform: Matrix4.rotationY(math.pi),
                               child: Image.asset(
+                              // child: SvgPicture.asset(
                                 forwardIcon,
                                 height: 20,
                               ))).paddingOnly(left: 10)
@@ -387,9 +389,10 @@ class TaskScreenMobile extends GetView<TaskController> {
                   (!sentByMe)
                       ? IconButton(
                           onPressed: () {
-                            controller.handleForwardMobile(taskData: data);
+                            controller.handleForwardMobile(contexts,taskData: data);
                           },
                           icon: Image.asset(
+                          // icon: SvgPicture.asset(
                             forwardIcon,
                             height: 20,
                           )).paddingOnly(right: 10)
@@ -477,6 +480,7 @@ class TaskScreenMobile extends GetView<TaskController> {
           borderRadius: BorderRadius.circular(30),
         ),
         child: Image.asset(
+        // child: SvgPicture.asset(
           historyIcon,
           height: 17,
           width: 17,
@@ -971,6 +975,7 @@ class TaskScreenMobile extends GetView<TaskController> {
             icon:  controller.isSearching?  const Icon(
                 CupertinoIcons.clear_circled_solid)
                 : Image.asset(searchPng,height:20,width:20)
+                // : SvgPicture.asset(searchPng,height:20,width:20)
         ).paddingOnly(top: 0, right: 0),
         controller.isSearching?const SizedBox():hGap(5),
         controller.isSearching?const SizedBox():  (controller.user?.userCompany?.isGroup == 1 ||
@@ -2354,7 +2359,7 @@ class TaskScreenMobile extends GetView<TaskController> {
     );
 
     if (selectedDateTime.isBefore(now)) {
-      Dialogs.showSnackbar(Get.context!, "You cannot select past time!");
+      toast("You cannot select past time!");
       return;
     }
 

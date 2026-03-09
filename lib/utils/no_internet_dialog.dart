@@ -1,5 +1,6 @@
 import 'dart:math' as math;
 import 'package:flutter/material.dart';
+import 'package:flutter_svg/svg.dart';
 
 import '../Constants/assets.dart';
 
@@ -192,6 +193,7 @@ class _WifiPulseIconState extends State<_WifiPulseIcon>
                   ),
                 ),
                 child: Image.asset(
+                // child: SvgPicture.asset(
                   wifiPng,
                   height: 20,
                   color: theme.colorScheme.error,

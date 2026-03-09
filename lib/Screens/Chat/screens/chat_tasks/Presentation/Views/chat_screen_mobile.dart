@@ -18,6 +18,7 @@ import 'package:file_picker/file_picker.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter_svg/svg.dart';
 import 'package:get/get.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:intl/intl.dart';
@@ -702,12 +703,13 @@ class _ChatScreenMobileState extends State<ChatScreenMobile> {
                 sentByMe)
                 ? IconButton(
                 onPressed: () {
-                  controller.handleForwardMobile(chatId: data.chatId);
+                  controller.handleForwardMobile(context,chatId: data.chatId);
                 },
                 icon: Transform(
                     alignment: Alignment.center,
                     transform: Matrix4.rotationY(math.pi),
                     child: Image.asset(
+                    // child: SvgPicture.asset(
                       forwardIcon,
                       height: 20,
                     ))).paddingOnly(left: 8)
@@ -805,9 +807,10 @@ class _ChatScreenMobileState extends State<ChatScreenMobile> {
                 !sentByMe)
                 ? IconButton(
                 onPressed: () {
-                  controller.handleForwardMobile(chatId: data.chatId);
+                  controller.handleForwardMobile(context,chatId: data.chatId);
                 },
                 icon: Image.asset(
+                // icon: SvgPicture.asset(
                   forwardIcon,
                   height: 20,
                 ))
@@ -1144,7 +1147,8 @@ class _ChatScreenMobileState extends State<ChatScreenMobile> {
             },
             icon:  controller.isSearching?  const Icon(
                 CupertinoIcons.clear_circled_solid)
-                : Image.asset(searchPng,height:25,width:25)
+                :Image.asset(searchPng,height:25,width:25)
+                // : SvgPicture.asset(searchPng,height:25,width:25)
         ).paddingOnly(top: 0, right: 0),
         controller.isSearching?const SizedBox():hGap(10),
         controller.isSearching?const SizedBox(): (controller.user?.userCompany?.isGroup == 1 ||
@@ -1235,7 +1239,7 @@ class _ChatScreenMobileState extends State<ChatScreenMobile> {
 
   Future<void> openAllUserDialog(UserDataAPI? user) async {
     if (Get.isRegistered<AddGroupMemController>()) {
-      Get.delete<AddGroupMemController>(force: true);
+      await Get.delete<AddGroupMemController>(force: true);
     }
 
     final c = Get.put(AddGroupMemController());
@@ -1275,6 +1279,7 @@ class _ChatScreenMobileState extends State<ChatScreenMobile> {
         PopupMenuItem(value: 'hi-IN', child: Text('Hindi',style: BalooStyles.baloonormalTextStyle())),
       ],
       child:  Image.asset(translationPng, height: 20,color:speechC.selectedLang=="hi-IN"? appColorGreen:appColorYellow,),
+      // child:  SvgPicture.asset(translationPng, height: 20,color:speechC.selectedLang=="hi-IN"? appColorGreen:appColorYellow,),
     );
   }
 
@@ -1286,7 +1291,7 @@ class _ChatScreenMobileState extends State<ChatScreenMobile> {
           return InkWell(
             onTap: () {
               if (!speechC.isSupported) {
-                Dialogs.showSnackbar(Get.context!, 'Voice-to-text is not supported in this browser.');
+                toast('Voice-to-text is not supported in this browser.');
                 return;
               }
 
@@ -1347,7 +1352,8 @@ class _ChatScreenMobileState extends State<ChatScreenMobile> {
                     ? Colors.red.withOpacity(.08)
                     : AppTheme.appColor.withOpacity(.05),
               ),
-              child: Image.asset(
+              child:Image.asset(
+              // child:SvgPicture.asset(
                 listening ? pausePng : micPng,
                 color: listening ? Colors.red : AppTheme.appColor,
                 height: 20,
@@ -2288,6 +2294,7 @@ class _ChatScreenMobileState extends State<ChatScreenMobile> {
               if ((data.message?.isNotEmpty ?? false)|| (data.media ?? []).isNotEmpty)
                 _OptionItem(
                     icon:  Image.asset(
+                    // icon:  SvgPicture.asset(
                 forwardIcon,
           height: 17,
           ),
@@ -2295,7 +2302,7 @@ class _ChatScreenMobileState extends State<ChatScreenMobile> {
                     'Forward',
                     onTap: () {
                       Get.back();
-                      controller.handleForwardMobile(chatId: data.chatId);
+                      controller.handleForwardMobile(context,chatId: data.chatId);
                     }),
               //separator or divider
               /* if (!widget.isForward)
@@ -2540,7 +2547,7 @@ class _ChatScreenMobileState extends State<ChatScreenMobile> {
                 Get.back();
     }else{
                   Get.back();
-                  Dialogs.showSnackbar(context, "Message cannot be blank");
+                  toast("Message cannot be blank");
     }
               }catch(e){
                 toast(e.toString());

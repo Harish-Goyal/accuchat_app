@@ -120,15 +120,37 @@ class ChatMessageMedia extends StatelessWidget {
     final docs   = vm.where((e) => e.type == ChatMediaType.DOC || e.type == ChatMediaType.other).toList();
     final vids   = vm.where((e) => e.type == ChatMediaType.VID).toList();
     final auds   = vm.where((e) => e.type == ChatMediaType.AUD).toList();
-
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
+
+
         if (images.isNotEmpty)
          /* _BubbleWrapper(
             fromId: fromId,
             myId: myId,
-            child:*/ _ImagesGrid(
+            child:*/(images[0].url).endsWith('.gif')?Transform.translate(
+          offset: const Offset(0, kIsWeb?-13:-10),
+          child: ConstrainedBox(
+            constraints: BoxConstraints(
+              maxWidth: _bubbleMaxWidth(context),
+
+            ),
+                child: ClipRRect(
+                          borderRadius: BorderRadius.circular(15),
+                  child: Image.network(
+                            images[0].url,
+                            fit: BoxFit.cover,
+                            gaplessPlayback: true,
+                            errorBuilder: (_, __, ___) => const Icon(Icons.broken_image),
+                            loadingBuilder: (context, child, progress) {
+                  if (progress == null) return child;
+                  return const Center(child: CircularProgressIndicator(strokeWidth: 2));
+                            },
+                          ),
+                ),
+              ),
+            ): _ImagesGrid(
               items: images,
               isGroupMessage: isGroupMessage,
               fromId: fromId,

@@ -5,6 +5,7 @@ import 'package:AccuChat/utils/helper_widget.dart';
 import 'package:firebase_crashlytics/firebase_crashlytics.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_svg/svg.dart';
 import 'package:get/get.dart';
 import '../../../../../../Constants/assets.dart';
 import '../../../../../../Constants/colors.dart';
@@ -71,6 +72,7 @@ class LandingPage extends GetView<LandingScreenController> {
                             ),
                             vGap(10),
                             Image.asset(appIcon, width: 100),
+                            // SvgPicture.asset(appIcon, width: 100),
                             vGap(20),
 
                             if (controller.joinedCompaniesList.isNotEmpty)
@@ -276,7 +278,7 @@ class LandingPage extends GetView<LandingScreenController> {
                                       //TODO
 
                                       var mob = StorageService.getMobile();
-                                      controller.hitAPIToGetPendingInvites(mob);
+                                      controller.hitAPIToGetPendingInvites(mob,context);
                                     },
                                     isShowText: true,
                                     isShowIconText: false,

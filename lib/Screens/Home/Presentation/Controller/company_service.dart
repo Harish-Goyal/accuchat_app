@@ -140,7 +140,7 @@ class CompanyService extends GetxService {
       }
 
     } catch (e, s) {
-      debugPrint('Session init from CompanyService failed: $e\n$s');
+      // debugPrint('Session init from CompanyService failed: $e\n$s');
     }
   }
 
@@ -162,7 +162,7 @@ class CompanyService extends GetxService {
       final session = Get.find<Session>();
       await session.refreshUser(companyId: companyId);
     } catch (e, s) {
-      debugPrint('Session refresh from CompanyService failed: $e\n$s');
+      // debugPrint('Session refresh from CompanyService failed: $e\n$s');
     }
   }
 
@@ -182,7 +182,7 @@ class CompanyService extends GetxService {
         await session.clearSession(); // Clears session-related data
       }
     } catch (e, s) {
-      debugPrint('Error clearing session: $e\n$s');
+      // debugPrint('Error clearing session: $e\n$s');
     }
 
     // 4. Optional cleanup tasks

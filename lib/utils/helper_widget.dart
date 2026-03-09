@@ -1,11 +1,14 @@
 import 'package:AccuChat/Constants/colors.dart';
+import 'package:AccuChat/Services/APIs/api_ends.dart';
 import 'package:AccuChat/utils/text_style.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:device_info_plus/device_info_plus.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter_svg/svg.dart';
 import 'package:get/get.dart';
+import 'package:image_picker/image_picker.dart';
 import 'package:intl/intl.dart';
 import 'package:media_scanner/media_scanner.dart';
 import 'package:open_filex/open_filex.dart';
@@ -29,6 +32,13 @@ import 'package:path/path.dart' as p;
 import 'dart:async';
 import 'dart:math' as math;
 import 'package:path_provider/path_provider.dart';
+
+import 'package:AccuChat/utils/web_download/download_factory.dart';
+
+import 'networl_shimmer_image.dart';
+
+
+
 Future<bool> requestStoragePermission() async {
   if (Platform.isAndroid) {
     final sdkInt = (await DeviceInfoPlugin().androidInfo).version.sdkInt;
@@ -482,7 +492,7 @@ String extractFileNameFromUrl(String url) {
     final segments = decoded.split('/');
     return segments.isNotEmpty ? segments.last : decoded;
   } catch (e) {
-    debugPrint("⚠️ Failed to extract file name: $e");
+    // debugPrint("⚠️ Failed to extract file name: $e");
     return "Unknown File";
   }
 }
@@ -526,7 +536,59 @@ bool isTaskExpired(String startTime, String estimate) {
   return DateTime.now().isAfter(deadline);
 }
 
+bool isDownloadOnlyFile(String url) {
+  final fileName = url.split('/').last.split('?').first.toLowerCase();
+  final ext = fileName.contains('.') ? fileName.split('.').last : '';
+  return ['html', 'js', 'php','css','jsx','HTML', 'JS', 'PHP','CSS','JSX'].contains(ext);
+}
 
+Future<void> openDocumentFromUrl(String url) async {
+  customLoader.show();
+
+  try {
+    final fileName = url.split('/').last.split('?').first;
+    final lowerUrl = url.toLowerCase();
+
+    final shouldDownloadOnly =
+        lowerUrl.endsWith('.html') ||
+            lowerUrl.endsWith('.js') ||
+            lowerUrl.endsWith('.php') ||
+            lowerUrl.contains('.html?') ||
+            lowerUrl.contains('.js?') ||
+            lowerUrl.contains('.php?');
+
+    if (kIsWeb) {
+      customLoader.hide();
+
+      if (shouldDownloadOnly) {
+        await downloadFileOnWeb(url, fileName);
+      } else {
+        final ok = await launchUrlString(
+          url,
+          mode: LaunchMode.externalApplication,
+        );
+        if (!ok) throw 'Could not open $url';
+      }
+      return;
+    }
+
+    final dir = await getTemporaryDirectory();
+    final filePath = '${dir.path}/$fileName';
+
+    await Dio().download(url, filePath);
+
+    customLoader.hide();
+
+    if (!shouldDownloadOnly) {
+      await OpenFilex.open(filePath);
+    }
+  } catch (e) {
+    customLoader.hide();
+    // debugPrint('openDocumentFromUrl error: $e');
+  }
+}
+
+/*
 Future<void> openDocumentFromUrl(String url) async {
   customLoader.show();
   if (kIsWeb) {
@@ -552,6 +614,7 @@ Future<void> openDocumentFromUrl(String url) async {
     customLoader.hide();
   }
 }
+*/
 
 
 /*Future<void> saveImageWithGallerySaver(String imageUrl) async {
@@ -577,6 +640,8 @@ bool isDoc(Items m) {
       ext.endsWith('.doc') || ext.endsWith('.docx') ||
       ext.endsWith('.xls') || ext.endsWith('.xlsx') ||
       ext.endsWith('.ppt') || ext.endsWith('.pptx') ||
+      ext.endsWith('.php') || ext.endsWith('.css') ||
+      ext.endsWith('.html') || ext.endsWith('.js') ||
       ext.endsWith('.csv') || ext.endsWith('.txt');
 }
 
@@ -596,6 +661,8 @@ bool isDocument(String orignalMsg) {
       ext.endsWith('.doc') || ext.endsWith('.docx') ||
       ext.endsWith('.xls') || ext.endsWith('.xlsx') ||
       ext.endsWith('.ppt') || ext.endsWith('.pptx') ||
+      ext.endsWith('.php') || ext.endsWith('.css') ||
+      ext.endsWith('.html') || ext.endsWith('.js') ||
       ext.endsWith('.csv') || ext.endsWith('.txt');
 }
 
@@ -608,11 +675,424 @@ bool isImageVideo(String orignalMsg) {
 }
 
 String buildFileUrl(String path) {
-  const baseUrl = "https://api.accuchat.in"; // or from config
   if (path.startsWith("http")) return path;
-  return "$baseUrl$path";
+  return "${ApiEnd.baseUrl}$path";
 }
 
+Future<bool?> showPastedImagePreviewDialog(
+    XFile file, {
+      Uint8List? webBytes,
+    }) {
+  final captionController = TextEditingController();
+  final dialogFocusNode = FocusNode();
+
+  return Get.dialog<bool>(
+    Dialog(
+      backgroundColor: Colors.white,
+      insetPadding: const EdgeInsets.all(16),
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+      child: Focus(
+        focusNode: dialogFocusNode,
+        autofocus: true,
+        onKeyEvent: (node, event) {
+          if (!kIsWeb) return KeyEventResult.ignored;
+          if (event is! KeyDownEvent) return KeyEventResult.ignored;
+
+          if (event.logicalKey == LogicalKeyboardKey.enter) {
+            final keys = HardwareKeyboard.instance.logicalKeysPressed;
+            final shiftPressed =
+                keys.contains(LogicalKeyboardKey.shiftLeft) ||
+                    keys.contains(LogicalKeyboardKey.shiftRight);
+
+            if (shiftPressed) return KeyEventResult.ignored;
+
+            Get.back(result: true);
+            return KeyEventResult.handled;
+          }
+
+          if (event.logicalKey == LogicalKeyboardKey.escape) {
+            Get.back(result: false);
+            return KeyEventResult.handled;
+          }
+
+          return KeyEventResult.ignored;
+        },
+        child: LayoutBuilder(
+          builder: (context, constraints) {
+            final maxH = MediaQuery.of(context).size.height * 0.85;
+            final maxW = 560.0;
+
+            return ConstrainedBox(
+              constraints: BoxConstraints(
+                maxHeight: maxH,
+                maxWidth: maxW,
+              ),
+              child: Column(
+                mainAxisSize: MainAxisSize.max,
+                children: [
+                  Padding(
+                    padding: const EdgeInsets.fromLTRB(16, 14, 8, 10),
+                    child: Row(
+                      children: [
+                        const Expanded(
+                          child: Text(
+                            "Preview",
+                            style: TextStyle(
+                              fontSize: 16,
+                              fontWeight: FontWeight.w700,
+                            ),
+                          ),
+                        ),
+                        IconButton(
+                          onPressed: () => Get.back(result: false),
+                          icon: const Icon(Icons.close),
+                        ),
+                      ],
+                    ),
+                  ),
+
+                  const Divider(height: 1),
+
+                  Expanded(
+                    child: SingleChildScrollView(
+                      padding: const EdgeInsets.all(14),
+                      child: Column(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          ClipRRect(
+                            borderRadius: BorderRadius.circular(12),
+                            child: AspectRatio(
+                              aspectRatio: 16 / 10,
+                              child: Container(
+                                color: Colors.black12,
+                                alignment: Alignment.center,
+                                child: _buildPreviewImage(file, webBytes: webBytes),
+                              ),
+                            ),
+                          ),
+                          const SizedBox(height: 14),
+                        ],
+                      ),
+                    ),
+                  ),
+
+                  const Divider(height: 1),
+
+                  Padding(
+                    padding: const EdgeInsets.all(12),
+                    child: Row(
+                      children: [
+                        Expanded(
+                          child: TextButton(
+                            onPressed: () => Get.back(result: false),
+                            child: const Text("Cancel"),
+                          ),
+                        ),
+                        const SizedBox(width: 10),
+                        Expanded(
+                          child: ElevatedButton.icon(
+                            onPressed: () {
+                              Get.back(result: true);
+                            },
+                            icon: const Icon(Icons.send),
+                            label: const Text("Send"),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+            );
+          },
+        ),
+      ),
+    ),
+    barrierDismissible: true,
+  ).whenComplete(() {
+    captionController.dispose();
+    dialogFocusNode.dispose();
+  });
+}
+
+/*Future<bool?> showPastedImagePreviewDialog(
+    XFile file, {
+      Uint8List? webBytes,
+    }) {
+  final captionController = TextEditingController();
+
+  return Get.dialog<bool>(
+    Dialog(
+      backgroundColor: Colors.white,
+      insetPadding: const EdgeInsets.all(16),
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+      child: LayoutBuilder(
+        builder: (context, constraints) {
+          final maxH = MediaQuery.of(context).size.height * 0.85;
+          final maxW = 560.0;
+
+          return ConstrainedBox(
+            constraints: BoxConstraints(
+              maxHeight: maxH,
+              maxWidth: maxW,
+            ),
+            child: Column(
+              mainAxisSize: MainAxisSize.max,
+              children: [
+                Padding(
+                  padding: const EdgeInsets.fromLTRB(16, 14, 8, 10),
+                  child: Row(
+                    children: [
+                      const Expanded(
+                        child: Text(
+                          "Preview",
+                          style: TextStyle(
+                            fontSize: 16,
+                            fontWeight: FontWeight.w700,
+                          ),
+                        ),
+                      ),
+                      IconButton(
+                        onPressed: () => Get.back(result: false),
+                        icon: const Icon(Icons.close),
+                      ),
+                    ],
+                  ),
+                ),
+
+                const Divider(height: 1),
+
+                Expanded(
+                  child: SingleChildScrollView(
+                    padding: const EdgeInsets.all(14),
+                    child: Column(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        ClipRRect(
+                          borderRadius: BorderRadius.circular(12),
+                          child: AspectRatio(
+                            aspectRatio: 16 / 10,
+                            child: Container(
+                              color: Colors.black12,
+                              alignment: Alignment.center,
+                              child: _buildPreviewImage(file, webBytes: webBytes),
+                            ),
+                          ),
+                        ),
+                        const SizedBox(height: 14),
+                      ],
+                    ),
+                  ),
+                ),
+
+                const Divider(height: 1),
+
+                Padding(
+                  padding: const EdgeInsets.all(12),
+                  child: Row(
+                    children: [
+                      Expanded(
+                        child: TextButton(
+                          onPressed: () => Get.back(result: false),
+                          child: const Text("Cancel"),
+                        ),
+                      ),
+                      const SizedBox(width: 10),
+                      Expanded(
+                        child: ElevatedButton.icon(
+                          onPressed: () {
+                            Get.back(result: true);
+                          },
+                          icon: const Icon(Icons.send),
+                          label: const Text("Send"),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+          );
+        },
+      ),
+    ),
+    barrierDismissible: true,
+  ).whenComplete(() => captionController.dispose());
+}*/
+
+Widget _buildPreviewImage(XFile file, {Uint8List? webBytes}) {
+  if (kIsWeb) {
+    if (webBytes != null) {
+      return Image.memory(
+        webBytes,
+        fit: BoxFit.contain,
+        errorBuilder: (_, __, ___) =>
+        const Text("Couldn’t load preview"),
+      );
+    }
+
+    return FutureBuilder<Uint8List>(
+      future: file.readAsBytes(),
+      builder: (context, snapshot) {
+        if (snapshot.connectionState == ConnectionState.waiting) {
+          return const CircularProgressIndicator();
+        }
+
+        if (!snapshot.hasData || snapshot.data == null) {
+          return const Text("Couldn’t load preview");
+        }
+
+        return Image.memory(
+          snapshot.data!,
+          fit: BoxFit.contain,
+          errorBuilder: (_, __, ___) =>
+          const Text("Couldn’t load preview"),
+        );
+      },
+    );
+  }
+
+  return Image.file(
+    File(file.path),
+    fit: BoxFit.contain,
+    errorBuilder: (_, __, ___) => const Text("Couldn’t load preview"),
+  );
+}
+
+/*Future<bool?> showPastedImagePreviewDialog(XFile file) {
+  final captionController = TextEditingController();
+
+  return Get.dialog<bool>(
+    Dialog(
+      backgroundColor: Colors.white,
+      insetPadding: const EdgeInsets.all(16),
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+      child: LayoutBuilder(
+        builder: (context, constraints) {
+          final maxH = MediaQuery.of(context).size.height * 0.85;
+          final maxW = 560.0;
+
+          return ConstrainedBox(
+            constraints: BoxConstraints(
+              maxHeight: maxH,
+              maxWidth: maxW,
+            ),
+            child: Column(
+              mainAxisSize: MainAxisSize.max, // IMPORTANT
+              children: [
+                // Header (fixed)
+                Padding(
+                  padding: const EdgeInsets.fromLTRB(16, 14, 8, 10),
+                  child: Row(
+                    children: [
+                      const Expanded(
+                        child: Text(
+                          "Preview",
+                          style: TextStyle(
+                            fontSize: 16,
+                            fontWeight: FontWeight.w700,
+                          ),
+                        ),
+                      ),
+                      IconButton(
+                        onPressed: () => Get.back(result: false),
+                        icon: const Icon(Icons.close),
+                      ),
+                    ],
+                  ),
+                ),
+
+                const Divider(height: 1),
+
+                // Body (scrollable if needed)
+                Expanded(
+                  child: SingleChildScrollView(
+                    padding: const EdgeInsets.all(14),
+                    child: Column(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        // Image Preview (keeps good height, no overflow)
+                        ClipRRect(
+                          borderRadius: BorderRadius.circular(12),
+                          child: AspectRatio(
+                            aspectRatio: 16 / 10,
+                            child: Container(
+                              color: Colors.black12,
+                              alignment: Alignment.center,
+                              child: kIsWeb
+                                  ? CustomCacheNetworkImage(
+                                radiusAll: 10,
+                                borderColor: greyText,
+                                boxFit: BoxFit.contain,
+                                file.path,
+                              )
+                                  : Image.file(
+                                File(file.path),
+                                fit: BoxFit.contain,
+                                errorBuilder: (_, __, ___) =>
+                                const Text("Couldn’t load preview"),
+                              ),
+                            ),
+                          ),
+                        ),
+
+                        *//*  const SizedBox(height: 12),
+
+                          // Caption (optional)
+                          TextField(
+                            controller: captionController,
+                            minLines: 1,
+                            maxLines: 3,
+                            decoration: InputDecoration(
+                              hintText: "Add a caption… (optional)",
+                              contentPadding: const EdgeInsets.symmetric(
+                                  horizontal: 12, vertical: 10),
+                              border: OutlineInputBorder(
+                                borderRadius: BorderRadius.circular(12),
+                              ),
+                            ),
+                          ),
+*//*
+                        const SizedBox(height: 14),
+                      ],
+                    ),
+                  ),
+                ),
+
+                const Divider(height: 1),
+
+                // Bottom actions (fixed)
+                Padding(
+                  padding: const EdgeInsets.all(12),
+                  child: Row(
+                    children: [
+
+                      Expanded(
+                          child: TextButton(onPressed: () => Get.back(result: false), child: const Text("Cancel"))
+
+                      ),
+                      const SizedBox(width: 10),
+                      Expanded(
+                        child: ElevatedButton.icon(
+                          onPressed: () {
+                            Get.back(result: true);
+                          },
+                          icon: const Icon(Icons.send),
+                          label: const Text("Send"),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+          );
+        },
+      ),
+    ),
+    barrierDismissible: true,
+  ).whenComplete(() => captionController.dispose());
+}*/
 
 Widget IconButtonWidget(image,{bool isIcon =false}){
   return Container(
@@ -624,6 +1104,7 @@ Widget IconButtonWidget(image,{bool isIcon =false}){
       color: appColorGreen.withOpacity(.1),
     ),
     child:!isIcon? Image.asset(
+    // child:!isIcon? SvgPicture.asset(
       image,
       height: 20,
       color: appColorGreen,

@@ -33,6 +33,7 @@ import 'package:dio/dio.dart' as multi;
 import 'package:path/path.dart' as p;
 import 'dart:typed_data';
 import '../Widgets/all_users_dialog.dart';
+import 'all_user_controller.dart';
 import 'chat_home_controller.dart';
 
 class ChatScreenController extends GetxController {
@@ -138,12 +139,7 @@ class ChatScreenController extends GetxController {
     searchDelay?.cancel();  // Cancel any ongoing search
     searchDelay = Timer(const Duration(milliseconds: 500), () {
       searchQuery = query.trim().toLowerCase();
-      // Always reset the page to 1 on new search
       page = 1;
-
-      // Disable pagination while search is ongoing
-      print(query);
-      // Call the API with the search query
       hitAPIToGetChatHistory("onsearch", user: user, searchQuery: searchQuery.isEmpty ? null : searchQuery);
     });
   }
@@ -384,7 +380,7 @@ class ChatScreenController extends GetxController {
   }
 
   Future<void> _handlePastedImage(XFile file) async {
-    final shouldSend = await _showPastedImagePreviewDialog(file);
+    final shouldSend = await showPastedImagePreviewDialog(file);
     if (shouldSend != true) return;
 
     // User confirmed -> proceed with your current flow
@@ -402,140 +398,7 @@ class ChatScreenController extends GetxController {
     // );
   }
 
-  Future<bool?> _showPastedImagePreviewDialog(XFile file) {
-    final captionController = TextEditingController();
 
-    return Get.dialog<bool>(
-      Dialog(
-        backgroundColor: Colors.white,
-        insetPadding: const EdgeInsets.all(16),
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-        child: LayoutBuilder(
-          builder: (context, constraints) {
-            final maxH = MediaQuery.of(context).size.height * 0.85;
-            final maxW = 560.0;
-
-            return ConstrainedBox(
-              constraints: BoxConstraints(
-                maxHeight: maxH,
-                maxWidth: maxW,
-              ),
-              child: Column(
-                mainAxisSize: MainAxisSize.max, // IMPORTANT
-                children: [
-                  // Header (fixed)
-                  Padding(
-                    padding: const EdgeInsets.fromLTRB(16, 14, 8, 10),
-                    child: Row(
-                      children: [
-                        const Expanded(
-                          child: Text(
-                            "Preview",
-                            style: TextStyle(
-                              fontSize: 16,
-                              fontWeight: FontWeight.w700,
-                            ),
-                          ),
-                        ),
-                        IconButton(
-                          onPressed: () => Get.back(result: false),
-                          icon: const Icon(Icons.close),
-                        ),
-                      ],
-                    ),
-                  ),
-
-                  const Divider(height: 1),
-
-                  // Body (scrollable if needed)
-                  Expanded(
-                    child: SingleChildScrollView(
-                      padding: const EdgeInsets.all(14),
-                      child: Column(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          // Image Preview (keeps good height, no overflow)
-                          ClipRRect(
-                            borderRadius: BorderRadius.circular(12),
-                            child: AspectRatio(
-                              aspectRatio: 16 / 10,
-                              child: Container(
-                                color: Colors.black12,
-                                alignment: Alignment.center,
-                                child: kIsWeb
-                                    ? CustomCacheNetworkImage(
-                                        radiusAll: 10,
-                                        borderColor: greyText,
-                                        boxFit: BoxFit.contain,
-                                        file.path,
-                                      )
-                                    : Image.file(
-                                        File(file.path),
-                                        fit: BoxFit.contain,
-                                        errorBuilder: (_, __, ___) =>
-                                            const Text("Couldn’t load preview"),
-                                      ),
-                              ),
-                            ),
-                          ),
-
-                          /*  const SizedBox(height: 12),
-
-                          // Caption (optional)
-                          TextField(
-                            controller: captionController,
-                            minLines: 1,
-                            maxLines: 3,
-                            decoration: InputDecoration(
-                              hintText: "Add a caption… (optional)",
-                              contentPadding: const EdgeInsets.symmetric(
-                                  horizontal: 12, vertical: 10),
-                              border: OutlineInputBorder(
-                                borderRadius: BorderRadius.circular(12),
-                              ),
-                            ),
-                          ),
-*/
-                          const SizedBox(height: 14),
-                        ],
-                      ),
-                    ),
-                  ),
-
-                  const Divider(height: 1),
-
-                  // Bottom actions (fixed)
-                  Padding(
-                    padding: const EdgeInsets.all(12),
-                    child: Row(
-                      children: [
-
-                        Expanded(
-                          child: TextButton(onPressed: () => Get.back(result: false), child: const Text("Cancel"))
-
-                        ),
-                        const SizedBox(width: 10),
-                        Expanded(
-                          child: ElevatedButton.icon(
-                            onPressed: () {
-                              Get.back(result: true);
-                            },
-                            icon: const Icon(Icons.send),
-                            label: const Text("Send"),
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                ],
-              ),
-            );
-          },
-        ),
-      ),
-      barrierDismissible: true,
-    ).whenComplete(() => captionController.dispose());
-  }
 
   Future<List<XFile>> pickWebImages({int maxFiles = 10}) async {
     final result = await FilePicker.platform.pickFiles(
@@ -1208,7 +1071,6 @@ class ChatScreenController extends GetxController {
         images.clear();
         update();
       } catch (e) {
-        print('Socket sendMessage error: $e');
       }
     }).onError((error,stackTrace){
       if(!kIsWeb) {
@@ -1506,7 +1368,7 @@ class ChatScreenController extends GetxController {
     }
     final actualBytes = await File(f.path!).length(); // reliable on mobile
     if (actualBytes > maxBytes) {
-      Dialogs.showSnackbar(Get.context!, "❌ File must be less than 15 MB");
+      toast("❌ File must be less than 15 MB");
       return;
     }
 
@@ -1538,9 +1400,13 @@ class ChatScreenController extends GetxController {
     });
   }
 
-  Future<void> handleForward({required chatId}) async {
+  Future<void> handleForward(ctx,{required chatId}) async {
+    try{
+      if(!Get.isRegistered<AllUserController>()){
+        Get.put(AllUserController(isRecent: 'true'));
+      }
     final selectedUser = await showDialog<UserDataAPI>(
-      context: Get.context!,
+      context: ctx,
       builder: (_) => AllUserScreenDialog(),
     );
     if (selectedUser == null) return;
@@ -1580,15 +1446,6 @@ class ChatScreenController extends GetxController {
 
     // Safety: don’t forward to yourself
     final targetUcId = selectedUser.userCompany?.userCompanyId;
-/*    if (targetUcId != null &&
-        APIs.me?.userCompany?.userCompanyId != null &&
-        targetUcId == APIs.me?.userCompany?.userCompanyId) {
-      Get.snackbar('Oops', 'You cannot forward a message to yourself.',
-          backgroundColor: Colors.white,
-          colorText: Colors.black,
-          duration: Duration(seconds: 6));
-      return;
-    }*/
 
     // Route by type
     if (selectedUser.userCompany?.isGroup == 1) {
@@ -1647,11 +1504,21 @@ class ChatScreenController extends GetxController {
             : selectedUser?.phone?? ''
     );
     _afterSendNavigate();
+
+    } finally {
+      if (Get.isRegistered<AllUserController>()) {
+        Get.delete<AllUserController>();
+      }
+    }
   }
 
-  Future<void> handleForwardMobile({required chatId}) async {
+  Future<void> handleForwardMobile(ctx,{required chatId}) async {
+    try{
+      if(!Get.isRegistered<AllUserController>()){
+        Get.put(AllUserController(isRecent: 'true'));
+      }
     final selectedUser = await showDialog<UserDataAPI>(
-      context: Get.context!,
+      context: ctx,
       builder: (_) => AllUserScreenDialog(),
     );
     if (selectedUser == null) return;
@@ -1659,7 +1526,6 @@ class ChatScreenController extends GetxController {
     void _afterSendNavigate() {
       textController.clear();
       replyToMessage = null;
-      // Replace current chat screen with the target chat
       if (/*Get.currentRoute == AppRoutes.chats_li_r &&*/
           Get.isRegistered<ChatScreenController>()) {
         Get.find<ChatHomeController>().selectedChat.value = selectedUser;
@@ -1668,31 +1534,11 @@ class ChatScreenController extends GetxController {
         con.openConversation(selectedUser);
       } else {
         Get.put(ChatScreenController(user: selectedUser));
-        // if (kIsWeb) {
-        //   Get.to(()=>ChatScreen(user: selectedUser ,showBack: true,));
-        //   // Get.offNamed(
-        //   //   "${AppRoutes.chats_li_r}?userId=${selectedUser.userId.toString()}",
-        //   // );
-        // } else {
-        //   Get.offNamed(
-        //     AppRoutes.chats_li_r,
-        //     arguments: {'user': selectedUser},
-        //   );
-        // }
       }
     }
 
     // Safety: don’t forward to yourself
     final targetUcId = selectedUser.userCompany?.userCompanyId;
-/*    if (targetUcId != null &&
-        APIs.me?.userCompany?.userCompanyId != null &&
-        targetUcId == APIs.me?.userCompany?.userCompanyId) {
-      Get.snackbar('Oops', 'You cannot forward a message to yourself.',
-          backgroundColor: Colors.white,
-          colorText: Colors.black,
-          duration: Duration(seconds: 6));
-      return;
-    }*/
 
     // Route by type
     if (selectedUser.userCompany?.isGroup == 1) {
@@ -1718,22 +1564,24 @@ class ChatScreenController extends GetxController {
     if (selectedUser.userCompany?.isBroadcast == 1) {
       // BROADCAST
       socket.sendMessage(
-        brID: targetUcId ?? 0, // broadcast UCID
-        type: "broadcast",
-        isGroup: 0,
-        companyId: selectedUser.userCompany?.companyId,
-        alreadySave: false,
-        forwardChatId: chatId,
-        isForward: 1,
+          brID: targetUcId ?? 0,
+          // broadcast UCID
+          type: "broadcast",
+          isGroup: 0,
+          companyId: selectedUser.userCompany?.companyId,
+          alreadySave: false,
+          forwardChatId: chatId,
+          isForward: 1,
           username: (selectedUser.userCompany?.displayName != null)
               ? selectedUser.userCompany?.displayName ?? ''
               : selectedUser?.userName != null
               ? selectedUser?.userName ?? ''
-              : selectedUser?.phone?? ''
+              : selectedUser?.phone ?? ''
       );
       _afterSendNavigate();
       return;
     }
+
 
     // DIRECT — use UCID, NOT userId
     socket.sendMessage(
@@ -1751,6 +1599,11 @@ class ChatScreenController extends GetxController {
             : selectedUser?.phone?? ''
     );
     _afterSendNavigate();
+    }  finally {
+      if (Get.isRegistered<AllUserController>()) {
+        Get.delete<AllUserController>();
+      }
+    }
   }
 
   bool isSaving = false;
@@ -1837,7 +1690,7 @@ class ChatScreenController extends GetxController {
   void _toast(String msg) {
     // Plug your toast/snackbar here
     // e.g., Get.snackbar('Info', msg); or your existing toast()
-    Dialogs.showSnackbar(Get.context!, msg);
+    toast( msg);
   }
 }
 

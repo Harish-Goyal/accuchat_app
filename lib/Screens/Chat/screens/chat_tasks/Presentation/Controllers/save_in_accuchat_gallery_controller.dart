@@ -219,7 +219,7 @@ class SaveToGalleryController extends GetxController {
 
   void onTapSaveToFolder(BuildContext context, user) async {
      Get.back();
-     Dialogs.showSnackbar(Get.context!, 'Item saved w2');
+     toast('Item saved w2');
   }
 
   void loadFolders({int? parentId}) {

@@ -1,6 +1,7 @@
 import 'package:AccuChat/Screens/voice_to_texx/speach_abstract.dart';
 import 'package:get/get.dart';
 
+import '../../utils/custom_flashbar.dart';
 import '../Chat/helper/dialogs.dart';
 
 class SpeechControllerImpl extends SpeechController {
@@ -16,7 +17,7 @@ class SpeechControllerImpl extends SpeechController {
 
   @override void setLanguage({required String langCode}) {}
 
-  @override void start() => Dialogs.showSnackbar(Get.context!, 'Voice-to-text is disabled on mobile.');
+  @override void start() => toast( 'Voice-to-text is disabled on mobile.');
   @override void stop({bool skipOnStopped = false}) {}
   @override void toggle() => start();
 

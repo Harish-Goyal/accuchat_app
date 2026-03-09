@@ -20,12 +20,14 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_staggered_animations/flutter_staggered_animations.dart';
+import 'package:flutter_svg/svg.dart';
 import 'package:get/get.dart';
 import '../../../../Constants/assets.dart';
 import '../../../../Constants/colors.dart';
 import '../../../../Services/subscription/billing_service.dart';
 import '../../../../routes/app_routes.dart';
 import '../../../../utils/chat_presence.dart';
+import '../../../../utils/custom_flashbar.dart';
 import '../../../../utils/product_shimmer_widget.dart';
 import '../../../Chat/api/apis.dart';
 import '../../../Chat/screens/auth/Presentation/Controllers/create_company_controller.dart';
@@ -146,7 +148,6 @@ class CompaniesScreen extends GetView<CompaniesController> {
       } catch (_) {}
     } catch (e, st) {
       // If you want: log it / show snackbar
-      debugPrint("SubtitleTap error: $e\n$st");
       customLoader.hide(); // extra safety
     } finally {
       // ✅ Guaranteed hide even if anything throws
@@ -157,7 +158,7 @@ class CompaniesScreen extends GetView<CompaniesController> {
 
   Future<void> _onTapCompany(CompanyData companyData) async {
     if(controller.selCompany?.companyId ==companyData.companyId ){
-      Dialogs.showSnackbar(Get.context!, "You are in ${companyData.companyName}");
+      toast("You are in ${companyData.companyName}");
       return;
     }
     customLoader.show();
@@ -204,7 +205,7 @@ class CompaniesScreen extends GetView<CompaniesController> {
 
       } catch (_) {}
     } catch (e, st) {
-      debugPrint("_onTapCompany error: $e\n$st");
+      // debugPrint("_onTapCompany error: $e\n$st");
     } finally {
 
       customLoader.hide();
@@ -301,6 +302,7 @@ class CompaniesScreen extends GetView<CompaniesController> {
                           top: -22,
                           right: -15,
                           child: Image.asset(
+                          // child: SvgPicture.asset(
                             connectedAppIcon,
                             height: 20,
                           ))

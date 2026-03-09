@@ -4,14 +4,17 @@ import 'package:dio/dio.dart' as multi;
 import 'package:firebase_crashlytics/firebase_crashlytics.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/foundation.dart';
+import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:get/get.dart';
+import 'package:intl/intl.dart';
 import '../../../../../../Services/APIs/post/post_api_service_impl.dart';
 import '../../../../../../main.dart';
 import '../../../../../../routes/app_routes.dart';
 import '../../../../../../utils/chat_presence.dart';
 import '../../../../../../utils/custom_flashbar.dart';
 import '../../../../../Home/Presentation/Controller/company_service.dart';
+import '../../../../models/all_media_res_model.dart';
 import '../../../../models/get_company_res_model.dart';
 import '../../../../models/group_res_model.dart';
 import '../../../auth/models/get_uesr_Res_model.dart';
@@ -21,7 +24,7 @@ class GrBrMembersController extends GetxController{
   UserDataAPI? groupOrBr;
 
   bool isUpdate = false;
-
+  String formattedDate='';
 
   String? userId;
 
@@ -32,6 +35,164 @@ class GrBrMembersController extends GetxController{
 
     super.onInit();
   }
+  final RxList<Items> profileMediaList = <Items>[].obs;
+  final RxString sourceFilter = 'All'.obs; // All | chat | task
+
+
+  final RxInt tabIndex = 0.obs;
+
+  // keep a ref to the tab controller we attach from the UI
+  TabController? _tabCtrl;
+
+  void attachTabController(TabController t) {
+    if (_tabCtrl == t) return;          // avoid re-attaching
+    _tabCtrl = t;
+    _tabCtrl!.addListener(_onTabChanged);
+
+    // initial fetch for default tab
+
+  }
+  formateData(date){
+    DateTime parsedDate = DateTime.parse(date);
+    formattedDate = DateFormat('d MMM yyyy').format(parsedDate);
+  }
+
+  void _onTabChanged() {
+    if (_tabCtrl == null) return;
+    // ignore the in-between animation state
+    if (_tabCtrl!.indexIsChanging) return;
+
+    tabIndex.value = _tabCtrl!.index;
+    if(tabIndex.value==0){
+      hitAPIToGetMembers();
+    }
+    resetPaginationForNewChat();
+    _fireApiForCurrentTab();
+  }
+
+
+
+
+  int page = 1;
+  bool hasMore = false;
+  bool isPageLoading1 = false;
+
+  ScrollController scrollController = ScrollController();
+  ScrollController scrollController2 = ScrollController();
+
+  scrollListener() {
+
+    if (kIsWeb) {
+      scrollController.addListener(() {
+        if (scrollController.position.pixels >=
+            scrollController.position.maxScrollExtent -100 &&
+            !isPageLoading1 &&
+            hasMore) {
+          // resetPaginationForNewChat();
+          _fireApiForCurrentTab();
+        }
+      });
+    } else {
+      scrollController.addListener(() {
+        if (scrollController.position.pixels <=
+            scrollController.position.minScrollExtent + 50 &&
+            !isPageLoading1 &&
+            hasMore) {
+          // resetPaginationForNewChat();
+          _fireApiForCurrentTab();
+        }
+      });
+    }
+  }
+  scrollListener2() {
+
+    if (kIsWeb) {
+      scrollController2.addListener(() {
+        if (scrollController2.position.pixels >=
+            scrollController2.position.maxScrollExtent - 60 &&
+            !isPageLoading1 &&
+            hasMore) {
+          // resetPaginationForNewChat();
+          _fireApiForCurrentTab();
+        }
+      });
+    } else {
+      scrollController2.addListener(() {
+        if (scrollController2.position.pixels <=
+            scrollController2.position.minScrollExtent + 50 &&
+            !isPageLoading1 &&
+            hasMore) {
+          // resetPaginationForNewChat();
+          _fireApiForCurrentTab();
+        }
+      });
+    }
+  }
+
+  void resetPaginationForNewChat() {
+    page = 1;
+    hasMore = true;
+    profileMediaList.clear();
+    isLoading = true;
+    update();
+  }
+
+  void _fireApiForCurrentTab() {
+    final idx = _tabCtrl?.index ?? 0;
+    final mediaTypea = (idx == 1) ? 'IMG' : idx==2? 'DOC':"";
+    getAllMediaAPICall( mediaTypea, sourceFilter.value);
+  }
+
+  AllMediaResModel allMEdia = AllMediaResModel();
+
+  getAllMediaAPICall(type,source) async {
+
+    if (page == 1) {
+      isLoading = true;
+      profileMediaList?.clear();
+    }
+
+    isPageLoading1 = true;
+    update();
+
+    await Get.find<PostApiServiceImpl>()
+        .getAllMediaAPI(page: page,comId: myCompany?.companyId,source: 'group',mediaType:type,userCId: groupOrBr?.userCompany?.userCompanyId )
+        .then((value) async {
+      isLoading = false;
+      allMEdia = value;
+      if (allMEdia.data?.items != null && (allMEdia.data?.items ?? []).isNotEmpty) {
+        if (page == 1) {
+          profileMediaList.assignAll(allMEdia.data?.items ?? []);
+        } else {
+          profileMediaList.addAll(allMEdia.data?.items ?? []);
+        }
+
+        page++;
+      }
+      else {
+        hasMore = false;
+        isPageLoading1 = false;
+        update();
+      }
+
+      // rebuildFlatRows();
+      isLoading = false;
+      isPageLoading1 = false;
+      update();
+
+    }).onError((error, stackTrace) {
+
+      if(!kIsWeb) {
+        FirebaseCrashlytics.instance.recordError(
+            error, stackTrace, reason: 'apiCall failed');
+      }
+      isLoading = false;
+      isPageLoading1 = false;
+      update();
+    });
+  }
+
+
 
   getArguments(){
     if(kIsWeb){

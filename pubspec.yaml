@@ -34,6 +34,8 @@ dependencies:
   dio:
   js: ^0.6.7
   flutter_easyloading: ^3.0.5
+  flutter_dropzone: 4.2.1
+  syncfusion_flutter_pdf: ^24.2.0
   intl:
   shared_preferences_web: ^2.3.0
   flutter_snake_navigationbar:
@@ -49,7 +51,6 @@ dependencies:
   loading_indicator: ^3.1.1
   google_fonts:
   scrollable_positioned_list: ^0.3.8
-  gal: ^2.3.0
   photo_view: ^0.15.0
   in_app_update: ^4.0.2
   flutter_contacts:
@@ -62,7 +63,6 @@ dependencies:
   flutter_svg:
   googleapis_auth: ^1.4.0
   share_plus: ^7.0.0
-  otp_text_field: ^1.1.3
   connectivity_plus: ^6.0.3
   http_parser:
   image_picker:
@@ -107,7 +107,6 @@ dependencies:
   swipe_to: ^1.0.6
   animated_search_bar: ^2.7.2
   url_launcher: ^6.3.0
-  sentry: ^9.14.0
   firebase_crashlytics:
   #  build_runner:
   # smooth_star_rating_null_safety: ^1.0.4+2
@@ -118,7 +117,6 @@ dependencies:
   # googleapis_auth: ^1.6.0
   http:
   country_code_picker:
-  otp_text_field_v2:
   # The following adds the Cupertino Icons font to your application.
   # Use with the CupertinoIcons class for iOS style icons.
   cupertino_icons: ^1.0.8

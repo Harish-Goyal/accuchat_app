@@ -105,7 +105,7 @@ class UpdateCompanyScreen extends GetView<UpdateCompanyController> {
                                     child: _LogoPickerBlock(
                                       controller: controller,
                                       avatarSize: avatarSize,
-                                      onEditTap: _showBottomSheet,
+                                      onEditTap:()=> _showBottomSheet(context),
                                     ),
                                   ),
                                   const SizedBox(width: 24),
@@ -210,7 +210,7 @@ class UpdateCompanyScreen extends GetView<UpdateCompanyController> {
                                   _LogoPickerBlock(
                                     controller: controller,
                                     avatarSize: avatarSize,
-                                    onEditTap: _showBottomSheet,
+                                    onEditTap: ()=> _showBottomSheet(context),
                                   ),
                                   vGap(18),
 
@@ -357,9 +357,9 @@ class UpdateCompanyScreen extends GetView<UpdateCompanyController> {
     });
   }
 
-  void _showBottomSheet() {
+  void _showBottomSheet(ctx) {
     showModalBottomSheet(
-        context: Get.context!,
+        context: ctx,
         backgroundColor: Colors.white,
         shape: const RoundedRectangleBorder(
             borderRadius: BorderRadius.only(

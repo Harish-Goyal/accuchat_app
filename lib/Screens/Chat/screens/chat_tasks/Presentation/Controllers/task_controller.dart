@@ -36,6 +36,7 @@ import 'package:path/path.dart' as p;
 import '../../Bindings/bindings.dart';
 import '../Views/task_chat_screen.dart';
 import '../Widgets/all_users_dialog.dart';
+import 'all_user_controller.dart';
 
 class TaskController extends GetxController {
   TaskController({this.user});
@@ -499,7 +500,6 @@ class TaskController extends GetxController {
           Get.back();
           update();
         } catch (e) {
-          debugPrint('sendTaskMessage (no files) error: $e');
         }
         return;
       }
@@ -566,7 +566,7 @@ class TaskController extends GetxController {
             );
           } else {
             // nothing usable -> skip
-            debugPrint('Skipping attachment (no bytes/path on web): $filename');
+            // debugPrint('Skipping attachment (no bytes/path on web): $filename');
             continue;
           }
         } else {
@@ -597,7 +597,7 @@ class TaskController extends GetxController {
               contentType: contentType,
             );
           } else {
-            debugPrint('Skipping attachment (no file/path/bytes on mobile): $filename');
+            // debugPrint('Skipping attachment (no file/path/bytes on mobile): $filename');
             continue;
           }
         }
@@ -646,7 +646,7 @@ class TaskController extends GetxController {
         Get.back();
         update();
       } catch (e) {
-        debugPrint('sendTaskMessage (with files) error: $e');
+        // debugPrint('sendTaskMessage (with files) error: $e');
       }
 
     }).onError((error,stackTrace){
@@ -707,7 +707,7 @@ class TaskController extends GetxController {
       }
       update();
     } catch (e) {
-      debugPrint('pick web images error: $e');
+      // debugPrint('pick web images error: $e');
     } finally {
       setStateInside(() => isUploadingTaskDoc = false);
     }
@@ -781,7 +781,7 @@ class TaskController extends GetxController {
       }
       update();
     } catch (e) {
-      debugPrint('pick web docs error: $e');
+      // debugPrint('pick web docs error: $e');
     } finally {
       setStateInside(() => isUploadingTaskDoc = false);
     }
@@ -957,7 +957,7 @@ class TaskController extends GetxController {
                 Get.back();
                 update();
               } catch (e) {
-                debugPrint(e.toString());
+                // debugPrint(e.toString());
               }
             }).onError((error,stackTrace){
               if(!kIsWeb) {
@@ -1509,179 +1509,13 @@ class TaskController extends GetxController {
 
 
 
-
-  initVideoPlayer() async {
-    // videoPlayerController = VideoPlayerController.file(_file!);
-    // await videoPlayerController?.initialize();
-    // chewieController = ChewieController(
-    //   videoPlayerController: videoPlayerController!,
-    //   autoPlay: false,
-    //   showControls: false,
-    //   aspectRatio: MediaQuery.of(context).size.aspectRatio * 2.74,
-    // );
-    // setState(() {});
-  }
-
-
-
-
-
-  chooseMediaSource() async {
-    var pFile;
-    galleryVideo() async {
-      pFile = await ImagePicker.platform.pickVideo(
-          source: ImageSource.gallery,
-          maxDuration: const Duration(seconds: 30));
-      if (pFile != null) {
-        file = File(pFile.path);
-        isUploading = true;
-        update();
-
-        // await APIs.sendChatVideo(user!, File(pFile.path));
-        await initVideoPlayer();
-        isUploading = false;
-        update();
+  Future<void> handleForward(ctx,{required TaskData taskData}) async {
+    try{
+      if(!Get.isRegistered<AllUserController>()){
+        Get.put(AllUserController(isRecent: 'false'));
       }
-    }
-
-    gallaryImage() async {
-      // final ImagePicker picker = ImagePicker();
-      //
-      // // Picking multiple images
-      // final List<XFile> images = await picker.pickMultiImage(imageQuality: 70);
-      //
-      // // uploading & sending image one by one
-      // for (var i in images) {
-      //   // log('Image Path: ${i.path}');
-      //   setState(() => _isUploading = true);
-      //   await APIs.sendChatImage(widget.user, File(i.path));
-      //   setState(() => _isUploading = false);
-      // }
-      final ImagePicker picker = ImagePicker();
-
-      // Picking multiple images
-      final List<XFile> imas = await picker.pickMultiImage(imageQuality: 70);
-
-      // uploading & sending image one by one
-
-      images.addAll(imas);
-    }
-
-    cameraVideo() async {
-      pFile = await ImagePicker.platform.pickVideo(
-          source: ImageSource.camera, maxDuration: const Duration(seconds: 30));
-      if (pFile != null) {
-        file = File(pFile.path);
-        isUploading = true;
-
-        update();
-
-        // await APIs.sendChatVideo(user!, File(pFile.path));
-        await initVideoPlayer();
-        isUploading = false;
-        update();
-      }
-    }
-
-    cameraImage() async {
-      // final ImagePicker picker = ImagePicker();
-      // // Pick an image
-      // final XFile? image =
-      //     await picker.pickImage(source: ImageSource.camera, imageQuality: 70);
-      // if (image != null) {
-      //   // log('Image Path: ${image.path}');
-      //   setState(() => _isUploading = true);
-      //
-      //   await APIs.sendChatImage(widget.user, File(image.path));
-      //   setState(() => _isUploading = false);
-      // }
-
-      final ImagePicker picker = ImagePicker();
-      // Pick an image
-      final XFile? image =
-          await picker.pickImage(source: ImageSource.camera, imageQuality: 70);
-      if (image != null) {
-        // log('Image Path: ${image.path}');
-        isUploading = true;
-        update();
-        // await APIs.sendChatImage(user!, File(image.path));
-
-      }
-    }
-
-    return showBottomSheet(
-        context: Get.context!,
-        builder: (_) => Padding(
-              padding: const EdgeInsets.all(20.0),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  const Text(
-                    'Gallery',
-                    style: TextStyle(fontWeight: FontWeight.bold, fontSize: 20),
-                  ),
-                  /*const SizedBox(height: 5),
-                  ListTile(
-                    title: const Text('Video'),
-                    leading: const Icon(Icons.video_collection_rounded),
-                    onTap: () async {
-                      await _galleryVideo();
-                      Navigator.pop(context, _file);
-                    },
-                    contentPadding: const EdgeInsets.all(0),
-                    isThreeLine: false,
-                  ),*/
-                  const SizedBox(height: 5),
-                  ListTile(
-                    title: const Text('Image'),
-                    leading: const Icon(Icons.video_collection_rounded),
-                    onTap: () async {
-                      await gallaryImage();
-                      Navigator.pop(Get.context!, file);
-                    },
-                    contentPadding: const EdgeInsets.all(0),
-                    isThreeLine: false,
-                  ),
-                  const SizedBox(
-                    height: 5,
-                  ),
-                  const Text(
-                    'Camera',
-                    style: TextStyle(fontWeight: FontWeight.bold, fontSize: 20),
-                  ),
-                  /* ListTile(
-                    title: const Text('Video'),
-                    leading: const Icon(Icons.videocam_outlined),
-                    onTap: () async {
-                      await _cameraVideo();
-                      Navigator.pop(context, _file);
-                    },
-                    contentPadding: const EdgeInsets.all(0),
-                    isThreeLine: false,
-                  ),
-                  const SizedBox(height: 5),*/
-                  ListTile(
-                    title: const Text('Image'),
-                    leading: const Icon(Icons.image),
-                    onTap: () async {
-                      await cameraImage();
-                      Navigator.pop(Get.context!, file);
-                    },
-                    contentPadding: const EdgeInsets.all(0),
-                    isThreeLine: false,
-                  ),
-                  const SizedBox(
-                    height: 5,
-                  ),
-                ],
-              ),
-            ));
-  }
-
-  Future<void> handleForward({required TaskData taskData}) async {
     final selectedUser = await showDialog<UserDataAPI>(
-      context: Get.context!,
+      context:ctx,
       builder: (_) => AllUserScreenDialog(),
     );
     if (selectedUser == null) return;
@@ -1728,6 +1562,11 @@ class TaskController extends GetxController {
           : selectedUser?.phone?? ''
     );
     afterSendNavigate();
+    }  finally {
+      if (Get.isRegistered<AllUserController>()) {
+        Get.delete<AllUserController>();
+      }
+    }
   }
 
 /*  Future<void> handleForward({required TaskData taskData}) async {
@@ -1766,9 +1605,13 @@ class TaskController extends GetxController {
 
   }*/
 
-  Future<void> handleForwardMobile({required TaskData taskData}) async {
+  Future<void> handleForwardMobile(ctx,{required TaskData taskData}) async {
+    try{
+      if(!Get.isRegistered<AllUserController>()){
+        Get.put(AllUserController(isRecent: 'false'));
+      }
     final selectedUser = await showDialog<UserDataAPI>(
-      context: Get.context!,
+      context: ctx,
       builder: (_) => AllUserScreenDialog(),
     );
     if (selectedUser == null) return;
@@ -1802,6 +1645,11 @@ class TaskController extends GetxController {
     );
     _afterSendNavigate();
 
+    }  finally {
+      if (Get.isRegistered<AllUserController>()) {
+        Get.delete<AllUserController>();
+      }
+    }
   }
 
 
@@ -2060,7 +1908,7 @@ class TaskController extends GetxController {
 
 
   void _toast(String msg) {
-    Dialogs.showSnackbar(Get.context!, msg);
+    toast(msg);
   }
 }
 

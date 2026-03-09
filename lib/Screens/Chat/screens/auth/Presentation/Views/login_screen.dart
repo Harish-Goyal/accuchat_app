@@ -8,6 +8,7 @@ import 'package:country_code_picker/country_code_picker.dart';
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter_svg/svg.dart';
 import 'package:get/get.dart';
 import '../../../../../../utils/common_textfield.dart';
 import '../../../../../../utils/helper_widget.dart';
@@ -45,7 +46,8 @@ class LoginScreenG extends GetView<LoginGController> {
                                                 mainAxisAlignment: MainAxisAlignment.center,
                                                 crossAxisAlignment: CrossAxisAlignment.center,
                                                 children: [
-                          Image.asset(
+                                                  Image.asset(
+                                                  // SvgPicture.asset(
                             appIcon,
                             width: isWide ? Get.width * .1 : Get.width * .3,
                             height: isWide ? Get.width * .1 : Get.width * .3,

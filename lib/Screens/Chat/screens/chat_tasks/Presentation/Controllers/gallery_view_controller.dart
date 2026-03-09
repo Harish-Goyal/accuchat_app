@@ -7,6 +7,7 @@ import 'package:get/get.dart';
 import 'package:dio/dio.dart' as multi;
 import 'package:permission_handler/permission_handler.dart';
 
+import '../../../../../../utils/custom_flashbar.dart';
 import '../../../../helper/dialogs.dart';
 import '../../../../models/chat_history_response_model.dart';
 
@@ -15,7 +16,7 @@ class GalleryViewerController extends GetxController {
   ChatHisList? chathis;
   int index;
   bool saving = false;
-  String? toast;
+  String toastmsg='';
 
   GalleryViewerController({required this.urls, this.chathis,required this.index});
 
@@ -39,12 +40,12 @@ class GalleryViewerController extends GetxController {
   Future<void> saveOne(String imageUrl) async {
     final ok = await requestStoragePermission();
     if (!ok) {
-      _toast('❌ Storage/Photos permission denied');
+      toast('❌ Storage/Photos permission denied');
       return;
     }
 
     final success = await _saveToGalleryFromUrl("${ApiEnd.baseUrlMedia}$imageUrl");
-    _toast(success ? '✅ Image saved to Gallery' : '❌ Failed to save image');
+    toast(success ? '✅ Image saved to Gallery' : '❌ Failed to save image');
   }
 
   //Save all, sequential for stability
@@ -53,7 +54,7 @@ class GalleryViewerController extends GetxController {
 
     final ok = await requestStoragePermission();
     if (!ok) {
-      _toast('❌ Storage/Photos permission denied');
+      toast('❌ Storage/Photos permission denied');
       return;
     }
 
@@ -83,9 +84,9 @@ class GalleryViewerController extends GetxController {
     update();
 
     if (failedCount == 0) {
-      _toast('✅ All ${imageUrls.length} images saved!');
+      toast('✅ All ${imageUrls.length} images saved!');
     } else {
-      _toast('ℹ️ Saved $savedCount, Failed $failedCount');
+      toast('ℹ️ Saved $savedCount, Failed $failedCount');
     }
   }
 
@@ -155,11 +156,7 @@ class GalleryViewerController extends GetxController {
   }
 
 
-  void _toast(String msg) {
-    // Plug your toast/snackbar here
-    // e.g., Get.snackbar('Info', msg); or your existing toast()
-    Dialogs.showSnackbar(Get.context!, msg);
-  }
+
   @override
   void onClose() {
     imageCache.clearLiveImages();

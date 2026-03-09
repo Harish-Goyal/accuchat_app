@@ -29,13 +29,9 @@ class ChatHomeController extends GetxController{
   Rxn<UserDataAPI> selectedChat = Rxn<UserDataAPI>();
 
   RxBool isSearching = false.obs;
-  // RxBool loadingCompany = false.obs;
-  String? selectedCompanyId;
   TextEditingController seacrhCon = TextEditingController();
   FocusNode searchFocus = FocusNode();
   String searchQuery = '';
-  Future<void> onCompanyChanged(int? companyId) async => hitAPIToGetRecentChats(page: 1);
-
 
   var selectedCompany = Rxn<CompanyData>();     // Rx nullable object
   var joinedCompaniesList = <CompanyData>[].obs; // Rx list
@@ -50,7 +46,7 @@ class ChatHomeController extends GetxController{
       companyResModel = value;
       joinedCompaniesList.value = value.data ?? [];
       selectedCompany.value = joinedCompaniesList.firstWhere(
-            (c) => c.companyId == myCompany?.companyId,  // already logged-in company
+            (c) => c.companyId == myCompany?.companyId,
         orElse: () => joinedCompaniesList.first,
       );
       update();
@@ -240,8 +236,7 @@ class ChatHomeController extends GetxController{
       localPage.value=1;
       groupResModel = value;
       groupController.clear();
-      toast(value.message??'');
-      Dialogs.showSnackbar(Get.context!, "Scroll down to see your latest create 'Group'");
+      toast("${value.message??''} Scroll down to see your latest create 'Group'");
       Get.find<SocketController>()
           .connectUserEmitter(
           myCompany?.companyId);

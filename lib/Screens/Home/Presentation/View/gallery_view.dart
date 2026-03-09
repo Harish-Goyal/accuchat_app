@@ -12,20 +12,17 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import '../../../../Constants/colors.dart' as AppTheme;
 import '../../../../Services/APIs/api_ends.dart';
 import '../../../../utils/circleContainer.dart';
 import '../../../../utils/confirmation_dialog.dart';
 import '../../../../utils/networl_shimmer_image.dart';
 import '../../../../utils/show_upload_option_galeery.dart';
-import '../../../Chat/helper/dialogs.dart';
 import '../../../Chat/models/gallery_node.dart';
 import '../../Models/get_folder_res_model.dart';
 import '../Controller/galeery_item_controller.dart';
 import '../Controller/gallery_controller.dart';
 import 'folder_items_view.dart';
 import 'gallery_search_result_widget.dart';
-import 'home_screen.dart';
 
 class GalleryTab extends GetView<GalleryController> {
   GalleryTab({super.key});
@@ -37,19 +34,18 @@ class GalleryTab extends GetView<GalleryController> {
     return SafeArea(
       child: GetBuilder<GalleryController>(builder: (controller) {
         return Scaffold(
-          appBar: _searchBarWidget(),
+          appBar: _searchBarWidget(context),
           floatingActionButton: FloatingActionButton.extended(
             backgroundColor: Colors.white,
             elevation: 1,
             onPressed: () async {
               final name = await showCreateFolderDialog();
               if (name != null) {
-                Dialogs.showSnackbar(Get.context!, "Created  $name");
+                toast( "Created  $name");
               }
             },
             icon: const Icon(Icons.create_new_folder_outlined),
-            label:
-                Text('New Folder', style: BalooStyles.baloosemiBoldTextStyle()),
+            label: Text('New Folder', style: BalooStyles.baloosemiBoldTextStyle()),
           ),
           body: TabBarView(
             controller: controller.tabController,
@@ -108,7 +104,7 @@ class GalleryTab extends GetView<GalleryController> {
     );
   }
 
-  AppBar _searchBarWidget() {
+  AppBar _searchBarWidget(context) {
     return AppBar(
       scrolledUnderElevation: 0,
       surfaceTintColor: Colors.white,
@@ -185,7 +181,7 @@ class GalleryTab extends GetView<GalleryController> {
 
 
       bottom: PreferredSize(
-          preferredSize: const Size.fromHeight(64), child: _beautifiedTabBar()),
+          preferredSize: const Size.fromHeight(64), child: _beautifiedTabBar(context)),
       actions: [
         IconButton(
                 onPressed: () {
@@ -197,12 +193,14 @@ class GalleryTab extends GetView<GalleryController> {
                 icon: controller.isSearchingIcon
                     ? const Icon(CupertinoIcons.clear_circled_solid)
                     : Image.asset(searchPng, height: 25, width: 25))
+                    // : SvgPicture.asset(searchPng, height: 25, width: 25))
             .paddingOnly(top: 0, right: 10),
       ],
     );
   }
 
-  Widget _beautifiedTabBar() {
+  Widget _beautifiedTabBar(ctx) {
+    final primary = Theme.of(ctx).colorScheme.primary;
     return Container(
       width: Get.width,
       padding: const EdgeInsets.fromLTRB(16, 8, 16, 8),
@@ -216,15 +214,15 @@ class GalleryTab extends GetView<GalleryController> {
         labelPadding: const EdgeInsets.symmetric(horizontal: 14, vertical: 5),
         splashFactory: NoSplash.splashFactory,
         overlayColor: MaterialStateProperty.all(Colors.transparent),
-        labelColor: Theme.of(Get.context!).colorScheme.primary,
+        labelColor: primary,
         unselectedLabelColor: Colors.grey.shade600,
         labelStyle: BalooStyles.baloosemiBoldTextStyle(),
         unselectedLabelStyle: BalooStyles.balooregularTextStyle(),
         indicator: BoxDecoration(
-            color: Theme.of(Get.context!).colorScheme.primary.withOpacity(.1),
+            color: primary.withOpacity(.1),
             borderRadius: BorderRadius.circular(20),
             border:
-                Border.all(color: Theme.of(Get.context!).colorScheme.primary)),
+                Border.all(color: primary)),
         tabs: [
           const Row(
             mainAxisSize: MainAxisSize.min,
