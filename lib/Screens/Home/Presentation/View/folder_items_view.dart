@@ -368,8 +368,8 @@ class _MediaCard extends StatelessWidget {
       cursor: SystemMouseCursors.click,
       child: Material(
         color: isSelected ? appColorPerple.withOpacity(.1) : Colors.white,
-        elevation: 2.5,
-        shadowColor: Colors.black12,
+        elevation: 8,
+        shadowColor: perplebr,
         borderRadius: BorderRadius.circular(14),
         child: InkWell(
           borderRadius: BorderRadius.circular(14),
@@ -379,7 +379,6 @@ class _MediaCard extends StatelessWidget {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                // ✅ Full-width preview
                 ClipRRect(
                   borderRadius: BorderRadius.circular(12),
                   child: SizedBox(

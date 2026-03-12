@@ -149,15 +149,17 @@ class GlobalSearchResultTile extends StatelessWidget {
           }
         },
         child: Container(
-          padding: const EdgeInsets.symmetric(horizontal: 8),
+          padding: const EdgeInsets.symmetric(horizontal: 8,vertical: 8),
           decoration: BoxDecoration(
             borderRadius: BorderRadius.circular(14),
             border: Border.all(color: Colors.black12),
-            boxShadow: const [
+            color: whiteselected,
+            boxShadow:  [
+
               BoxShadow(
                 blurRadius: 14,
                 offset: Offset(0, 6),
-                color: Color(0x11000000),
+                color: perplebr,
               )
             ],
           ),

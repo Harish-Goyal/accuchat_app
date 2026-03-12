@@ -126,7 +126,8 @@ class TaskHomeScreen extends GetView<TaskHomeController> {
                               return controller.isSearching.value
                                   ? TextField(
                                       controller: controller.seacrhCon,
-                                      cursorColor: appColorGreen,
+                                      focusNode: controller.searchTextFocus,
+                                      cursorColor: perplebr,
                                       decoration: const InputDecoration(
                                           border: InputBorder.none,
                                           hintText: 'Search User ...',
@@ -306,10 +307,14 @@ class TaskHomeScreen extends GetView<TaskHomeController> {
                                       controller.isSearching.value =
                                           !controller.isSearching.value;
                                       controller.isSearching.refresh();
+                                      if(controller.isSearching.value){
+                                        controller.searchTextFocus.requestFocus();
+                                      }
                                       if (!controller.isSearching.value) {
                                         controller.searchQuery = '';
                                         controller.onSearch('');
                                         controller.seacrhCon.clear();
+                                        controller.searchTextFocus.unfocus();
                                       }
                                       // controller.update();
                                     },

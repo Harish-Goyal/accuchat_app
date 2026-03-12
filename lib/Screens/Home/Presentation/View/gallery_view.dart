@@ -39,7 +39,7 @@ class GalleryTab extends GetView<GalleryController> {
     return SafeArea(
       child: GetBuilder<GalleryController>(builder: (controller) {
         return Scaffold(
-          appBar: _searchBarWidget(context),
+          appBar:kIsWeb? _searchBarWidget(context):_searchBarWidgetMob(context),
 
           body: Stack(
             clipBehavior: Clip.none,
@@ -66,16 +66,17 @@ class GalleryTab extends GetView<GalleryController> {
                           children: [
                             if (!c.isSearching)
                               Row(
+                                mainAxisAlignment:kIsWeb? MainAxisAlignment.end: MainAxisAlignment.spaceBetween,
                                 children: [
-                                  Expanded(
-                                    child: _GalleryHeader(
-                                      isRoot: true,
-                                      breadcrumbs:[],
-                                      onBack:(){return true;},
-                                      onRootTap: (){},
-                                      onCrumbTap: (v){},
-                                    ),
-                                  ),
+                                  // Expanded(
+                                  //   child: _GalleryHeader(
+                                  //     isRoot: true,
+                                  //     breadcrumbs:[],
+                                  //     onBack:(){return true;},
+                                  //     onRootTap: (){},
+                                  //     onCrumbTap: (v){},
+                                  //   ),
+                                  // ),
                                   IconButton(
                                       onPressed: () async {
                                         final name = await showCreateFolderDialog();
@@ -143,6 +144,144 @@ class GalleryTab extends GetView<GalleryController> {
       }),
     );
   }
+  AppBar _searchBarWidgetMob(context) {
+    return AppBar(
+      scrolledUnderElevation: 0,
+      automaticallyImplyLeading: false,
+      flexibleSpace: MediaQuery(
+        data: MediaQuery.of(Get.context!)
+            .copyWith(textScaleFactor: _textScaleClamp(Get.context!)),
+        child:  _flexibleSpaceMob(),
+      ),
+
+
+      bottom: PreferredSize(
+          preferredSize: const Size.fromHeight(60), child: Container(
+          decoration:const BoxDecoration(
+              image: DecorationImage(image: AssetImage(appbarBG),fit: BoxFit.cover)
+          ),
+          child: _beautifiedTabBar(context))),
+      actions: [
+        IconButton(
+            onPressed: () {
+              controller.isSearchingIcon = !controller.isSearchingIcon;
+              controller.searchCtrl.clear();
+              controller.searchResults?.clear();
+              controller.update();
+            },
+            icon:bottonBg(child:  controller.isSearchingIcon
+                ? const Icon(CupertinoIcons.clear_circled_solid)
+            // : Image.asset(searchPng, height: 25, width: 25))
+                : SvgPicture.asset(searchPng, height: 20, width: 20,color: Colors.black45,)))
+            .paddingOnly(top: 0, right: 10),
+      ],
+    );
+  }
+
+
+  _flexibleSpaceMob(){
+    return
+      Container(
+        width: Get.width*.7,
+        constraints: BoxConstraints(minHeight: 64,maxWidth: Get.width*.7),
+        padding: const EdgeInsets.all(2),
+        decoration: const BoxDecoration(
+            image: DecorationImage(image: AssetImage(appbarBG),fit: BoxFit.cover)
+        ),
+        child: controller.isSearchingIcon
+            ? TextField(
+                      controller: controller.searchCtrl,
+                      cursorColor: perplebr,
+                      decoration: const InputDecoration(
+              border: InputBorder.none,
+              hintText: 'Search folders, media by name ,keywords or user ...',
+              contentPadding:
+              EdgeInsets.symmetric(vertical: 0, horizontal: 10),
+              constraints: BoxConstraints(maxHeight: 45)),
+                      autofocus: true,
+                      style: const TextStyle(fontSize: 13, letterSpacing: 0.5),
+                      onChanged: (val) {
+            controller.query = val;
+            controller.onSearchChanged(val);
+            controller
+                .hitApiToGetSearchResultItems(controller.query.trim());
+                      },
+                    ).marginSymmetric(vertical: 10,horizontal: 15)
+            :  Row(
+          mainAxisAlignment: MainAxisAlignment.start,
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            SizedBox(
+              width: 40,
+              child: CustomCacheNetworkImage(
+                "${ApiEnd.baseUrlMedia}${controller.myCompany?.logo ?? ''}",
+                radiusAll: 100,
+                height: 40,
+                width: 40,
+                borderColor: appColorYellow,
+                defaultImage: appIcon,
+                boxFit: BoxFit.cover,
+                isApp: true,
+              ),
+            ).paddingAll(3),
+            Expanded(
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.end,
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    'Your Smart Gallery',
+                    style: BalooStyles.baloomediumTextStyle(
+                        size: 14),
+                  ).paddingOnly(left: 4, top: 4),
+                  Row(
+                    crossAxisAlignment: CrossAxisAlignment.center,
+                    mainAxisAlignment: MainAxisAlignment.start,
+                    mainAxisSize: MainAxisSize.min,
+
+                    children: [
+                      CircleContainer(colorIS: Colors.greenAccent,setSize: 5.0,),
+                      Text(
+                        (controller.myCompany?.companyName ?? ''),
+                        style: BalooStyles.baloomediumTextStyle(
+                          color: appColorYellow,
+                        ),
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                      ).paddingOnly(left: 4, top: 2),
+                    ],
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ),
+      );
+  }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
   AppBar _searchBarWidget(context) {
     return AppBar(
@@ -346,7 +485,7 @@ class GalleryTab extends GetView<GalleryController> {
 
   _listView() {
     return Container(
-      padding: const EdgeInsets.only(right: 12, left: 12,),
+      padding: const EdgeInsets.only(right:kIsWeb? 12:3, left:kIsWeb? 12:1,),
       child: controller.isSearching
           ? Obx(() {
               final items = controller.searchResults;

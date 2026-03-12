@@ -163,7 +163,7 @@ class ChatsHomeScreen extends GetView<ChatHomeController> {
             ? TextField(
                 controller: controller.seacrhCon,
                 focusNode: controller.searchtetxtFocus,
-                cursorColor: appColorGreen,
+          cursorColor: perplebr,
                 autocorrect: true,
                 decoration: const InputDecoration(
                     border: InputBorder.none,
