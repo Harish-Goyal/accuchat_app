@@ -53,9 +53,9 @@ class TaskHomeScreen extends GetView<TaskHomeController> {
                   return Scaffold(
                     appBar: AppBar(
                       automaticallyImplyLeading: false,
-                      backgroundColor: Colors.white, // white color
+                      backgroundColor: recentBg,
                       elevation: 1, // remove shadow
-                      bottom: PreferredSize(preferredSize: Size(Get.width*.75, 5), child: divider(color: Colors.grey.shade300,thikness: 1.1)),
+                      // bottom: PreferredSize(preferredSize: Size(Get.width*.75, 5), child: divider(color: Colors.grey.shade300,thikness: 1.1)),
                       scrolledUnderElevation:
                           0, // ✨ prevents color change on scroll
                       surfaceTintColor: Colors.white,
@@ -64,23 +64,25 @@ class TaskHomeScreen extends GetView<TaskHomeController> {
                               hoverColor: Colors.transparent,
                               onTap: () {
                                   Get.find<DashboardController>().updateIndex(4);
-
-
                               },
                               child: Row(
                                 children: [
-                                  SizedBox(
-                                    width: 40,
-                                    child: CustomCacheNetworkImage(
-                                      "${ApiEnd.baseUrlMedia}${controller.myCompany?.logo ?? ''}",
-                                      radiusAll: 100,
-                                      height: 40,
+                                  bottonBg(
+                                    padding: 0,
+                                    child: SizedBox(
                                       width: 40,
-                                      borderColor: appColorYellow,
-                                      defaultImage: appIcon,
-                                      boxFit: BoxFit.cover,
-                                    ),
-                                  ).paddingAll(3),
+                                      child: CustomCacheNetworkImage(
+                                        "${ApiEnd.baseUrlMedia}${controller.myCompany?.logo ?? ''}",
+                                        radiusAll: 100,
+                                        height: 40,
+                                        width: 40,
+                                        borderColor: appColorYellow,
+                                        defaultImage: appIcon,
+                                        boxFit: BoxFit.cover,
+                                        isApp: true,
+                                      ),
+                                    ).paddingAll(3),
+                                  ),
                                   Expanded(
                                     child: Column(
                                       mainAxisAlignment: MainAxisAlignment.end,
@@ -101,7 +103,7 @@ class TaskHomeScreen extends GetView<TaskHomeController> {
                                           mainAxisSize: MainAxisSize.min,
 
                                           children: [
-                                            CircleContainer(colorIS: Colors.greenAccent,setSize: 5.0,),
+                                            CircleContainer(colorIS: Colors.greenAccent,setSize: 8.0,),
                                             Text(
                                               (controller.myCompany?.companyName ??
                                                   ''),
@@ -151,18 +153,22 @@ class TaskHomeScreen extends GetView<TaskHomeController> {
                                         },
                                       child: Row(
                                         children: [
-                                          SizedBox(
-                                            width: 40,
-                                            child: CustomCacheNetworkImage(
-                                              "${ApiEnd.baseUrlMedia}${controller.myCompany?.logo ?? ''}",
-                                              radiusAll: 100,
-                                              height: 40,
+                                      bottonBg(
+                                        padding: 0,
+                                            child: SizedBox(
                                               width: 40,
-                                              borderColor: appColorYellow,
-                                              defaultImage: appIcon,
-                                              boxFit: BoxFit.cover,
-                                            ),
-                                          ).paddingAll(3),
+                                              child: CustomCacheNetworkImage(
+                                                "${ApiEnd.baseUrlMedia}${controller.myCompany?.logo ?? ''}",
+                                                radiusAll: 100,
+                                                height: 40,
+                                                width: 40,
+                                                borderColor: appColorYellow,
+                                                defaultImage: appIcon,
+                                                boxFit: BoxFit.cover,
+                                                isApp: true,
+                                              ),
+                                            ).paddingAll(3),
+                                          ),
                                           Expanded(
                                             child: Column(
                                               mainAxisAlignment:
@@ -283,9 +289,11 @@ class TaskHomeScreen extends GetView<TaskHomeController> {
                                     _goToScreen(user, w);
                                   }
                                 },
-                                icon:Image.asset(addNewChatPng,
-                                // icon:SvgPicture.asset(addNewChatPng,
-                                    height: 27, width: 27))
+                                // icon:Image.asset(addNewChatPng,
+                                icon:bottonBg(
+                                  child: SvgPicture.asset(addNewChatPng,
+                                      height: 20, width: 20,color: Colors.black45,),
+                                ))
                             : const SizedBox(),
                         hGap(10),
 
@@ -305,12 +313,12 @@ class TaskHomeScreen extends GetView<TaskHomeController> {
                                       }
                                       // controller.update();
                                     },
-                                    icon: controller.isSearching.value
+                                    icon:bottonBg(child: controller.isSearching.value
                                         ? const Icon(
-                                            CupertinoIcons.clear_circled_solid)
-                                        :Image.asset(searchPng,
-                                        // :SvgPicture.asset(searchPng,
-                                            height: 25, width: 25));
+                                        CupertinoIcons.clear,color:Colors.black54)
+                                        // :Image.asset(searchPng,
+                                        :SvgPicture.asset(searchPng,
+                                            height: 20, width: 20,color: Colors.black45,)));
                               })
                         /*Obx(() {
                                   return IconButton(
@@ -367,40 +375,61 @@ class TaskHomeScreen extends GetView<TaskHomeController> {
                           double w = constraints.maxWidth;
 
                           if (w < 500) {
-                            return _recentTaskBody(true,w); // your existing list
+                            return Stack(
+                              clipBehavior: Clip.none,
+                              children: [
+                                Container(
+                                  height: Get.height,
+                                  width:Get.width,
+                                  color: recentBg,
+                                ),
+                                _recentTaskBody(true,w),
+                              ],
+                            ); // your existing list
                           }
 
                           // ---------------- TABLET (Drawer + Recents) ----------------
                           if (w < 600) {
-                            return Row(
+                            return Stack(
+                              clipBehavior: Clip.none,
                               children: [
-                                // SizedBox(
-                                //   width: 250,
-                                //   child: buildSideNav(dashboardController),   // <--- add your drawer here
-                                // ),
-                                Expanded(
-                                  child: _recentTaskBody(true,w),
+                                Container(
+                                  height: Get.height,
+                                  width:Get.width,
+                                  color: recentBg,
                                 ),
+                                _recentTaskBody(true,w),
                               ],
                             );
                           }
 
                           // ---------------- WEB (Drawer + Recents + ChatScreen) ----------------
 
-                          return Row(
+                          return Stack(
+                            clipBehavior: Clip.none,
                             children: [
-                              SizedBox(
-                                  width: w < 700? 250:320, child: _recentTaskBody(false,w)),
-                              Expanded(
-                                child: selected == null
-                                    ? const Center(
-                                        child: Text(
-                                            "Select a chat to start messaging"))
-                                    : TaskScreen(
-                                       key: ValueKey(selected.userCompany?.userCompanyId),
-                                        taskUser: selected,
-                                        showBack: false,
-                                      ), // <- correct
+                              Container(
+                                height: Get.height,
+                                width:w < 700? 250:320,
+                                color: recentBg,
+
+                              ),
+                              Row(
+                                children: [
+                                  SizedBox(
+                                      width: w < 700? 250:320, child: _recentTaskBody(false,w)),
+                                  Expanded(
+                                    child: selected == null
+                                        ? const Center(
+                                            child: Text(
+                                                "Select a chat to start messaging"))
+                                        : TaskScreen(
+                                           key: ValueKey(selected.userCompany?.userCompanyId),
+                                            taskUser: selected,
+                                            showBack: false,
+                                          ), // <- correct
+                                  ),
+                                ],
                               ),
                             ],
                           );
@@ -456,7 +485,7 @@ class TaskHomeScreen extends GetView<TaskHomeController> {
           ),
           child: SizedBox(
             width:kIsWeb? Get.width * 0.5:Get.width*.9,
-            height: Get.height * 0.9,
+            height: Get.height * 0.95,
             child: AllUserScreen(),
           ),
         ),
@@ -476,48 +505,57 @@ class TaskHomeScreen extends GetView<TaskHomeController> {
     return Column(
       children: [
         kIsWeb && !isWebwidth
-            ? TextField(
-                controller: controller.seacrhCon,
-                focusNode: controller.searchFocus,
-                autocorrect: true,
-                cursorColor: appColorGreen,
-                decoration: InputDecoration(
-                  border: InputBorder.none,
-                  hintText: 'Search User, Group & Collection ...',
-                  contentPadding:
-                      const EdgeInsets.symmetric(vertical: 3, horizontal: 10),
-                  constraints: const BoxConstraints(maxHeight: 35),
-                  suffixIcon: Obx(() {
-                    return IconButton(
-                        onPressed: () {
-                          controller.isSearching.value =
-                              !controller.isSearching.value;
-                          controller.isSearching.refresh();
-                          if (!controller.isSearching.value) {
-                            controller.searchQuery = '';
-                            controller.onSearch('');
-                            controller.seacrhCon.clear();
-                            controller.searchFocus.unfocus();
-                          }
-                        },
-                        icon: controller.isSearching.value
-                            ? const Icon(CupertinoIcons.clear_circled_solid)
-                            : Image.asset(searchPng, height: 25, width: 25));
-                            // : SvgPicture.asset(searchPng, height: 25, width: 25));
-                  }),
-                ),
-                autofocus: false,
-                style: const TextStyle(fontSize: 13, letterSpacing: 0.5),
-                onChanged: (val) {
-                  controller.searchQuery = val;
-                  controller.isSearching.value = true;
-                  controller.onSearch(val);
-                  if (val.isEmpty) {
-                    controller.isSearching.value = false;
-                    controller.searchFocus.unfocus();
-                  }
-                },
-              ).marginSymmetric(vertical: 10, horizontal: 15)
+            ?Container(
+          padding: const EdgeInsets.symmetric(horizontal: 0,vertical: 5),
+          margin: const EdgeInsets.symmetric(horizontal: 15,vertical: 8),
+
+          decoration: BoxDecoration(
+              color: whiteColor,
+              borderRadius: BorderRadius.circular(8)
+          ),
+              child: TextField(
+                  controller: controller.seacrhCon,
+                  focusNode: controller.searchFocus,
+                  autocorrect: true,
+                  cursorColor: appColorGreen,
+                  decoration: InputDecoration(
+                    border: InputBorder.none,
+                    hintText: 'Search User, Group & Collection ...',
+                    contentPadding:
+                        const EdgeInsets.symmetric(vertical: 5, horizontal: 10),
+                    constraints: const BoxConstraints(maxHeight: 35),
+                    suffixIcon: Obx(() {
+                      return IconButton(
+                          onPressed: () {
+                            controller.isSearching.value =
+                                !controller.isSearching.value;
+                            controller.isSearching.refresh();
+                            if (!controller.isSearching.value) {
+                              controller.searchQuery = '';
+                              controller.onSearch('');
+                              controller.seacrhCon.clear();
+                              controller.searchFocus.unfocus();
+                            }
+                          },
+                          icon: controller.isSearching.value
+                              ? const Icon(CupertinoIcons.clear_circled_solid,color: Colors.black45,)
+                              // : Image.asset(searchPng, height: 25, width: 25));
+                              : SvgPicture.asset(searchPng, height: 20, width: 20,color: Colors.black45,));
+                    }),
+                  ),
+                  autofocus: false,
+                  style: const TextStyle(fontSize: 13, letterSpacing: 0.5),
+                  onChanged: (val) {
+                    controller.searchQuery = val;
+                    controller.isSearching.value = true;
+                    controller.onSearch(val);
+                    if (val.isEmpty) {
+                      controller.isSearching.value = false;
+                      controller.searchFocus.unfocus();
+                    }
+                  },
+                ).marginSymmetric(vertical: 0, horizontal: 5),
+            )
             : const SizedBox(),
         Obx(() {
           if (!controller.showPostShimmer.value &&
@@ -542,8 +580,8 @@ class TaskHomeScreen extends GetView<TaskHomeController> {
                   mainAxisAlignment: MainAxisAlignment.center,
                   crossAxisAlignment: CrossAxisAlignment.center,
                   children: [
-                    Image.asset(
-                    // SvgPicture.asset(
+                    // Image.asset(
+                    SvgPicture.asset(
                       emptyRecentPng,
                       height: 90,
                     ),

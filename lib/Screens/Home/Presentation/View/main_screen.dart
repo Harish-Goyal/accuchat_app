@@ -35,29 +35,39 @@ class AccuChatDashboard extends StatelessWidget {
             return false;
           }
           return true;
-        }, child:  Scaffold(
-            // drawer: isWideScreen ? null : _buildDrawer(), // for mobile
-            body: Row(
-              children: [
-                if (isWideScreen)
-                  buildSideNavSidebarX(con,context),
-                Expanded(
-                  child: con.screens.isEmpty
-                      ? const SizedBox()
-                      : ConstrainedBox(
-                    constraints: const BoxConstraints(maxWidth: 1000),
-                    child: con.screens[con.currentIndex],
+        }, child: Scaffold(
+              // drawer: isWideScreen ? null : _buildDrawer(), // for mobile
+              body: Stack(
+                clipBehavior: Clip.none,
+                children: [
+                  SizedBox(
+                    width:kIsWeb? 140:Get.width,
+                      height: Get.height,
+                      child: Image.asset("assets/images/bglight.jpg",fit: BoxFit.cover,)),
+                  Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      if (isWideScreen)
+                        buildSideNavSidebarX(con,context),
+                      Expanded(
+                        child: con.screens.isEmpty
+                            ? const SizedBox()
+                            : ConstrainedBox(
+                          constraints: const BoxConstraints(maxWidth: 1000),
+                          child: con.screens[con.currentIndex],
+                        ),
+                      ),
+                    ],
                   ),
-                ),
-              ],
-            ),
-            bottomNavigationBar: isWideScreen
-                ? null
-                : con.screens.isEmpty
-                    ? const SizedBox()
-                    : _bottomNavigationBar(isWideScreen,con),
-          )
-           );
+
+                ],
+              ),
+              bottomNavigationBar: isWideScreen
+                  ? null
+                  : con.screens.isEmpty
+                      ? const SizedBox()
+                      : _bottomNavigationBar(isWideScreen,con),
+            ));
       }
     );
   }
@@ -65,21 +75,23 @@ class AccuChatDashboard extends StatelessWidget {
 
   Widget buildSideNavSidebarX(DashboardController controller,context) {
     return Container(
-      decoration: BoxDecoration(
+      decoration: const BoxDecoration(
         border: Border.symmetric(
-          vertical: BorderSide(color: Colors.grey.shade200),
+          // vertical: BorderSide(color: Colors.grey.shade200),
         ),
+
+
       ),
       child: SidebarX(
         controller: controller.sidebarXController,
         animationDuration: const Duration(milliseconds: 200),
         theme: SidebarXTheme(
-          margin: const EdgeInsets.all(6),
+          margin: const EdgeInsets.all(0),
           decoration: BoxDecoration(
-            color: appColorGreen.withOpacity(.1),
+            color: perplebr.withOpacity(.1),
             borderRadius: BorderRadius.circular(2),
           ),
-          hoverColor: appColorGreen.withOpacity(.2),
+          hoverColor: perpleBg,
           hoverTextStyle: BalooStyles.baloosemiBoldTextStyle(),
           textStyle: BalooStyles.baloomediumTextStyle(color: Colors.black87,),
           selectedTextStyle: BalooStyles.baloomediumTextStyle(color: Colors.white),
@@ -89,41 +101,59 @@ class AccuChatDashboard extends StatelessWidget {
             borderRadius: BorderRadius.circular(12),
           ),
           selectedItemDecoration: BoxDecoration(
-            color: appColorGreen,
+            // color: appColorGreen,
+            gradient: LinearGradient(colors: [
+              perpleBg,
+              lightGre
+            ]),
             borderRadius: BorderRadius.circular(12),
           ),
+
 
         ),
         extendedTheme: const SidebarXTheme(width: 140),
         items: [
           SidebarXItem(
             label: 'Chats',
-            iconBuilder: (selected, hovered) =>Image.asset(
-            // iconBuilder: (selected, hovered) =>SvgPicture.asset(
+            // iconBuilder: (selected, hovered) =>Image.asset(
+            iconBuilder: (selected, hovered) => selected ? SvgPicture.asset(
+              chatHomewhite,
+              height: 20,
+              // color: selected ? Colors.white : Colors.grey,
+            ).paddingSymmetric(horizontal: 5):SvgPicture.asset(
               chatHome,
               height: 20,
-              color: selected ? Colors.white : Colors.grey,
+              color: appColorGreen,
+              // color: selected ? Colors.white : Colors.grey,
             ).paddingSymmetric(horizontal: 5),
             onTap: () => _handleSidebarTap(controller, 0,context),
           ),
           SidebarXItem(
             label: 'Tasks',
             iconBuilder: (selected, hovered) =>
-                Image.asset(
-                // SvgPicture.asset(
+                // Image.asset(
+            selected ?    SvgPicture.asset(
+                tasksHomewhite,
+                height: 20,
+              ).paddingSymmetric(horizontal: 5):SvgPicture.asset(
                 tasksHome,
                 height: 20,
-                color: selected ? Colors.white : Colors.grey,
+              color: Colors.blueAccent,
               ).paddingSymmetric(horizontal: 5),
             onTap: () => _handleSidebarTap(controller, 1,context),
           ),
           SidebarXItem(
             label: 'Gallery',
-            iconBuilder: (selected, hovered) => Image.asset(
+            iconBuilder: (selected, hovered) => selected ? SvgPicture.asset(
+            // iconBuilder: (selected, hovered) => SvgPicture.asset(
+              galleryIconwhite,
+              height: 20,
+            ).paddingSymmetric(horizontal: 5) :
+            SvgPicture.asset(
             // iconBuilder: (selected, hovered) => SvgPicture.asset(
               galleryIcon,
               height: 20,
-              color: selected ? Colors.white : Colors.grey,
+              color: perplebr,
             ).paddingSymmetric(horizontal: 5),
             onTap: () => _handleSidebarTap(controller, 2,context),
           ),
@@ -133,11 +163,11 @@ class AccuChatDashboard extends StatelessWidget {
               return Stack(
                 clipBehavior: Clip.none,
                 children: [
-                  Image.asset(
-                  // SvgPicture.asset(
+                  // Image.asset(
+                  SvgPicture.asset(
                     connectedAppIcon,
                     height: 20,
-                    color: selected ? Colors.white : Colors.grey,
+                    color: selected ? Colors.white : appColorYellow,
                   ).paddingSymmetric(horizontal: 5),
                   controller.newCompanyChat.value
                       ? Positioned(
@@ -159,8 +189,8 @@ class AccuChatDashboard extends StatelessWidget {
         footerItems: [
           SidebarXItem(
             label: 'Settings',
-            iconWidget: Image.asset(
-            // iconWidget: SvgPicture.asset(
+            // iconWidget: Image.asset(
+            iconWidget: SvgPicture.asset(
               settingPng,
               height: 20,
             ).paddingSymmetric(horizontal: 5),
@@ -470,10 +500,10 @@ class AccuChatDashboard extends StatelessWidget {
         homec.update();
       } else {
         final homec = Get.put(GalleryController());
-        homec.getCompany();
-        homec.resetPagination();
-        homec.hitApiToGetFolder(reset: true);
-        homec.update();
+        // homec.getCompany();
+        // homec.resetPagination();
+        // homec.hitApiToGetFolder(reset: true);
+        // homec.update();
       }
     }
 
@@ -829,95 +859,104 @@ class AccuChatDashboard extends StatelessWidget {
         ));
   }*/
   Widget _bottomNavigationBar(bool isWide,DashboardController controller) {
-    return  SnakeNavigationBar.gradient(
-        behaviour: SnakeBarBehaviour.floating,
-        backgroundGradient: LinearGradient(colors: [
-          appColorGreen.withOpacity(.2),
-          appColorYellow.withOpacity(.2)
-        ]),
-        snakeShape: SnakeShape.circle,
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-        snakeViewGradient: LinearGradient(colors: [
-          appColorGreen.withOpacity(.8),
-          appColorYellow.withOpacity(.8)
-        ]),
-        selectedItemGradient:
-            const LinearGradient(colors: [Colors.white, Colors.white]),
-        showSelectedLabels: true,
-        selectedLabelStyle: BalooStyles.baloonormalTextStyle(color: Colors.white),
-        unselectedLabelStyle: BalooStyles.baloonormalTextStyle(),
-        showUnselectedLabels: true,
-        currentIndex: controller.currentIndex,
-        onTap: (v) async {
-          if (controller.bottomNavItems.isNotEmpty) {
-            controller.updateIndex(v);
-            if (v == 1) {
-              if (kIsWeb) unregisterImage();
-              isTaskMode = true;
-              if (Get.isRegistered<TaskHomeController>()) {
-               final tasksHome= Get.find<TaskHomeController>();
-                 tasksHome.page = 1;
-               tasksHome.hitAPIToGetRecentTasksUser();
-              } else {
-          final tasksHome= Get.put(TaskHomeController());
-                tasksHome.page = 1;
-                tasksHome.hitAPIToGetRecentTasksUser();
-              }
+    return  Container(
+      // margin: EdgeInsets.symmetric(horizontal: 10),
+      // decoration: BoxDecoration(
+      //   borderRadius: BorderRadius.circular(20),
+      //     image: DecorationImage(image: AssetImage(appbarBG),fit: BoxFit.cover)
+      // ),
+      child: SnakeNavigationBar.gradient(
+          behaviour: SnakeBarBehaviour.floating,
+          backgroundGradient: LinearGradient(colors: [
+            perpleBg,
+            lightGre
+          ]),
+          snakeShape: SnakeShape.circle,
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+          snakeViewGradient: LinearGradient(colors: [
+            perpleBg,
+            lightGre
+          ]),
+          selectedItemGradient:
+              const LinearGradient(colors: [Colors.white, Colors.white]),
+        unselectedItemGradient:
+               const LinearGradient(colors: [Colors.black54, Colors.black54]),
+          showSelectedLabels: true,
+          selectedLabelStyle: BalooStyles.baloonormalTextStyle(color: Colors.white),
+          unselectedLabelStyle: BalooStyles.baloonormalTextStyle(color: appColorPerple),
+          showUnselectedLabels: true,
+          currentIndex: controller.currentIndex,
+          onTap: (v) async {
+            if (controller.bottomNavItems.isNotEmpty) {
+              controller.updateIndex(v);
+              if (v == 1) {
+                if (kIsWeb) unregisterImage();
+                isTaskMode = true;
+                if (Get.isRegistered<TaskHomeController>()) {
+                 final tasksHome= Get.find<TaskHomeController>();
+                   tasksHome.page = 1;
+                 tasksHome.hitAPIToGetRecentTasksUser();
+                } else {
+            final tasksHome= Get.put(TaskHomeController());
+                  tasksHome.page = 1;
+                  tasksHome.hitAPIToGetRecentTasksUser();
+                }
 
-              if(kIsWeb&&isWide){
-                final _tagid = TaskPresence.activeTaskId.value;
-                final _tag = "task_${_tagid ?? 'mobile'}";
-                if (Get.isRegistered<TaskController>(tag: _tag)) {
-                 final taskc= Get.find<TaskController>(tag: _tag);
-                 taskc.page = 1;
-                 taskc.hitAPIToGetTaskHistory();
-              }
-              }/*else{
-              if (Get.isRegistered<TaskController>()) {
-                if (kIsWeb && isWide) {
-                  Get.find<TaskController>().page = 1;
-                  Get.find<TaskController>().hitAPIToGetTaskHistory();
+                if(kIsWeb&&isWide){
+                  final _tagid = TaskPresence.activeTaskId.value;
+                  final _tag = "task_${_tagid ?? 'mobile'}";
+                  if (Get.isRegistered<TaskController>(tag: _tag)) {
+                   final taskc= Get.find<TaskController>(tag: _tag);
+                   taskc.page = 1;
+                   taskc.hitAPIToGetTaskHistory();
                 }
-              } else {
-                if (kIsWeb && isWide) {
-                  Get.put(TaskController(user: controller.user));
-                  Get.find<TaskController>().page = 1;
-                  Get.find<TaskController>().hitAPIToGetTaskHistory();
-                }
-              }
-            }*/
-            }
-
-            if(v==0) {
-              final _tagid = ChatPresence.activeChatId.value;
-              final _tag = "chat_${_tagid ?? 'mobile'}";
-              isTaskMode = false;
-              if (Get.isRegistered<ChatHomeController>()) {
-                final chathomec = Get.find<ChatHomeController>();
-                chathomec.hitAPIToGetRecentChats(page: 1);
-              } else {
-                final chathomec =  Get.put(ChatHomeController());
-                chathomec.hitAPIToGetRecentChats(page: 1);
-              }
-              if (kIsWeb && isWide) {
-              if (Get.isRegistered<ChatScreenController>(tag: _tag)) {
-                 final con = Get.find<ChatScreenController>(tag: _tag);
-                 con.page = 1;
-                 con.hitAPIToGetChatHistory('isRegistered bottom nav chat kIsWeb && isWide', user: con.user!);
-                }
-              } /*else {
-                if (kIsWeb && isWide) {
-                final con=  Get.put(ChatScreenController(user: controller.user),tag: _tag);
-                con.page = 1;
-                con.hitAPIToGetChatHistory('bottom nav chat kIsWeb && isWide');
+                }/*else{
+                if (Get.isRegistered<TaskController>()) {
+                  if (kIsWeb && isWide) {
+                    Get.find<TaskController>().page = 1;
+                    Get.find<TaskController>().hitAPIToGetTaskHistory();
+                  }
+                } else {
+                  if (kIsWeb && isWide) {
+                    Get.put(TaskController(user: controller.user));
+                    Get.find<TaskController>().page = 1;
+                    Get.find<TaskController>().hitAPIToGetTaskHistory();
+                  }
                 }
               }*/
+              }
+
+              if(v==0) {
+                final _tagid = ChatPresence.activeChatId.value;
+                final _tag = "chat_${_tagid ?? 'mobile'}";
+                isTaskMode = false;
+                if (Get.isRegistered<ChatHomeController>()) {
+                  final chathomec = Get.find<ChatHomeController>();
+                  chathomec.hitAPIToGetRecentChats(page: 1);
+                } else {
+                  final chathomec =  Get.put(ChatHomeController());
+                  chathomec.hitAPIToGetRecentChats(page: 1);
+                }
+                if (kIsWeb && isWide) {
+                if (Get.isRegistered<ChatScreenController>(tag: _tag)) {
+                   final con = Get.find<ChatScreenController>(tag: _tag);
+                   con.page = 1;
+                   con.hitAPIToGetChatHistory('isRegistered bottom nav chat kIsWeb && isWide', user: con.user!);
+                  }
+                } /*else {
+                  if (kIsWeb && isWide) {
+                  final con=  Get.put(ChatScreenController(user: controller.user),tag: _tag);
+                  con.page = 1;
+                  con.hitAPIToGetChatHistory('bottom nav chat kIsWeb && isWide');
+                  }
+                }*/
+              }
+              controller.update();
             }
-            controller.update();
-          }
-        },
-        items: controller.barItems,
+          },
+          items: controller.barItems,
+      ),
     );
   }
 }

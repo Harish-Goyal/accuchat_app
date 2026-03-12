@@ -427,8 +427,8 @@ class _ProfileAvatar extends StatelessWidget {
               height: size,
               fit: BoxFit.cover,
               errorBuilder: (_, __, ___) =>
-                  Image.asset(userIcon, height: 40),
-                  // SvgPicture.asset(userIcon, height: 40),
+                  // Image.asset(ICON_profile, height: 40),
+                  SvgPicture.asset(ICON_profile, height: 40),
             ),
           ),
         );
@@ -442,7 +442,7 @@ class _ProfileAvatar extends StatelessWidget {
       width: size,
       boxFit: BoxFit.cover,
       radiusAll: 100,
-      defaultImage: userIcon,
+      defaultImage: ICON_profile,
       borderColor: AppTheme.appColor,
     );
   }
@@ -504,7 +504,7 @@ class _ProfileAvatar extends StatelessWidget {
                           Get.back();
                         }
                       },
-                      child: Image.asset('assets/images/add_image.png'),
+                      child: Image.asset(addCamera),
                     ),
                   ),
 
@@ -531,7 +531,7 @@ class _ProfileAvatar extends StatelessWidget {
                           Get.back();
                         }
                       },
-                      child: Image.asset('assets/images/camera.png'),
+                      child: Image.asset(addGallery),
                     ),
                   ),
                 ],

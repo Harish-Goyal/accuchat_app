@@ -159,8 +159,8 @@ class dynamicButton extends StatelessWidget {
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
 
-            isShowIconText? Image.asset(leanIcon,height: 20,color: iconColor??null):Container(),
-            // isShowIconText? SvgPicture.asset(leanIcon,height: 20,color: iconColor??null):Container(),
+            // isShowIconText? Image.asset(leanIcon,height: 20,color: iconColor??null):Container(),
+            isShowIconText? SvgPicture.asset(leanIcon,height: 20,color: iconColor??null):Container(),
             isShowIconText?hGap(5):hGap(0),
             Text(name,
                 style: BalooStyles.baloosemiBoldTextStyle(
@@ -170,8 +170,8 @@ class dynamicButton extends StatelessWidget {
             ),
 
           ],
-        ):Image.asset(leanIcon,height: 20,color: iconColor??null),
-        // ):SvgPicture.asset(leanIcon,height: 20,color: iconColor??null),
+        // ):Image.asset(leanIcon,height: 20,color: iconColor??null),
+        ):SvgPicture.asset(leanIcon,height: 20,color: iconColor??null),
       ),
     );
   }

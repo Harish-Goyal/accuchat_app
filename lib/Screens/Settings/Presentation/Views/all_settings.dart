@@ -65,7 +65,7 @@ class AllSettingsScreen extends GetView<AllSettingsController> {
           ),
           child: SizedBox(
             width: 600,
-            height: Get.height * 0.9,
+            height: Get.height * 0.95,
             child: ProfileScreen(),
           ),
         ),
@@ -89,7 +89,7 @@ class AllSettingsScreen extends GetView<AllSettingsController> {
           ),
           child: SizedBox(
             width: 600,
-            height: Get.height * 0.9,
+            height: Get.height * 0.95,
             child: HtmlViewer(
               htmlContent: cnt,
             ),

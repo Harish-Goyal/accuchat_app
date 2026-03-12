@@ -5,6 +5,7 @@ import 'package:get/get.dart';
 
 import '../../../Services/APIs/auth_service/auth_api_services_impl.dart';
 import '../../../Services/APIs/post/post_api_service_impl.dart';
+import '../../../Services/share_helper.dart';
 import '../../../utils/shares_pref_web.dart';
 import '../../Chat/api/session_alive.dart';
 import '../../Chat/models/get_company_res_model.dart';
@@ -26,8 +27,11 @@ class SplashBinding extends Bindings {
 
 
 class InitBinding extends Bindings {
+
   @override
   Future<void> dependencies() async {
+
+    Get.put(ShareHandlerController(), permanent: true);
     if (!Get.isRegistered<AppStorage>()) {
       Get.putAsync<AppStorage>(() async {
         await AppStorage().init(boxName: 'accu_chat');            // this is safe & idempotent now
@@ -40,7 +44,6 @@ class InitBinding extends Bindings {
     Get.lazyPut<AuthApiServiceImpl>(
       () => AuthApiServiceImpl(),
     );
-
 
     Get.lazyPut<PostApiServiceImpl>(
       () => PostApiServiceImpl(),

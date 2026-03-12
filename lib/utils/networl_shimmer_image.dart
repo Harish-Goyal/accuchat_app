@@ -10,6 +10,7 @@ import 'helper_widget.dart';
 class CustomCacheNetworkImage extends StatelessWidget {
   String imageurl;
   bool? withBaseUrl = false;
+  final bool isApp;
   double? height;
   double? width;
   double? assetPadding;
@@ -31,6 +32,7 @@ class CustomCacheNetworkImage extends StatelessWidget {
         Key? key,
         this.withBaseUrl,
         this.height,
+        this.isApp = false,
         this.width,
         this.assetPadding,
         this.radiusAll,
@@ -87,8 +89,12 @@ class CustomCacheNetworkImage extends StatelessWidget {
                   width: double.infinity,
                   height: height,
                   alignment: Alignment.center,
-                  child: Image.asset(
-                  // child: SvgPicture.asset(
+                  // child: Image.asset(
+                  child:isApp? Image.asset(appIcon,
+                    width: width,
+                    height: height,
+                    color: color,
+                    fit: (assetImageFitType ?? boxFit) ?? BoxFit.cover,) : SvgPicture.asset(
                     defaultImage ??appIcon,
                     height: width,
                     width: height,
@@ -102,7 +108,7 @@ class CustomCacheNetworkImage extends StatelessWidget {
                 width: width,
                 height: height,
                 // alignment: Alignment.center,
-                padding: EdgeInsets.all(8),
+                padding: EdgeInsets.all(11),
                 decoration: BoxDecoration(
                   borderRadius: radiusAll == null
                       ? BorderRadius.only(
@@ -117,8 +123,12 @@ class CustomCacheNetworkImage extends StatelessWidget {
                       color: borderColor ?? Colors.transparent)
                       : null,
                 ),
-                child: Image.asset(
-                // child: SvgPicture.asset(
+                // child: Image.asset(
+                child:isApp!? Image.asset(defaultImage ?? appIcon,
+                  width: width,
+                  height: height,
+                  color: color,
+                  fit: (assetImageFitType ?? boxFit) ?? BoxFit.cover,) :SvgPicture.asset(
                 // child: SvgPicture.asset(
                   defaultImage ?? appIcon,
                   width: width,

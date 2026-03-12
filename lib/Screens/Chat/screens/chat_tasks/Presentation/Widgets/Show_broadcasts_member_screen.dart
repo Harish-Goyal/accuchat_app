@@ -150,8 +150,8 @@ class _BroadcastsMembersScreenState extends State<BroadcastsMembersScreen> {
            CircleAvatar(
             radius: 40,
             backgroundColor: Colors.white,
-            child: Image.asset(broadcastIcon),
-            // child: SvgPicture.asset(broadcastIcon),
+            // child: Image.asset(broadcastIcon),
+            child: SvgPicture.asset(broadcastIcon),
           ),
 
 
@@ -182,7 +182,7 @@ class _BroadcastsMembersScreenState extends State<BroadcastsMembersScreen> {
                 isShowIconText: false,
                 gradient: buttonGradient,
 
-                leanIcon: chaticon),
+                leanIcon: ICON_profile),
           const SizedBox(height: 10),
           Expanded(
             child: ListView.builder(
@@ -199,7 +199,7 @@ class _BroadcastsMembersScreenState extends State<BroadcastsMembersScreen> {
                   SizedBox(
                     width: 55,
                     child: CustomCacheNetworkImage(
-                      user.image??'',radiusAll: 100,height: 75,width: 75,defaultImage: userIcon,
+                      user.image??'',radiusAll: 100,height: 75,width: 75,defaultImage: ICON_profile,
                       borderColor: greyColor,),
                   ),
                   title: Row(

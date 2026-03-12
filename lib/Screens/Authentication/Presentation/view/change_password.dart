@@ -23,7 +23,7 @@ class ChangePasswordScreen extends GetView<ChangePassController> {
              child: Column(
                crossAxisAlignment: CrossAxisAlignment.center,
                children: <Widget>[
-                 Image.asset(changePassPNG,height: 200 ,width:MediaQuery.of(context).size.width,),
+                 // Image.asset(changePassPNG,height: 200 ,width:MediaQuery.of(context).size.width,),
                  getAppLogo(),
                  vGap(10),
                  Text(

@@ -58,8 +58,8 @@ class GroupMembersScreen extends GetView<GrBrMembersController> {
                   radius: 35,
                   
                   backgroundColor: Colors.white,
-                   child: Image.asset(controller.groupOrBr?.userCompany?.isGroup==1?
-                   // child: SvgPicture.asset(controller.groupOrBr?.userCompany?.isGroup==1?
+                   // child: Image.asset(controller.groupOrBr?.userCompany?.isGroup==1?
+                   child: SvgPicture.asset(controller.groupOrBr?.userCompany?.isGroup==1?
                    groupIcn: broadcastIcon),
                                ),
                ),
@@ -308,7 +308,7 @@ class GroupMembersScreen extends GetView<GrBrMembersController> {
           RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
           child: SizedBox(
             width: Get.width * 0.5,
-            height: Get.height * 0.9,
+            height: Get.height * 0.95,
             child: const AddGroupMembersScreen(),
           ),
         ),

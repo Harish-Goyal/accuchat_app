@@ -16,8 +16,8 @@ class ChatHomeShimmer extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final base = Colors.grey.shade300;
-    final highlight = Colors.grey.shade100;
+    final base = Colors.grey.shade100;
+    final highlight = Colors.grey.shade50;
 
     return IgnorePointer(
       child: SafeArea(

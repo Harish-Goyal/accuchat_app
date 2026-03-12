@@ -139,7 +139,7 @@ class AllUserScreenDialog extends GetView<AllUserController> {
                                         listToShow[i].userCompany?.isBroadcast ==
                                             1 ?
                                         broadcastIcon
-                                            : userIcon,
+                                            : ICON_profile,
                                       ),
                                     ),
                                     title:

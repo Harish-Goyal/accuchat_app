@@ -27,8 +27,10 @@ import 'package:get/get.dart';
 import '../Screens/Chat/screens/auth/Presentation/Views/landing_screen.dart';
 import '../Screens/Chat/screens/chat_tasks/Bindings/bindings.dart';
 import '../Screens/Chat/screens/chat_tasks/Presentation/Controllers/chat_home_controller.dart';
+import '../Screens/Chat/screens/chat_tasks/Presentation/Views/ShareSelectChatPage.dart';
 import '../Screens/Chat/screens/chat_tasks/Presentation/Views/chat_screen_mobile.dart';
 import '../Screens/Chat/screens/chat_tasks/Presentation/Views/create_broadcast_dialog_screen.dart';
+import '../Screens/Chat/screens/chat_tasks/Presentation/Views/share_preview.dart';
 import '../Screens/Chat/screens/chat_tasks/Presentation/Views/show_groups_members_screen.dart';
 import '../Screens/Chat/screens/chat_tasks/Presentation/Views/task_chat_screen_mobile.dart';
 import '../Screens/Home/Bindings/home_bindings.dart';
@@ -113,6 +115,14 @@ class AppPages {
       name: AppRoutes.member_sr,
       page: () => const GroupMembersScreen(),
       bindings: [GrBrMemberBinding()],
+    ),
+    GetPage(
+      name: AppRoutes.shareSelectChat,
+      page: () =>  ShareSelectChatPage(),
+    ),
+    GetPage(
+      name: AppRoutes.sharePreview,
+      page: () => const SharePreviewPage(),
     ),
     GetPage(
       name: AppRoutes.company_update,

@@ -92,11 +92,12 @@ class ChatsHomeScreen extends GetView<ChatHomeController> {
   AppBar _appBarWidget(w,conxt) {
     return AppBar(
       automaticallyImplyLeading: false,
-      backgroundColor: Colors.white,
+      backgroundColor: recentBg,
       elevation: 1,
       scrolledUnderElevation: 0,
-      surfaceTintColor: Colors.white,
-      bottom: PreferredSize(preferredSize: Size(Get.width*.75, 5), child: divider(color: Colors.grey.shade300,thikness: 1.1)),
+
+      surfaceTintColor:recentBg,
+      // bottom: PreferredSize(preferredSize: Size(Get.width*.75, 5), child: divider(color: Colors.grey.shade300,thikness: 1.1)),
       title:kIsWeb && w>600 ?InkWell(
         hoverColor: Colors.transparent,
         onTap: () {
@@ -105,18 +106,22 @@ class ChatsHomeScreen extends GetView<ChatHomeController> {
         child: Row(
           mainAxisSize: MainAxisSize.min,
           children: [
-            SizedBox(
-              width: 40,
-              child: CustomCacheNetworkImage(
-                "${ApiEnd.baseUrlMedia}${controller.myCompany?.logo ?? ''}",
-                radiusAll: 100,
-                height: 40,
+          bottonBg(
+            padding: 0,
+              child: SizedBox(
                 width: 40,
-                borderColor: appColorYellow,
-                defaultImage: appIcon,
-                boxFit: BoxFit.cover,
-              ),
-            ).paddingAll(3),
+                child: CustomCacheNetworkImage(
+                  "${ApiEnd.baseUrlMedia}${controller.myCompany?.logo ?? ''}",
+                  radiusAll: 100,
+                  height: 40,
+                  width: 40,
+                  borderColor: perplebr,
+                  defaultImage: appIcon,
+                  // boxFit: BoxFit.cover,
+                  isApp: true,
+                ),
+              ).paddingAll(3),
+            ),
             Expanded(
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.end,
@@ -134,7 +139,7 @@ class ChatsHomeScreen extends GetView<ChatHomeController> {
                     mainAxisSize: MainAxisSize.min,
 
                     children: [
-                      CircleContainer(colorIS: Colors.greenAccent,setSize: 5.0,),
+                      CircleContainer(colorIS: Colors.greenAccent,setSize: 8.0,),
                       Text(
                         (controller.myCompany?.companyName ?? ''),
                         style: BalooStyles.baloomediumTextStyle(
@@ -157,6 +162,7 @@ class ChatsHomeScreen extends GetView<ChatHomeController> {
         return controller.isSearching.value
             ? TextField(
                 controller: controller.seacrhCon,
+                focusNode: controller.searchtetxtFocus,
                 cursorColor: appColorGreen,
                 autocorrect: true,
                 decoration: const InputDecoration(
@@ -164,7 +170,6 @@ class ChatsHomeScreen extends GetView<ChatHomeController> {
                     hintText: 'Search User, Group & Collection ...',
                     contentPadding: EdgeInsets.symmetric(vertical: 0, horizontal: 10),
                     constraints: BoxConstraints(maxHeight: 45)),
-                autofocus: false,
                 style: const TextStyle(fontSize: 13, letterSpacing: 0.5),
                 onChanged: (val) {
                   controller.searchQuery = val;
@@ -188,6 +193,7 @@ class ChatsHomeScreen extends GetView<ChatHomeController> {
                         borderColor: appColorYellow,
                         defaultImage: appIcon,
                         boxFit: BoxFit.cover,
+                        isApp: true,
                       ),
                     ).paddingAll(3),
                     Expanded(
@@ -207,7 +213,7 @@ class ChatsHomeScreen extends GetView<ChatHomeController> {
                             mainAxisSize: MainAxisSize.min,
 
                             children: [
-                              CircleContainer(colorIS: Colors.greenAccent,setSize: 5.0,),
+                              CircleContainer(colorIS: Colors.greenAccent,setSize: 8.0,),
                               Text(
                                 (controller.myCompany?.companyName ?? ''),
                                 style: BalooStyles.baloomediumTextStyle(
@@ -234,12 +240,14 @@ class ChatsHomeScreen extends GetView<ChatHomeController> {
                     _goToScreen(user,w);
                   }
                 },
-                icon: Image.asset(
-                // icon: SvgPicture.asset(
-                  addNewChatPng,
-                  height: 27,
-                  width: 27,
-                  fit: BoxFit.contain,
+                // icon: Image.asset(
+                icon:bottonBg(child: SvgPicture.asset(
+                    addNewChatPng,
+                    height: 20,
+                    width: 20,
+                    color: Colors.black45,
+                    fit: BoxFit.contain,
+                  ),
                 ))
             : const SizedBox(),
     kIsWeb && w >600 ?const SizedBox(): hGap(10),
@@ -248,17 +256,25 @@ class ChatsHomeScreen extends GetView<ChatHomeController> {
               onPressed: () {
                 controller.isSearching.value = !controller.isSearching.value;
                 controller.isSearching.refresh();
+                if(controller.isSearching.value){
+                  controller.searchtetxtFocus.requestFocus();
+                }
                 if (!controller.isSearching.value) {
                   controller.searchQuery = '';
                   controller.resetPaginationForNewChat();
                   controller.onSearch('');
                   controller.seacrhCon.clear();
+                  controller.searchtetxtFocus.unfocus();
                 }
+
+
               },
-              icon: controller.isSearching.value
-                  ? const Icon(CupertinoIcons.clear_circled_solid)
-                  :Image.asset(searchPng, height: 25, width: 25));
-                  // :SvgPicture.asset(searchPng, height: 25, width: 25));
+              icon:bottonBg(
+                child: controller.isSearching.value
+                    ? const Icon(CupertinoIcons.clear,color:Colors.black54)
+                // :Image.asset(searchPng, height: 25, width: 25));
+                    :SvgPicture.asset(searchPng, height: 20, width: 20,color: Colors.black45,)),
+              );
         }),
         PopupMenuButton<String>(
           padding: EdgeInsets.zero,
@@ -301,8 +317,8 @@ class ChatsHomeScreen extends GetView<ChatHomeController> {
             PopupMenuItem(
               value: 'new_broadcast',
               child: Row(mainAxisSize: MainAxisSize.min, children: [
-    Image.asset(
-                // SvgPicture.asset(
+    // Image.asset(
+                SvgPicture.asset(
                   broadcastIcon,
                   height: 15,
                   color: appColorYellow,
@@ -318,8 +334,8 @@ class ChatsHomeScreen extends GetView<ChatHomeController> {
               value: 'settings',
               child: Row(
                 mainAxisSize: MainAxisSize.min, children: [
-                Image.asset(
-                // SvgPicture.asset(
+                // Image.asset(
+                SvgPicture.asset(
                   settingPng,
                   height: 15,
                   color: Colors.black87,
@@ -333,8 +349,8 @@ class ChatsHomeScreen extends GetView<ChatHomeController> {
             ),
           ],
           color: Colors.white,
-          icon: const Icon(Icons.more_vert),
-        ),
+          icon: bottonBg(child: Icon(Icons.more_vert,size: 20,color: Colors.black45,)),
+        ).marginOnly(right: 10),
       ],
     );
   }
@@ -384,7 +400,7 @@ class ChatsHomeScreen extends GetView<ChatHomeController> {
           ),
           child: SizedBox(
             width:kIsWeb? Get.width * 0.5:Get.width*.9,
-            height: Get.height * 0.9,
+            height: Get.height * 0.95,
             child:  AllUserScreen(),
           ),
         ),
@@ -405,40 +421,62 @@ class ChatsHomeScreen extends GetView<ChatHomeController> {
       return LayoutBuilder(
         builder: (context, constraints) {
           double w = constraints.maxWidth;
-
+      
           if (w < 500) {
-            return _recentChatsList(controller, true, w); // your existing list
-          }
-
-          if (w < 600) {
-            return Row(
+            return Stack(
+              clipBehavior: Clip.none,
               children: [
-                // SizedBox(
-                //   width: 250,
-                //   child: buildSideNav(dashboardController),   // <--- add your drawer here
-                // ),
-                Expanded(
-                  child: _recentChatsList(controller, true, w),
+                Container(
+                  height: Get.height,
+                  width:Get.width,
+                  color: recentBg,
+
                 ),
+                _recentChatsList(controller, true, w),
+              ],
+            ); // your existing list
+          }
+      
+          if (w < 600) {
+            return Stack(
+              clipBehavior: Clip.none,
+              children: [
+                Container(
+                  height: Get.height,
+                  width:Get.width,
+                  color: recentBg,
+                ),
+                _recentChatsList(controller, true, w),
               ],
             );
           }
-
+      
           // ---------------- WEB (Drawer + Recents + ChatScreen) ----------------
-
-          return Row(
+      
+          return Stack(
+            clipBehavior: Clip.none,
             children: [
-              SizedBox(
-                  width:w < 700? 250:320, child: _recentChatsList(controller, false, w)),
-              Expanded(
-                child: selected == null
-                    ? const Center(
-                        child: Text("Select a chat to start messaging"))
-                    : ChatScreen(
-                  key: ValueKey(selected.userCompany?.userCompanyId ?? selected.userId),
-                        user: selected,
-                        showBack: false,
-                      ), // <- correct
+              Container(
+                height: Get.height,
+                width:w < 700? 250:320,
+                color: recentBg,
+
+              ),
+              Row(
+                children: [
+                  SizedBox(
+                      width:w < 700? 250:320, child: _recentChatsList(controller, false, w)),
+                  Expanded(
+                    child: selected == null
+                        ? const Center(
+                            child: Text("Select a chat to start messaging"))
+                        : ChatScreen(
+                      key: ValueKey(selected.userCompany?.userCompanyId ?? selected.userId),
+                            user: selected,
+                            showBack: false,
+                          ), // <- correct
+                  ),
+                ],
               ),
             ],
           );
@@ -451,49 +489,58 @@ class ChatsHomeScreen extends GetView<ChatHomeController> {
       ChatHomeController controller, bool isWebwidth, double width) {
     return Column(
       children: [
-        kIsWeb && !isWebwidth ?TextField(
-          controller: controller.seacrhCon,
-          focusNode:controller.searchFocus,
-          autocorrect: true,
-          cursorColor: appColorGreen,
+        kIsWeb && !isWebwidth ?Container(
+          padding: const EdgeInsets.symmetric(horizontal: 0,vertical: 5),
+          margin: const EdgeInsets.symmetric(horizontal: 15,vertical: 8),
 
-          decoration:  InputDecoration(
-            border: InputBorder.none,
-            hintText: 'Search User, Group & Collection ...',
-            contentPadding: const EdgeInsets.symmetric(vertical: 3, horizontal: 10),
-            constraints: const BoxConstraints(maxHeight: 35),
-            suffixIcon: Obx(() {
-              return IconButton(
-                  onPressed: () {
-                    controller.isSearching.value = !controller.isSearching.value;
-                    controller.isSearching.refresh();
-                    if (!controller.isSearching.value) {
-                      controller.searchQuery = '';
-                      controller.onSearch('');
-                      controller.seacrhCon.clear();
-                      controller.searchFocus.unfocus();
-                    }
-                    // controller.update();
-                  },
-                  icon: controller.isSearching.value
-                      ? const Icon(CupertinoIcons.clear_circled_solid)
-                      : Image.asset(searchPng, height: 25, width: 25));
-                      // : SvgPicture.asset(searchPng, height: 25, width: 25));
-            }),
+          decoration: BoxDecoration(
+            color: whiteColor,
+            borderRadius: BorderRadius.circular(8)
           ),
-          autofocus: false,
-          style: const TextStyle(fontSize: 13, letterSpacing: 0.5),
-          onChanged: (val) {
-            controller.searchQuery = val;
-            controller.isSearching.value=true;
-            controller.onSearch(val);
-            if(val.isEmpty){
-              controller.isSearching.value=false;
-              controller.searchFocus.unfocus();
-            }
-          },
+         
+          child: TextField(
+            controller: controller.seacrhCon,
+            focusNode:controller.searchFocus,
+            autocorrect: true,
+            cursorColor: perplebr,
+            decoration:  InputDecoration(
+              border: InputBorder.none,
+              hintText: 'Search User, Group & Collection ...',
+              contentPadding: const EdgeInsets.symmetric(vertical: 5, horizontal: 10),
+              constraints: const BoxConstraints(maxHeight: 35),
+              suffixIcon: Obx(() {
+                return IconButton(
+                    onPressed: () {
+                      controller.isSearching.value = !controller.isSearching.value;
+                      controller.isSearching.refresh();
+                      if (!controller.isSearching.value) {
+                        controller.searchQuery = '';
+                        controller.onSearch('');
+                        controller.seacrhCon.clear();
+                        controller.searchFocus.unfocus();
+                      }
+                      // controller.update();
+                    },
+                    icon: controller.isSearching.value
+                        ? const Icon(CupertinoIcons.clear_circled_solid)
+                        // : Image.asset(searchPng, height: 25, width: 25));
+                        : SvgPicture.asset(searchPng, height: 20, width: 20,color: Colors.black45));
+              }),
+            ),
+            autofocus: false,
+            style: const TextStyle(fontSize: 13, letterSpacing: 0.5),
+            onChanged: (val) {
+              controller.searchQuery = val;
+              controller.isSearching.value=true;
+              controller.onSearch(val);
+              if(val.isEmpty){
+                controller.isSearching.value=false;
+                controller.searchFocus.unfocus();
+              }
+            },
 
-        ).marginSymmetric(vertical: 10,horizontal: 15):const SizedBox()    ,
+          ).marginSymmetric(vertical: 0,horizontal: 5),
+        ):const SizedBox()    ,
         Obx(() {
           if (!controller.showPostShimmer.value&&controller.filteredList.isEmpty) {
             return Expanded(
@@ -513,8 +560,8 @@ class ChatsHomeScreen extends GetView<ChatHomeController> {
                   child: Column(
                     mainAxisSize: MainAxisSize.min,
                     children: [
-                      Image.asset(emptyRecentPng, height: 90),
-                      // SvgPicture.asset(emptyRecentPng, height: 90),
+                      // Image.asset(emptyRecentPng, height: 90),
+                      SvgPicture.asset(emptyRecentPng, height: 90),
                       Text('Click to Start new Chat 👋',
                           style: BalooStyles.baloosemiBoldTextStyle(color: appColorGreen))
                           .paddingAll(12),

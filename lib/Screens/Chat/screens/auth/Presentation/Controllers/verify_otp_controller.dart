@@ -39,7 +39,7 @@ class VerifyOtpController extends GetxController{
       "otp": otpFieldController.text
     };
 
-    Get.find<AuthApiServiceImpl>()
+    await Get.find<AuthApiServiceImpl>()
         .verifyOtpApiCall(dataBody: req)
         .then((value) async {
       toast(value.message??'');
@@ -70,7 +70,7 @@ class VerifyOtpController extends GetxController{
       customLoader.hide();
       errorDialog(error.toString());
       isFill = false;
-    }).then((v){});
+    });
   }
 
   final int cooldownSeconds = 60;

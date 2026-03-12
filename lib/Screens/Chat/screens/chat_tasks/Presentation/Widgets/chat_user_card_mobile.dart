@@ -8,9 +8,12 @@ import 'package:AccuChat/utils/text_style.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:share_handler/share_handler.dart';
 import '../../../../../../Constants/app_theme.dart';
 import '../../../../../../Constants/assets.dart';
+import '../../../../../../utils/helper_widget.dart';
 import '../../../../../../utils/networl_shimmer_image.dart';
+import '../../../../../Home/Presentation/Controller/socket_controller.dart';
 import '../../../../api/apis.dart';
 import '../../../../helper/my_date_util.dart';
 import '../../../../../../main.dart';
@@ -21,7 +24,10 @@ import '../dialogs/profile_dialog.dart';
 class ChatUserCardMobile extends StatefulWidget with WidgetsBindingObserver {
   UserDataAPI? user;
 
-  ChatUserCardMobile({super.key, this.user});
+ final bool isSharedbyWB;
+  final SharedMedia? wamedia;
+
+  ChatUserCardMobile({super.key, this.user,this.isSharedbyWB=false,this.wamedia});
 
   @override
   State<ChatUserCardMobile> createState() => _ChatUserCardMobileState();
@@ -37,6 +43,9 @@ class _ChatUserCardMobileState extends State<ChatUserCardMobile>
 
     switch (state) {
       case AppLifecycleState.resumed:
+        Get.find<SocketController>()
+            .connectUserEmitter(
+           APIs.me.userCompany?.companyId);
       // App is in the foreground
       // APIs.updateActiveStatus(true);
         break;
@@ -74,16 +83,19 @@ class _ChatUserCardMobileState extends State<ChatUserCardMobile>
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      padding: EdgeInsets.zero,
-      margin: EdgeInsets.symmetric(horizontal: mq.width * .04, vertical: 0),
+    final usern = (widget.user?.userCompany?.displayName != null)
+        ? widget.user?.userCompany?.displayName ?? ''
+        : widget.user?.userName ?? '';
+    return AnimatedContainer(
+      duration: const Duration(milliseconds: 150),
+      margin: EdgeInsets.symmetric(horizontal: 12,vertical: 2),
+      curve: Curves.easeInOut,
       decoration: BoxDecoration(
-          borderRadius: BorderRadius.circular(15),
-          border: Border.all(color:isTaskMode? appColorYellow.withOpacity(.06):appColorGreen.withOpacity(.04)),
-          color: Colors.white,
-          boxShadow: [
-            BoxShadow(color:isTaskMode? appColorYellow.withOpacity(.06):appColorGreen.withOpacity(.04), blurRadius: 8)
-          ]),
+          color:whiteselected,
+          borderRadius: BorderRadius.circular(12),
+          // boxShadow: [BoxShadow(color: Colors.grey.shade300,blurRadius: 7)]
+          // border: Border.all(color:isTaskMode? appColorYellow.withOpacity(.06):appColorGreen.withOpacity(.04)),
+         ),
       child: InkWell(
           onTap: () {
             //for navigating to chat screen
@@ -99,8 +111,19 @@ class _ChatUserCardMobileState extends State<ChatUserCardMobile>
               if(kIsWeb){
                 Get.toNamed("${AppRoutes.chats_li_r}?userId=${widget.user?.userId.toString()}");
               }else{
-                print("go to ${widget.user?.userCompany?.displayName} screen");
-                Get.toNamed(AppRoutes.chats_li_r,arguments: {'user':widget.user});
+
+                if(widget.isSharedbyWB){
+                  Get.toNamed(
+                    AppRoutes.sharePreview,
+                    arguments: {
+                      'media': widget.wamedia,
+                      'chat': widget.user,
+                    },
+                  );
+                }else{
+                  Get.toNamed(AppRoutes.chats_li_r,arguments: {'user':widget.user});
+
+                }
               }
 
             }
@@ -187,7 +210,7 @@ class _ChatUserCardMobileState extends State<ChatUserCardMobile>
                       context: context,
                       builder: (_) => ProfileDialog(user: widget.user));
                 },
-                child: CustomCacheNetworkImage(
+                child:widget.user?.userImage!=null? CustomCacheNetworkImage(
                   radiusAll: 100,
                   "${ApiEnd.baseUrlMedia}${widget.user?.userImage??''}",
                   height: mq.height * .06,
@@ -198,7 +221,11 @@ class _ChatUserCardMobileState extends State<ChatUserCardMobile>
                   groupIcn:
                   widget.user?.userCompany?.isBroadcast==1?
                   broadcastIcon:ICON_profile,
-                ),
+                ):CircleAvatar(
+                // radius: 45,
+                backgroundColor: perpleBg,
+                child: Text(getInitials(usern),style: BalooStyles.baloosemiBoldTextStyle(color: perplebr),),
+              ),
               ),
 
               //user name

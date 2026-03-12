@@ -216,7 +216,7 @@ class ProfileMediaSectionGetXGroup extends StatelessWidget {
                                     isShowText: true,
                                     isShowIconText: false,
                                     gradient: buttonGradient,
-                                    leanIcon: chaticon),
+                                    leanIcon: arrowDownPng),
 
                               const SizedBox(height: 10),
 
@@ -286,7 +286,7 @@ class ProfileMediaSectionGetXGroup extends StatelessWidget {
                                               radiusAll: 100,
                                               height: 50,
                                               width: 50,
-                                              defaultImage: userIcon,
+                                              defaultImage: ICON_profile,
                                               borderColor: greyColor,
                                               boxFit: BoxFit.cover,
                                             ),

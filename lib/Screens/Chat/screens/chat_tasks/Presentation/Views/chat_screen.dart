@@ -6,6 +6,7 @@ import 'package:AccuChat/Screens/voice_to_texx/speech_controller_factory.dart';
 import 'package:emoji_picker_flutter/emoji_picker_flutter.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter_linkify/flutter_linkify.dart';
+import 'package:flutter_svg/svg.dart';
 import 'package:scrollable_positioned_list/scrollable_positioned_list.dart';
 import 'package:share_plus/share_plus.dart';
 import 'package:url_launcher/url_launcher.dart';
@@ -34,7 +35,6 @@ import '../../../../../../Constants/assets.dart';
 import '../../../../../../Constants/colors.dart';
 import '../../../../../../utils/custom_flashbar.dart';
 import '../../../../../../utils/emogi_checker.dart';
-import '../../../../../../utils/emogi_picker_web.dart';
 import '../../../../../../utils/product_shimmer_widget.dart';
 import '../../../../../../utils/share_helper.dart';
 import '../../../../../../utils/text_style.dart';
@@ -43,7 +43,6 @@ import '../../../../api/apis.dart';
 import '../Controllers/add_group_mem_controller.dart';
 import '../Controllers/save_in_accuchat_gallery_controller.dart';
 import '../../../../../Home/Presentation/Controller/socket_controller.dart';
-import '../../../../helper/dialogs.dart';
 import '../../../auth/models/get_uesr_Res_model.dart';
 import '../Widgets/reply_msg_widget.dart';
 import '../Controllers/gallery_view_controller.dart';
@@ -444,19 +443,15 @@ class _ChatScreenState extends State<ChatScreen> {
         builder: (controller) {
       return GestureDetector(
         onTap: () => FocusScope.of(context).unfocus(),
-        child: SafeArea(
-          child: WillPopScope(
-            onWillPop: () {
-              Get.find<ChatHomeController>().hitAPIToGetRecentChats(page: 1);
-              return Future.value(true);
-            },
-            child: SafeArea(
-              child: Scaffold(
-                appBar: _appBarWidget(context),
-                backgroundColor: const Color.fromARGB(255, 234, 248, 255),
-                body: _mainBody(context),
-              ),
-            ),
+        child: WillPopScope(
+          onWillPop: () {
+            Get.find<ChatHomeController>().hitAPIToGetRecentChats(page: 1);
+            return Future.value(true);
+          },
+          child: Scaffold(
+            appBar: _appBarWidget(context),
+            backgroundColor: recentBg,
+            body: _mainBody(context),
           ),
         ),
       );
@@ -465,10 +460,16 @@ class _ChatScreenState extends State<ChatScreen> {
 
   AppBar _appBarWidget(ctx) {
     return AppBar(
-      backgroundColor: Colors.white,
+      backgroundColor: recentBg,
       elevation: 1,
       scrolledUnderElevation: 0,
-      surfaceTintColor: Colors.white,
+      surfaceTintColor:recentBg,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(
+          bottom: Radius.circular(30),
+          top: Radius.circular(30),
+        ),
+      ),
       automaticallyImplyLeading: false,
       flexibleSpace: MediaQuery(
 
@@ -486,8 +487,13 @@ class _ChatScreenState extends State<ChatScreen> {
     return  ScrollConfiguration(
         behavior: const _NoGlowScrollBehavior(),
         child: Center(
-          child: ConstrainedBox(
+          child: Container(
+            decoration: const BoxDecoration(
+              image: DecorationImage(image: AssetImage("assets/images/bglight.jpg",),fit: BoxFit.cover)
+              ,  borderRadius: BorderRadius.only(topLeft: Radius.circular(12),topRight: Radius.circular(12),)
+            ),
             constraints: BoxConstraints(maxWidth: _maxChatWidth(context)),
+            
             child: Padding(
               padding: _shellHPadding(context),
               child: Column(
@@ -519,6 +525,11 @@ class _ChatScreenState extends State<ChatScreen> {
                       : const SizedBox.shrink(),
                   Container(
                     constraints: const BoxConstraints(minHeight: 64),
+                    padding: const EdgeInsets.all(2),
+                    decoration: BoxDecoration(
+                      borderRadius: BorderRadius.circular(15),
+                      color: Colors.white.withOpacity(.4)
+                    ),
                     child: _buildDropOnInputOnly(
                       child: _chatInput(context),
                     ),
@@ -659,8 +670,8 @@ class _ChatScreenState extends State<ChatScreen> {
             value: 'hi-IN',
             child: Text('Hindi', style: BalooStyles.baloonormalTextStyle())),
       ],
-      child: Image.asset(
-      // child: SvgPicture.asset(
+      // child: Image.asset(
+      child: SvgPicture.asset(
         translationPng,
         height: 20,
         color: speechC.selectedLang == "hi-IN" ? appColorGreen : appColorYellow,
@@ -744,16 +755,16 @@ class _ChatScreenState extends State<ChatScreen> {
                 border: Border.all(
                   color: listening
                       ? Colors.red.withOpacity(.35)
-                      : AppTheme.appColor.withOpacity(.3),
+                      : perplebr,
                 ),
                 color: listening
                     ? Colors.red.withOpacity(.08)
-                    : AppTheme.appColor.withOpacity(.05),
+                    : perpleBg.withOpacity(.5),
               ),
-              child: Image.asset(
-              // child: SvgPicture.asset(
+              // child: Image.asset(
+              child: SvgPicture.asset(
                 listening ? pausePng : micPng,
-                color: listening ? Colors.red : AppTheme.appColor,
+                color: listening ? Colors.red : perplebr,
                 height: 20,
               ),
             ),
@@ -1018,7 +1029,7 @@ class _ChatScreenState extends State<ChatScreen> {
       color: Colors.transparent,
       child: Row(
         children: [
-          Expanded(child: divider(color: appColorGreen.withOpacity(.3))),
+          Expanded(child: divider(color: perpleBg)),
           CustomContainer(
             elevation: 2,
             vPadding: 3,
@@ -1029,7 +1040,7 @@ class _ChatScreenState extends State<ChatScreen> {
               style: BalooStyles.balooregularTextStyle(size: 12.5),
             ),
           ),
-          Expanded(child: divider(color: appColorGreen.withOpacity(.3))),
+          Expanded(child: divider(color: perpleBg)),
         ],
       ),
     );
@@ -1077,8 +1088,8 @@ final isMedia = (data.media??[]).isNotEmpty;
                           icon: Transform(
                               alignment: Alignment.center,
                               transform: Matrix4.rotationY(math.pi),
-                              child: Image.asset(
-                              // child: SvgPicture.asset(
+                              // child: Image.asset(
+                              child: SvgPicture.asset(
                                 forwardIcon,
                                 height: 20,
                               ))).paddingOnly(left: 0)
@@ -1092,6 +1103,7 @@ final isMedia = (data.media??[]).isNotEmpty;
                                 ? 300
                                 : 600
                             : Get.width * 0.75),
+
                       ),
                       child: Column(
                         crossAxisAlignment: sentByMe
@@ -1145,12 +1157,19 @@ final isMedia = (data.media??[]).isNotEmpty;
                                       right: 6, top: 10, left: 6),
                               decoration: BoxDecoration(
                                   color: sentByMe
-                                      ? appColorGreen.withOpacity(.1)
-                                      : appColorPerple.withOpacity(.1),
+                                      ? perpleBg
+                                      : whiteselected,
                                   border: Border.all(
-                                      color: sentByMe
-                                          ? appColorGreen
-                                          : appColorPerple),
+                                      color:  sentByMe
+                                          ? perpleBg
+                                          : whiteselected),
+                                  boxShadow:sentByMe? [BoxShadow(
+                                      color: perplebr,
+                                      offset: const Offset(5, 5)
+                                  )]:[BoxShadow(
+                                      color: Colors.grey.shade300,
+                                      offset: const Offset(-5, 5)
+                                  )],
                                   borderRadius: sentByMe
                                       ? BorderRadius.only(
                                           topLeft: Radius.circular(
@@ -1183,8 +1202,8 @@ final isMedia = (data.media??[]).isNotEmpty;
                           onPressed: () {
                             controller.handleForward(context,chatId: data.chatId);
                           },
-                          icon: Image.asset(
-                          // icon: SvgPicture.asset(
+                          // icon: Image.asset(
+                          icon: SvgPicture.asset(
                             forwardIcon,
                             height: 20,
                           )).paddingOnly(right: 0)
@@ -1197,7 +1216,7 @@ final isMedia = (data.media??[]).isNotEmpty;
 
                 ],
               ),
-              isMedia? vGap(3):SizedBox(),
+              isMedia? vGap(3):const SizedBox(),
               isMedia? Row(
                 mainAxisSize: MainAxisSize.min,
                 children: [
@@ -1217,7 +1236,7 @@ final isMedia = (data.media??[]).isNotEmpty;
                   )
                       : const SizedBox()
                 ],
-              ).marginOnly(left: 0, right: 0):SizedBox(),
+              ).marginOnly(left: 0, right: 0):const SizedBox(),
             ],
           );
   }
@@ -1345,7 +1364,7 @@ final isMedia = (data.media??[]).isNotEmpty;
                                 ? data.fromUser?.userCompany?.displayName ?? ''
                                 : data.fromUser?.userName ?? '',
                             baseUrl: ApiEnd.baseUrlMedia,
-                            defaultGallery: defaultGallery,
+                            defaultGallery: galleryIcon,
                             onOpenDocument: (url) =>
                                 openDocumentFromUrl(url), // your existing function
                             onOpenImageViewer: (mediaurls, startIndex) {
@@ -1421,8 +1440,8 @@ final isMedia = (data.media??[]).isNotEmpty;
             borderRadius: BorderRadius.circular(50),
             onTap: (){
               _showBottomSheet(sentByMe,context, data: data);
-            },child: Image.asset(arrowDownPng,height: 14,color:Colors.black54).paddingAll(3)):const SizedBox()
-            // },child: SvgPicture.asset(arrowDownPng,height: 15,)):const SizedBox()
+            // },child: Image.asset(arrowDownPng,height: 14,color:Colors.black54).paddingAll(3)):const SizedBox()
+            },child: SvgPicture.asset(arrowDownPng,height: 15,)):const SizedBox()
         ,
       ],
     ):Stack(
@@ -1540,7 +1559,7 @@ final isMedia = (data.media??[]).isNotEmpty;
                     ? data.fromUser?.userCompany?.displayName ?? ''
                     : data.fromUser?.userName ?? '',
                 baseUrl: ApiEnd.baseUrlMedia,
-                defaultGallery: defaultGallery,
+                defaultGallery: galleryIcon,
                 onOpenDocument: (url) =>
                     openDocumentFromUrl(url), // your existing function
                 onOpenImageViewer: (mediaurls, startIndex) {
@@ -1586,8 +1605,8 @@ final isMedia = (data.media??[]).isNotEmpty;
             borderRadius: BorderRadius.circular(50),
             onTap: (){
               _showBottomSheet(sentByMe,context, data: data);
-            },child:  Image.asset(arrowDownPng,height: 14,color:Colors.black54).paddingAll(3)):const SizedBox()
-            // },child:  SvgPicture.asset(arrowDownPng,height: 15,)):const SizedBox()
+            // },child:  Image.asset(arrowDownPng,height: 14,color:Colors.black54).paddingAll(3)):const SizedBox()
+            },child:  SvgPicture.asset(arrowDownPng,height: 15,)):const SizedBox()
       ],
     );
   }
@@ -1598,348 +1617,356 @@ final isMedia = (data.media??[]).isNotEmpty;
       widget.user = controller.user;
     }
 
-    return Row(
-      children: [
-        controller.isSearching
-            ? Expanded(
-                child: TextField(
-                  controller: controller.seacrhCon,
-                  cursorColor: appColorGreen,
-                  decoration: const InputDecoration(
-                      border: InputBorder.none,
-                      hintText: 'Search Chats ...',
-                      contentPadding:
-                          EdgeInsets.symmetric(vertical: 0, horizontal: 10),
-                      constraints: BoxConstraints(maxHeight: 45)),
+    return Container(
 
-                  style: const TextStyle(fontSize: 13, letterSpacing: 0.5),
-                  onChanged: (val) {
-                    controller.searchQuery = val;
-                    controller.onSearch(val,widget.user!);
-                  },
-                ).marginSymmetric(vertical: 10),
-              )
-            : Expanded(
-                child: InkWell(
-                  onTap: () {
-                    if (Get.isRegistered<ChatScreenController>(tag: _tag)) {
-                      Get.delete<ChatScreenController>(tag:_tag,force: true);
-                    }
-                    if (!(widget.user?.userCompany?.isGroup == 1 ||
-                        widget.user?.userCompany?.isBroadcast == 1)) {
-                      if (kIsWeb) {
-                        Get.toNamed(
-                          "${AppRoutes.view_profile}?userId=${widget.user?.userId}",
-                        );
-                      } else {
-                        Get.toNamed(AppRoutes.view_profile,
-                            arguments: {'user': widget.user});
-                      }
-                    } else {
-                      if (kIsWeb) {
-                        Get.toNamed(
-                          "${AppRoutes.member_sr}?userId=${widget.user?.userId}",
-                        );
-                      } else {
-                        Get.toNamed(AppRoutes.member_sr,
-                            arguments: {'user': widget.user});
-                      }
-                    }
-                    // APIs.updateActiveStatus(false);
-                  },
-                  child: Row(
-                    children: [
-                      //back button
-                      !widget.showBack
-                          ? const SizedBox(
-                              width: 14,
-                            )
-                          : IconButton(
-                              onPressed: () {
-                                if (Get.previousRoute.isNotEmpty) {
-                                  Get.back();
-                                } else {
-                                  Get.offAllNamed(AppRoutes.home);
-                                }
-                                if (!kIsWeb) {
-                                  Get.find<ChatHomeController>()
-                                      .hitAPIToGetRecentChats(page: 1);
-                                  if (isTaskMode) {
-                                    Get.find<DashboardController>()
-                                        .updateIndex(1);
-                                  } else {
-                                    Get.find<DashboardController>()
-                                        .updateIndex(0);
-                                  }
-                                }
-                                // APIs.updateActiveStatus(false);
-                              },
-                              icon: const Icon(Icons.arrow_back,
-                                  color: Colors.black54)),
+      decoration: BoxDecoration(
+          color: whiteselected,
+        borderRadius: BorderRadius.circular(50)
+      ),
+      child: Row(
+        children: [
+          controller.isSearching
+              ? Expanded(
+                  child: TextField(
+                    controller: controller.seacrhCon,
+                    cursorColor: appColorGreen,
+                    decoration: const InputDecoration(
+                        border: InputBorder.none,
+                        hintText: 'Search Chats ...',
+                        contentPadding:
+                            EdgeInsets.symmetric(vertical: 0, horizontal: 10),
+                        constraints: BoxConstraints(maxHeight: 45)),
 
-                      CustomCacheNetworkImage(
-                        radiusAll: 100,
-                        "${ApiEnd.baseUrlMedia}${widget.user?.userImage ?? ''}",
-                        height:
-                            _avatarSize(context), // ✅ responsive avatar
-                        width: _avatarSize(context),
-                        boxFit: BoxFit.cover,
-                        defaultImage: widget.user?.userCompany?.isGroup == 1
-                            ? groupIcn
-                            : widget.user?.userCompany?.isBroadcast == 1
-                                ? broadcastIcon
-                                : ICON_profile,
-                        borderColor: greyText,
-                      ),
-
-                      //for adding some space
-                      hGap(10),
-
-                      //user name & last seen time
-                      Flexible(
-                        child: Column(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            //user name
-                            (widget.user?.userCompany?.isGroup == 1 ||
-                                    widget.user?.userCompany?.isBroadcast ==
-                                        1)
-                                ? Text(
-                                    (widget.user?.userName == '' ||
-                                            widget.user?.userName == null)
-                                        ? widget.user?.phone ?? ''
-                                        : widget.user?.userName ?? '',
-                                    maxLines: 1,
-                                    overflow: TextOverflow.ellipsis,
-                                    style: themeData.textTheme.titleMedium,
-                                  )
-                                : Text(
-                                    (widget.user?.userCompany?.displayName !=
-                                            null)
-                                        ? controller
-                                                .user?.userCompany?.displayName ??
-                                            ''
-                                        : widget.user?.userName != null
-                                            ? widget.user?.userName ?? ''
-                                            : widget.user?.phone ?? '',
-                                    maxLines: 1,
-                                    overflow: TextOverflow.ellipsis,
-                                    style: themeData.textTheme.titleMedium,
-                                  ),
-                            widget.user?.userCompany?.isGroup == 1 ||
-                                    widget.user?.userCompany?.isBroadcast == 1
-                                ? Text('${controller.members.length} members',
-                                    style: BalooStyles.baloonormalTextStyle())
-                                : const SizedBox(),
-                        
-                            vGap(2),
-                            //for adding some space
-                        
-                            //last seen time of user
-                            //TODO
-                            /* Text(
-                                list.isNotEmpty
-                                    ? list[0].isOnline && !list[0].isTyping
-                                    ? 'Online'
-                                    : list[0].isTyping && list[0].isOnline
-                                    ? "Typing..."
-                                    : MyDateUtil.getLastActiveTime(
-                                    context: context,
-                                    lastActive:
-                                    list[0].lastActive.toString())
-                                    : MyDateUtil.getLastActiveTime(
-                                    context: context,
-                                    lastActive:
-                                    (widget.user?.lastActive??'').toString()),
-                                style: const TextStyle(
-                                    fontSize: 13, color: Colors.black54)),*/
-                          ],
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-              ),
-        controller.isSearching
-            ? const SizedBox()
-            : (widget.user?.userCompany?.isBroadcast == 1 ||
-                    widget.user?.userCompany?.isGroup == 1|| !widget.isShowNav)
-                ? const SizedBox()
-                : /*CustomTextButton(
-                    onTap: () async {
-                      if (widget.user == null) return;
-
-                      final   dashC =Get.isRegistered<DashboardController>()?Get.find<DashboardController>():Get.put(DashboardController());
-
-                      isTaskMode = true;
-                      // ensure TaskHomeController exists
-                      final taskHome =Get.isRegistered<TaskHomeController>()? Get.find<TaskHomeController>():Get.put(TaskHomeController());
-                      dashC.updateIndex(1);
-                      // ensure TaskController exists
-                      final _tagTaskid = widget.user?.userCompany?.userCompanyId;
-                      final _tagTask = "task_$_tagTaskid";
-                       TaskController? taskC;
-                       bool isRegisterd=true;
-                      if (Get.isRegistered<TaskController>(tag:_tagTask)) {
-                        taskC = Get.find<TaskController>(tag: _tagTask);
-                      }else{
-                        isRegisterd=false;
-                        taskC =  Get.put(TaskController(user: widget.user),tag: _tagTask);
-                      }
-                      taskHome.selectedChat.value = widget.user;
-                      taskC?.user = widget.user;
-
-                      isRegisterd?  taskC?.getUserByIdApi(userId:widget.user?.userId):null;
-
-
-                      taskHome.selectedChat.refresh();
+                    style: const TextStyle(fontSize: 13, letterSpacing: 0.5),
+                    onChanged: (val) {
+                      controller.searchQuery = val;
+                      controller.onSearch(val,widget.user!);
                     },
-                    title: "Go to Task")*/CustomTextButton(
-    onTap: () async {
-    if (widget.user == null) return;
-    try{
-      DashboardController? dashC;
-      bool isReg = true;
-      if (Get.isRegistered<DashboardController>()) {
-        dashC = Get.find<DashboardController>();
-      } else {
-        isReg = false;
-        dashC = Get.put(DashboardController());
-      }
-      await dashC?.getCompany();
-      Future.delayed(const Duration(milliseconds: 300));
-      TaskHomeController? taskHome;
-      if (Get.isRegistered<TaskHomeController>()) {
-        taskHome = Get.find<TaskHomeController>();
-      } else {
-        taskHome = Get.put(TaskHomeController());
-      }
-
-      taskHome?.selectedChat.value = widget.user;
-      await Future.delayed(const Duration(milliseconds: 300));
-      taskHome?.selectedChat.refresh();
-
-      dashC?.getCompany();
-      dashC?.updateIndex(1);
-      isTaskMode = true;
-    }catch(e){
-      toast("Something went wrong please refresh the App");
-    }
-    },
-    title: "Go to Task",
-    )
-    ,
-        controller.isSearching ? const SizedBox() : hGap(10),
-        IconButton(
-                onPressed: () {
-                  controller.isSearching = !controller.isSearching;
-                  controller.update();
-                  if (!controller.isSearching) {
-                    controller.searchQuery = '';
-                    controller.seacrhCon.clear();
-                    controller.resetPaginationForNewChat();
-                    controller.onSearch(controller.searchQuery,widget.user!);
-                  }
-                  controller.update();
-                },
-                icon: controller.isSearching
-                    ? const Icon(CupertinoIcons.clear_circled_solid)
-                    : Image.asset(searchPng, height: 25, width: 25))
-                    // : SvgPicture.asset(searchPng, height: 25, width: 25))
-            .paddingOnly(top: 0, right: 0),
-        controller.isSearching ? const SizedBox() : hGap(10),
-        controller.isSearching
-            ? const SizedBox()
-            : (widget.user?.userCompany?.isGroup == 1 ||
-                    widget.user?.userCompany?.isBroadcast == 1)
-                ? PopupMenuButton<String>(
-                    color: Colors.white,
-                    iconColor: Colors.black87,
-                    onSelected: (value) async {
-                      if (value == 'AddMember') {
-                        if (kIsWeb) {
-                          openAllUserDialog(widget.user);
-
-                          // Get.toNamed(
-                          //   "${AppRoutes.add_group_member}?groupChatId=${widget.user?.userId.toString()}",
-                          // );
-                        } else {
-                          openAllUserDialog(widget.user);
-                          // Get.toNamed(
-                          //   AppRoutes.add_group_member,
-                          //   arguments: {'groupChat': widget.user},
-                          // );
-                        }
+                  ).marginSymmetric(vertical: 10),
+                )
+              : Expanded(
+                  child: InkWell(
+                    onTap: () {
+                      if (Get.isRegistered<ChatScreenController>(tag: _tag)) {
+                        Get.delete<ChatScreenController>(tag:_tag,force: true);
                       }
-                      if (value == 'Exit') {
-                        controller.hitAPIToExitMember(widget.user?.userCompany?.userCompanyId);
-                      }
-                      if (value == 'Edit') {
+                      if (!(widget.user?.userCompany?.isGroup == 1 ||
+                          widget.user?.userCompany?.isBroadcast == 1)) {
                         if (kIsWeb) {
                           Get.toNamed(
-                            "${AppRoutes.member_sr}?userId=${widget.user?.userId.toString()}",
+                            "${AppRoutes.view_profile}?userId=${widget.user?.userId}",
+                          );
+                        } else {
+                          Get.toNamed(AppRoutes.view_profile,
+                              arguments: {'user': widget.user});
+                        }
+                      } else {
+                        if (kIsWeb) {
+                          Get.toNamed(
+                            "${AppRoutes.member_sr}?userId=${widget.user?.userId}",
                           );
                         } else {
                           Get.toNamed(AppRoutes.member_sr,
                               arguments: {'user': widget.user});
                         }
                       }
+                      // APIs.updateActiveStatus(false);
                     },
-                    itemBuilder: (context) => [
-                      if (widget.user?.createdBy ==
-                          APIs.me?.userCompany?.userCompanyId)
-                      PopupMenuItem(
-                        value: 'AddMember',
-                        child: Row(
-                          children: [
-                            Icon(
-                              Icons.person_add_alt,
-                              color: appColorGreen,
-                              size: 18,
-                            ),
-                            hGap(5),
-                            Text('Add Member',
-                                style: BalooStyles.baloonormalTextStyle()),
-                          ],
+                    child: Row(
+                      children: [
+                        //back button
+                        !widget.showBack
+                            ? const SizedBox(
+                                width: 14,
+                              )
+                            : IconButton(
+                                onPressed: () {
+                                  if (Get.previousRoute.isNotEmpty) {
+                                    Get.back();
+                                  } else {
+                                    Get.offAllNamed(AppRoutes.home);
+                                  }
+                                  if (!kIsWeb) {
+                                    Get.find<ChatHomeController>()
+                                        .hitAPIToGetRecentChats(page: 1);
+                                    if (isTaskMode) {
+                                      Get.find<DashboardController>()
+                                          .updateIndex(1);
+                                    } else {
+                                      Get.find<DashboardController>()
+                                          .updateIndex(0);
+                                    }
+                                  }
+                                  // APIs.updateActiveStatus(false);
+                                },
+                                icon: const Icon(Icons.arrow_back,
+                                    color: Colors.black54)),
+
+                        CustomCacheNetworkImage(
+                          radiusAll: 100,
+                          "${ApiEnd.baseUrlMedia}${widget.user?.userImage ?? ''}",
+                          height:
+                              45, // ✅ responsive avatar
+                          width: 45,
+                          boxFit: BoxFit.cover,
+                          defaultImage: widget.user?.userCompany?.isGroup == 1
+                              ? groupIcn
+                              : widget.user?.userCompany?.isBroadcast == 1
+                                  ? broadcastIcon
+                                  : ICON_profile,
+                          borderColor: greyText,
                         ),
-                      ),
-                     if(APIs.me.userCompany?.userCompanyId !=widget.user?.createdBy) PopupMenuItem(
-              value: 'Exit',
-              child: Row(
-                children: [
-                  Icon(
-                    Icons.exit_to_app_rounded,
-                    color: appColorGreen,
-                    size: 18,
+
+                        //for adding some space
+                        hGap(10),
+
+                        //user name & last seen time
+                        Flexible(
+                          child: Column(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              //user name
+                              (widget.user?.userCompany?.isGroup == 1 ||
+                                      widget.user?.userCompany?.isBroadcast ==
+                                          1)
+                                  ? Text(
+                                      (widget.user?.userName == '' ||
+                                              widget.user?.userName == null)
+                                          ? widget.user?.phone ?? ''
+                                          : widget.user?.userName ?? '',
+                                      maxLines: 1,
+                                      overflow: TextOverflow.ellipsis,
+                                      style: themeData.textTheme.titleMedium,
+                                    )
+                                  : Text(
+                                      (widget.user?.userCompany?.displayName !=
+                                              null)
+                                          ? controller
+                                                  .user?.userCompany?.displayName ??
+                                              ''
+                                          : widget.user?.userName != null
+                                              ? widget.user?.userName ?? ''
+                                              : widget.user?.phone ?? '',
+                                      maxLines: 1,
+                                      overflow: TextOverflow.ellipsis,
+                                      style: themeData.textTheme.titleMedium,
+                                    ),
+                              widget.user?.userCompany?.isGroup == 1 ||
+                                      widget.user?.userCompany?.isBroadcast == 1
+                                  ? Text('${controller.members.length} members',
+                                      style: BalooStyles.baloonormalTextStyle())
+                                  : const SizedBox(),
+
+                              vGap(2),
+                              //for adding some space
+
+                              //last seen time of user
+                              //TODO
+                              /* Text(
+                                  list.isNotEmpty
+                                      ? list[0].isOnline && !list[0].isTyping
+                                      ? 'Online'
+                                      : list[0].isTyping && list[0].isOnline
+                                      ? "Typing..."
+                                      : MyDateUtil.getLastActiveTime(
+                                      context: context,
+                                      lastActive:
+                                      list[0].lastActive.toString())
+                                      : MyDateUtil.getLastActiveTime(
+                                      context: context,
+                                      lastActive:
+                                      (widget.user?.lastActive??'').toString()),
+                                  style: const TextStyle(
+                                      fontSize: 13, color: Colors.black54)),*/
+                            ],
+                          ),
+                        ),
+                      ],
+                    ),
                   ),
-                  hGap(5),
-                  Text('Exit',style: BalooStyles.baloonormalTextStyle()),
-                ],
-              ),
-            ),
-                      PopupMenuItem(
-                        value: 'Edit',
-                        child: Row(
-                          children: [
-                            Icon(
-                              Icons.edit_outlined,
-                              color: appColorGreen,
-                              size: 18,
-                            ),
-                            hGap(5),
-                            Text(
-                              'Edit',
-                              style: BalooStyles.baloonormalTextStyle(),
-                            ),
-                          ],
+                ),
+          controller.isSearching
+              ? const SizedBox()
+              : (widget.user?.userCompany?.isBroadcast == 1 ||
+                      widget.user?.userCompany?.isGroup == 1|| !widget.isShowNav)
+                  ? const SizedBox()
+                  : /*CustomTextButton(
+                      onTap: () async {
+                        if (widget.user == null) return;
+
+                        final   dashC =Get.isRegistered<DashboardController>()?Get.find<DashboardController>():Get.put(DashboardController());
+
+                        isTaskMode = true;
+                        // ensure TaskHomeController exists
+                        final taskHome =Get.isRegistered<TaskHomeController>()? Get.find<TaskHomeController>():Get.put(TaskHomeController());
+                        dashC.updateIndex(1);
+                        // ensure TaskController exists
+                        final _tagTaskid = widget.user?.userCompany?.userCompanyId;
+                        final _tagTask = "task_$_tagTaskid";
+                         TaskController? taskC;
+                         bool isRegisterd=true;
+                        if (Get.isRegistered<TaskController>(tag:_tagTask)) {
+                          taskC = Get.find<TaskController>(tag: _tagTask);
+                        }else{
+                          isRegisterd=false;
+                          taskC =  Get.put(TaskController(user: widget.user),tag: _tagTask);
+                        }
+                        taskHome.selectedChat.value = widget.user;
+                        taskC?.user = widget.user;
+
+                        isRegisterd?  taskC?.getUserByIdApi(userId:widget.user?.userId):null;
+
+
+                        taskHome.selectedChat.refresh();
+                      },
+                      title: "Go to Task")*/InkWell(
+      onTap: () async {
+      if (widget.user == null) return;
+      try{
+        DashboardController? dashC;
+        bool isReg = true;
+        if (Get.isRegistered<DashboardController>()) {
+          dashC = Get.find<DashboardController>();
+        } else {
+          isReg = false;
+          dashC = Get.put(DashboardController());
+        }
+        await dashC?.getCompany();
+        Future.delayed(const Duration(milliseconds: 300));
+        TaskHomeController? taskHome;
+        if (Get.isRegistered<TaskHomeController>()) {
+          taskHome = Get.find<TaskHomeController>();
+        } else {
+          taskHome = Get.put(TaskHomeController());
+        }
+
+        taskHome?.selectedChat.value = widget.user;
+        await Future.delayed(const Duration(milliseconds: 300));
+        taskHome?.selectedChat.refresh();
+
+        dashC?.getCompany();
+        dashC?.updateIndex(1);
+        isTaskMode = true;
+      }catch(e){
+        toast("Something went wrong please refresh the App");
+      }
+      },
+              child: goToWidget("Go to Task", appColorPerple)
+      )
+      ,
+          controller.isSearching ? const SizedBox() : hGap(10),
+          IconButton(
+                  onPressed: () {
+                    controller.isSearching = !controller.isSearching;
+                    controller.update();
+                    if (!controller.isSearching) {
+                      controller.searchQuery = '';
+                      controller.seacrhCon.clear();
+                      controller.resetPaginationForNewChat();
+                      controller.onSearch(controller.searchQuery,widget.user!);
+                    }
+                    controller.update();
+                  },
+                  icon:bottonBg(child: controller.isSearching
+                      ? const Icon(CupertinoIcons.clear,color:Colors.black54)
+                      // : Image.asset(searchPng, height: 25, width: 25))
+                      : SvgPicture.asset(searchPng, height: 20, width: 20,color:Colors.black54)))
+              .paddingOnly(top: 0, right: 0),
+          controller.isSearching ? const SizedBox() : hGap(10),
+          controller.isSearching
+              ? const SizedBox()
+              : (widget.user?.userCompany?.isGroup == 1 ||
+                      widget.user?.userCompany?.isBroadcast == 1)
+                  ? PopupMenuButton<String>(
+                      color: Colors.white,
+                      iconColor: Colors.black87,
+                      icon: bottonBg(child:const Icon(Icons.more_vert,color:Colors.black54)),
+                      onSelected: (value) async {
+                        if (value == 'AddMember') {
+                          if (kIsWeb) {
+                            openAllUserDialog(widget.user);
+
+                            // Get.toNamed(
+                            //   "${AppRoutes.add_group_member}?groupChatId=${widget.user?.userId.toString()}",
+                            // );
+                          } else {
+                            openAllUserDialog(widget.user);
+                            // Get.toNamed(
+                            //   AppRoutes.add_group_member,
+                            //   arguments: {'groupChat': widget.user},
+                            // );
+                          }
+                        }
+                        if (value == 'Exit') {
+                          controller.hitAPIToExitMember(widget.user?.userCompany?.userCompanyId);
+                        }
+                        if (value == 'Edit') {
+                          if (kIsWeb) {
+                            Get.toNamed(
+                              "${AppRoutes.member_sr}?userId=${widget.user?.userId.toString()}",
+                            );
+                          } else {
+                            Get.toNamed(AppRoutes.member_sr,
+                                arguments: {'user': widget.user});
+                          }
+                        }
+                      },
+                      itemBuilder: (context) => [
+                        if (widget.user?.createdBy ==
+                            APIs.me?.userCompany?.userCompanyId)
+                        PopupMenuItem(
+                          value: 'AddMember',
+                          child: Row(
+                            children: [
+                              Icon(
+                                Icons.person_add_alt,
+                                color: appColorGreen,
+                                size: 18,
+                              ),
+                              hGap(5),
+                              Text('Add Member',
+                                  style: BalooStyles.baloonormalTextStyle()),
+                            ],
+                          ),
                         ),
-                      ),
-                    ],
-                  )
-                : const SizedBox(),
-        controller.isSearching ? const SizedBox() : hGap(8)
-      ],
+                       if(APIs.me.userCompany?.userCompanyId !=widget.user?.createdBy) PopupMenuItem(
+                value: 'Exit',
+                child: Row(
+                  children: [
+                    Icon(
+                      Icons.exit_to_app_rounded,
+                      color: appColorGreen,
+                      size: 18,
+                    ),
+                    hGap(5),
+                    Text('Exit',style: BalooStyles.baloonormalTextStyle()),
+                  ],
+                ),
+              ),
+                        PopupMenuItem(
+                          value: 'Edit',
+                          child: Row(
+                            children: [
+                              Icon(
+                                Icons.edit_outlined,
+                                color: appColorGreen,
+                                size: 18,
+                              ),
+                              hGap(5),
+                              Text(
+                                'Edit',
+                                style: BalooStyles.baloonormalTextStyle(),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ],
+                    )
+                  : const SizedBox(),
+          controller.isSearching ? const SizedBox() : hGap(8)
+        ],
+      ),
     );
   }
 
@@ -2117,11 +2144,11 @@ final isMedia = (data.media??[]).isNotEmpty;
     }
 
     return ConstrainedBox(
-      constraints: BoxConstraints(maxHeight: Get.height*.7),
+      constraints: BoxConstraints(maxHeight: Get.height*.7,maxWidth: Get.width),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.end,
         children: [
-          _changeLanguage(),
+          _changeLanguage().paddingOnly(left: 12),
           hGap(10),
           Expanded(
             child: SingleChildScrollView(
@@ -2136,7 +2163,7 @@ final isMedia = (data.media??[]).isNotEmpty;
                         margin: const EdgeInsets.symmetric(vertical: 8),
                         decoration: BoxDecoration(
                           borderRadius: BorderRadius.circular(8),
-                          border: Border.all(color: AppTheme.appColor.withOpacity(.2)),
+                          border: Border.all(color: perpleBg),
                         ),
                       child: Row(
                         crossAxisAlignment: CrossAxisAlignment.end,
@@ -2155,8 +2182,7 @@ final isMedia = (data.media??[]).isNotEmpty;
                               onTap: () async {
                                 showUploadOptions(context);
                               },
-                              child: IconButtonWidget(Icons.upload_outlined,
-                                  isIcon: true),
+                              child: IconButtonWidget(uploadsvg),
                             ),
                           if (!isTaskMode)
                             InkWell(
@@ -2193,7 +2219,7 @@ final isMedia = (data.media??[]).isNotEmpty;
               ),
               child: const Icon(Icons.send, color: Colors.white),
             ),
-          ).marginOnly(bottom: 8, top: 4),
+          ).marginOnly(bottom: 8, top: 4,right: 15),
         ],
       ),
     );
@@ -2338,73 +2364,78 @@ final isMedia = (data.media??[]).isNotEmpty;
       ),
       backgroundColor: Colors.white,
       builder: (_) => SafeArea(
-        child: Padding(
-          padding:
-              const EdgeInsets.only(top: 16, left: 15, right: 15, bottom: 60),
-          child: Wrap(
-            children: [
-              ListTile(
-                leading: const Icon(
-                  Icons.camera_alt_outlined,
-                  size: 20,
-                ),
-                title: Text(
-                  "Camera",
-                  style: BalooStyles.baloomediumTextStyle(),
-                ),
-                onTap: () async {
-                  Get.back();
-                  final ImagePicker picker = ImagePicker();
-                  // Pick an image
-                  final XFile? image = await picker.pickImage(
-                    source: ImageSource.camera,
-                    imageQuality: 40,
-                  );
-                  if (image != null) {
-                    controller.images.add(image);
-                    controller.update();
-                    controller.uploadMediaApiCall(
-                        type: ChatMediaType.IMAGE.name);
-                  }
-                },
+        child: ListView(
+          children: [
+            Container(
+              height: 4,
+              margin:
+              const EdgeInsets.symmetric(horizontal: 50,vertical: 20),
+            ),
+
+
+            Padding(
+              padding:
+                  const EdgeInsets.only(top: 10, left: 15, right: 15, bottom: 60),
+              child: Wrap(
+                children: [
+                  ListTile(
+                    leading: Image.asset(addCamera,height: 25,),
+                    title: Text(
+                      "Camera",
+                      style: BalooStyles.baloomediumTextStyle(),
+                    ),
+                    onTap: () async {
+                      Get.back();
+                      final ImagePicker picker = ImagePicker();
+                      // Pick an image
+                      final XFile? image = await picker.pickImage(
+                        source: ImageSource.camera,
+                        imageQuality: 40,
+                      );
+                      if (image != null) {
+                        controller.images.add(image);
+                        controller.update();
+                        controller.uploadMediaApiCall(
+                            type: ChatMediaType.IMAGE.name);
+                      }
+                    },
+                  ),
+                  ListTile(
+                    leading:  Image.asset(addGallery,height: 25,),
+                    title: Text(
+                      "Gallery",
+                      style: BalooStyles.baloomediumTextStyle(),
+                    ),
+                    onTap: () async {
+                      Get.back();
+                      final ImagePicker picker = ImagePicker();
+                      // Picking multiple images
+                      final images =
+                          await picker.pickMultiImage(imageQuality: 40, limit: 10);
+                      // uploading & sending image one by one
+                      controller.images.addAll(images);
+                      controller.update();
+                      controller.uploadMediaApiCall(type: ChatMediaType.IMAGE.name);
+                    },
+                  ),
+                  ListTile(
+                    leading: const Icon(
+                      Icons.picture_as_pdf_outlined,
+                      size: 20,
+                    ),
+                    title: Text(
+                      "Document",
+                      style: BalooStyles.baloomediumTextStyle(),
+                    ),
+                    onTap: () {
+                      Get.back();
+                      controller.pickDocument();
+                    },
+                  ),
+                ],
               ),
-              ListTile(
-                leading: const Icon(
-                  Icons.photo_library_outlined,
-                  size: 20,
-                ),
-                title: Text(
-                  "Gallery",
-                  style: BalooStyles.baloomediumTextStyle(),
-                ),
-                onTap: () async {
-                  Get.back();
-                  final ImagePicker picker = ImagePicker();
-                  // Picking multiple images
-                  final images =
-                      await picker.pickMultiImage(imageQuality: 40, limit: 10);
-                  // uploading & sending image one by one
-                  controller.images.addAll(images);
-                  controller.update();
-                  controller.uploadMediaApiCall(type: ChatMediaType.IMAGE.name);
-                },
-              ),
-              ListTile(
-                leading: const Icon(
-                  Icons.picture_as_pdf_outlined,
-                  size: 20,
-                ),
-                title: Text(
-                  "Document",
-                  style: BalooStyles.baloomediumTextStyle(),
-                ),
-                onTap: () {
-                  Get.back();
-                  controller.pickDocument();
-                },
-              ),
-            ],
-          ),
+            ),
+          ],
         ),
       ),
     );
@@ -2584,11 +2615,11 @@ final isMedia = (data.media??[]).isNotEmpty;
             children: [
               //black divider
               Container(
-                height: 4,
-                margin: EdgeInsets.symmetric(
-                    vertical: mq.height * .015, horizontal: mq.width * .4),
+                height: 5,
+                margin: const EdgeInsets.symmetric(
+                    vertical: 12, horizontal: 200),
                 decoration: BoxDecoration(
-                    color: Colors.grey, borderRadius: BorderRadius.circular(8)),
+                    color: Colors.black54, borderRadius: BorderRadius.circular(20)),
               ),
 
               data.message != ''
@@ -2816,6 +2847,7 @@ final isMedia = (data.media??[]).isNotEmpty;
                     icon: const Icon(Icons.delete_forever,
                         color: Colors.red, size: 16),
                     name: 'Delete Message',
+                    txtColor: Colors.red,
                     onTap: () async {
 
                       Get.find<SocketController>().deleteMsgEmitter(
@@ -2853,8 +2885,8 @@ final isMedia = (data.media??[]).isNotEmpty;
 
               if ((data.message?.isNotEmpty ?? false)|| (data.media ?? []).isNotEmpty)
                 _OptionItem(
-                    icon:  Image.asset(
-                    // icon:  SvgPicture.asset(
+                    // icon:  Image.asset(
+                    icon:  SvgPicture.asset(
                       forwardIcon,
                       height: 17,
                       color: appColorGreen,
@@ -2897,6 +2929,9 @@ final isMedia = (data.media??[]).isNotEmpty;
           );
         });
   }
+
+
+
 
   Widget buildMessageBubble(ChatHisList msg, {required bool isMine}) {
     final bool isDeleted = (msg.message == null || msg.message!.isEmpty);
@@ -3062,29 +3097,37 @@ class _OptionItem extends StatelessWidget {
   final Widget icon;
 
   final String name;
+ final  Color txtColor;
   final Function() onTap;
 
-  const _OptionItem(
-      {required this.icon, required this.name, required this.onTap});
+   _OptionItem(
+      {required this.icon, required this.name, required this.onTap ,this.txtColor=Colors.black54});
 
   @override
   Widget build(BuildContext context) {
-    return InkWell(
-        onTap: onTap,
-        child: Padding(
-          padding: const EdgeInsets.only(
-              left: 15,
-              top: 15,
-              bottom: 15),
-          child: Row(children: [
-            icon,
-            Flexible(
-                child: Text('  $name',
-                    style: const TextStyle(
-                        fontSize: 15,
-                        color: Colors.black54,
-                        letterSpacing: 0.5)))
-          ]),
-        ));
+    return Column(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        InkWell(
+            onTap: onTap,
+            child: Padding(
+              padding: const EdgeInsets.only(
+                  left: 15,
+                  top: 5,
+                  bottom: 5),
+              child: Row(children: [
+                CircleAvatar(
+                  backgroundColor: appColorGreen.withOpacity(.07),
+                    child: icon),
+                Flexible(
+                    child: Text('  $name',
+                        style: BalooStyles.baloomediumTextStyle(color: txtColor)))
+              ]),
+            )),
+        vGap(3),
+        divider().marginSymmetric(horizontal: 60),
+        vGap(3),
+      ],
+    );
   }
 }

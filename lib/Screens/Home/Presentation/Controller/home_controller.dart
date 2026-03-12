@@ -1,5 +1,6 @@
 
 import 'package:AccuChat/Constants/assets.dart';
+import 'package:AccuChat/Constants/colors.dart';
 import 'package:AccuChat/Screens/Chat/models/get_company_res_model.dart';
 import 'package:AccuChat/Screens/Chat/screens/chat_tasks/Presentation/Controllers/chat_home_controller.dart';
 import 'package:AccuChat/Screens/Chat/screens/chat_tasks/Presentation/Controllers/task_home_controller.dart';
@@ -67,28 +68,28 @@ class DashboardController extends GetxController with WidgetsBindingObserver {
 
   List<BottomNavigationBarItem> get _fallbackBarItems =>  [
     BottomNavigationBarItem(
-      icon: Image.asset(chatHome,height: 22),
-      // icon: SvgPicture.asset(chatHome,height: 22),
+      // icon: Image.asset(chatHome,height: 22),
+      icon: SvgPicture.asset(chatHome,height: 22),
       label: 'Chat',
     ),BottomNavigationBarItem(
-      icon: Image.asset(tasksHome,height: 22),
-      // icon: SvgPicture.asset(tasksHome,height: 22),
+      // icon: Image.asset(tasksHome,height: 22),
+      icon: SvgPicture.asset(tasksHome,height: 22),
       label: 'Task',
     ),
     BottomNavigationBarItem(
-      icon: Image.asset(galleryIcon,height: 22),
-      // icon: SvgPicture.asset(galleryIcon,height: 22),
+      // icon: Image.asset(galleryIcon,height: 22),
+      icon: SvgPicture.asset(galleryIcon,height: 22),
       label: 'Gallery',
     ),
     BottomNavigationBarItem(
-      icon: Image.asset(connectedAppIcon,height: 22),
-      // icon: SvgPicture.asset(connectedAppIcon,height: 22),
+      // icon: Image.asset(connectedAppIcon,height: 22),
+      icon: SvgPicture.asset(connectedAppIcon,height: 22),
       label: 'Companies',
     ),
  if(kIsWeb)
    BottomNavigationBarItem(
-     icon: Image.asset(settingPng,height: 22),
-     // icon: SvgPicture.asset(settingPng,height: 22),
+     // icon: Image.asset(settingPng,height: 22),
+     icon: SvgPicture.asset(settingPng,height: 22),
      label: 'Settings',
    ),
 
@@ -145,10 +146,11 @@ class DashboardController extends GetxController with WidgetsBindingObserver {
     screens = bottomNavItems.map((nav) => screenFor(nav)).toList();
     barItems = bottomNavItems.map((NavigationItem nav) {
       return BottomNavigationBarItem(
-        icon: Image.asset(
-        // icon: SvgPicture.asset(
+        // icon: Image.asset(
+        icon: SvgPicture.asset(
           iconFor(nav),
           height: 22,
+          color: greyColor,
         ),
         label: nav.navigationItem?.split(" ").first,
         tooltip:  nav.navigationItem

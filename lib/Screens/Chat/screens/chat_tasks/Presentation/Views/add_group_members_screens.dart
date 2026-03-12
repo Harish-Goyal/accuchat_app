@@ -211,8 +211,8 @@ class AddGroupMembersScreen extends GetView<AddGroupMemController> {
                   },
                   icon:  controller.isSearching.value?  const Icon(
                       CupertinoIcons.clear_circled_solid)
-                      :Image.asset(searchPng,height:25,width:25)
-                      // :SvgPicture.asset(searchPng,height:25,width:25)
+                      // :Image.asset(searchPng,height:25,width:25)
+                      :SvgPicture.asset(searchPng,height:25,width:25)
               );
             }
         ),

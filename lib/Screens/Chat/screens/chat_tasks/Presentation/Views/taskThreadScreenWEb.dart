@@ -333,7 +333,7 @@ class TaskThreadScreenWeb extends GetView<TaskThreadController> {
       color: Colors.transparent,
       child: Row(
         children: [
-          Expanded(child: divider(color: appColorGreen.withOpacity(.3))),
+          Expanded(child: divider(color: perpleBg)),
           CustomContainer(
             elevation: 2,
             vPadding: 3,
@@ -344,7 +344,7 @@ class TaskThreadScreenWeb extends GetView<TaskThreadController> {
               style: BalooStyles.balooregularTextStyle(size: 12.5),
             ),
           ),
-          Expanded(child: divider(color: appColorGreen.withOpacity(.3))),
+          Expanded(child: divider(color: perpleBg)),
         ],
       ),
     );
@@ -994,8 +994,8 @@ class TaskThreadScreenWeb extends GetView<TaskThreadController> {
         PopupMenuItem(value: 'en-IN', child: Text('English',style: BalooStyles.baloonormalTextStyle(),)),
         PopupMenuItem(value: 'hi-IN', child: Text('Hindi',style: BalooStyles.baloonormalTextStyle())),
       ],
-      child:  Image.asset(translationPng, height: 20,color:speechC.selectedLang=="hi-IN"? appColorGreen:appColorYellow,),
-      // child:  SvgPicture.asset(translationPng, height: 20,color:speechC.selectedLang=="hi-IN"? appColorGreen:appColorYellow,),
+      // child:  Image.asset(translationPng, height: 20,color:speechC.selectedLang=="hi-IN"? appColorGreen:appColorYellow,),
+      child:  SvgPicture.asset(translationPng, height: 20,color:speechC.selectedLang=="hi-IN"? appColorGreen:appColorYellow,),
     );
   }
 

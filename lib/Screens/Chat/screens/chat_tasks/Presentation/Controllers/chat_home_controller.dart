@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'package:AccuChat/Constants/colors.dart';
 import 'package:AccuChat/Screens/Chat/models/recent_chat_user_res_model.dart';
 import 'package:AccuChat/Screens/Home/Presentation/Controller/socket_controller.dart';
 import 'package:firebase_crashlytics/firebase_crashlytics.dart';
@@ -31,6 +32,7 @@ class ChatHomeController extends GetxController{
   RxBool isSearching = false.obs;
   TextEditingController seacrhCon = TextEditingController();
   FocusNode searchFocus = FocusNode();
+  FocusNode searchtetxtFocus = FocusNode();
   String searchQuery = '';
 
   var selectedCompany = Rxn<CompanyData>();     // Rx nullable object
@@ -62,6 +64,12 @@ class ChatHomeController extends GetxController{
   @override
   void onInit() {
     super.onInit();
+    SystemChrome.setSystemUIOverlayStyle(
+       SystemUiOverlayStyle(
+        systemNavigationBarColor: Colors.white,
+        systemNavigationBarIconBrightness: Brightness.light,
+      ),
+    );
     getCompany();
     isOnRecentList.value = true;
     scrollController = ScrollController();

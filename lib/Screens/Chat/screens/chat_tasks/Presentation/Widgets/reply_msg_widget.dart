@@ -67,7 +67,7 @@ class ReplyMessageWidget extends StatelessWidget {
             decoration: BoxDecoration(
               borderRadius: BorderRadius.circular(30),
               border: Border.all(color: greyText),
-              color: AppTheme.appColor,
+              color: perpleBg,
             ),
           ),
           isCancel!

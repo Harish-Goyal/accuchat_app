@@ -119,7 +119,7 @@ class GalleryController extends GetxController
   getCompany() {
     final svc = CompanyService.to;
     myCompany = svc.selected;
-    update();
+
     if (!svc.hasCompany){
       Get.offAllNamed(AppRoutes.landing_r);
       return;

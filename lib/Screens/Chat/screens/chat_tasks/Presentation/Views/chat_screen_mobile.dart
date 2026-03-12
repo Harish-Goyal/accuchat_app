@@ -6,6 +6,7 @@ import 'package:AccuChat/Screens/Chat/screens/chat_tasks/Presentation/Controller
 import 'package:AccuChat/Screens/Chat/screens/chat_tasks/Presentation/Controllers/chat_screen_controller.dart';
 import 'package:AccuChat/Services/APIs/api_ends.dart';
 import 'package:AccuChat/routes/app_routes.dart';
+import 'package:AccuChat/utils/circleContainer.dart';
 import 'package:AccuChat/utils/custom_container.dart';
 import 'package:AccuChat/utils/loading_indicator.dart';
 import 'package:AccuChat/utils/networl_shimmer_image.dart';
@@ -18,6 +19,7 @@ import 'package:file_picker/file_picker.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter_linkify/flutter_linkify.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:get/get.dart';
 import 'package:image_picker/image_picker.dart';
@@ -26,6 +28,7 @@ import 'package:scrollable_positioned_list/scrollable_positioned_list.dart';
 import 'package:swipe_to/swipe_to.dart';
 import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/gestures.dart';
+import 'package:url_launcher/url_launcher.dart';
 import '../../../../../../Constants/app_theme.dart';
 import '../../../../../../Constants/assets.dart';
 import '../../../../../../Constants/colors.dart';
@@ -223,29 +226,40 @@ class _ChatScreenMobileState extends State<ChatScreenMobile> {
     return GetBuilder<ChatScreenController>(builder: (controller) {
       return GestureDetector(
         onTap: () => FocusScope.of(context).unfocus(),
-        child: SafeArea(
-          child: WillPopScope(
-            onWillPop: () {
-              // Get.find<ChatHomeController>().localPage.value = 1;
-              // Get.find<ChatHomeController>().hitAPIToGetRecentChats(page: 1);
-              return Future.value(true);
-            },
-            child: SafeArea(
-              child: Scaffold(
-                appBar: AppBar(
-                  scrolledUnderElevation: 0,
-                  surfaceTintColor: Colors.white,
-                  backgroundColor: Colors.white,
-                  automaticallyImplyLeading: false,
-                  flexibleSpace: MediaQuery( // ✅ clamp text scale for web
-                    data: MediaQuery.of(context).copyWith(textScaleFactor: _textScaleClamp(context)),
-                    child: _appBar(),
-                  ),
+        child: Container(
+          decoration:const BoxDecoration(
+            image: DecorationImage(image: AssetImage("assets/images/bglight.jpg"),fit: BoxFit.cover)
+          ),
+          child: SafeArea(
+            child: WillPopScope(
+              onWillPop: () {
+                // Get.find<ChatHomeController>().localPage.value = 1;
+                // Get.find<ChatHomeController>().hitAPIToGetRecentChats(page: 1);
+                return Future.value(true);
+              },
+              child: Container(
+                decoration:const BoxDecoration(
+                    image: DecorationImage(image: AssetImage("assets/images/bglight.jpg"),fit: BoxFit.cover)
                 ),
-                backgroundColor: const Color.fromARGB(255, 234, 248, 255),
-                body: ScrollConfiguration(
-                  behavior: const _NoGlowScrollBehavior(),
-                  child: _mainBody(context),
+                child: SafeArea(
+                  child: Scaffold(
+                    backgroundColor: whiteselected,
+                    appBar: AppBar(
+                      scrolledUnderElevation: 0,
+                      surfaceTintColor: chatcardt,
+                      backgroundColor: chatcardt,
+                      automaticallyImplyLeading: false,
+                      flexibleSpace: MediaQuery( // ✅ clamp text scale for web
+                        data: MediaQuery.of(context).copyWith(textScaleFactor: _textScaleClamp(context)),
+                        child: _appBar(),
+                      ),
+                    ),
+                    // backgroundColor: const Color.fromARGB(255, 234, 248, 255),
+                    body: ScrollConfiguration(
+                      behavior: const _NoGlowScrollBehavior(),
+                      child: _mainBody(context),
+                    ),
+                  ),
                 ),
               ),
             ),
@@ -258,7 +272,10 @@ class _ChatScreenMobileState extends State<ChatScreenMobile> {
   Widget _mainBody(context){
     final  username =controller.user?.userCompany?.displayName!=null?controller.user?.userCompany?.displayName ?? '':controller.user?.userName!=null?controller.user?.userName?? '':controller.user?.phone?? '';
     return Center(
-      child: ConstrainedBox(
+      child: Container(
+        decoration: const BoxDecoration(
+            image: DecorationImage(image: AssetImage("assets/images/bglight.jpg",),fit: BoxFit.cover)
+        ),
         constraints: BoxConstraints(maxWidth: _maxChatWidth(Get.context!)),
         child: Padding(
           padding: _shellHPadding(Get.context!),
@@ -293,7 +310,19 @@ class _ChatScreenMobileState extends State<ChatScreenMobile> {
                 ],
               )
                   : const SizedBox.shrink(),
-              if (kIsWeb) _chatInput(context) else _chatInputMobile(context),
+              if (kIsWeb) Container(
+                  constraints: const BoxConstraints(minHeight: 64),
+                  padding: EdgeInsets.all(2),
+                  decoration: BoxDecoration(
+                      borderRadius: BorderRadius.circular(15),
+                      color: Colors.white.withOpacity(.4)
+                  ),child: _chatInput(context)) else Container(
+                  constraints: const BoxConstraints(minHeight: 64),
+                  padding: EdgeInsets.all(2),
+                  decoration: BoxDecoration(
+                      borderRadius: BorderRadius.circular(15),
+                      color: Colors.white.withOpacity(.4)
+                  ),child: _chatInputMobile(context)),
             ],
           ),
         ),
@@ -460,9 +489,9 @@ class _ChatScreenMobileState extends State<ChatScreenMobile> {
           final data = element.chatMessageItems;
           return AnimatedContainer(
             duration: const Duration(milliseconds: 250),
-            color: isHighlighted ? appColorGreen.withOpacity(.3) : null,
+            color: isHighlighted ? perpleBg : null,
             child: SwipeTo(
-              iconColor: appColorGreen,
+              iconColor: appColorPerple,
               key: ValueKey(element.chatMessageItems.chatId),
               onRightSwipe: element.chatMessageItems.isActivity == 1
                   ? (v) {}
@@ -532,7 +561,7 @@ class _ChatScreenMobileState extends State<ChatScreenMobile> {
       color: Colors.transparent,
       child: Row(
         children: [
-          Expanded(child: divider(color: appColorGreen.withOpacity(.3))),
+          Expanded(child: divider(color: perpleBg)),
           CustomContainer(
             elevation: 2,
             vPadding: 3,
@@ -543,7 +572,7 @@ class _ChatScreenMobileState extends State<ChatScreenMobile> {
               style: BalooStyles.balooregularTextStyle(size: 12.5),
             ),
           ),
-          Expanded(child: divider(color: appColorGreen.withOpacity(.3))),
+          Expanded(child: divider(color: perpleBg)),
         ],
       ),
     );
@@ -672,13 +701,14 @@ class _ChatScreenMobileState extends State<ChatScreenMobile> {
 */
   Widget _chatMessageTile(
       {required ChatHisList data, required bool sentByMe, formatedTime}) {
+    final isMedia = (data.media??[]).isNotEmpty;
     return data.isActivity == 1
         ? Center(
       child: CustomContainer(
           elevation: 0,
           vPadding: 4,
           hPadding: 8,
-          color: appColorGreen.withOpacity(.1),
+          color: perpleBg,
           childWidget:
           Text(data.message ?? '',
               textAlign: TextAlign.start,
@@ -708,10 +738,10 @@ class _ChatScreenMobileState extends State<ChatScreenMobile> {
                 icon: Transform(
                     alignment: Alignment.center,
                     transform: Matrix4.rotationY(math.pi),
-                    child: Image.asset(
-                    // child: SvgPicture.asset(
+                    // child: Image.asset(
+                    child: SvgPicture.asset(
                       forwardIcon,
-                      height: 20,
+                      height: 30,
                     ))).paddingOnly(left: 8)
                 : const SizedBox(),
             Align(
@@ -751,7 +781,7 @@ class _ChatScreenMobileState extends State<ChatScreenMobile> {
                         SystemChannels.textInput
                             .invokeMethod('TextInput.hide');
                         if (!isTaskMode) {
-                            _showBottomSheet(sentByMe, data: data);
+                            _showBottomSheet(sentByMe,context, data: data);
                         }
                       },
                       child:((data.media ?? []).isNotEmpty || data.message !='' || data.message !=null)?Container(
@@ -763,18 +793,25 @@ class _ChatScreenMobileState extends State<ChatScreenMobile> {
                         ),
                         margin: sentByMe
                             ? const EdgeInsets.only(
-                            left: 6, top: 10, right: 6)
+                            left: 6, top: 10, right: 12)
                             : const EdgeInsets.only(
-                            right: 6, top: 10, left: 6),
+                            right: 6, top: 10, left: 12),
 
                         decoration: BoxDecoration(
                             color: sentByMe
-                                ? appColorGreen.withOpacity(.1)
-                                : appColorPerple.withOpacity(.1),
+                                ? perpleBg
+                                : whiteselected,
                             border: Border.all(
                                 color:  sentByMe
-                                    ? appColorGreen
-                                    : appColorPerple),
+                                    ? perpleBg
+                                    : whiteselected),
+                            boxShadow:sentByMe? [BoxShadow(
+                              color: perplebr,
+                              offset: Offset(5, 5)
+                            )]:[BoxShadow(
+                              color: Colors.grey.shade300,
+                              offset: Offset(-5, 5)
+                            )],
                             //making borders curved
                             borderRadius: sentByMe
                                 ? BorderRadius.only(
@@ -795,8 +832,8 @@ class _ChatScreenMobileState extends State<ChatScreenMobile> {
                                     (data.media ?? []).isNotEmpty ? 15 : 30),
                                 topRight: Radius.circular((data.media ?? []).isNotEmpty ? 15 : 30),
                                 bottomRight: Radius.circular((data.media ?? []).isNotEmpty ? 15 : 30))),
-                        child: messageTypeView(data, sentByMe: sentByMe),
-                      ).marginOnly(left: (0), top: 0):SizedBox(),
+                        child: messageTypeView(data, sentByMe: sentByMe,fTime: formatedTime),
+                      ).marginOnly(left: (0), top: 0):const SizedBox(),
                     ),
                   ],
                 ),
@@ -809,16 +846,16 @@ class _ChatScreenMobileState extends State<ChatScreenMobile> {
                 onPressed: () {
                   controller.handleForwardMobile(context,chatId: data.chatId);
                 },
-                icon: Image.asset(
-                // icon: SvgPicture.asset(
+                // icon: Image.asset(
+                icon: SvgPicture.asset(
                   forwardIcon,
-                  height: 20,
+                  height: 30,
                 ))
                 : const SizedBox()
           ],
         ),
-        vGap(3),
-        Row(
+        isMedia? vGap(3):SizedBox(),
+        isMedia? Row(
           mainAxisSize: MainAxisSize.min,
           children: [
             Text(
@@ -828,19 +865,392 @@ class _ChatScreenMobileState extends State<ChatScreenMobile> {
                   color: Colors.grey, size: 13),
             ),
             hGap(5),
-            sentByMe?Icon(
+            sentByMe
+                ? Icon(
               data.readOn != null ? Icons.done_all : Icons.done,
               size: 14,
-              color: data.readOn != null ? Colors.blue : Colors.grey,
-            ):const SizedBox()
+              color:
+              data.readOn != null ? Colors.blue : Colors.grey,
+            )
+                : const SizedBox()
           ],
-        ).marginOnly(left: 15, right: 15),
+        ).marginOnly(left: 0, right: 0):SizedBox(),
       ],
     )
     ;
   }
 
-  messageTypeView(ChatHisList data, {required bool sentByMe}) {
+  messageTypeView(ChatHisList data, {required bool sentByMe,int? index,fTime}) {
+    final isEmojiMsg = isEmojiOnlyMessage(data.message ?? '');
+    final isMedia = (data.media??[]).isNotEmpty;
+    return !isMedia? Stack(
+      clipBehavior: Clip.none,
+      alignment: Alignment.topRight,
+      children: [
+        Row(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.end,
+          children: [
+            Flexible(
+              child: Container(
+                key: ValueKey('msg-${data.chatId}'),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    data.replyToId != null
+                        ? ReplyMessageWidget(
+                        isCancel: false,
+                        sentByMe: sentByMe,
+                        onReplu: () {
+                          final int? replyId =
+                              data.replyToId; // confirm field name
+                          if (replyId != null) {
+                            jumpToRepliedMessage(replyId);
+                          }
+                        },
+                        empIdsender: data.fromUser?.userId.toString(),
+                        chatdata: data,
+                        empIdreceiver: data.toUser?.userId.toString(),
+                        empName: data.isGroupChat == 1
+                            ? data.fromUser?.userCompany?.displayName ?? ''
+                            : data.fromUser?.userId.toString() ==
+                            APIs.me?.userId?.toString()
+                            ? data.fromUser?.userCompany?.displayName ?? ''
+                            : data.toUser?.userCompany?.displayName ?? '',
+                        message: data.replyToText ?? '',
+                        orignalMsg: data.replyToMedia ?? '')
+                        .paddingOnly(bottom: 4)
+                        : const SizedBox(),
+                    controller.user?.userCompany?.isGroup == 1
+                        ? Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Flexible(
+                          fit: FlexFit.loose,
+                          child: Text(
+                              data.fromUser?.userId == APIs.me?.userId
+                                  ? "You"
+                                  : data.fromUser?.userCompany?.displayName !=
+                                  null
+                                  ? (data.fromUser?.userCompany
+                                  ?.displayName ??
+                                  '')
+                                  : data.fromUser?.userName != null
+                                  ? (data.fromUser?.userName ?? '')
+                                  : (data.fromUser?.phone ?? ''),
+                              style: BalooStyles.baloonormalTextStyle(
+                                  color:
+                                  data.fromUser?.userId == APIs.me?.userId
+                                      ? Colors.green
+                                      : Colors.purple),
+                              textAlign: TextAlign.end,
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis)
+                              .marginOnly(
+                              right: sentByMe ? 1 : 5,
+                              left: sentByMe ? 1 : 5,
+                              bottom: 1,
+                              top: 4),
+                        ),
+                      ],
+                    )
+                        : const SizedBox(),
+                    data.isForwarded == 1
+                        ? Text("Forwarded",
+                        textAlign: TextAlign.start,
+                        style: BalooStyles.baloonormalTextStyle(
+                            color: Colors.grey,
+                            size: 13,
+                            fontstyle: FontStyle.italic),
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis)
+                        .marginOnly(
+                      top: 8,
+                    )
+                        : const SizedBox(),
+                    data.message != '' || data.message != null
+                        ? DefaultSelectionStyle(
+                      selectionColor: appColorPerple.withOpacity(0.3),
+                      cursorColor: appColorPerple,
+                      child: SelectableLinkify(
+                        text: data.message ?? '',
+                        onOpen: (link) {
+                          launchUrl(Uri.parse(link.url),
+                              mode: LaunchMode.externalApplication);
+                        },
+                        style: BalooStyles.baloonormalTextStyle(
+                          color: Colors.black87,
+                          size: isEmojiMsg ? 50 : 15,
+                        ),
+                        linkStyle: BalooStyles.baloonormalTextStyle(
+                          color: Colors.blue,
+                          size: 15,
+                        ),
+                        linkifiers: const [
+                          UrlLinkifier(),
+                        ],
+                      ),
+                    )
+                        : const SizedBox(),
+                    ((data.media ?? []).isNotEmpty)
+                        ? ChatMessageMedia(
+                      chat: data,
+                      isGroupMessage: data.isGroupChat == 1 ? true : false,
+                      myId: (APIs.me?.userId ?? 0).toString(),
+                      fromId: (data.fromUser?.userId ?? 0).toString(),
+                      senderName: data.fromUser?.userCompany?.displayName != null
+                          ? data.fromUser?.userCompany?.displayName ?? ''
+                          : data.fromUser?.userName ?? '',
+                      baseUrl: ApiEnd.baseUrlMedia,
+                      defaultGallery: galleryIcon,
+                      onOpenDocument: (url) =>
+                          openDocumentFromUrl(url), // your existing function
+                      onOpenImageViewer: (mediaurls, startIndex) {
+                        // push your gallery view
+                        // Get.to(() => ImageViewer(urls: urls, initialIndex: startIndex));
+                        Get.to(
+                              () => GalleryViewerPage(
+                            onReply: () {
+                              Get.back();
+                              controller.refIdis = data.chatId;
+                              controller.userIDSender = data.fromUser?.userId;
+                              controller.userNameReceiver =
+                                  data.toUser?.userCompany?.displayName ?? '';
+                              controller.userNameSender =
+                                  data.fromUser?.userCompany?.displayName ?? '';
+                              controller.userIDReceiver = data.toUser?.userId;
+                              controller.replyToMessage = data;
+                              controller.replyToImage =
+                                  data.media?[startIndex].orgFileName ?? '';
+                            },
+                          ),
+                          binding: BindingsBuilder(() {
+                            Get.put(GalleryViewerController(
+                                urls: mediaurls, index: startIndex, chathis: data));
+                          }),
+                          fullscreenDialog: true,
+                          transition: Transition.fadeIn,
+                        );
+                      },
+                      onOpenVideo: (url) {
+                        // open video player route/sheet if available
+                      },
+                      onOpenAudio: (url) {
+                        // open audio player route/sheet if available
+                      },
+                    )
+                        : const SizedBox(),
+                  ],
+                ),
+              ),
+            ),
+
+            Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.end,
+              children: [
+                Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Text(
+                      fTime ?? '',
+                      textAlign: TextAlign.start,
+                      style: BalooStyles.baloonormalTextStyle(
+                          color: Colors.grey, size: 13),
+                    ),
+                    hGap(5),
+                    sentByMe
+                        ? Icon(
+                      data.readOn != null ? Icons.done_all : Icons.done,
+                      size: 14,
+                      color:
+                      data.readOn != null ? Colors.blue : Colors.grey,
+                    )
+                        : const SizedBox()
+                  ],
+                ).marginOnly(left: 0, right: 0),
+              ],
+            ),
+
+          ],
+        ),
+        (controller.hoveredMessageId == data.chatId.toString())?  InkWell(
+            borderRadius: BorderRadius.circular(50),
+            onTap: (){
+              _showBottomSheet(sentByMe,context, data: data);
+              // },child: Image.asset(arrowDownPng,height: 14,color:Colors.black54).paddingAll(3)):const SizedBox()
+            },child: SvgPicture.asset(arrowDownPng,height: 15,)):const SizedBox()
+        ,
+      ],
+    ):Stack(
+      clipBehavior: Clip.none,
+      alignment: Alignment.topRight,
+      children: [
+        Container(
+          key: ValueKey('msg-${data.chatId}'),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              data.replyToId != null
+                  ? ReplyMessageWidget(
+                  isCancel: false,
+                  sentByMe: sentByMe,
+                  onReplu: () {
+                    final int? replyId =
+                        data.replyToId; // confirm field name
+                    if (replyId != null) {
+                      jumpToRepliedMessage(replyId);
+                    }
+                  },
+                  empIdsender: data.fromUser?.userId.toString(),
+                  chatdata: data,
+                  empIdreceiver: data.toUser?.userId.toString(),
+                  empName: data.isGroupChat == 1
+                      ? data.fromUser?.userCompany?.displayName ?? ''
+                      : data.fromUser?.userId.toString() ==
+                      APIs.me?.userId?.toString()
+                      ? data.fromUser?.userCompany?.displayName ?? ''
+                      : data.toUser?.userCompany?.displayName ?? '',
+                  message: data.replyToText ?? '',
+                  orignalMsg: data.replyToMedia ?? '')
+                  .paddingOnly(bottom: 4)
+                  : const SizedBox(),
+              controller.user?.userCompany?.isGroup == 1
+                  ? Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Flexible(
+                    fit: FlexFit.loose,
+                    child: Text(
+                        data.fromUser?.userId == APIs.me?.userId
+                            ? "You"
+                            : data.fromUser?.userCompany?.displayName !=
+                            null
+                            ? (data.fromUser?.userCompany
+                            ?.displayName ??
+                            '')
+                            : data.fromUser?.userName != null
+                            ? (data.fromUser?.userName ?? '')
+                            : (data.fromUser?.phone ?? ''),
+                        style: BalooStyles.baloonormalTextStyle(
+                            color:
+                            data.fromUser?.userId == APIs.me?.userId
+                                ? Colors.green
+                                : Colors.purple),
+                        textAlign: TextAlign.end,
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis)
+                        .marginOnly(
+                        right: sentByMe ? 1 : 5,
+                        left: sentByMe ? 1 : 5,
+                        bottom: 1,
+                        top: 4),
+                  ),
+                ],
+              )
+                  : const SizedBox(),
+              data.isForwarded == 1
+                  ? Text("Forwarded",
+                  textAlign: TextAlign.start,
+                  style: BalooStyles.baloonormalTextStyle(
+                      color: Colors.grey,
+                      size: 13,
+                      fontstyle: FontStyle.italic),
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis)
+                  .marginOnly(
+                top: 8,
+              )
+                  : const SizedBox(),
+              data.message != '' || data.message != null
+                  ? DefaultSelectionStyle(
+                selectionColor: appColorPerple.withOpacity(0.3),
+                cursorColor: appColorPerple,
+                child: SelectableLinkify(
+                  text: data.message ?? '',
+                  onOpen: (link) {
+                    launchUrl(Uri.parse(link.url),
+                        mode: LaunchMode.externalApplication);
+                  },
+                  style: BalooStyles.baloonormalTextStyle(
+                    color: Colors.black87,
+                    size: isEmojiMsg ? 50 : 15,
+                  ),
+                  linkStyle: BalooStyles.baloonormalTextStyle(
+                    color: Colors.blue,
+                    size: 15,
+                  ),
+                  linkifiers: const [
+                    UrlLinkifier(),
+                  ],
+                ),
+              )
+                  : const SizedBox(),
+              ((data.media ?? []).isNotEmpty)
+                  ? ChatMessageMedia(
+                chat: data,
+                isGroupMessage: data.isGroupChat == 1 ? true : false,
+                myId: (APIs.me?.userId ?? 0).toString(),
+                fromId: (data.fromUser?.userId ?? 0).toString(),
+                senderName: data.fromUser?.userCompany?.displayName != null
+                    ? data.fromUser?.userCompany?.displayName ?? ''
+                    : data.fromUser?.userName ?? '',
+                baseUrl: ApiEnd.baseUrlMedia,
+                defaultGallery: galleryIcon,
+                onOpenDocument: (url) =>
+                    openDocumentFromUrl(url), // your existing function
+                onOpenImageViewer: (mediaurls, startIndex) {
+                  // push your gallery view
+                  // Get.to(() => ImageViewer(urls: urls, initialIndex: startIndex));
+                  Get.to(
+                        () => GalleryViewerPage(
+                      onReply: () {
+                        Get.back();
+                        controller.refIdis = data.chatId;
+                        controller.userIDSender = data.fromUser?.userId;
+                        controller.userNameReceiver =
+                            data.toUser?.userCompany?.displayName ?? '';
+                        controller.userNameSender =
+                            data.fromUser?.userCompany?.displayName ?? '';
+                        controller.userIDReceiver = data.toUser?.userId;
+                        controller.replyToMessage = data;
+                        controller.replyToImage =
+                            data.media?[startIndex].orgFileName ?? '';
+                      },
+                    ),
+                    binding: BindingsBuilder(() {
+                      Get.put(GalleryViewerController(
+                          urls: mediaurls, index: startIndex, chathis: data));
+                    }),
+                    fullscreenDialog: true,
+                    transition: Transition.fadeIn,
+                  );
+                },
+                onOpenVideo: (url) {
+                  // open video player route/sheet if available
+                },
+                onOpenAudio: (url) {
+                  // open audio player route/sheet if available
+                },
+              )
+                  : const SizedBox(),
+            ],
+          ),
+        ),
+
+        (controller.hoveredMessageId == data.chatId.toString())?  InkWell(
+            borderRadius: BorderRadius.circular(50),
+            onTap: (){
+              _showBottomSheet(sentByMe,context, data: data);
+              // },child:  Image.asset(arrowDownPng,height: 14,color:Colors.black54).paddingAll(3)):const SizedBox()
+            },child:  SvgPicture.asset(arrowDownPng,height: 15,)):const SizedBox()
+      ],
+    );
+  }
+
+/*  messageTypeView(ChatHisList data, {required bool sentByMe}) {
     final isEmojiMsg = isEmojiOnlyMessage(data.message??'');
     return Container(
       key: ValueKey('msg-${data.chatId}'),
@@ -929,7 +1339,7 @@ class _ChatScreenMobileState extends State<ChatScreenMobile> {
                   fromId: (data.fromUser?.userId ?? 0).toString(),
                   senderName:data.fromUser?.userCompany?.displayName!=null? data.fromUser?.userCompany?.displayName ?? '':data.fromUser?.userName??'',
                   baseUrl: ApiEnd.baseUrlMedia,
-                  defaultGallery: defaultGallery,
+                  defaultGallery: galleryIcon,
                   onOpenDocument: (url) =>
                       openDocumentFromUrl(url), // your existing function
                   onOpenImageViewer: (mediaurls, startIndex) {
@@ -966,275 +1376,284 @@ class _ChatScreenMobileState extends State<ChatScreenMobile> {
         ],
       ),
     );
-  }
+  }*/
 
   // app bar widget
   Widget _appBar() {
-    return Row(
-      children: [
-        controller.isSearching
-            ? Expanded(
-          child: TextField(
-            controller: controller.seacrhCon,
-            cursorColor: appColorGreen,
-            decoration: const InputDecoration(
-                border: InputBorder.none,
-                hintText: 'Search Chats ...',
-                contentPadding: EdgeInsets.symmetric(
-                    vertical: 0, horizontal: 10),
-                constraints: BoxConstraints(maxHeight: 45)),
-            autofocus: true,
-            style: const TextStyle(
-                fontSize: 13, letterSpacing: 0.5),
-            onChanged: (val) {
-              controller.searchQuery = val;
-              controller.onSearch(val, controller.user!);
-            },
-          ).marginSymmetric(vertical: 10),
-        )
-            : Expanded(
-          child: InkWell(
-            onTap: () {
-              if (!(controller.user?.userCompany?.isGroup == 1 ||
-                  controller.user?.userCompany?.isBroadcast == 1)) {
+    return Container(
+    decoration:const BoxDecoration(
+    image: DecorationImage(image: AssetImage(appbarBG),fit: BoxFit.cover)
+    ),
+      child:Row(
+        children: [
+          controller.isSearching
+              ? Expanded(
+            child: TextField(
+              controller: controller.seacrhCon,
+              cursorColor: appColorGreen,
+              decoration: const InputDecoration(
+                  border: InputBorder.none,
+                  hintText: 'Search Chats ...',
+                  contentPadding: EdgeInsets.symmetric(
+                      vertical: 0, horizontal: 10),
+                  constraints: BoxConstraints(maxHeight: 45)),
+              autofocus: true,
+              style: const TextStyle(
+                  fontSize: 13, letterSpacing: 0.5),
+              onChanged: (val) {
+                controller.searchQuery = val;
+                controller.onSearch(val, controller.user!);
+              },
+            ).marginSymmetric(vertical: 10),
+          )
+              : Expanded(
+            child: InkWell(
+              onTap: () {
+                if (!(controller.user?.userCompany?.isGroup == 1 ||
+                    controller.user?.userCompany?.isBroadcast == 1)) {
 
-                if(kIsWeb){
+                  if(kIsWeb){
+                    Get.toNamed(
+                      "${AppRoutes.view_profile}?userId=${controller.user?.userId}",
+                    );
+                  }
+                  else{
+                    Get.toNamed(AppRoutes.view_profile,
+                        arguments: {'user': controller.user});
+                  }
+                } else {
+                  if(kIsWeb){
+                    Get.toNamed(
+                      "${AppRoutes.member_sr}?userId=${controller.user?.userId}",
+                    );
+                  }
+                  else{
+                    Get.toNamed(AppRoutes.member_sr,
+                        arguments: {'user': controller.user});
+                  }
+
+
+                }
+              },
+              child: Row(
+                children: [
+                  IconButton(
+                      onPressed: () {
+                        if (Get.previousRoute.isNotEmpty) {
+                          Get.back();
+                        } else {
+                          Get.offAllNamed(AppRoutes.home); // or your main route
+                        }
+                        if(!kIsWeb) {
+                          // Get.find<ChatHomeController>().localPage.value = 1;
+                          // Get.find<ChatHomeController>().hitAPIToGetRecentChats(page: 1);
+                          // if (isTaskMode) {
+                          //   Get.find<DashboardController>().updateIndex(1);
+                          // } else {
+                          //   Get.find<DashboardController>().updateIndex(0);
+                          // }
+                        }
+                      },
+                      icon: const Icon(Icons.arrow_back, color: Colors.black54)),
+
+                  CustomCacheNetworkImage(
+                    radiusAll: 100,
+                    "${ApiEnd.baseUrlMedia}${controller.user?.userImage ?? ''}",
+                    height: 45, // ✅ responsive avatar
+                    width: 45,
+                    boxFit: BoxFit.cover,
+                    defaultImage: controller.user?.userCompany?.isGroup == 1
+                        ? groupIcn
+                        : controller.user?.userCompany?.isBroadcast == 1
+                        ? broadcastIcon
+                        : ICON_profile,
+                    borderColor: greyText,
+                  ),
+
+                  hGap(3),
+
+                  //user name & last seen time
+                  Flexible(
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        (controller.user?.userCompany?.isGroup == 1 ||
+                            controller.user?.userCompany?.isBroadcast == 1)
+                            ? Text(
+                            (controller.user?.userName == '' ||
+                                controller.user?.userName == null)
+                                ? controller.user?.phone ?? ''
+                                : controller.user?.userName ?? '',
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                            style: BalooStyles.baloosemiBoldTextStyle()
+                        )
+                            : Text(
+                            (controller.user?.userCompany?.displayName !=null)
+                                ? controller.user?.userCompany?.displayName ?? ''
+                                :controller.user?.userName!=null? controller.user?.userName?? '': controller.user?.phone??'',
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                            style: BalooStyles.baloosemiBoldTextStyle()
+                        ),
+                        controller.user?.userCompany?.isGroup == 1 ||
+                            controller.user?.userCompany?.isBroadcast == 1
+                            ? Text('${controller.members.length} members',
+                            style: BalooStyles.baloosemiBoldTextStyle())
+                            : const SizedBox(),
+
+                        vGap(2),
+                        //for adding some space
+
+                        //last seen time of user
+                        //TODO
+                        /* Text(
+                                    list.isNotEmpty
+                                        ? list[0].isOnline && !list[0].isTyping
+                                        ? 'Online'
+                                        : list[0].isTyping && list[0].isOnline
+                                        ? "Typing..."
+                                        : MyDateUtil.getLastActiveTime(
+                                        context: context,
+                                        lastActive:
+                                        list[0].lastActive.toString())
+                                        : MyDateUtil.getLastActiveTime(
+                                        context: context,
+                                        lastActive:
+                                        (controller.user?.lastActive??'').toString()),
+                                    style: const TextStyle(
+                                        fontSize: 13, color: Colors.black54)),*/
+                      ],
+                    ),
+                  ),
+
+
+                ],
+              ),
+            ),
+          ),
+
+          controller.isSearching?const SizedBox():  (controller.user?.userCompany?.isBroadcast==1 ||controller.user?.userCompany?.isGroup==1) ?const SizedBox(): InkWell(
+    onTap: (){
+    final u = controller.user;
+    if(kIsWeb){
+    Get.toNamed(
+    '${AppRoutes.tasks_li_r}?userId=${u?.userId}',
+    );
+    }else{
+    Get.toNamed(AppRoutes.tasks_li_r,arguments: {'user':controller.user});
+    }
+
+
+    },
+    child: goToWidget("Go to Task", appColorPerple),),
+
+
+          controller.isSearching?const SizedBox():  hGap(10),
+          IconButton(
+              onPressed: () {
+                controller.isSearching = !controller.isSearching;
+                controller.update();
+                if (!controller.isSearching) {
+                  controller.searchQuery = '';
+                  controller.seacrhCon.clear();
+                  controller.resetPaginationForNewChat();
+                  controller.onSearch(controller.searchQuery,controller.user!);
+                }
+                controller.update();
+              },
+              icon:bottonBg(child:  controller.isSearching?  const Icon(
+                  CupertinoIcons.clear,color:Colors.black54,)
+                  :SvgPicture.asset(searchPng, height: 20, width: 20,color: Colors.black54,)
+              )// : SvgPicture.asset(searchPng,height:25,width:25)
+          ).paddingOnly(top: 0, right: 0),
+          // controller.isSearching?const SizedBox():hGap(10),
+          controller.isSearching?const SizedBox(): (controller.user?.userCompany?.isGroup == 1 ||
+              controller.user?.userCompany?.isBroadcast == 1)
+              ? PopupMenuButton<String>(
+            color: Colors.white,
+            icon: bottonBg(child: Icon(Icons.more,size: 20,color: Colors.black45,)),
+            iconColor: Colors.black87,
+            onSelected: (value) {
+              if (value == 'AddMember') {
+                if (kIsWeb) {
+                  openAllUserDialog(controller.user);
+                } else {
+                  openAllUserDialog(controller.user);
+                  // Get.toNamed(
+                  //   AppRoutes.add_group_member,
+                  //   arguments: {'groupChat': controller.user},
+                  // );
+                }
+              }
+              if (value == 'Exit') {
+                toast("Under development");
+              }
+              if (value == 'Edit') {
+                if (kIsWeb) {
                   Get.toNamed(
-                    "${AppRoutes.view_profile}?userId=${controller.user?.userId}",
+                    "${AppRoutes.member_sr}?userId=${controller.user?.userId.toString()}",
                   );
-                }
-                else{
-                  Get.toNamed(AppRoutes.view_profile,
-                      arguments: {'user': controller.user});
-                }
-              } else {
-                if(kIsWeb){
-                  Get.toNamed(
-                    "${AppRoutes.member_sr}?userId=${controller.user?.userId}",
-                  );
-                }
-                else{
+                } else {
                   Get.toNamed(AppRoutes.member_sr,
                       arguments: {'user': controller.user});
                 }
-
-
               }
             },
-            child: Row(
-              children: [
-                IconButton(
-                    onPressed: () {
-                      if (Get.previousRoute.isNotEmpty) {
-                        Get.back();
-                      } else {
-                        Get.offAllNamed(AppRoutes.home); // or your main route
-                      }
-                      if(!kIsWeb) {
-                        // Get.find<ChatHomeController>().localPage.value = 1;
-                        // Get.find<ChatHomeController>().hitAPIToGetRecentChats(page: 1);
-                        // if (isTaskMode) {
-                        //   Get.find<DashboardController>().updateIndex(1);
-                        // } else {
-                        //   Get.find<DashboardController>().updateIndex(0);
-                        // }
-                      }
-                    },
-                    icon: const Icon(Icons.arrow_back, color: Colors.black54)),
-
-                CustomCacheNetworkImage(
-                  radiusAll: 100,
-                  "${ApiEnd.baseUrlMedia}${controller.user?.userImage ?? ''}",
-                  height: _avatarSize(Get.context!), // ✅ responsive avatar
-                  width: _avatarSize(Get.context!),
-                  boxFit: BoxFit.cover,
-                  defaultImage: controller.user?.userCompany?.isGroup == 1
-                      ? groupIcn
-                      : controller.user?.userCompany?.isBroadcast == 1
-                      ? broadcastIcon
-                      : ICON_profile,
-                  borderColor: greyText,
+            itemBuilder: (context) => [
+              PopupMenuItem(
+                value: 'AddMember',
+                child: Row(
+                  children: [
+                    Icon(
+                      Icons.person_add_alt,
+                      color: appColorGreen,
+                      size: 18,
+                    ),
+                    hGap(5),
+                    Text('Add Member',
+                        style: BalooStyles.baloonormalTextStyle()),
+                  ],
                 ),
-
-               hGap(8),
-
-                //user name & last seen time
-                Flexible(
-                  child: Column(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    crossAxisAlignment: CrossAxisAlignment.start,
+              ),
+              /*PopupMenuItem(
+                  value: 'Exit',
+                  child: Row(
                     children: [
-                      (controller.user?.userCompany?.isGroup == 1 ||
-                          controller.user?.userCompany?.isBroadcast == 1)
-                          ? Text(
-                        (controller.user?.userName == '' ||
-                            controller.user?.userName == null)
-                            ? controller.user?.phone ?? ''
-                            : controller.user?.userName ?? '',
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                        style: themeData.textTheme.titleMedium,
-                      )
-                          : Text(
-                        (controller.user?.userCompany?.displayName !=null)
-                            ? controller.user?.userCompany?.displayName ?? ''
-                            :controller.user?.userName!=null? controller.user?.userName?? '': controller.user?.phone??'',
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                        style: themeData.textTheme.titleMedium,
+                      Icon(
+                        Icons.exit_to_app_rounded,
+                        color: appColorGreen,
+                        size: 18,
                       ),
-                      controller.user?.userCompany?.isGroup == 1 ||
-                          controller.user?.userCompany?.isBroadcast == 1
-                          ? Text('${controller.members.length} members',
-                          style: BalooStyles.baloonormalTextStyle())
-                          : const SizedBox(),
-
-                      vGap(2),
-                      //for adding some space
-
-                      //last seen time of user
-                      //TODO
-                      /* Text(
-                                list.isNotEmpty
-                                    ? list[0].isOnline && !list[0].isTyping
-                                    ? 'Online'
-                                    : list[0].isTyping && list[0].isOnline
-                                    ? "Typing..."
-                                    : MyDateUtil.getLastActiveTime(
-                                    context: context,
-                                    lastActive:
-                                    list[0].lastActive.toString())
-                                    : MyDateUtil.getLastActiveTime(
-                                    context: context,
-                                    lastActive:
-                                    (controller.user?.lastActive??'').toString()),
-                                style: const TextStyle(
-                                    fontSize: 13, color: Colors.black54)),*/
+                      hGap(5),
+                      Text('Exit',style: BalooStyles.baloonormalTextStyle()),
                     ],
                   ),
+                ),*/
+              PopupMenuItem(
+                value: 'Edit',
+                child: Row(
+                  children: [
+                    Icon(
+                      Icons.edit_outlined,
+                      color: appColorGreen,
+                      size: 18,
+                    ),
+                    hGap(5),
+                    Text(
+                      'Edit',
+                      style: BalooStyles.baloonormalTextStyle(),
+                    ),
+                  ],
                 ),
-
-
-              ],
-            ),
-          ),
-        ),
-
-        controller.isSearching?const SizedBox():  (controller.user?.userCompany?.isBroadcast==1 ||controller.user?.userCompany?.isGroup==1) ?const SizedBox():  CustomTextButton(onTap: (){
-          final u = controller.user;
-          if(kIsWeb){
-            Get.toNamed(
-              '${AppRoutes.tasks_li_r}?userId=${u?.userId}',
-            );
-          }else{
-            Get.toNamed(AppRoutes.tasks_li_r,arguments: {'user':controller.user});
-          }
-
-
-        }, title: "Go to Task"),
-        controller.isSearching?const SizedBox():  hGap(10),
-        IconButton(
-            onPressed: () {
-              controller.isSearching = !controller.isSearching;
-              controller.update();
-              if (!controller.isSearching) {
-                controller.searchQuery = '';
-                controller.seacrhCon.clear();
-                controller.resetPaginationForNewChat();
-                controller.onSearch(controller.searchQuery,controller.user!);
-              }
-              controller.update();
-            },
-            icon:  controller.isSearching?  const Icon(
-                CupertinoIcons.clear_circled_solid)
-                :Image.asset(searchPng,height:25,width:25)
-                // : SvgPicture.asset(searchPng,height:25,width:25)
-        ).paddingOnly(top: 0, right: 0),
-        controller.isSearching?const SizedBox():hGap(10),
-        controller.isSearching?const SizedBox(): (controller.user?.userCompany?.isGroup == 1 ||
-            controller.user?.userCompany?.isBroadcast == 1)
-            ? PopupMenuButton<String>(
-          color: Colors.white,
-          iconColor: Colors.black87,
-          onSelected: (value) {
-            if (value == 'AddMember') {
-              if (kIsWeb) {
-                openAllUserDialog(controller.user);
-              } else {
-                openAllUserDialog(controller.user);
-                // Get.toNamed(
-                //   AppRoutes.add_group_member,
-                //   arguments: {'groupChat': controller.user},
-                // );
-              }
-            }
-            if (value == 'Exit') {
-              toast("Under development");
-            }
-            if (value == 'Edit') {
-              if (kIsWeb) {
-                Get.toNamed(
-                  "${AppRoutes.member_sr}?userId=${controller.user?.userId.toString()}",
-                );
-              } else {
-                Get.toNamed(AppRoutes.member_sr,
-                    arguments: {'user': controller.user});
-              }
-            }
-          },
-          itemBuilder: (context) => [
-            PopupMenuItem(
-              value: 'AddMember',
-              child: Row(
-                children: [
-                  Icon(
-                    Icons.person_add_alt,
-                    color: appColorGreen,
-                    size: 18,
-                  ),
-                  hGap(5),
-                  Text('Add Member',
-                      style: BalooStyles.baloonormalTextStyle()),
-                ],
               ),
-            ),
-            /*PopupMenuItem(
-              value: 'Exit',
-              child: Row(
-                children: [
-                  Icon(
-                    Icons.exit_to_app_rounded,
-                    color: appColorGreen,
-                    size: 18,
-                  ),
-                  hGap(5),
-                  Text('Exit',style: BalooStyles.baloonormalTextStyle()),
-                ],
-              ),
-            ),*/
-            PopupMenuItem(
-              value: 'Edit',
-              child: Row(
-                children: [
-                  Icon(
-                    Icons.edit_outlined,
-                    color: appColorGreen,
-                    size: 18,
-                  ),
-                  hGap(5),
-                  Text(
-                    'Edit',
-                    style: BalooStyles.baloonormalTextStyle(),
-                  ),
-                ],
-              ),
-            ),
-          ],
-        )
-            : const SizedBox(),
-        hGap(8)
-      ],
-    );
+            ],
+          )
+              : const SizedBox(),
+          hGap(8)
+        ],
+      ),    );
   }
 
   Future<void> openAllUserDialog(UserDataAPI? user) async {
@@ -1531,7 +1950,7 @@ class _ChatScreenMobileState extends State<ChatScreenMobile> {
                               //   controller.messageParentFocus.requestFocus();
                               // });
                             },
-                            child: IconButtonWidget(Icons.upload_outlined, isIcon: true),
+                            child: IconButtonWidget(uploadsvg),
                           ),
 
                         if (!isTaskMode)
@@ -1696,7 +2115,7 @@ class _ChatScreenMobileState extends State<ChatScreenMobile> {
                               margin: const EdgeInsets.symmetric(vertical: 4),
                               decoration: BoxDecoration(
                                 borderRadius: BorderRadius.circular(8),
-                                border: Border.all(color: AppTheme.appColor.withOpacity(.2)),
+                                border: Border.all(color: appColorPerple.withOpacity(.2)),
                               ),
                               child: Row(
                                 children: [
@@ -1730,7 +2149,7 @@ class _ChatScreenMobileState extends State<ChatScreenMobile> {
                                       visible: controller.showUpload.value,
                                       child:InkWell(
                                         onTap: () => showUploadOptions(Get.context!),
-                                        child: IconButtonWidget(Icons.upload_outlined,isIcon:true),
+                                        child: IconButtonWidget(uploadsvg),
                             
                                       ),
                                     )),
@@ -1847,58 +2266,76 @@ class _ChatScreenMobileState extends State<ChatScreenMobile> {
       ),
       backgroundColor: Colors.white,
       builder: (_) => SafeArea(
-        child: Padding(
-          padding:
-          const EdgeInsets.only(top: 16, left: 15, right: 15, bottom: 60),
-          child: Wrap(
-            children: [
-              ListTile(
-                leading:  const Icon(Icons.camera_alt_outlined,size: 20,),
-                title:  Text("Camera",style: BalooStyles.baloomediumTextStyle(),),
-                onTap: () async {
-                  Get.back();
-                  final ImagePicker picker = ImagePicker();
-                  // Pick an image
-                  final XFile? image = await picker.pickImage(
-                    source: ImageSource.camera,
-                    imageQuality: 40,
-                  );
-                  if (image != null) {
-                    controller.images.add(image);
-                    controller.update();
-                    controller.uploadMediaApiCall(
-                        type: ChatMediaType.IMAGE.name);
-                  }
-                },
-              ),
-              ListTile(
-                leading:  const Icon(Icons.photo_library_outlined,size: 20,),
-                title:  Text("Gallery",style: BalooStyles.baloomediumTextStyle(),),
-                onTap: () async {
-                  Get.back();
-                  final ImagePicker picker = ImagePicker();
+        child:
+            Padding(
+              padding:
+              const EdgeInsets.only(top: 10, left: 15, right: 15, bottom: 60),
+              child: Wrap(
+                children: [
+                  Container(
+                    height: 6,
 
-                  // Picking multiple images
-                  final List<XFile> images =
-                  await picker.pickMultiImage(imageQuality: 40, limit: 10);
+                    margin:
 
-                  // uploading & sending image one by one
-                  controller.images.addAll(images);
-                  controller.update();
-                  controller.uploadMediaApiCall(type: ChatMediaType.IMAGE.name);
-                },
+
+                    const EdgeInsets.symmetric(horizontal: 100,vertical: 20),
+                    decoration:BoxDecoration(
+                      gradient: LinearGradient(colors: [
+                        greyText,
+                        greyText,
+                      ]),
+                      borderRadius: BorderRadius.circular(100),
+                    ),
+                  ),
+
+                  ListTile(
+                    leading:  Image.asset(addCamera,height: 25,),
+                    title:  Text("Camera",style: BalooStyles.baloomediumTextStyle(),),
+                    onTap: () async {
+                      Get.back();
+                      final ImagePicker picker = ImagePicker();
+                      // Pick an image
+                      final XFile? image = await picker.pickImage(
+                        source: ImageSource.camera,
+                        imageQuality: 40,
+                      );
+                      if (image != null) {
+                        controller.images.add(image);
+                        controller.update();
+                        controller.uploadMediaApiCall(
+                            type: ChatMediaType.IMAGE.name);
+                      }
+                    },
+                  ),
+                  ListTile(
+                    leading:  Image.asset(addGallery,height: 25,),
+                    title:  Text("Gallery",style: BalooStyles.baloomediumTextStyle(),),
+                    onTap: () async {
+                      Get.back();
+                      final ImagePicker picker = ImagePicker();
+
+                      // Picking multiple images
+                      final List<XFile> images =
+                      await picker.pickMultiImage(imageQuality: 40, limit: 10);
+
+                      // uploading & sending image one by one
+                      controller.images.addAll(images);
+                      controller.update();
+                      controller.uploadMediaApiCall(type: ChatMediaType.IMAGE.name);
+                    },
+                  ),
+                  ListTile(
+                    leading:  const Icon(Icons.picture_as_pdf_outlined,size: 20,),
+                    title:  Text("Document",style: BalooStyles.baloomediumTextStyle(),),
+                    onTap: () {
+                      Get.back();
+                      controller.pickDocument();
+                    },
+                  ),
+                ],
               ),
-              ListTile(
-                leading:  const Icon(Icons.picture_as_pdf_outlined,size: 20,),
-                title:  Text("Document",style: BalooStyles.baloomediumTextStyle(),),
-                onTap: () {
-                  Get.back();
-                  controller.pickDocument();
-                },
-              ),
-            ],
-          ),
-        ),
+            ),
+
       ),
     );
   }
@@ -2049,7 +2486,7 @@ class _ChatScreenMobileState extends State<ChatScreenMobile> {
   }
 
   // bottom sheet for modifying message details
-  void _showBottomSheet(bool isMe, {required ChatHisList data}) async {
+  void _showBottomSheet(bool isMe,ctx, {required ChatHisList data}) async {
     DateTime msg  = DateTime.parse(data.sentOn??'');
     DateTime nowtime = DateTime.now();
 
@@ -2078,7 +2515,7 @@ class _ChatScreenMobileState extends State<ChatScreenMobile> {
               //copy option
               _OptionItem(
                   icon: const Icon(Icons.copy_all_rounded,
-                      color: Colors.blue, size: 18),
+                      color: Colors.indigo, size: 18),
                   name: 'Copy Text',
                   onTap: () async {
                     await Clipboard.setData(
@@ -2096,7 +2533,7 @@ class _ChatScreenMobileState extends State<ChatScreenMobile> {
               !((data.media ?? []).isNotEmpty)
                   ? _OptionItem(
                   icon: Icon(Icons.download_rounded,
-                      color: appColorYellow, size: 18),
+                      color: Colors.blue, size: 18),
                   name: 'Save Image',
                   onTap: () async {
                     try {
@@ -2113,7 +2550,7 @@ class _ChatScreenMobileState extends State<ChatScreenMobile> {
 
               (((data.media ?? []).isNotEmpty && data.media?.length == 1) ||data.message!='')
                   ? _OptionItem(
-                  icon: Icon(Icons.reply, color: appColorGreen, size: 18),
+                  icon: Icon(Icons.reply, color: Colors.green, size: 18),
                   name: 'Reply',
                   onTap: () async {
                     final media = data.media;
@@ -2165,7 +2602,7 @@ class _ChatScreenMobileState extends State<ChatScreenMobile> {
               ((data.media ?? []).isNotEmpty && data.media?.length == 1)?
               _OptionItem(
                   icon: Icon(Icons.document_scanner,
-                      color: appColorGreen, size: 16),
+                      color: appColorYellow, size: 16),
                   name: 'Save to Smart Gallery',
                   onTap: () async {
                     final mediachat = data.media?.first;
@@ -2230,7 +2667,7 @@ class _ChatScreenMobileState extends State<ChatScreenMobile> {
                   isMe &&
                   diffMinutes <= 15 && (data.media??[]).isEmpty)
                 _OptionItem(
-                    icon:  Icon(Icons.edit, color: appColorGreen,  size: 18),
+                    icon:  Icon(Icons.edit, color: appColorPerple,  size: 18),
                     name: 'Edit Message',
                     onTap: () {
                       Get.back();
@@ -2265,7 +2702,7 @@ class _ChatScreenMobileState extends State<ChatScreenMobile> {
               )
 
                   ? _OptionItem(
-                  icon: Icon(Icons.share, color: appColorGreen, size: 16),
+                  icon: Icon(Icons.share, color: black, size: 16),
                   name: 'Share on WhatsApp',
                   onTap: () async {
                     if (kIsWeb) {
@@ -2293,10 +2730,10 @@ class _ChatScreenMobileState extends State<ChatScreenMobile> {
                   : const SizedBox(),
               if ((data.message?.isNotEmpty ?? false)|| (data.media ?? []).isNotEmpty)
                 _OptionItem(
-                    icon:  Image.asset(
-                    // icon:  SvgPicture.asset(
+                    // icon:  Image.asset(
+                    icon:  SvgPicture.asset(
                 forwardIcon,
-          height: 17,
+          height: 25,
           ),
                     name:
                     'Forward',

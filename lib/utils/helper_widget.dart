@@ -26,6 +26,8 @@ import '../Screens/Chat/screens/auth/Presentation/Views/accept_invite_screen.dar
 import '../Screens/Chat/screens/auth/Presentation/Views/create_company_screen.dart';
 import '../main.dart';
 import '../routes/app_routes.dart';
+import 'circleContainer.dart';
+import 'custom_container.dart';
 import 'custom_flashbar.dart';
 import 'dart:io';
 import 'package:path/path.dart' as p;
@@ -152,7 +154,7 @@ Future<void> openCreateCompanyDialog(bool isHome) async {
         ),
         child: SizedBox(
           width: kIsWeb ? 600: Get.width * .9,
-          height: Get.height * 0.9,
+          height: Get.height * 0.95,
           child: const CreateCompanyScreen(),
         ),
       ),
@@ -379,7 +381,25 @@ Widget statusTile(title,
   );
 }
 
+Widget goToWidget(title,color){
+  return CustomContainer(
+      vPadding: 3,
+      hPadding: 5,
+      elevation: 8,
+      color:whiteselected,
+      sColor: Colors.grey.shade300,
+      childWidget: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          CircleContainer(setSize: 6,colorIS: color,),
+          hGap(2),
+          Text(title,style: BalooStyles.baloonormalTextStyle(size: 12),),
+        ],
+      ));
+}
+
 Widget getAppLogo({Color? color,height}) {
+  // return SvgPicture.asset(
   return Image.asset(
    appIcon,
     width: 110,
@@ -1094,21 +1114,49 @@ Widget _buildPreviewImage(XFile file, {Uint8List? webBytes}) {
   ).whenComplete(() => captionController.dispose());
 }*/
 
+String getInitials(String name) {
+  if (name.trim().isEmpty) return "";
+
+  List<String> parts = name.trim().split(RegExp(r'\s+'));
+
+  if (parts.length == 1) {
+    return parts[0][0].toUpperCase();
+  } else {
+    return (parts.first[0] + parts.last[0]).toUpperCase();
+  }
+}
+
+Widget bottonBg({required Widget child,double padding=8.0}){
+  return Container(
+      padding: EdgeInsets.all(padding),
+  decoration:BoxDecoration(
+  gradient: LinearGradient(colors: [
+  gallwhite,
+  perpleBg,
+  ]),
+  boxShadow: [BoxShadow(color:perpleBg,blurRadius: 8)],
+  borderRadius: BorderRadius.circular(100),
+  ),
+    child: child
+    ,
+  );
+}
+
 Widget IconButtonWidget(image,{bool isIcon =false}){
   return Container(
     padding: const EdgeInsets.all(5),
     margin: const EdgeInsets.all(5),
     decoration: BoxDecoration(
       borderRadius: BorderRadius.circular(8),
-      border: Border.all(color:appColorGreen.withOpacity(.3),),
-      color: appColorGreen.withOpacity(.1),
+      border: Border.all(color:perplebr,),
+      color: perpleBg.withOpacity(.5),
     ),
-    child:!isIcon? Image.asset(
-    // child:!isIcon? SvgPicture.asset(
+    // child:!isIcon? Image.asset(
+    child:!isIcon? SvgPicture.asset(
       image,
       height: 20,
-      color: appColorGreen,
-    ):Icon(image,size: 20,color: appColorGreen,),
+      color: perplebr,
+    ):Icon(image,size: 20),
   );
 }
 

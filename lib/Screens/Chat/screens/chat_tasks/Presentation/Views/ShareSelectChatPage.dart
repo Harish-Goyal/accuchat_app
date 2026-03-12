@@ -1,0 +1,363 @@
+import 'package:AccuChat/routes/app_routes.dart';
+import 'package:flutter/material.dart';
+import 'package:flutter_svg/svg.dart';
+import 'package:get/get.dart';
+import 'package:share_handler/share_handler.dart';
+import 'package:AccuChat/Constants/assets.dart';
+import 'package:AccuChat/Constants/colors.dart';
+import 'package:AccuChat/Constants/themes.dart';
+import 'package:AccuChat/utils/circleContainer.dart';
+import 'package:flutter/cupertino.dart';
+import 'package:flutter/foundation.dart';
+import '../../../../../../Services/APIs/api_ends.dart';
+import '../../../../../../utils/common_textfield.dart';
+import '../../../../../../utils/custom_dialogue.dart';
+import '../../../../../../utils/custom_flashbar.dart';
+import '../../../../../../utils/gradient_button.dart';
+import '../../../../../../utils/helper_widget.dart';
+import '../../../../../../utils/networl_shimmer_image.dart';
+import '../../../../../../utils/product_shimmer_widget.dart';
+import '../../../../../../utils/text_style.dart';
+import '../Controllers/chat_home_controller.dart';
+import '../Widgets/chat_user_card_mobile.dart';
+
+class ShareSelectChatPage extends GetView<ChatHomeController> {
+  ShareSelectChatPage({super.key});
+
+  ChatHomeController chatHomeController =
+  Get.put<ChatHomeController>(ChatHomeController());
+
+  @override
+  Widget build(BuildContext context) {
+    final SharedMedia media = Get.arguments as SharedMedia;
+    return GestureDetector(
+      onTap: () => FocusScope.of(context).unfocus(),
+      child: WillPopScope(
+        onWillPop: () {
+          return Future.value(true);
+        },
+        child: LayoutBuilder(
+            builder: (context, constraints) {
+              double w = constraints.maxWidth;
+              return Scaffold(
+                appBar: _appBarWidget(w,context),
+                body: _mainBody(media),
+              );
+            }
+        ),
+      ),
+    );
+  }
+
+
+  AppBar _appBarWidget(w,conxt) {
+    return AppBar(
+      automaticallyImplyLeading: false,
+      backgroundColor: Colors.white,
+      elevation: 1,
+      scrolledUnderElevation: 0,
+      surfaceTintColor: Colors.white,
+      bottom: PreferredSize(preferredSize: Size(Get.width*.75, 5), child: divider(color: Colors.grey.shade300,thikness: 1.1)),
+      title:Obx(() {
+        if (controller.loadingCompany.value) {
+          return const Center(child: CircularProgressIndicator());
+        }
+        return controller.isSearching.value
+            ? TextField(
+          controller: controller.seacrhCon,
+          cursorColor: appColorGreen,
+          autocorrect: true,
+          decoration: const InputDecoration(
+              border: InputBorder.none,
+              hintText: 'Search User, Group & Collection ...',
+              contentPadding: EdgeInsets.symmetric(vertical: 0, horizontal: 10),
+              constraints: BoxConstraints(maxHeight: 45)),
+          autofocus: false,
+          style: const TextStyle(fontSize: 13, letterSpacing: 0.5),
+          onChanged: (val) {
+            controller.searchQuery = val;
+            controller.onSearch(val);
+          },
+        ).marginSymmetric(vertical: 10)
+            : InkWell(
+          hoverColor: Colors.transparent,
+          onTap: () {
+            Get.toNamed(AppRoutes.all_settings);
+          },
+          child: Row(
+            children: [
+              SizedBox(
+                width: 40,
+                child: CustomCacheNetworkImage(
+                  "${ApiEnd.baseUrlMedia}${controller.myCompany?.logo ?? ''}",
+                  radiusAll: 100,
+                  height: 40,
+                  width: 40,
+                  borderColor: appColorYellow,
+                  defaultImage: appIcon,
+                  boxFit: BoxFit.cover,
+                  isApp: true,
+                ),
+              ).paddingAll(3),
+              Expanded(
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.end,
+                  mainAxisSize: MainAxisSize.min,
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      'Chats',
+                      style: BalooStyles.balooboldTitleTextStyle(
+                          color: AppTheme.appColor, size: 16),
+                    ).paddingOnly(left: 4, top: 4),
+                    Row(
+                      crossAxisAlignment: CrossAxisAlignment.center,
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      mainAxisSize: MainAxisSize.min,
+
+                      children: [
+                        CircleContainer(colorIS: Colors.greenAccent,setSize: 8.0,),
+                        Text(
+                          (controller.myCompany?.companyName ?? ''),
+                          style: BalooStyles.baloomediumTextStyle(
+                            color: appColorYellow,
+                          ),
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                        ).paddingOnly(left: 4, top: 2),
+                      ],
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
+        );
+      }),
+      actions: [
+     Obx(() {
+          return IconButton(
+              onPressed: () {
+                controller.isSearching.value = !controller.isSearching.value;
+                controller.isSearching.refresh();
+                if (!controller.isSearching.value) {
+                  controller.searchQuery = '';
+                  controller.resetPaginationForNewChat();
+                  controller.onSearch('');
+                  controller.seacrhCon.clear();
+                }
+              },
+              icon: controller.isSearching.value
+                  ? const Icon(CupertinoIcons.clear_circled_solid)
+                  // :Image.asset(searchPng, height: 25, width: 25));
+          :SvgPicture.asset(searchPng, height: 25, width: 25));
+        }),
+
+      ],
+    );
+  }
+
+
+
+
+
+  Widget _mainBody(med) {
+    return LayoutBuilder(
+        builder: (context, constraints) {
+          double w = constraints.maxWidth;
+            return _recentChatsList(controller, true, w,med);
+        },
+
+    );
+  }
+
+  Widget _recentChatsList(
+      ChatHomeController controller, bool isWebwidth, double width,m) {
+    return Column(
+      children: [
+        kIsWeb && !isWebwidth ?TextField(
+          controller: controller.seacrhCon,
+          focusNode:controller.searchFocus,
+          autocorrect: true,
+          cursorColor: appColorGreen,
+
+          decoration:  InputDecoration(
+            border: InputBorder.none,
+            hintText: 'Search User, Group & Collection ...',
+            contentPadding: const EdgeInsets.symmetric(vertical: 3, horizontal: 10),
+            constraints: const BoxConstraints(maxHeight: 35),
+            suffixIcon: Obx(() {
+              return IconButton(
+                  onPressed: () {
+                    controller.isSearching.value = !controller.isSearching.value;
+                    controller.isSearching.refresh();
+                    if (!controller.isSearching.value) {
+                      controller.searchQuery = '';
+                      controller.onSearch('');
+                      controller.seacrhCon.clear();
+                      controller.searchFocus.unfocus();
+                    }
+                    // controller.update();
+                  },
+                  icon: controller.isSearching.value
+                      ? const Icon(CupertinoIcons.clear_circled_solid)
+                      : Image.asset(searchPng, height: 25, width: 25));
+              // : SvgPicture.asset(searchPng, height: 25, width: 25));
+            }),
+          ),
+          autofocus: false,
+          style: const TextStyle(fontSize: 13, letterSpacing: 0.5),
+          onChanged: (val) {
+            controller.searchQuery = val;
+            controller.isSearching.value=true;
+            controller.onSearch(val);
+            if(val.isEmpty){
+              controller.isSearching.value=false;
+              controller.searchFocus.unfocus();
+            }
+          },
+
+        ).marginSymmetric(vertical: 10,horizontal: 15):const SizedBox()    ,
+        Obx(() {
+          if (!controller.showPostShimmer.value&&controller.filteredList.isEmpty) {
+            return Expanded(
+              child: Center(
+                child: InkWell(
+                  onTap: () async {
+
+                  },
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      // Image.asset(emptyRecentPng, height: 90),
+                      SvgPicture.asset(emptyRecentPng, height: 90),
+                      Text('Click to Start new Chat 👋',
+                          style: BalooStyles.baloosemiBoldTextStyle(color: appColorGreen))
+                          .paddingAll(12),
+                      vGap(12),
+                      IconButton(
+                        onPressed: () async => controller.hitAPIToGetRecentChats(page: 1),
+                        icon: Icon(Icons.refresh, size: 35, color: appColorGreen),
+                      )
+                    ],
+                  ),
+                ),
+              ),
+            );
+          }
+
+          return Expanded(
+            child: shimmerEffectWidget(
+                showShimmer: controller.showPostShimmer.value,
+                shimmerWidget: shimmerlistView(
+                    child: GroupMemberShimmer(
+                    )),
+                child: RepaintBoundary(
+                  child: RefreshIndicator(
+                    backgroundColor: Colors.white,
+                    color: appColorGreen,
+                    onRefresh: () async {
+                      controller.resetPaginationForNewChat();
+                      await controller.hitAPIToGetRecentChats(page: 1);
+                    },
+                    child: ListView.builder(
+                      physics: const AlwaysScrollableScrollPhysics(),
+                      itemCount: controller.filteredList.length,
+                      padding: EdgeInsets.zero,
+                      controller: controller.scrollController,
+                      itemBuilder: (context, index) {
+                        final item = controller.filteredList[index];
+                        return ChatUserCardMobile(user: item,isSharedbyWB: true,wamedia: m,);
+                      },
+                    ),
+                  ),
+                )
+            ),
+          );
+        })
+
+      ],
+    );
+
+  }
+
+
+  Widget _groupDialogWidget(conxt) {
+    Widget _dialogBody() {
+      return Column(
+        crossAxisAlignment: CrossAxisAlignment.center,
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Text(
+            "Enter group name to create Group",
+            style: BalooStyles.baloonormalTextStyle(),
+            textAlign: TextAlign.center,
+          ),
+          vGap(20),
+          CustomTextField(
+            hintText: "Group Name",
+            controller: controller.groupController,
+            focusNode: FocusNode(),
+            onFieldSubmitted: (String? value) {
+              FocusScope.of(conxt).unfocus();
+            },
+            labletext: "Group Name",
+          ),
+          vGap(30),
+          GradientButton(
+            name: "Submit",
+            btnColor: AppTheme.appColor,
+            vPadding: 8,
+            onTap: () {
+              if (controller.groupController.text.isNotEmpty) {
+                controller.createGroupBroadcastApi(
+                    isGroup: "1", isBroadcast: '0');
+              } else {
+                errorDialog("Please enter group name");
+              }
+            },
+          )
+        ],
+      );
+    }
+
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final w = constraints.maxWidth;
+
+        // Responsive target width
+        double targetMaxWidth;
+        if (w >= 1400) {
+          targetMaxWidth = 560; // big desktop
+        } else if (w >= 900) {
+          targetMaxWidth = 520; // desktop/tablet landscape
+        } else if (w >= 600) {
+          targetMaxWidth = 480; // tablet portrait
+        } else {
+          targetMaxWidth = w * 0.9; // phones: take ~90% width
+        }
+
+        return Center(
+          child: ConstrainedBox(
+            constraints: BoxConstraints(
+              maxWidth: targetMaxWidth,
+              minWidth: 280,
+            ),
+            child: Material(
+              // ensure proper elevation/shape if CustomDialogue is plain
+              type: MaterialType.transparency,
+              child: CustomDialogue(
+                title: "Create Group",
+                isShowAppIcon: false,
+                // In case content grows, let it scroll
+                content: SingleChildScrollView(child: _dialogBody()),
+                onOkTap: () {}, isShowActions: false,
+              ),
+            ),
+          ),
+        );
+      },
+    );
+  }
+
+}

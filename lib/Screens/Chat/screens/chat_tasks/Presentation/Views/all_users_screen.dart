@@ -108,7 +108,7 @@ class AllUserScreen extends GetView<AllUserController> {
                   radiusAll: 100,
                   borderColor: greyText,
                   boxFit: BoxFit.cover,
-                  defaultImage: userIcon,
+                  defaultImage: ICON_profile,
                 ),
               ),
               title: Column(
@@ -304,8 +304,8 @@ class AllUserScreen extends GetView<AllUserController> {
               },
               icon: controller.isSearching.value
                   ? const Icon(CupertinoIcons.clear_circled_solid)
-                  : Image.asset(searchPng, height: 25, width: 25));
-                  // : SvgPicture.asset(searchPng, height: 25, width: 25));
+                  // : Image.asset(searchPng, height: 25, width: 25));
+                  : SvgPicture.asset(searchPng, height: 25, width: 25));
         }),
       ],
     );

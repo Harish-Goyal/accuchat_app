@@ -66,6 +66,7 @@ class _NoGlowScrollBehavior extends ScrollBehavior {
       };
 }
 
+
 double _maxChatWidth(BuildContext context) {
   final w = MediaQuery.of(context).size.width;
   if (!kIsWeb) return double.infinity;
@@ -103,18 +104,27 @@ class TaskScreenMobile extends GetView<TaskController> {
     return GetBuilder<TaskController>(builder: (controller) {
       return GestureDetector(
         onTap: () => FocusScope.of(context).unfocus(),
-        child: SafeArea(
-          child: WillPopScope(
-            onWillPop: () {
-              Get.find<TaskHomeController>().hitAPIToGetRecentTasksUser();
-              return Future.value(true);
-            },
-            child: SafeArea(
-              child: Scaffold(
-                appBar: _appBarWidget(),
-
-                backgroundColor: const Color.fromARGB(255, 234, 248, 255),
-                body:_mainBody(),
+        child: Container(
+          decoration:const BoxDecoration(
+              image: DecorationImage(image: AssetImage("assets/images/bglight.jpg"),fit: BoxFit.cover)
+          ),
+          child: SafeArea(
+            child: WillPopScope(
+              onWillPop: () {
+                Get.find<TaskHomeController>().hitAPIToGetRecentTasksUser();
+                return Future.value(true);
+              },
+              child: Container(
+                decoration:const BoxDecoration(
+                    image: DecorationImage(image: AssetImage("assets/images/bglight.jpg"),fit: BoxFit.cover)
+                ),
+                child: SafeArea(
+                  child: Scaffold(
+                    backgroundColor: whiteselected,
+                    appBar: _appBarWidget(),
+                    body:_mainBody(),
+                  ),
+                ),
               ),
             ),
           ),
@@ -127,7 +137,10 @@ class TaskScreenMobile extends GetView<TaskController> {
     return  ScrollConfiguration(
       behavior: const _NoGlowScrollBehavior(),
       child: Center(
-        child: ConstrainedBox(
+        child: Container(
+          decoration: BoxDecoration(
+              image: DecorationImage(image: AssetImage("assets/images/bglight.jpg",),fit: BoxFit.cover)
+          ),
           constraints:
           BoxConstraints(maxWidth: _maxChatWidth(Get.context!)),
           child: Padding(
@@ -138,7 +151,13 @@ class TaskScreenMobile extends GetView<TaskController> {
                     child: RepaintBoundary(
                         child: chatMessageBuilder())),
 
-                _chatInput(),
+        Container(
+          constraints: const BoxConstraints(minHeight: 64),
+          padding: EdgeInsets.all(2),
+          decoration: BoxDecoration(
+              borderRadius: BorderRadius.circular(15),
+              color: Colors.white.withOpacity(.4)
+          ),child: _chatInput()),
 
               ],
             ),
@@ -150,11 +169,12 @@ class TaskScreenMobile extends GetView<TaskController> {
 
   AppBar _appBarWidget(){
     return AppBar(
-      backgroundColor: Colors.white,
+      backgroundColor: whiteselected,
+
       elevation: 1,
       scrolledUnderElevation:
       0,
-      surfaceTintColor: Colors.white,
+      surfaceTintColor: chatcardt,
       automaticallyImplyLeading: false,
       flexibleSpace: MediaQuery(
         data: MediaQuery.of(Get.context!)
@@ -328,8 +348,8 @@ class TaskScreenMobile extends GetView<TaskController> {
                           icon: Transform(
                               alignment: Alignment.center,
                               transform: Matrix4.rotationY(math.pi),
-                              child: Image.asset(
-                              // child: SvgPicture.asset(
+                              // child: Image.asset(
+                              child: SvgPicture.asset(
                                 forwardIcon,
                                 height: 20,
                               ))).paddingOnly(left: 10)
@@ -391,8 +411,8 @@ class TaskScreenMobile extends GetView<TaskController> {
                           onPressed: () {
                             controller.handleForwardMobile(contexts,taskData: data);
                           },
-                          icon: Image.asset(
-                          // icon: SvgPicture.asset(
+                          // icon: Image.asset(
+                          icon: SvgPicture.asset(
                             forwardIcon,
                             height: 20,
                           )).paddingOnly(right: 10)
@@ -479,8 +499,8 @@ class TaskScreenMobile extends GetView<TaskController> {
         decoration: BoxDecoration(
           borderRadius: BorderRadius.circular(30),
         ),
-        child: Image.asset(
-        // child: SvgPicture.asset(
+        // child: Image.asset(
+        child: SvgPicture.asset(
           historyIcon,
           height: 17,
           width: 17,
@@ -811,329 +831,256 @@ class TaskScreenMobile extends GetView<TaskController> {
 
   // app bar widget
   Widget _appBar() {
-    return Row(
-      children: [
-        controller.isSearching
-            ? Expanded(
-          child: TextField(
-            controller: controller.seacrhCon,
-            cursorColor: appColorGreen,
-            decoration: const InputDecoration(
-                border: InputBorder.none,
-                hintText: 'Search task by title or description ...',
-                contentPadding: EdgeInsets.symmetric(
-                    vertical: 0, horizontal: 10),
-                constraints: BoxConstraints(maxHeight: 45)),
-            autofocus: true,
-            style: const TextStyle(
-                fontSize: 13, letterSpacing: 0.5),
-            onChanged: (val) {
-              controller.searchQuery = val;
-              controller.onSearch(val);
-            },
-          ).marginSymmetric(vertical: 10),
-        ):  Expanded(
-          child: InkWell(
-            onTap: () {
-              if (!(controller.user?.userCompany?.isGroup == 1 ||
-                  controller.user?.userCompany?.isBroadcast == 1)) {
-                if (kIsWeb) {
-                  Get.toNamed(
-                    "${AppRoutes.view_profile}?userId=${controller.user?.userId.toString()}",
-                  );
-                } else {
-                  Get.toNamed(AppRoutes.view_profile,
-                      arguments: {'user': controller.user});
-                }
-              } else {
-                if (kIsWeb) {
-                  Get.toNamed(
-                    "${AppRoutes.member_sr}?userId=${controller.user?.userId.toString()}",
-                  );
-                } else {
-                  Get.toNamed(AppRoutes.member_sr,
-                      arguments: {'user': controller.user});
-                }
-              }
-              // APIs.updateActiveStatus(false);
-            },
-            child: Row(
-              children: [
-                IconButton(
-                    onPressed: () {
-                      if (Get.previousRoute.isNotEmpty) {
-                        Get.back();
-                      } else {
-                        Get.offAllNamed(AppRoutes.home); // or your main route
-                      }
-
-                      Get.find<TaskHomeController>()
-                          .hitAPIToGetRecentTasksUser();
-                      var dashCon;
-                      if(Get.isRegistered<DashboardController>()){
-                        dashCon = Get.find<DashboardController>();
-                      }else{
-                        dashCon = Get.put(DashboardController());
-                      }
-
-                      if (isTaskMode) {
-                        dashCon.updateIndex(1);
-                      } else {
-                        dashCon.updateIndex(0);
-                      }
-
-                      // APIs.updateActiveStatus(false);
-                    },
-                    icon: const Icon(Icons.arrow_back, color: Colors.black54)),
-
-                CustomCacheNetworkImage(
-                  radiusAll: 100,
-                  "${ApiEnd.baseUrlMedia}${controller.user?.userImage ?? ''}",
-                  height: _avatarSize(Get.context!),
-                  width: _avatarSize(Get.context!),
-                  boxFit: BoxFit.cover,
-                  defaultImage: controller.user?.userCompany?.isGroup == 1
-                      ? groupIcn
-                      : controller.user?.userCompany?.isBroadcast == 1
-                          ? broadcastIcon
-                          : ICON_profile,
-                  borderColor: greyText,
-                ),
-
-                // user name & last seen time
-                Flexible(
-                  child: Column(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      //user name
-                      Text(
-                        controller.user?.userCompany?.displayName != null
-                            ? controller.user?.userCompany?.displayName?? ''
-                            : controller.user?.userName != null
-                                ? controller.user?.userName?? ''
-                                : controller.user?.phone ?? '',
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                        style: themeData.textTheme.titleMedium,
-                      )
-                      //last seen time of user
-                      /* Text(
-                                list.isNotEmpty
-                                    ? list[0].isOnline && !list[0].isTyping
-                                    ? 'Online'
-                                    : list[0].isTyping && list[0].isOnline
-                                    ? "Typing..."
-                                    : MyDateUtil.getLastActiveTime(
-                                    context: context,
-                                    lastActive:
-                                    list[0].lastActive.toString())
-                                    : MyDateUtil.getLastActiveTime(
-                                    context: context,
-                                    lastActive:
-                                    (controller.user?.lastActive??'').toString()),
-                                style: const TextStyle(
-                                    fontSize: 13, color: Colors.black54)),*/
-                    ],
-                  ),
-                ),
-              ],
-            ),
-          ),
-        ),
-        controller.isSearching?const SizedBox():      (controller.user?.userCompany?.isBroadcast == 1 ||
-                controller.user?.userCompany?.isGroup == 1)
-            ? const SizedBox()
-            : CustomTextButton(
-                onTap: () {
-                  // isTaskMode = false;
-                  // Get.find<DashboardController>().updateIndex(0);
-                  final u = controller.user;
-                  if(kIsWeb){
+    return Container(
+      decoration:const BoxDecoration(
+          image: DecorationImage(image: AssetImage(appbarBG),fit: BoxFit.cover)
+      ),
+      child: Row(
+        children: [
+          controller.isSearching
+              ? Expanded(
+            child: TextField(
+              controller: controller.seacrhCon,
+              cursorColor: appColorGreen,
+              decoration: const InputDecoration(
+                  border: InputBorder.none,
+                  hintText: 'Search task by title or description ...',
+                  contentPadding: EdgeInsets.symmetric(
+                      vertical: 0, horizontal: 10),
+                  constraints: BoxConstraints(maxHeight: 45)),
+              autofocus: true,
+              style: const TextStyle(
+                  fontSize: 13, letterSpacing: 0.5),
+              onChanged: (val) {
+                controller.searchQuery = val;
+                controller.onSearch(val);
+              },
+            ).marginSymmetric(vertical: 10),
+          ):  Expanded(
+            child: InkWell(
+              onTap: () {
+                if (!(controller.user?.userCompany?.isGroup == 1 ||
+                    controller.user?.userCompany?.isBroadcast == 1)) {
+                  if (kIsWeb) {
                     Get.toNamed(
-                      '${AppRoutes.chats_li_r}?userId=${u?.userId}',
+                      "${AppRoutes.view_profile}?userId=${controller.user?.userId.toString()}",
                     );
-                  }else{
-                    Get.toNamed(AppRoutes.chats_li_r,arguments: {'user':controller.user});
+                  } else {
+                    Get.toNamed(AppRoutes.view_profile,
+                        arguments: {'user': controller.user});
                   }
-                  // Get.back();
-                },
-                title: "Go to Chat"),
-        controller.isSearching?const SizedBox():    hGap(10),
-
-        IconButton(
-            onPressed: () {
-              controller.isSearching = !controller.isSearching;
-              controller.update();
-              if(!controller.isSearching){
-                controller.searchQuery = '';
-                controller.onSearch('');
-                controller.seacrhCon.clear();
-              }
-              controller.update();
-            },
-            icon:  controller.isSearching?  const Icon(
-                CupertinoIcons.clear_circled_solid)
-                : Image.asset(searchPng,height:20,width:20)
-                // : SvgPicture.asset(searchPng,height:20,width:20)
-        ).paddingOnly(top: 0, right: 0),
-        controller.isSearching?const SizedBox():hGap(5),
-        controller.isSearching?const SizedBox():  (controller.user?.userCompany?.isGroup == 1 ||
-                controller.user?.userCompany?.isBroadcast == 1)
-            ? PopupMenuButton<String>(
-                color: Colors.white,
-                iconColor: Colors.black87,
-                onSelected: (value) {
-                  if (value == 'AddMember') {
-                    if (kIsWeb) {
-                      Get.toNamed(
-                        "${AppRoutes.add_group_member}?groupChatId=${controller.user?.userId.toString()}",
-                      );
-                    } else {
-                      Get.toNamed(
-                        AppRoutes.add_group_member,
-                        arguments: {'groupChat': controller.user},
-                      );
-                    }
-                  }
-                  if (value == 'Exit') {
-                    toast("Under development");
-                  }
-                  if (value == 'Edit') {
+                } else {
+                  if (kIsWeb) {
+                    Get.toNamed(
+                      "${AppRoutes.member_sr}?userId=${controller.user?.userId.toString()}",
+                    );
+                  } else {
                     Get.toNamed(AppRoutes.member_sr,
                         arguments: {'user': controller.user});
                   }
-                },
-                itemBuilder: (context) => [
-                  PopupMenuItem(
-                    value: 'AddMember',
-                    child: Row(
-                      children: [
-                        Icon(
-                          Icons.person_add_alt,
-                          color: appColorGreen,
-                          size: 18,
-                        ),
-                        hGap(5),
-                        const Text('Add Member'),
-                      ],
-                    ),
-                  ),
-                  PopupMenuItem(
-                    value: 'Exit',
-                    child: Row(
-                      children: [
-                        Icon(
-                          Icons.exit_to_app_rounded,
-                          color: appColorGreen,
-                          size: 18,
-                        ),
-                        hGap(5),
-                        const Text('Exit'),
-                      ],
-                    ),
-                  ),
-                  PopupMenuItem(
-                    value: 'Edit',
-                    child: Row(
-                      children: [
-                        Icon(
-                          Icons.edit_outlined,
-                          color: appColorGreen,
-                          size: 18,
-                        ),
-                        hGap(5),
-                        const Text('Edit'),
-                      ],
-                    ),
-                  ),
-                ],
-              )
-            : const SizedBox(),
-        controller.isSearching?const SizedBox(): GetBuilder<TaskController>(
-          id: 'statusMenu',
-          builder: (controller) {
-            // Loading state
-            if (controller.isLoadings && controller.taskStatus.isEmpty) {
-              return PopupMenuButton(
-                enabled: false,
-                icon: const Icon(Icons.filter_alt_outlined,
-                    color: Colors.black87),
-                itemBuilder: (context) => const [
-                  PopupMenuItem(
-                    enabled: false,
-                    child: SizedBox(
-                      height: 24,
-                      child: Center(child: CircularProgressIndicator()),
-                    ),
-                  ),
-                ],
-              );
-            }
-
-            return PopupMenuButton<dynamic>(
-              color: Colors.white,
-              icon: Container(
-                  padding: const EdgeInsets.all(5),
-                  decoration: BoxDecoration(
-                      shape: BoxShape.circle,
-                      color: appColorGreen.withOpacity(.2)),
-                  child: Icon(
-                    Icons.filter_alt_outlined,
-                    color: appColorGreen,
-                    size: 20,
-                  )),
-              onSelected: (v) {
-                final taskcon = Get.find<TaskController>();
-                taskcon.resetPaginationForNewChat();
-                if (v == 'all') {
-                  taskcon.hitAPIToGetTaskHistory(isFilter: true);
-                } else if (v == TimeFilter.today ||
-                    v == TimeFilter.thisMonth ||
-                    v == TimeFilter.thisWeek) {
-                  final now = DateTime.now();
-                  final r = rangeFor(v);
-                  taskcon.hitAPIToGetTaskHistory(
-                      isFilter: true, fromDate: r.startDate, toDate: r.endDate);
-                } else {
-                  taskcon.hitAPIToGetTaskHistory(statusId: v, isFilter: true);
                 }
+                // APIs.updateActiveStatus(false);
               },
-              itemBuilder: (context) {
-                final items = <PopupMenuEntry<dynamic>>[
-                  PopupMenuItem(
-                      value: 'all',
-                      child: Text('All Tasks',
-                          style: BalooStyles.baloonormalTextStyle())),
-                  const PopupMenuDivider(),
-                  // --- Dynamic statuses from API ---
-                  ...controller.taskStatus.map((s) => PopupMenuItem(
-                        value: s.taskStatusId, // pass ID to onSelected
-                        child: Text(s.status ?? 'Unknown',
-                            style: BalooStyles.baloonormalTextStyle()),
-                      )),
-                  const PopupMenuDivider(),
-                  PopupMenuItem(
-                      value: TimeFilter.today,
-                      child: Text(
-                        'Today',
-                        style: BalooStyles.baloonormalTextStyle(),
-                      )),
-                  PopupMenuItem(
-                      value: TimeFilter.thisWeek,
-                      child: Text('This Week',
-                          style: BalooStyles.baloonormalTextStyle())),
-                  PopupMenuItem(
-                      value: TimeFilter.thisMonth,
-                      child: Text('This Month',
-                          style: BalooStyles.baloonormalTextStyle())),
-                ];
-                return items;
+              child: Row(
+                children: [
+                  IconButton(
+                      onPressed: () {
+                        if (Get.previousRoute.isNotEmpty) {
+                          Get.back();
+                        } else {
+                          Get.offAllNamed(AppRoutes.home); // or your main route
+                        }
+
+                        Get.find<TaskHomeController>()
+                            .hitAPIToGetRecentTasksUser();
+                        var dashCon;
+                        if(Get.isRegistered<DashboardController>()){
+                          dashCon = Get.find<DashboardController>();
+                        }else{
+                          dashCon = Get.put(DashboardController());
+                        }
+
+                        if (isTaskMode) {
+                          dashCon.updateIndex(1);
+                        } else {
+                          dashCon.updateIndex(0);
+                        }
+
+                        // APIs.updateActiveStatus(false);
+                      },
+                      icon: const Icon(Icons.arrow_back, color: Colors.black54)),
+
+                  CustomCacheNetworkImage(
+                    radiusAll: 100,
+                    "${ApiEnd.baseUrlMedia}${controller.user?.userImage ?? ''}",
+                    height: _avatarSize(Get.context!),
+                    width: _avatarSize(Get.context!),
+                    boxFit: BoxFit.cover,
+                    defaultImage: controller.user?.userCompany?.isGroup == 1
+                        ? groupIcn
+                        : controller.user?.userCompany?.isBroadcast == 1
+                            ? broadcastIcon
+                            : ICON_profile,
+                    borderColor: greyText,
+                  ),
+
+                  // user name & last seen time
+                  Flexible(
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        //user name
+                        Text(
+                          controller.user?.userCompany?.displayName != null
+                              ? controller.user?.userCompany?.displayName?? ''
+                              : controller.user?.userName != null
+                                  ? controller.user?.userName?? ''
+                                  : controller.user?.phone ?? '',
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                          style: themeData.textTheme.titleMedium,
+                        )
+                        //last seen time of user
+                        /* Text(
+                                  list.isNotEmpty
+                                      ? list[0].isOnline && !list[0].isTyping
+                                      ? 'Online'
+                                      : list[0].isTyping && list[0].isOnline
+                                      ? "Typing..."
+                                      : MyDateUtil.getLastActiveTime(
+                                      context: context,
+                                      lastActive:
+                                      list[0].lastActive.toString())
+                                      : MyDateUtil.getLastActiveTime(
+                                      context: context,
+                                      lastActive:
+                                      (controller.user?.lastActive??'').toString()),
+                                  style: const TextStyle(
+                                      fontSize: 13, color: Colors.black54)),*/
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+          controller.isSearching?const SizedBox():      (controller.user?.userCompany?.isBroadcast == 1 ||
+                  controller.user?.userCompany?.isGroup == 1)
+              ? const SizedBox()
+              : InkWell(
+                  onTap: () {
+                    // isTaskMode = false;
+                    // Get.find<DashboardController>().updateIndex(0);
+                    final u = controller.user;
+                    if(kIsWeb){
+                      Get.toNamed(
+                        '${AppRoutes.chats_li_r}?userId=${u?.userId}',
+                      );
+                    }else{
+                      Get.toNamed(AppRoutes.chats_li_r,arguments: {'user':controller.user});
+                    }
+                    // Get.back();
+                  },
+             child: goToWidget("Go to Chat", appColorGreen)),
+          controller.isSearching?const SizedBox():    hGap(10),
+
+          IconButton(
+              onPressed: () {
+                controller.isSearching = !controller.isSearching;
+                controller.update();
+                if(!controller.isSearching){
+                  controller.searchQuery = '';
+                  controller.onSearch('');
+                  controller.seacrhCon.clear();
+                }
+                controller.update();
               },
-            );
-          },
-        )
-      ],
+              icon:bottonBg(child:  controller.isSearching?  const Icon(
+                  CupertinoIcons.clear,color:Colors.black54)
+                  // : Image.asset(searchPng,height:20,width:20)
+                  : SvgPicture.asset(searchPng,height:20,width:20,color: Colors.black45,))
+          ),
+          controller.isSearching?const SizedBox(): GetBuilder<TaskController>(
+            id: 'statusMenu',
+            builder: (controller) {
+              // Loading state
+              if (controller.isLoadings && controller.taskStatus.isEmpty) {
+                return PopupMenuButton(
+                  enabled: false,
+                  icon: const Icon(Icons.filter_alt_outlined,
+                      color: Colors.black87),
+                  itemBuilder: (context) => const [
+                    PopupMenuItem(
+                      enabled: false,
+                      child: SizedBox(
+                        height: 24,
+                        child: Center(child: CircularProgressIndicator()),
+                      ),
+                    ),
+                  ],
+                );
+              }
+
+              return PopupMenuButton<dynamic>(
+                color: Colors.white,
+                icon: bottonBg(child: Icon(
+                      Icons.filter_alt_outlined,
+                      color: Colors.black45,
+                      size: 20,
+                    )),
+                onSelected: (v) {
+                  final taskcon = Get.find<TaskController>();
+                  taskcon.resetPaginationForNewChat();
+                  if (v == 'all') {
+                    taskcon.hitAPIToGetTaskHistory(isFilter: true);
+                  } else if (v == TimeFilter.today ||
+                      v == TimeFilter.thisMonth ||
+                      v == TimeFilter.thisWeek) {
+                    final now = DateTime.now();
+                    final r = rangeFor(v);
+                    taskcon.hitAPIToGetTaskHistory(
+                        isFilter: true, fromDate: r.startDate, toDate: r.endDate);
+                  } else {
+                    taskcon.hitAPIToGetTaskHistory(statusId: v, isFilter: true);
+                  }
+                },
+                itemBuilder: (context) {
+                  final items = <PopupMenuEntry<dynamic>>[
+                    PopupMenuItem(
+                        value: 'all',
+                        child: Text('All Tasks',
+                            style: BalooStyles.baloonormalTextStyle())),
+                    const PopupMenuDivider(),
+                    // --- Dynamic statuses from API ---
+                    ...controller.taskStatus.map((s) => PopupMenuItem(
+                          value: s.taskStatusId, // pass ID to onSelected
+                          child: Text(s.status ?? 'Unknown',
+                              style: BalooStyles.baloonormalTextStyle()),
+                        )),
+                    const PopupMenuDivider(),
+                    PopupMenuItem(
+                        value: TimeFilter.today,
+                        child: Text(
+                          'Today',
+                          style: BalooStyles.baloonormalTextStyle(),
+                        )),
+                    PopupMenuItem(
+                        value: TimeFilter.thisWeek,
+                        child: Text('This Week',
+                            style: BalooStyles.baloonormalTextStyle())),
+                    PopupMenuItem(
+                        value: TimeFilter.thisMonth,
+                        child: Text('This Month',
+                            style: BalooStyles.baloonormalTextStyle())),
+                  ];
+                  return items;
+                },
+              );
+            },
+          )
+        ],
+      ),
     );
   }
 
@@ -1161,7 +1108,7 @@ class TaskScreenMobile extends GetView<TaskController> {
                             decoration: BoxDecoration(
                                 borderRadius: BorderRadius.circular(8),
                                 border: Border.all(
-                                    color: AppTheme.appColor.withOpacity(.2))),
+                                    color: perpleBg)),
                             child: Row(
                               children: [
                                 Expanded(
@@ -1872,7 +1819,7 @@ class TaskScreenMobile extends GetView<TaskController> {
                         radiusAll: 15,
                         boxFit: BoxFit.contain,
                         borderColor: greyText,
-                        defaultImage: defaultGallery,
+                        defaultImage: ICON_profile,
                       ),
                     ),
                   ),
@@ -2083,7 +2030,7 @@ class TaskScreenMobile extends GetView<TaskController> {
                           radiusAll: 15,
                           boxFit: BoxFit.contain,
                           borderColor: greyText,
-                          defaultImage: defaultGallery,
+                          defaultImage: ICON_profile,
                         ),
                       ),
                     ),
@@ -2094,7 +2041,7 @@ class TaskScreenMobile extends GetView<TaskController> {
                   radiusAll: 8,
                   boxFit: BoxFit.cover,
                   borderColor: Colors.transparent,
-                  defaultImage: defaultGallery,
+                  defaultImage: ICON_profile,
                 ),
               );
             } else {

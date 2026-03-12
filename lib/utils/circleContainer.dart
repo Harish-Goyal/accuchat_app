@@ -10,7 +10,9 @@ class CircleContainer extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      padding: EdgeInsets.all(setSize!),
+      // padding: EdgeInsets.all(setSize!),
+      height: setSize,
+      width:setSize ,
       decoration:
           BoxDecoration(shape: BoxShape.circle, color: colorIS?? AppTheme.redColor),
     );

@@ -192,22 +192,31 @@ class FolderItemsScreen extends GetView<GalleryItemController> {
                       c.itemSearchCtrl.clear();
                     }
                   },
-                  icon: c.isSearchingIconItem.value
-                      ? const Icon(CupertinoIcons.clear_circled_solid)
-                      : Image.asset(searchPng, height: 25, width: 25))
-                      // : SvgPicture.asset(searchPng, height: 25, width: 25))
-                  .paddingOnly(top: 0, right: 10),
+                  icon:CustomContainer(
+                  color: perplebr.withOpacity(.1),
+    brcolor: perplebr,
+    vPadding: 8,
+    hPadding: 8,
+    childWidget: c.isSearchingIconItem.value
+        ?  Icon(CupertinoIcons.clear_circled_solid,color: perplebr)
+    // : Image.asset(searchPng, height: 25, width: 25))
+        : SvgPicture.asset(searchPng, height: 20, width: 20,color: perplebr))
+
+
+
+                  )
+                  .paddingOnly(top: 0, right: 0),
               c.isSearchingIconItem.value?const SizedBox():  IconButton(
                   onPressed: () {
                     showUploadOptions(context,folder:folderData );
                   },
                   icon: CustomContainer(
-                      color: appColorGreen.withOpacity(.1),
-                      brcolor: appColorGreen,
+                      color: perplebr.withOpacity(.1),
+                      brcolor: perplebr,
                       vPadding: 8,
                       hPadding: 8,
                       childWidget: Icon(Icons.upload_outlined,
-                          color: appColorGreen))),
+                          color: perplebr))),
             ],
           ),
         )
@@ -386,7 +395,7 @@ class _MediaCard extends StatelessWidget {
                       width: double.infinity,
                       radiusAll: 0,
                       boxFit: BoxFit.cover,
-                      defaultImage: defaultGallery,
+                      defaultImage: galleryIcon,
                       borderColor: Colors.transparent,
                     )
                         : _docPreview(),

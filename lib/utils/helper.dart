@@ -4,6 +4,7 @@ import 'package:AccuChat/utils/text_style.dart';
 import 'package:AccuChat/utils/web_file_picekr.dart';
 import 'package:dio/dio.dart' as dio;
 import 'package:flutter/material.dart';
+import 'package:flutter_svg/flutter_svg.dart';
 import 'package:get/get.dart';
 import 'package:http_parser/http_parser.dart';
 import 'package:intl/intl.dart';
@@ -214,7 +215,8 @@ Widget tillRowWidget({title, assetName}) {
     mainAxisSize: MainAxisSize.min,
     crossAxisAlignment: CrossAxisAlignment.start,
     children: [
-      Image.asset(
+      SvgPicture.asset(
+      // Image.asset(
         assetName,
         height: 12.5,
         width: 12.5,
@@ -252,7 +254,8 @@ Widget titleRow({String? leadIcon, title, value,Color? leadColor,bool isExpanded
                 shape: BoxShape.circle,
                 color: leadColor?.withOpacity(.1)??Colors.grey.withOpacity(.1)
             ),
-            child: Image.asset(
+            child: SvgPicture.asset(
+            // child: Image.asset(
               leadIcon??'',
               color: leadColor??Colors.grey.shade600,
               height: 13,
@@ -278,7 +281,8 @@ Widget titleRow({String? leadIcon, title, value,Color? leadColor,bool isExpanded
                 shape: BoxShape.circle,
                 color: leadColor?.withOpacity(.1)??Colors.grey.withOpacity(.1)
             ),
-            child: Image.asset(
+            child: SvgPicture.asset(
+            // child: Image.asset(
               leadIcon??'',
               color: leadColor??Colors.grey.shade600,
               height: 13,

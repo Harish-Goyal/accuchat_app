@@ -893,78 +893,6 @@ class ChatScreenController extends GetxController {
     update();
   }
 
-/*  Future<void> uploadMediaApiCall({
-    required String type,
-    int? replyToId,
-    String? replyText,
-    void Function(int sent, int total)? onProgress, // optional
-  }) async {
-    // Hide keyboard
-    SystemChannels.textInput.invokeMethod('TextInput.hide');
-
-    // Guard: no images
-    if (images.isEmpty) {
-      toast('Please select at least one image');
-      return;
-    }
-
-    try {
-      isUploading = true;
-      update();
-
-      // Build file parts
-      final mediaFiles = await Future.wait(
-        images.map((item) async {
-          final path = _pathOf(item);
-          return await multi.MultipartFile.fromFile(
-            path,
-            filename: p.basename(path),
-            contentType: _mediaTypeForPath(path),
-          );
-        }),
-      );
-
-      // Build form-data map
-      final Map<String, dynamic> fields = {
-        'company_id': myCompany?.companyId,
-        'media_type_code': type,
-        'to_uc_id': user?.userCompany?.userCompanyId,
-        'chat_media': mediaFiles,
-      };
-
-      // if (replyToId != null) fields['reply_to_id'] = replyToId;
-      // if (replyText?.trim().isNotEmpty == true) fields['reply_to_text'] = replyText!.trim();
-
-      final formData = multi.FormData.fromMap(fields);
-
-      // Call your service (assumes it uses Dio under the hood)
-      await Get.find<PostApiServiceImpl>()
-          .uploadMediaApiCall(
-        dataBody: formData,
-      )
-          .then((v) {
-        isUploading = false;
-        update();
-        try {
-          Get.find<SocketController>().sendMessage(
-            receiverId: v.data?.chat?.toId ?? 0,
-            message: v.data?.chat?.chatText ?? "",
-            isGroup: 0,
-            alreadySave: true,
-            chatId: v.data?.chat?.chatId ?? 0,
-          );
-          toast(v.message ?? 'Uploaded');
-          update();
-        } catch (e) {
-          print(e.toString());
-        }
-      });
-    } catch (e) {
-      isUploading = false;
-      update();
-      errorDialog(e.toString());
-    }
-  }*/
   Future<void> uploadMediaApiCall({
     required String type,
     int? replyToId,
@@ -1038,10 +966,6 @@ class ChatScreenController extends GetxController {
           'chat_media': mediaFiles, // array of files
         };
       }
-
-      // // If you later need reply fields:
-      // if (replyToId != null) fields['reply_to_id'] = replyToId;
-      // if (replyText?.trim().isNotEmpty == true) fields['reply_to_text'] = replyText!.trim();
 
       final formData = multi.FormData.fromMap(fields);
 
@@ -1174,7 +1098,8 @@ class ChatScreenController extends GetxController {
   Future<void> uploadDocumentsApiCall({
     required List<PlatformFile> files,
     void Function(int sent, int total)? onProgress,
-  }) async {
+  })
+  async {
     if (files.isEmpty) {
       toast('Please select at least one document');
       return;

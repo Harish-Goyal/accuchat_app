@@ -1,5 +1,6 @@
 import 'package:AccuChat/Constants/assets.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_svg/flutter_svg.dart';
 import 'package:get/get.dart';
 import 'package:AccuChat/Screens/splash/presentation/controllers/splash_controller.dart';
 
@@ -25,12 +26,13 @@ class SplashScreen extends GetView<SplashController> {
                     angle: controller.rotate.value,
                     child: Transform.scale(
                       scale: controller.scale.value,
+                      // child: SvgPicture.asset(
                       child: Image.asset(
                         asset,
                         width: size,
                         height: size,
                         fit: BoxFit.contain,
-                        filterQuality: FilterQuality.high,
+                        // filterQuality: FilterQuality.high,
                       ),
                     ),
                   ),

@@ -218,16 +218,16 @@ class ShimmerPostViewWidget extends StatelessWidget {
         children: [
           Row(
             children: [
-              _iconWithCount(context, icon: heartIcon, count: "12"),
-              hGap(15),
-              _iconWithCount(context, icon: msgChatIcon, count: "14",
-                  onIconTap: () {
-
-              }),
+              // _iconWithCount(context, icon: heartIcon, count: "12"),
+              // hGap(15),
+              // _iconWithCount(context, icon: msgChatIcon, count: "14",
+              //     onIconTap: () {
+              //
+              // }),
             ],
           ),
-          _iconWithCount(context,
-              icon: shareIcon, count: "20", onIconTap: () {})
+          // _iconWithCount(context,
+          //     icon: shareIcon, count: "20", onIconTap: () {})
         ],
       ),
     );
@@ -238,8 +238,8 @@ class ShimmerPostViewWidget extends StatelessWidget {
       onTap: onIconTap,
       child: Row(
         children: [
-          Image.asset(
-          // SvgPicture.asset(
+          // Image.asset(
+          SvgPicture.asset(
             icon,
             height: Get.height * .027,
             width: Get.height* .027,
@@ -423,7 +423,7 @@ class ChatHistoryShimmer extends StatelessWidget {
                     ? const EdgeInsets.only(left: 30)
                     : const EdgeInsets.only(right: 30),
                 decoration: BoxDecoration(
-                    color: isSendbme ? Colors.black :greyText,
+                    color: isSendbme ? Colors.black :Colors.grey.shade50,
                     borderRadius: isSendbme
                         ? const BorderRadius.only(
                         topLeft: Radius.circular(15),
@@ -487,7 +487,7 @@ class GroupMemberShimmer extends StatelessWidget {
           radiusAll: 100,
           borderColor: AppTheme.appColor.withOpacity(.2),
 
-          "",defaultImage: userIcon,
+          "",defaultImage: ICON_profile,
         ),
       ),
       title: Column(

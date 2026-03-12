@@ -104,8 +104,8 @@ class CompanyMembers extends GetView<CompanyMemberController> {
                   },
                   icon: controller.isSearching.value
                       ? const Icon(CupertinoIcons.clear_circled_solid)
-                      : Image.asset(searchPng, height: 25, width: 25))
-                      // : SvgPicture.asset(searchPng, height: 25, width: 25))
+                      // : Image.asset(searchPng, height: 25, width: 25))
+                      : SvgPicture.asset(searchPng, height: 25, width: 25))
               .paddingOnly(right: 8);
         }),
       ],
@@ -198,7 +198,7 @@ class CompanyMembers extends GetView<CompanyMemberController> {
                                           width: 60,
                                           height: 60,
                                           boxFit: BoxFit.cover,
-                                          defaultImage: userIcon,
+                                          defaultImage: ICON_profile,
                                           borderColor: greyText,
                                           "${ApiEnd.baseUrlMedia}${memData.userImage ?? ''}",
                                         ),
@@ -261,7 +261,8 @@ class CompanyMembers extends GetView<CompanyMemberController> {
                                           tapTargetSize: MaterialTapTargetSize
                                               .shrinkWrap,
                                         ),
-                                        child: Image.asset(
+                                        child: SvgPicture.asset(
+                                        // child: Image.asset(
                                           chatHome,
                                           color: appColorGreen,
                                           height: 20,
@@ -276,8 +277,8 @@ class CompanyMembers extends GetView<CompanyMemberController> {
                                         tapTargetSize:
                                             MaterialTapTargetSize.shrinkWrap,
                                       ),
-                                      child: Image.asset(tasksHome,
-                                      // child: SvgPicture.asset(tasksHome,
+                                      // child: Image.asset(tasksHome,
+                                      child: SvgPicture.asset(tasksHome,
                                           color: appColorYellow, height: 20),
                                     ),
                                   ],
@@ -334,7 +335,7 @@ class CompanyMembers extends GetView<CompanyMemberController> {
           ),
           child: SizedBox(
             width: kIsWeb ? 550 : Get.width * .9,
-            height: Get.height * 0.9,
+            height: Get.height * 0.95,
             child: ChatScreen(
               key: ValueKey(memData.userCompany?.userCompanyId),
               user: memData,
@@ -369,7 +370,7 @@ class CompanyMembers extends GetView<CompanyMemberController> {
           ),
           child: SizedBox(
             width: kIsWeb ? 550 : Get.width * .9,
-            height: Get.height * 0.9,
+            height: Get.height * 0.95,
             child: TaskScreen(
               key: ValueKey(memData.userCompany?.userCompanyId),
               taskUser: memData,

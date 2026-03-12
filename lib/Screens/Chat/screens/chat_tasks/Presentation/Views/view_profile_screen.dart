@@ -94,7 +94,7 @@ class ViewProfileScreen extends GetView<ViewProfileController> {
                         width: 100,
                         radiusAll: 100,
                         boxFit: BoxFit.cover,
-                        defaultImage: userIcon,
+                        defaultImage: ICON_profile,
                         borderColor: greyText,
                       ),
                     ),

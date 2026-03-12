@@ -13,6 +13,7 @@ import 'package:flutter_easyloading/flutter_easyloading.dart';
 import 'package:get/get.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 import 'package:logger/logger.dart';
+import 'package:share_handler/share_handler.dart';
 import 'Components/custom_loader.dart';
 import 'Constants/app_theme.dart';
 import 'Screens/Chat/helper/local_notification_channel.dart';
@@ -122,6 +123,7 @@ Future<void> main() async {
     });
   });
 }
+
 
 
 const selectedCompanyBox = 'selected_company_box';

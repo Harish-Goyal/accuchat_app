@@ -22,6 +22,8 @@ abstract class AppRoutes {
   static const invitations_r = '/invitations_r';
   static const company_members = '/company_members';
   static const company_update = '/company_update';
+  static const shareSelectChat = '/share-select-chat';
+  static const sharePreview = '/share-preview';
   static const add_broadcasts_member = '/add_broadcasts_member';
   static const add_group_member = '/addGroupMemberRoute';
   static const all_users = '/all_users';

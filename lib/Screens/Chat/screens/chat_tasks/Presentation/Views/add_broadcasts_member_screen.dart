@@ -76,12 +76,12 @@ class AddBroadcastsMembersScreen extends GetView<AddBroadcastMemController> {
               )),
           subtitle: Text((user.email=='null'||user.email==''||user.email==null && (user.name!='null'||user.name==''||user.name))?
           user.phone:user.email,style: BalooStyles.baloonormalTextStyle(size: 13),),
-          secondary: SizedBox(
-            width: 55,
-            child: CustomCacheNetworkImage(
-              user.image??'',radiusAll: 100,height: 75,defaultImage: userIcon,
-              borderColor: greyColor,),
-          ),
+          // secondary: SizedBox(
+          //   width: 55,
+          //   child: CustomCacheNetworkImage(
+          //     user.image??'',radiusAll: 100,height: 75,defaultImage: userIcon,
+          //     borderColor: greyColor,),
+          // ),
         );
       },
     );

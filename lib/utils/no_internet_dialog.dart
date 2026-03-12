@@ -192,8 +192,8 @@ class _WifiPulseIconState extends State<_WifiPulseIcon>
                     color: theme.colorScheme.error.withOpacity(0.25),
                   ),
                 ),
-                child: Image.asset(
-                // child: SvgPicture.asset(
+                // child: Image.asset(
+                child: SvgPicture.asset(
                   wifiPng,
                   height: 20,
                   color: theme.colorScheme.error,

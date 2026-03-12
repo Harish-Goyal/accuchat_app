@@ -26,7 +26,7 @@ void showResponsiveConfirmationDialog({required Function() onConfirm, title,requ
   // Keep width within reasonable min/max
   targetWidth = targetWidth.clamp(360.0, 560.0);
 
-  final maxHeight = size.height * 0.90;
+  final maxHeight = size.height * 0.95;
 
   Get.dialog(
     // Keeps dialog within safe areas and nicely centered

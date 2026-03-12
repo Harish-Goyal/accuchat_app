@@ -50,7 +50,7 @@ class HomeScreen extends GetView<DashboardController> {
                                       width: mq.height * .06,
                                       child: CustomCacheNetworkImage(
                                         "${ApiEnd.baseUrlMedia}${controller.userData.userImage??''}",
-                                        defaultImage: userIcon,
+                                        defaultImage: ICON_profile,
                                         radiusAll: mq.height * .25,
                                         height: 50,
                                         boxFit: BoxFit.cover,
@@ -91,6 +91,7 @@ class HomeScreen extends GetView<DashboardController> {
                               ,
                               defaultImage: appIcon,
                               borderColor: greyColor,
+                              isApp: true,
                             ),
                           ],
                         ),
@@ -170,15 +171,15 @@ class HomeScreen extends GetView<DashboardController> {
 
                         Row(
                           children: [
-                            InkWell(
-                              onTap: controller.refreshChats,
-                              child: const SectionHeader(
-                                title: 'Recents ',
-                                icon: chaticon,
-                              ).paddingSymmetric(
-                                vertical: 4,
-                              ),
-                            ),
+                            // InkWell(
+                            //   onTap: controller.refreshChats,
+                            //   child: const SectionHeader(
+                            //     title: 'Recents ',
+                            //     icon: chaticon,
+                            //   ).paddingSymmetric(
+                            //     vertical: 4,
+                            //   ),
+                            // ),
                             InkWell(
                                 onTap: () {
                                   controller.updateIndex(0);
@@ -364,8 +365,8 @@ class SectionHeader extends StatelessWidget {
   Widget build(BuildContext context) {
     return Row(
       children: [
-        Image.asset(
-        // SvgPicture.asset(
+        // Image.asset(
+        SvgPicture.asset(
           icon,
           height: 25,
           color: coloricon ?? null,

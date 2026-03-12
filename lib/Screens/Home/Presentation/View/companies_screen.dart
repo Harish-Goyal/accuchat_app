@@ -55,7 +55,7 @@ class CompaniesScreen extends GetView<CompaniesController> {
           ),
           child: SizedBox(
             width: kIsWeb ? 550: Get.width * .9,
-            height: Get.height * 0.9,
+            height: Get.height * 0.95,
             child: CompanyMembers(),
           ),
         ),
@@ -301,8 +301,8 @@ class CompaniesScreen extends GetView<CompaniesController> {
                       Positioned(
                           top: -22,
                           right: -15,
-                          child: Image.asset(
-                          // child: SvgPicture.asset(
+                          // child: Image.asset(
+                          child: SvgPicture.asset(
                             connectedAppIcon,
                             height: 20,
                           ))
@@ -429,8 +429,9 @@ class CompaniesScreen extends GetView<CompaniesController> {
                                                   '${ApiEnd.baseUrlMedia}${companyData.logo ?? ''}',
                                                   boxFit: BoxFit.cover,
                                                   defaultImage: appIcon,
+                                                  isApp: true,
                                                 ),
-                                              ).paddingOnly(left: 6),
+                                              ),
                                               trailWidget: Column(
                                                 mainAxisSize: MainAxisSize.min,
                                                 crossAxisAlignment:

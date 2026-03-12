@@ -92,6 +92,8 @@ class LandingPage extends GetView<LandingScreenController> {
                                           borderColor: greyText,
                                           boxFit: BoxFit.cover,
                                           "${ApiEnd.baseUrlMedia}${company.logo ?? ''}",
+                                          defaultImage: appIcon,
+                                          isApp: true,
                                         ),
                                       ),
                                       title: (company.companyName ?? ''),

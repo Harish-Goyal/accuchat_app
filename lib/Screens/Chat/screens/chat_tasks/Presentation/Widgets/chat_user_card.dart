@@ -11,6 +11,7 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import '../../../../../../Constants/assets.dart';
 import '../../../../../../utils/chat_presence.dart';
+import '../../../../../../utils/helper_widget.dart';
 import '../../../../../../utils/networl_shimmer_image.dart';
 import '../../../../api/apis.dart';
 import '../../../../helper/my_date_util.dart';
@@ -85,264 +86,279 @@ class _ChatUserCardState extends State<ChatUserCard>
           horizontal: kIsWeb ? 14 : mq.width * .04, vertical: 2),
       decoration: BoxDecoration(
         borderRadius: BorderRadius.circular(15),
-        border: Border.all(
-            color: isTaskMode
-                ? appColorYellow.withOpacity(.1)
-                : appColorGreen.withOpacity(.1)),
+        // border: Border.all(
+        //     color: isTaskMode
+        //         ? appColorYellow.withOpacity(.1)
+        //         : appColorGreen.withOpacity(.1)),
       ),
       child: Obx(() {
         bool isSelected =
             homec.selectedChat.value?.userId == widget.user?.userId;
+        final usern = (widget.user?.userCompany?.displayName != null)
+            ? widget.user?.userCompany?.displayName ?? ''
+            : widget.user?.userName ?? '';
         bool isRegistered=false;
-        return InkWell(
-            hoverColor: appColorPerple.withOpacity(.25),
-            // overlayColor: WidgetStatePropertyAll(appColorPerple.withOpacity(.12)),
-            borderRadius: BorderRadius.circular(15),
-            onTap: () {
-              if (isTaskMode) {
-                if (kIsWeb) {
-                  final homec = Get.find<TaskHomeController>();
-                  var newKey = widget.user?.userCompany?.userCompanyId;
-                  final newTag = 'task_$newKey';
+        return Material(
+          color: Colors.transparent,
+          borderRadius: BorderRadius.circular(15),
+          child: InkWell(
+              borderRadius: BorderRadius.circular(15),
+              hoverColor: perplebr,
+              splashColor: perplebr,
+              highlightColor: perplebr,
+              onTap: () {
+                if (isTaskMode) {
+                  if (kIsWeb) {
+                    final homec = Get.find<TaskHomeController>();
+                    var newKey = widget.user?.userCompany?.userCompanyId;
+                    final newTag = 'task_$newKey';
 
-                  final oldKey = TaskPresence.activeTaskId.value;
-                  final oldTag = 'task_$oldKey';
+                    final oldKey = TaskPresence.activeTaskId.value;
+                    final oldTag = 'task_$oldKey';
 
-                  if (oldTag != newTag && Get.isRegistered<TaskController>(tag: oldTag)) {
-                    Get.delete<TaskController>(tag: oldTag, force: true);
+                    if (oldTag != newTag && Get.isRegistered<TaskController>(tag: oldTag)) {
+                      Get.delete<TaskController>(tag: oldTag, force: true);
+                    }
+
+                    TaskPresence.activeTaskId.value = newKey;
+
+                    final taskC = Get.isRegistered<TaskController>(tag: newTag)
+                        ? Get.find<TaskController>(tag: newTag)
+                        : Get.put(TaskController(user: widget.user), tag: newTag);
+                    homec.selectedChat.value = widget.user;
+                    taskC.user = widget.user;
+                    taskC.textController.clear();
+                    taskC.replyToMessage = null;
+                    taskC.showPostShimmer = true;
+                    taskC.getUserByIdApi(userId: widget.user?.userId);
+                    homec.selectedChat.refresh();
+                    taskC.update();
+                    homec.update();
+                  } else {
+                    Get.toNamed(AppRoutes.tasks_li_r,
+                        arguments: {'user': widget.user});
                   }
-
-                  TaskPresence.activeTaskId.value = newKey;
-
-                  final taskC = Get.isRegistered<TaskController>(tag: newTag)
-                      ? Get.find<TaskController>(tag: newTag)
-                      : Get.put(TaskController(user: widget.user), tag: newTag);
-                  homec.selectedChat.value = widget.user;
-                  taskC.user = widget.user;
-                  taskC.textController.clear();
-                  taskC.replyToMessage = null;
-                  taskC.showPostShimmer = true;
-                  taskC.getUserByIdApi(userId: widget.user?.userId);
-                  homec.selectedChat.refresh();
-                  taskC.update();
-                  homec.update();
                 } else {
-                  Get.toNamed(AppRoutes.tasks_li_r,
-                      arguments: {'user': widget.user});
-                }
-              } else {
-                if (kIsWeb) {
-                  final homec = Get.find<ChatHomeController>();
+                  if (kIsWeb) {
+                    final homec = Get.find<ChatHomeController>();
 
-                  var newKey = widget.user?.userCompany?.userCompanyId;
+                    var newKey = widget.user?.userCompany?.userCompanyId;
 
-                  final newTag = 'chat_$newKey';
+                    final newTag = 'chat_$newKey';
 
-// delete previous active controller (if different)
-                  final oldKey = ChatPresence.activeChatId.value;
-                  final oldTag = 'chat_$oldKey';
+          // delete previous active controller (if different)
+                    final oldKey = ChatPresence.activeChatId.value;
+                    final oldTag = 'chat_$oldKey';
 
-                  if (oldTag != newTag && Get.isRegistered<ChatScreenController>(tag: oldTag)) {
-                    Get.delete<ChatScreenController>(tag: oldTag, force: true);
+                    if (oldTag != newTag && Get.isRegistered<ChatScreenController>(tag: oldTag)) {
+                      Get.delete<ChatScreenController>(tag: oldTag, force: true);
+                    }
+
+                    ChatPresence.activeChatId.value = newKey;
+
+                    final chatc = Get.isRegistered<ChatScreenController>(tag: newTag)
+                        ? Get.find<ChatScreenController>(tag: newTag)
+                        : Get.put(ChatScreenController(user: widget.user), tag: newTag);
+                    homec.selectedChat.value = widget.user;
+                    chatc.user = widget.user;
+                    chatc.update();
+                    chatc.textController.clear();
+                    chatc.replyToMessage = null;
+                    chatc.showPostShimmer = true;
+
+                    chatc.getUserByIdApi(userId: widget.user?.userId);
+                    // chatc.openConversation(widget.user);
+
+                    // final pending = widget.user?.pendingCount ?? 0;
+                    // if (pending != 0) {
+                    //   chatc.markAllVisibleAsReadOnOpen(
+                    //     APIs.me.userCompany?.userCompanyId,
+                    //     widget.user?.userCompany?.userCompanyId,
+                    //     widget.user?.userCompany?.isGroup == 1 ? 1 : 0,
+                    //   );
+                    // }
+
+                    homec.selectedChat.refresh();
+                    chatc.update();
+                    homec.update();
+
+                    //  final homec = Get.find<ChatHomeController>();
+                   //
+                   //  final activePreTag = ChatPresence.activeChatId.value;
+                   //  final preTag = "chat_$activePreTag";
+                   //
+                   //  if(Get.isRegistered<ChatScreenController>(tag: preTag)){
+                   //    Get.delete<ChatScreenController>(tag: preTag,force: true);
+                   //  }
+                   //  final chatId = widget.user?.userCompany?.userCompanyId ?? 'mobile';
+                   //  final tag = 'chat_$chatId';
+                   //  ChatScreenController? chatc;
+                   //  if (Get.isRegistered<ChatScreenController>(tag: tag)) {
+                   //    isRegistered =true;
+                   //    print("$isRegistered ========01");
+                   //    chatc = Get.find<ChatScreenController>(tag: tag);
+                   //  } else {
+                   //    print("$isRegistered ========00");
+                   //    isRegistered =false;
+                   //    chatc = Get.put(ChatScreenController(user: widget.user),
+                   //        tag: tag);
+                   //  }
+                   //
+                   // chatc?.textController.clear();
+                   // chatc?.replyToMessage = null;
+                   // chatc?.showPostShimmer = true;
+                   // print(widget.user?.userId);
+                   // homec.selectedChat.value = widget.user;
+                   // chatc?.user = homec.selectedChat.value;
+                   // print(homec.selectedChat.value?.userId);
+                   // print(chatc?.user?.userId);
+                   //  // isRegistered?  chatc?.openConversation(homec.selectedChat.value) :null;
+                   //  ChatPresence.activeChatId.value =homec.selectedChat.value?.userCompany?.userCompanyId;
+                   // chatc?.openConversation(homec.selectedChat.value) ;
+                   //  if (homec.selectedChat.value?.pendingCount != 0) {
+                   //    chatc?.markAllVisibleAsReadOnOpen(
+                   //        APIs.me.userCompany?.userCompanyId,
+                   //        chatc.user?.userCompany?.userCompanyId,
+                   //        chatc.user?.userCompany?.isGroup == 1 ? 1 : 0);
+                   //  }
+                   //  homec.update();
+                   //  homec.selectedChat.refresh();
+                   //  chatc?.update();
+                  } else {
+                    Get.toNamed(
+                      AppRoutes.chats_li_r,
+                      arguments: {'user': widget.user},
+                    );
                   }
-
-                  ChatPresence.activeChatId.value = newKey;
-
-                  final chatc = Get.isRegistered<ChatScreenController>(tag: newTag)
-                      ? Get.find<ChatScreenController>(tag: newTag)
-                      : Get.put(ChatScreenController(user: widget.user), tag: newTag);
-                  homec.selectedChat.value = widget.user;
-                  chatc.user = widget.user;
-                  chatc.update();
-                  chatc.textController.clear();
-                  chatc.replyToMessage = null;
-                  chatc.showPostShimmer = true;
-
-                  chatc.getUserByIdApi(userId: widget.user?.userId);
-                  // chatc.openConversation(widget.user);
-
-                  // final pending = widget.user?.pendingCount ?? 0;
-                  // if (pending != 0) {
-                  //   chatc.markAllVisibleAsReadOnOpen(
-                  //     APIs.me.userCompany?.userCompanyId,
-                  //     widget.user?.userCompany?.userCompanyId,
-                  //     widget.user?.userCompany?.isGroup == 1 ? 1 : 0,
-                  //   );
-                  // }
-
-                  homec.selectedChat.refresh();
-                  chatc.update();
-                  homec.update();
-
-                  //  final homec = Get.find<ChatHomeController>();
-                 //
-                 //  final activePreTag = ChatPresence.activeChatId.value;
-                 //  final preTag = "chat_$activePreTag";
-                 //
-                 //  if(Get.isRegistered<ChatScreenController>(tag: preTag)){
-                 //    Get.delete<ChatScreenController>(tag: preTag,force: true);
-                 //  }
-                 //  final chatId = widget.user?.userCompany?.userCompanyId ?? 'mobile';
-                 //  final tag = 'chat_$chatId';
-                 //  ChatScreenController? chatc;
-                 //  if (Get.isRegistered<ChatScreenController>(tag: tag)) {
-                 //    isRegistered =true;
-                 //    print("$isRegistered ========01");
-                 //    chatc = Get.find<ChatScreenController>(tag: tag);
-                 //  } else {
-                 //    print("$isRegistered ========00");
-                 //    isRegistered =false;
-                 //    chatc = Get.put(ChatScreenController(user: widget.user),
-                 //        tag: tag);
-                 //  }
-                 //
-                 // chatc?.textController.clear();
-                 // chatc?.replyToMessage = null;
-                 // chatc?.showPostShimmer = true;
-                 // print(widget.user?.userId);
-                 // homec.selectedChat.value = widget.user;
-                 // chatc?.user = homec.selectedChat.value;
-                 // print(homec.selectedChat.value?.userId);
-                 // print(chatc?.user?.userId);
-                 //  // isRegistered?  chatc?.openConversation(homec.selectedChat.value) :null;
-                 //  ChatPresence.activeChatId.value =homec.selectedChat.value?.userCompany?.userCompanyId;
-                 // chatc?.openConversation(homec.selectedChat.value) ;
-                 //  if (homec.selectedChat.value?.pendingCount != 0) {
-                 //    chatc?.markAllVisibleAsReadOnOpen(
-                 //        APIs.me.userCompany?.userCompanyId,
-                 //        chatc.user?.userCompany?.userCompanyId,
-                 //        chatc.user?.userCompany?.isGroup == 1 ? 1 : 0);
-                 //  }
-                 //  homec.update();
-                 //  homec.selectedChat.refresh();
-                 //  chatc?.update();
-                } else {
-                  Get.toNamed(
-                    AppRoutes.chats_li_r,
-                    arguments: {'user': widget.user},
-                  );
                 }
-              }
-            },
-            child: AnimatedContainer(
-              duration: const Duration(milliseconds: 150),
-              curve: Curves.easeInOut,
-              decoration: BoxDecoration(
-                color: isSelected
-                    ? appColorPerple.withOpacity(.25)
-                    : Colors.transparent,
-                borderRadius: BorderRadius.circular(12),
-              ),
-              child: ListTile(
-                hoverColor: appColorPerple.withOpacity(.15),
-                contentPadding: const EdgeInsets.symmetric(horizontal: 10),
-                leading: InkWell(
-                  onTap: () {
-                    showDialog(
-                        context: context,
-                        builder: (_) => ProfileDialog(user: widget.user));
-                  },
-                  child: CustomCacheNetworkImage(
-                    radiusAll: 100,
-                    "${ApiEnd.baseUrlMedia}${widget.user?.userImage ?? ''}",
-                    height: mq.height * .06,
-                    width: mq.height * .06,
-                    boxFit: BoxFit.cover,
-                    borderColor: greyText,
-                    defaultImage: widget.user?.userCompany?.isGroup == 1
-                        ? groupIcn
-                        : widget.user?.userCompany?.isBroadcast == 1
-                            ? broadcastIcon
-                            : ICON_profile,
-                  ),
+              },
+              child: AnimatedContainer(
+                duration: const Duration(milliseconds: 150),
+                curve: Curves.easeInOut,
+                decoration: BoxDecoration(
+                  color: isSelected
+                      ? chatcardt
+                      : whiteselected.withOpacity(.6),
+                  borderRadius: BorderRadius.circular(12),
+                  // boxShadow: [BoxShadow(color: Colors.white,blurRadius: 7)]
                 ),
-
-                //user name
-                title: (widget.user?.userCompany?.isGroup == 1 ||
-                        widget.user?.userCompany?.isBroadcast == 1)
-                    ? Text(
-                        (widget.user?.userId == APIs.me.userId)
-                            ? "Me"
-                            : (widget.user?.userName == '' ||
-                                    widget.user?.userName == null)
-                                ? widget.user?.phone ?? ''
-                                : widget.user?.userName ?? '',
-                        style: BalooStyles.baloonormalTextStyle(),
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                      )
-                    : Text(
-                        (widget.user?.userId == APIs.me.userId)
-                            ? "Me"
-                            : (widget.user?.userCompany?.displayName != null)
-                                ? widget.user?.userCompany?.displayName ?? ''
-                                : widget.user?.userName != null
-                                    ? widget.user?.userName ?? ''
-                                    : widget.user?.phone ?? '',
-                        style: BalooStyles.baloonormalTextStyle(),
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                      ),
-
-                //last message
-                subtitle: Text(
-                  widget.user?.lastMessage?.message ?? '',
-                  maxLines: 1,
-                  style: BalooStyles.balooregularTextStyle(
-                      color: greyText, size: 13),
-                  overflow: TextOverflow.ellipsis,
-                ),
-
-                trailing: Column(
-                  crossAxisAlignment: CrossAxisAlignment.end,
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    !isTaskMode
-                        ? (widget.user?.pendingCount != null &&
-                                widget.user?.pendingCount != 0
-                            ? CircleAvatar(
-                                radius: 10,
-                                backgroundColor: Colors.greenAccent.shade400,
-                                child: Text(
-                                  "${widget.user?.pendingCount}",
-                                  style: BalooStyles.baloonormalTextStyle(
-                                      color: Colors.white, size: 12),
-                                  maxLines: 1,
-                                  overflow: TextOverflow.ellipsis,
-                                ),
-                              )
-                            : const SizedBox()) /* : widget.user?.open_count!=null&&widget.user?.open_count!=0  ? CircleAvatar(
-                                           radius: 10,
-                                           backgroundColor: Colors.greenAccent.shade400,
-                                           child: Text(
-                       "${widget.user?.open_count}",
-                       style: BalooStyles.baloonormalTextStyle(color: Colors.white,size: 12),
-                       maxLines: 1,
-                       overflow: TextOverflow.ellipsis,
-                                           ),
-                                         )*/
-                        : const SizedBox(),
-                    widget.user?.pendingCount != null &&
-                            widget.user?.pendingCount != 0
-                        ? const Spacer()
-                        : const SizedBox(),
-                    widget.user?.open_count != null &&
-                            widget.user?.open_count != 0
-                        ? const Spacer()
-                        : const SizedBox(),
-                    Text(
-                      MyDateUtil.getLastMessageTime(
+                child: ListTile(
+                  hoverColor: perplebr,
+                  contentPadding: const EdgeInsets.symmetric(horizontal: 10),
+                  leading: InkWell(
+                    borderRadius: BorderRadius.circular(100),
+                    onTap: () {
+                      showDialog(
                           context: context,
-                          time: widget.user?.lastMessage?.messageTime ?? ''),
-                      style: const TextStyle(color: Colors.black54),
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                    ).paddingOnly(bottom: 2),
-                  ],
+                          builder: (_) => ProfileDialog(user: widget.user));
+                    },
+                    child:widget.user?.userImage !=null? CustomCacheNetworkImage(
+                      radiusAll: 100,
+                      "${ApiEnd.baseUrlMedia}${widget.user?.userImage ?? ''}",
+                      height:45,
+                      width: 45,
+                      boxFit: BoxFit.cover,
+                      borderColor: greyText,
+                      defaultImage: widget.user?.userCompany?.isGroup == 1
+                          ? groupIcn
+                          : widget.user?.userCompany?.isBroadcast == 1
+                              ? broadcastIcon
+                              : ICON_profile,
+                      color: Colors.grey,
+                    ):CircleAvatar(
+                      // radius: 45,
+                      backgroundColor: perpleBg,
+                      child: Text(getInitials(usern),style: BalooStyles.baloosemiBoldTextStyle(color: perplebr),),
+                    ),
+                  ),
+
+                  //user name
+                  title: (widget.user?.userCompany?.isGroup == 1 ||
+                          widget.user?.userCompany?.isBroadcast == 1)
+                      ? Text(
+                          (widget.user?.userId == APIs.me.userId)
+                              ? "Me"
+                              : (widget.user?.userName == '' ||
+                                      widget.user?.userName == null)
+                                  ? widget.user?.phone ?? ''
+                                  : widget.user?.userName ?? '',
+                          style: BalooStyles.baloonormalTextStyle(),
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                        )
+                      : Text(
+                          (widget.user?.userId == APIs.me.userId)
+                              ? "Me"
+                              : (widget.user?.userCompany?.displayName != null)
+                                  ? widget.user?.userCompany?.displayName ?? ''
+                                  : widget.user?.userName != null
+                                      ? widget.user?.userName ?? ''
+                                      : widget.user?.phone ?? '',
+                          style: BalooStyles.baloonormalTextStyle(),
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                        ),
+
+                  //last message
+                  subtitle: Text(
+                    widget.user?.lastMessage?.message ?? '',
+                    maxLines: 1,
+                    style: BalooStyles.balooregularTextStyle(
+                        color: greyText, size: 13),
+                    overflow: TextOverflow.ellipsis,
+                  ),
+
+                  trailing: Column(
+                    crossAxisAlignment: CrossAxisAlignment.end,
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      !isTaskMode
+                          ? (widget.user?.pendingCount != null &&
+                                  widget.user?.pendingCount != 0
+                              ? CircleAvatar(
+                                  radius: 10,
+                                  backgroundColor: Colors.greenAccent.shade400,
+                                  child: Text(
+                                    "${widget.user?.pendingCount}",
+                                    style: BalooStyles.baloonormalTextStyle(
+                                        color: Colors.white, size: 12),
+                                    maxLines: 1,
+                                    overflow: TextOverflow.ellipsis,
+                                  ),
+                                )
+                              : const SizedBox()) /* : widget.user?.open_count!=null&&widget.user?.open_count!=0  ? CircleAvatar(
+                                             radius: 10,
+                                             backgroundColor: Colors.greenAccent.shade400,
+                                             child: Text(
+                         "${widget.user?.open_count}",
+                         style: BalooStyles.baloonormalTextStyle(color: Colors.white,size: 12),
+                         maxLines: 1,
+                         overflow: TextOverflow.ellipsis,
+                                             ),
+                                           )*/
+                          : const SizedBox(),
+                      widget.user?.pendingCount != null &&
+                              widget.user?.pendingCount != 0
+                          ? const Spacer()
+                          : const SizedBox(),
+                      widget.user?.open_count != null &&
+                              widget.user?.open_count != 0
+                          ? const Spacer()
+                          : const SizedBox(),
+                      Text(
+                        MyDateUtil.getLastMessageTime(
+                            context: context,
+                            time: widget.user?.lastMessage?.messageTime ?? ''),
+                        style: const TextStyle(color: Colors.black54),
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                      ).paddingOnly(bottom: 2),
+                    ],
+                  ),
+                  //message sent time
                 ),
-                //message sent time
-              ),
-            ));
+              )),
+        );
       }),
     );
   }

@@ -142,7 +142,7 @@ class CompaniesController extends GetxController {
           ),
           child: SizedBox(
             width: kIsWeb ? 550 : Get.width * .9,
-            height: Get.height * 0.9,
+            height: Get.height * 0.95,
             child: const InvitationsScreen(),
           ),
         ),

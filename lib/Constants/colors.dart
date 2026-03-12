@@ -4,7 +4,16 @@ import 'package:flutter/material.dart';
  Color lightAppColor = const Color(0xFFFC8F48);
  Color appColorYellow = const Color(0xFFffaf2c);
  Color appColorPerple = const Color(0xFFa068f0);
+ Color chatcardt = const Color(0xFFE3DAFB);
+ Color whiteselected = const Color(0xFFF8F9FD);
+ Color whiteselectedinput = const Color(0xFFFFFFFF);
+ Color recentBg = const Color(0xFFEEF1FC);
  Color appColorGreen = const Color(0xFF08c189);
+ Color perpleBg = const Color(0xFFD9D6FD);
+ Color perplebr = const Color(0xFFB397F4);
+ Color lightGre = const Color(0xFFD8EFF3);
+ Color gallwhite = const Color(0xFFF6F5FE);
+ Color grbtn = const Color(0xFF7CC6F1);
 
 
  Color lightCreamColor = const Color(0xFFF6E9E0);
