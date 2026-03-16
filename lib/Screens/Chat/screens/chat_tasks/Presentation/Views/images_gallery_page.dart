@@ -189,61 +189,35 @@ class GalleryViewerPage extends GetView<GalleryViewerController> {
   }
 
   _mainBody() {
-    return Stack(
-      children: [
-        Container(
-          decoration: BoxDecoration(borderRadius: BorderRadius.circular(12),border: Border.all(color: greyText)),
-          child: PhotoViewGallery.builder(
-            pageController: _pageController,
-            itemCount: controller.urls.length,
-            backgroundDecoration:  BoxDecoration(color: Colors.white,border: Border.all(color: greyText)),
-            builder: (context, index) {
-              final url = controller.urls[index];
-              return  PhotoViewGalleryPageOptions(
-                imageProvider: url.endsWith("gif")?NetworkImage(url):CachedNetworkImageProvider(url,errorListener: (v){
-                  Center(
-                    child: Image.asset(appIcon, fit: BoxFit.contain),
-                    // child: SvgPicture.asset(appIcon, fit: BoxFit.contain),
-                  );
-                }),
-                heroAttributes: PhotoViewHeroAttributes(tag: url),
-                minScale: PhotoViewComputedScale.contained,
-                maxScale: PhotoViewComputedScale.covered,
-                errorBuilder: (context, error, stackTrace) => Center(
-                  child: Image.asset(appIcon, fit: BoxFit.contain),
-                  // child: SvgPicture.asset(appIcon, fit: BoxFit.contain),
-                ),
+    return Container(
+      decoration: BoxDecoration(borderRadius: BorderRadius.circular(12),border: Border.all(color: greyText)),
+      child: PhotoViewGallery.builder(
+        pageController: _pageController,
+        itemCount: controller.urls.length,
+        backgroundDecoration:  BoxDecoration(color: Colors.white,border: Border.all(color: greyText)),
+        builder: (context, index) {
+          final url = controller.urls[index];
+          return  PhotoViewGalleryPageOptions(
+            imageProvider: url.endsWith("gif")?NetworkImage(url):CachedNetworkImageProvider(url,errorListener: (v){
+              Center(
+                child: Image.asset(appIcon, fit: BoxFit.contain),
+                // child: SvgPicture.asset(appIcon, fit: BoxFit.contain),
               );
-            },
-            onPageChanged: (i) => controller.setIndex(i),
-            loadingBuilder: (_, __) => const Center(
-              child: CircularProgressIndicator(),
+            }),
+            heroAttributes: PhotoViewHeroAttributes(tag: url),
+            minScale: PhotoViewComputedScale.contained,
+            maxScale: PhotoViewComputedScale.covered,
+            errorBuilder: (context, error, stackTrace) => Center(
+              child: Image.asset(appIcon, fit: BoxFit.contain),
+              // child: SvgPicture.asset(appIcon, fit: BoxFit.contain),
             ),
-          ),
+          );
+        },
+        onPageChanged: (i) => controller.setIndex(i),
+        loadingBuilder: (_, __) => const Center(
+          child: CircularProgressIndicator(),
         ),
-
-        if (controller.toastmsg != null)
-          Positioned(
-            left: 16,
-            right: 16,
-            bottom: 24,
-            child: Center(
-              child: Container(
-                padding:
-                    const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-                decoration: BoxDecoration(
-                  color: Colors.black.withOpacity(0.7),
-                  borderRadius: BorderRadius.circular(8),
-                  border: Border.all(color: Colors.white24),
-                ),
-                child: Text(
-                  controller.toastmsg!,
-                  style: const TextStyle(color: Colors.white),
-                ),
-              ),
-            ),
-          ),
-      ],
+      ),
     );
   }
 }

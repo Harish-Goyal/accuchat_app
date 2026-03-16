@@ -85,16 +85,22 @@ class LandingPage extends GetView<LandingScreenController> {
                                   return ChatCard(
                                       iconWidget: SizedBox(
                                         width: 50,
-                                        child: CustomCacheNetworkImage(
+                                        child:
+                                        company.logo !=null? CustomCacheNetworkImage(
+                                          "${ApiEnd.baseUrlMedia}${company.logo ?? ''}",
                                           radiusAll: 100,
                                           width: 50,
                                           height: 50,
-                                          borderColor: greyText,
-                                          boxFit: BoxFit.cover,
-                                          "${ApiEnd.baseUrlMedia}${company.logo ?? ''}",
+                                          borderColor: appColorYellow,
                                           defaultImage: appIcon,
+                                          boxFit: BoxFit.cover,
                                           isApp: true,
+                                        ):CircleAvatar(
+                                          // radius: 45,
+                                          backgroundColor: Colors.white,
+                                          child: Text(getInitials(company.companyName?? ''),style: BalooStyles.baloosemiBoldTextStyle(color: greenside,size: 20),),
                                         ),
+
                                       ),
                                       title: (company.companyName ?? ''),
                                       subtitle: 'Tap to enter this company',
@@ -707,6 +713,8 @@ Future<void> showResponsiveLogoutDialog(ctx) async {
                               ),
                               vPadding: 6,
                               onTap: () async {
+                                imageCache.clear();
+                                imageCache.clearLiveImages();
                                 // logoutLocal();
                                 hitAPIToDeletePushToken();
                               },

@@ -168,16 +168,10 @@ class _TaskScreenState extends State<TaskScreen> {
   AppBar _appBarWidget() {
     return AppBar(
       backgroundColor: recentBg,
-      elevation: 1,
+      elevation: 10,
       scrolledUnderElevation: 0,
       surfaceTintColor:recentBg,
       automaticallyImplyLeading: false,
-      shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(
-          bottom: Radius.circular(30),
-          top: Radius.circular(30),
-        ),
-      ),
       flexibleSpace: MediaQuery(
         data: MediaQuery.of(context)
             .copyWith(textScaleFactor: _textScaleClamp(context)),
@@ -191,8 +185,10 @@ class _TaskScreenState extends State<TaskScreen> {
       behavior: const _NoGlowScrollBehavior(),
       child: Center(
         child: Container(
+          width: Get.width,
+          margin: const EdgeInsets.only(right: 8),
           decoration: const BoxDecoration(
-              image: DecorationImage(image: AssetImage("assets/images/bglight.jpg",),fit: BoxFit.cover)
+              image: DecorationImage(image: AssetImage(darkbg),fit: BoxFit.cover,opacity: .5)
               ,  borderRadius: BorderRadius.only(topLeft: Radius.circular(12),topRight: Radius.circular(12),)
           ),
           constraints: BoxConstraints(maxWidth: _maxChatWidth(Get.context!)),
@@ -202,11 +198,11 @@ class _TaskScreenState extends State<TaskScreen> {
               children: [
                 Expanded(child: RepaintBoundary(child: chatMessageBuilder())),
         Container(
-          constraints: const BoxConstraints(minHeight: 60),
+          constraints: const BoxConstraints(minHeight: 65),
           padding: const EdgeInsets.all(0),
           decoration: BoxDecoration(
               borderRadius: BorderRadius.circular(15),
-              color: Colors.white.withOpacity(.4)
+              color: Colors.white.withOpacity(.8)
           ),child: _chatInput()),
               ],
             ),
@@ -225,7 +221,7 @@ class _TaskScreenState extends State<TaskScreen> {
         Expanded(
           child: shimmerEffectWidget(
             showShimmer: controller.showPostShimmer,
-            shimmerWidget: shimmerlistView(child: ChatHistoryShimmer()),
+            shimmerWidget: shimmerlistView(child: const ChatHistoryShimmer()),
             child: groupListView(),
           ),
         ),
@@ -834,11 +830,13 @@ class _TaskScreenState extends State<TaskScreen> {
   // app bar widget
   Widget _appBar() {
     return Container(
-
-      decoration: BoxDecoration(
-          color: whiteselected,
-          borderRadius: BorderRadius.circular(50)
-      ),
+          margin: const EdgeInsets.only(right:8),
+          padding: const EdgeInsets.all(0),
+          decoration: BoxDecoration(
+              color: Colors.white,
+              borderRadius: BorderRadius.circular(12),
+              boxShadow: [BoxShadow(color: Colors.grey.shade300,blurRadius: 10)]
+          ),
       child: Row(
         children: [
           controller.isSearching
@@ -1041,7 +1039,7 @@ class _TaskScreenState extends State<TaskScreen> {
                         chatC.getUserByIdApi(userId: widget.taskUser?.userId);
                         chatHome.selectedChat.refresh();
                       },
-                      child:goToWidget("Go to Chat", appColorGreen) ),
+                      child:goToWidget("Go to Chat", appColorGreen,count:widget.taskUser?.pendingCount) ),
           controller.isSearching ? const SizedBox() : hGap(10),
           IconButton(
                   onPressed: () {
@@ -1052,11 +1050,10 @@ class _TaskScreenState extends State<TaskScreen> {
                       controller.resetPaginationForNewChat();
                       controller.seacrhCon.clear();
                       controller.onSearch('');
-
                     }
                     controller.update();
                   },
-                  icon:bottonBg(child: controller.isSearching
+                  icon:GradientContainer(child: controller.isSearching
     ? const Icon(CupertinoIcons.clear,color:Colors.black54)
         : SvgPicture.asset(searchPng, height: 20, width: 20,color:Colors.black54)))
         .paddingOnly(top: 0, right: 0),
@@ -1086,8 +1083,8 @@ class _TaskScreenState extends State<TaskScreen> {
 
                     return PopupMenuButton<dynamic>(
                       color: Colors.white,
-                      icon: bottonBg(
-                        child: Icon(
+                      icon: GradientContainer(
+                        child: const Icon(
                           Icons.filter_alt_outlined,
                           color: Colors.black45,
                           size: 20,
@@ -1188,7 +1185,7 @@ class _TaskScreenState extends State<TaskScreen> {
                                 readOnly: true,
                                 onTap: () {
                                   controller.clearFields();
-                                  if (isTaskMode) {
+                                  // if (isTaskMode) {
                                     showDialog(
                                         context: Get.context!,
                                         builder: (_) =>
@@ -1201,7 +1198,7 @@ class _TaskScreenState extends State<TaskScreen> {
                                         controller.update();
                                       }
                                     });
-                                  }
+                                  // }
                                 },
                                 decoration: InputDecoration(
                                   isDense: true,

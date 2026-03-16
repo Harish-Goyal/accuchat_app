@@ -11,6 +11,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:get/get.dart';
+import '../../../../../../Services/APIs/api_ends.dart';
 import '../../../../../../utils/common_textfield.dart';
 import '../../../../../../utils/custom_dialogue.dart';
 import '../../../../../../utils/networl_shimmer_image.dart';
@@ -192,15 +193,30 @@ class _BroadcastsMembersScreenState extends State<BroadcastsMembersScreen> {
                 final user = _members[index];
                 final isAdmin = _adminIds.contains(user.id);
                 final isSelf = user.id == _currentUid;
-
+                // final usern = (user?.userCompany?.displayName != null)
+                //     ? user?.userCompany?.displayName ?? ''
+                //     : user?.userName ?? '';
                 return ListTile(
                   contentPadding: const EdgeInsets.symmetric(vertical: 0,horizontal: 15),
                   leading:
                   SizedBox(
-                    width: 55,
-                    child: CustomCacheNetworkImage(
-                      user.image??'',radiusAll: 100,height: 75,width: 75,defaultImage: ICON_profile,
-                      borderColor: greyColor,),
+                    width: 45,
+                    child:
+
+                    user.image!=null? CustomCacheNetworkImage(
+                      user.image??'',
+                      radiusAll: 100,
+                      height: 45,
+                      width: 45,
+                      boxFit: BoxFit.cover,
+                      defaultImage: ICON_profile,
+                      borderColor: greyText,
+                    ):CircleAvatar(
+                      // radius: 45,
+                      backgroundColor: perpleBg,
+                      child: Text(getInitials("usern"),style: BalooStyles.baloosemiBoldTextStyle(color: perplebr,),),
+                    ),
+
                   ),
                   title: Row(
                     children: [

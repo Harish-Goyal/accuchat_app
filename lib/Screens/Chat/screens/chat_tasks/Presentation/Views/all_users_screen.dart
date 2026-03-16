@@ -98,10 +98,13 @@ class AllUserScreen extends GetView<AllUserController> {
           padding: EdgeInsets.zero,
           itemBuilder: (_, i) {
             final memData = controller.filteredList[i];
+            final usern = (memData?.userCompany?.displayName != null)
+                ? memData?.userCompany?.displayName ?? ''
+                : memData?.userName ?? '';
             return ListTile(
               leading: SizedBox(
                 width: 45,
-                child: CustomCacheNetworkImage(
+                child:controller.filteredList[i].userImage!=null? CustomCacheNetworkImage(
                   "${ApiEnd.baseUrlMedia}${controller.filteredList[i].userImage ?? ''}",
                   height: 45,
                   width: 45,
@@ -109,6 +112,10 @@ class AllUserScreen extends GetView<AllUserController> {
                   borderColor: greyText,
                   boxFit: BoxFit.cover,
                   defaultImage: ICON_profile,
+                ):CircleAvatar(
+                  // radius: 45,
+                  backgroundColor: perpleBg,
+                  child: Text(getInitials(usern),style: BalooStyles.baloosemiBoldTextStyle(color: perplebr),),
                 ),
               ),
               title: Column(

@@ -104,12 +104,9 @@ RolesData? getRolesData() {
 bool _isLoggingOut = false;
 
 Future<void> _disablePushOnLogout() async {
-  final fcm = FirebaseMessaging.instance;
   try {
-    await fcm.deleteToken();
-  } catch (_) {
-    customLoader.hide();
-  }
+    await FirebaseMessaging.instance.deleteToken();
+  } catch (_) {}
 }
 
 Future<void> hitAPIToDeletePushToken() async {
@@ -121,21 +118,96 @@ Future<void> hitAPIToDeletePushToken() async {
     customLoader.hide();
     logoutLocal();
   }).onError((error, stackTrace) {
+    customLoader.hide();
     if (!kIsWeb) {
       FirebaseCrashlytics.instance
           .recordError(error, stackTrace, reason: 'apiCall failed');
     }
-    customLoader.hide();
-    errorDialog(error.toString());
+    logoutLocal();
+
+    // errorDialog(error.toString());
   });
 }
 
+
 Future<void> logoutLocal() async {
+  if (_isLoggingOut) return;
+  _isLoggingOut = true;
+
+  customLoader.show();
+
+  try {
+
+    /// 1️⃣ Disable Push
+    await _disablePushOnLogout();
+
+    /// 2️⃣ Disconnect Socket
+    if (Get.isRegistered<SocketController>()) {
+      try {
+        Get.find<SocketController>().disconnect();
+      } catch (_) {}
+    }
+
+    /// 3️⃣ Navigate FIRST (very important for web)
+    await Future.delayed(const Duration(milliseconds: 50));
+    Get.offAllNamed(AppRoutes.login_r);
+
+    /// 4️⃣ Clear Storage
+    await AppStorage().clear();
+    await StorageService.clear();
+
+    /// 5️⃣ Close Hive
+    try {
+      await HiveBoot.closeAndDeleteAll(deleteFromDisk: true);
+    } catch (_) {}
+
+    /// 6️⃣ Delete Controllers
+    try {
+      if (Get.isRegistered<SocketController>()) {
+        Get.delete<SocketController>(force: true);
+      }
+
+      if (Get.isRegistered<Session>()) {
+        Get.delete<Session>(force: true);
+      }
+
+      if (Get.isRegistered<ChatHomeController>()) {
+        Get.delete<ChatHomeController>(force: true);
+      }
+
+      if (Get.isRegistered<ChatScreenController>()) {
+        Get.delete<ChatScreenController>(force: true);
+      }
+
+      if (Get.isRegistered<CompanyService>()) {
+        await CompanyService.to.closeBox();
+        Get.delete<CompanyService>(force: true);
+      }
+
+      if (Get.isRegistered<AppStorage>()) {
+        Get.delete<AppStorage>(force: true);
+      }
+
+      if (Get.isRegistered<StorageService>()) {
+        Get.delete<StorageService>(force: true);
+      }
+
+    } catch (_) {}
+
+  } catch (e) {
+    debugPrint("Logout Error: $e");
+  } finally {
+    customLoader.hide();
+    _isLoggingOut = false;
+  }
+}
+/*Future<void> logoutLocal() async {
   isCompanySwitched = false;
   if (_isLoggingOut) return;
   _isLoggingOut = true;
 
   customLoader.show();
+
   try {
     await _disablePushOnLogout();
 
@@ -178,30 +250,49 @@ Future<void> logoutLocal() async {
     // await Future.delayed(const Duration(milliseconds: 50));
     // Get.offAllNamed(AppRoutes.login_r);
   } finally {
-    // if(kIsWeb){
-    //   ReloadControllerImpl().refreshApp();
-    // }
     customLoader.hide();
     _isLoggingOut = false;
-    // Close any current snackbars (this ensures no overlays remain)
-    try {
-      Get.closeCurrentSnackbar();
-    } catch (_) {
-      customLoader.hide();
-    }
-    try {
-      Get.closeAllSnackbars();
-    } catch (_) {
-      customLoader.hide();
-    }
 
-    // Hide the loader again if it was not hidden before (redundant safeguard)
-
-    // Set logging out flag to false
-
-    // Navigate after a tiny delay
     await Future.delayed(const Duration(milliseconds: 200));
+
     Get.offAllNamed(AppRoutes.login_r);
+
+    await Future.delayed(const Duration(milliseconds: 200));
+
+    await _clearServices();
+  }
+}*/
+
+Future<void> _clearServices() async {
+  try {
+
+    if (Get.isRegistered<SocketController>()) {
+      Get.find<SocketController>().disconnect();
+      Get.delete<SocketController>(force: true);
+    }
+
+    if (Get.isRegistered<ChatScreenController>()) {
+      Get.delete<ChatScreenController>(force: true);
+    }
+
+    if (Get.isRegistered<ChatHomeController>()) {
+      Get.delete<ChatHomeController>(force: true);
+    }
+
+    if (Get.isRegistered<Session>()) {
+      Get.delete<Session>(force: true);
+    }
+
+    await AppStorage().clear();
+    await StorageService.clear();
+
+    await CompanyService.to.closeBox();
+    Get.delete<CompanyService>(force: true);
+
+    await HiveBoot.closeAndDeleteAll(deleteFromDisk: true);
+
+  } catch (e) {
+    debugPrint("Logout cleanup error $e");
   }
 }
 

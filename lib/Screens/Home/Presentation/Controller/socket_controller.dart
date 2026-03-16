@@ -1,5 +1,4 @@
 import 'dart:convert';
-import 'package:AccuChat/Screens/Chat/helper/dialogs.dart';
 import 'package:AccuChat/Screens/Chat/models/task_attachment_res_model.dart';
 import 'package:AccuChat/Screens/Chat/models/task_commets_res_model.dart';
 import 'package:AccuChat/Screens/Chat/screens/chat_tasks/Presentation/Controllers/chat_home_controller.dart';
@@ -16,6 +15,7 @@ import '../../../../Services/APIs/api_ends.dart';
 import '../../../../Services/storage_service.dart';
 import '../../../../utils/chat_presence.dart';
 import '../../../Chat/api/apis.dart';
+import '../../../Chat/api/app_budge_controller.dart';
 import '../../../Chat/models/chat_history_response_model.dart';
 import '../../../Chat/models/task_res_model.dart';
 import '../../../Chat/screens/auth/models/get_uesr_Res_model.dart';
@@ -127,6 +127,9 @@ class SocketController extends GetxController with WidgetsBindingObserver {
     });
 
     socket?.onReconnect((_) {
+      connectUserEmitter(APIs.me.userCompany?.companyId);
+      isConnected.value = true;
+      attachListenersOnce();
       // Re-attach handlers & re-emit company selection after reconnection
       // allListerer();
       // ← ADD
@@ -705,13 +708,6 @@ class SocketController extends GetxController with WidgetsBindingObserver {
         final updated = UserDataAPI.fromJson(messages);
         final myUcId = APIs.me.userCompany?.userCompanyId;
         final updatedUcId = updated.userCompany?.userCompanyId;
-
-//         if (myUcId == null || updatedUcId == null) return;
-//
-// // Ignore self updates (important!)
-//         if (updatedUcId == myUcId && updated.userCompany?.isGroup != 1) {
-//           return;
-//         }
         final activeCompanyId = APIs.me.userCompany?.companyId;
         final msgCompanyId = updated.userCompany?.companyId;
 
@@ -791,6 +787,7 @@ class SocketController extends GetxController with WidgetsBindingObserver {
         chatController.update();
         final totalUnread = chatController.filteredList
             .fold<int>(0, (sum, e) => sum + (e.pendingCount ?? 0));
+        AppBadgeController.to.setChatUnread(totalUnread);
 
         // AppBadgeController.to.setCurrentCounts(chat: totalUnread);
       } catch (e) {

@@ -421,15 +421,19 @@ class CompaniesScreen extends GetView<CompaniesController> {
                                                     shape: BoxShape.circle,
                                                     border: Border.all(
                                                         color: greyText)),
-                                                child: CustomCacheNetworkImage(
+                                                child:companyData.logo!=null? CustomCacheNetworkImage(
+                                                  "${ApiEnd.baseUrlMedia}${companyData.logo ?? ''}",
                                                   radiusAll: 100,
-                                                  height: 50,
-                                                  width: 50,
-                                                  // borderColor: greyText,
-                                                  '${ApiEnd.baseUrlMedia}${companyData.logo ?? ''}',
-                                                  boxFit: BoxFit.cover,
+                                                  height: 40,
+                                                  width: 40,
+                                                  borderColor: appColorYellow,
                                                   defaultImage: appIcon,
+                                                  boxFit: BoxFit.cover,
                                                   isApp: true,
+                                                ):CircleAvatar(
+                                                  // radius: 45,
+                                                  backgroundColor: Colors.white,
+                                                  child: Text(getInitials(companyData.companyName??''),style: BalooStyles.baloosemiBoldTextStyle(color: greenside,size: 20),),
                                                 ),
                                               ),
                                               trailWidget: Column(

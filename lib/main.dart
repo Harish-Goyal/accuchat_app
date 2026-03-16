@@ -37,6 +37,8 @@ late Size mq;
 bool isCompanySwitched = false;
 bool isConnected = true;
 bool isTaskMode = false;
+bool isNotifiedTask = false;
+bool isNotifiedChat = false;
 bool isFirstTimeChat = true;
 
 class GlobalVariable {

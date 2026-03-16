@@ -36,6 +36,7 @@
 
 // const settingPng="assets/icons/setting_icon/setting.png";
 const String appIcon = "assets/icons/chat_logo_transparent.png";
+const String emptyChatsBg = "assets/images/empty_bg.jpg";
 // const String addNewChatPng = "assets/icons/comment.png";
 // const String searchPng = "assets/icons/search.png";
 // const String ICON_profile = "assets/images/user.png";
@@ -68,14 +69,15 @@ const chatHome="assets/icons/SvgIcons/chatsvgapp.svg";
 const appbarBG="assets/images/appbarbg.jpg";
 const darkbg="assets/images/bglight.jpg";
 // const folderpng="assets/images/folder.png";
-const folderpng="assets/icons/SvgIcons/blue_folder.svg";
-// const folderpng="assets/icons/SvgIcons/folder.svg";
+// const folderpng="assets/icons/SvgIcons/blue_folder.svg";
+const folderpng="assets/icons/SvgIcons/folder.svg";
 const chatHomewhite="assets/icons/SvgIcons/chatsvgappwhite.svg";
 const emptyRecentPng="assets/icons/SvgIcons/empty_chats.svg";
 const tasksHome="assets/icons/SvgIcons/task-black.svg";
 const tasksHomewhite="assets/icons/SvgIcons/task_white.svg";
 const addNewChatPng="assets/icons/SvgIcons/addusersvg.svg";
 const broadcastIcon="assets/icons/SvgIcons/broadcastsvg.svg";
+const userSetting="assets/icons/SvgIcons/user_setting.svg";
 const connectedAppIcon="assets/icons/SvgIcons/company_blacksvg.svg";
 const galleryIcon="assets/icons/SvgIcons/gallery_backsvg.svg";
 const galleryIconwhite="assets/icons/SvgIcons/gallerywhitesvg.svg";
@@ -99,7 +101,7 @@ const addGallery="assets/icons/add_image.png";
 const addCamera="assets/icons/camera.png";
 
 
-
+// flutter build web --release --no-tree-shake-icons
 
 
 

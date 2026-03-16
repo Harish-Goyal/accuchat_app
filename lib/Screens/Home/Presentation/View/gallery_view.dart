@@ -48,7 +48,7 @@ class GalleryTab extends GetView<GalleryController> {
                 height: Get.height,
                 width:Get.width,
               decoration:const BoxDecoration(
-                  image: DecorationImage(image: AssetImage(darkbg),fit: BoxFit.cover)
+                  image: DecorationImage(image: AssetImage(darkbg),fit: BoxFit.cover,opacity: .5)
               ),
               ),
               TabBarView(
@@ -123,7 +123,7 @@ class GalleryTab extends GetView<GalleryController> {
                                             ],
                                           )))
                                 ],
-                              ),
+                              ).marginSymmetric(horizontal: 10),
 
                             vGap(8),
                             (controller.folderList??[]).isNotEmpty ? Expanded(child: _listView()):_listView(),
@@ -169,7 +169,7 @@ class GalleryTab extends GetView<GalleryController> {
               controller.searchResults?.clear();
               controller.update();
             },
-            icon:bottonBg(child:  controller.isSearchingIcon
+            icon:GradientContainer(child:  controller.isSearchingIcon
                 ? const Icon(CupertinoIcons.clear_circled_solid)
             // : Image.asset(searchPng, height: 25, width: 25))
                 : SvgPicture.asset(searchPng, height: 20, width: 20,color: Colors.black45,)))
@@ -213,17 +213,20 @@ class GalleryTab extends GetView<GalleryController> {
           children: [
             SizedBox(
               width: 40,
-              child: CustomCacheNetworkImage(
+              child:  controller.myCompany?.logo!=null? CustomCacheNetworkImage(
                 "${ApiEnd.baseUrlMedia}${controller.myCompany?.logo ?? ''}",
                 radiusAll: 100,
-                height: 40,
-                width: 40,
+                height: 30,
+                width: 30,
                 borderColor: appColorYellow,
                 defaultImage: appIcon,
                 boxFit: BoxFit.cover,
                 isApp: true,
-              ),
-            ).paddingAll(3),
+              ):CircleAvatar(
+                // radius: 45,
+                backgroundColor: Colors.white,
+                child: Text(getInitials(controller.myCompany?.companyName ?? ''),style: BalooStyles.baloosemiBoldTextStyle(color: greenside,size: 20),),
+              ),            ).paddingAll(3),
             Expanded(
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.end,
@@ -285,21 +288,21 @@ class GalleryTab extends GetView<GalleryController> {
 
   AppBar _searchBarWidget(context) {
     return AppBar(
+      backgroundColor: recentBg,
+      elevation: 10,
       scrolledUnderElevation: 0,
+      surfaceTintColor:recentBg,
       automaticallyImplyLeading: false,
-      elevation: 0,
-      flexibleSpace: MediaQuery(
-        data: MediaQuery.of(Get.context!)
-            .copyWith(textScaleFactor: _textScaleClamp(Get.context!)),
-        child:  _flexibleSpace(),
-      ),
+      flexibleSpace: _flexibleSpace(),
 
 
       bottom: PreferredSize(
           preferredSize: const Size.fromHeight(60), child: Container(
         width: Get.width,
-    decoration:const BoxDecoration(
-    image: DecorationImage(image: AssetImage(appbarBG),fit: BoxFit.cover)
+    alignment: Alignment.centerLeft,
+    decoration: BoxDecoration(
+      color:recentBg
+    // image: DecorationImage(image: AssetImage(appbarBG),fit: BoxFit.cover)
     ),
           child: _beautifiedTabBar(context))),
     );
@@ -309,13 +312,16 @@ class GalleryTab extends GetView<GalleryController> {
   _flexibleSpace(){
     return
       Container(
-        constraints: const BoxConstraints(minHeight: 64),
-        padding: const EdgeInsets.all(2),
-        decoration: const BoxDecoration(
-            image: DecorationImage(image: AssetImage(appbarBG),fit: BoxFit.cover)
+        margin: const EdgeInsets.symmetric(horizontal: 15,vertical: 5),
+        padding: const EdgeInsets.all(5),
+        decoration: BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.circular(12),
+            boxShadow: [BoxShadow(color: Colors.grey.shade300,blurRadius: 10)]
         ),
       child:  Row(
         mainAxisAlignment: MainAxisAlignment.start,
+        crossAxisAlignment: CrossAxisAlignment.start,
         mainAxisSize: MainAxisSize.min,
         children: [
 
@@ -327,7 +333,7 @@ class GalleryTab extends GetView<GalleryController> {
               children: [
                 SizedBox(
                   width: 40,
-                  child: CustomCacheNetworkImage(
+                  child: controller.myCompany?.logo!=null? CustomCacheNetworkImage(
                     "${ApiEnd.baseUrlMedia}${controller.myCompany?.logo ?? ''}",
                     radiusAll: 100,
                     height: 40,
@@ -336,6 +342,10 @@ class GalleryTab extends GetView<GalleryController> {
                     defaultImage: appIcon,
                     boxFit: BoxFit.cover,
                     isApp: true,
+                  ):CircleAvatar(
+                    // radius: 45,
+                    backgroundColor: Colors.white,
+                    child: Text(getInitials(controller.myCompany?.companyName ?? ''),style: BalooStyles.baloosemiBoldTextStyle(color: greenside,size: 20),),
                   ),
                 ).paddingAll(3),
                 Expanded(
@@ -741,10 +751,10 @@ class _GalleryTile extends StatelessWidget {
         decoration:BoxDecoration(
           gradient: LinearGradient(colors: [
             gallwhite,
-            chatcardt,
+            whiteselected,
           ]),
 
-          boxShadow: [ BoxShadow(color:perplebr,blurRadius: 15)],
+          boxShadow: [ BoxShadow(color:perplebr.withOpacity(.5),blurRadius: 10)],
           borderRadius: BorderRadius.circular(12),
         ),
         child: Stack(

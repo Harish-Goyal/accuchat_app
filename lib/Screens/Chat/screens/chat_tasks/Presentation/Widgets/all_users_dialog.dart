@@ -122,24 +122,27 @@ class AllUserScreenDialog extends GetView<AllUserController> {
                               physics: const AlwaysScrollableScrollPhysics(),
                               itemBuilder: (_, i) {
                                final memData = listToShow[i];
+                               final usern = (memData.userCompany?.displayName != null)
+                                   ? memData?.userCompany?.displayName ?? ''
+                                   : memData?.userName ?? '';
                                 return
                                   ListTile(
                                     leading: SizedBox(
                                       width: 45,
-                                      child: CustomCacheNetworkImage(
-                                        "${ApiEnd.baseUrlMedia}${listToShow[i]
-                                            .userImage ?? ''}",
+                                      child:
+                                      listToShow[i].userImage !=null? CustomCacheNetworkImage(
+                                        "${ApiEnd.baseUrlMedia}${listToShow[i].userImage ?? ''}",
+                                        radiusAll: 100,
                                         height: 45,
                                         width: 45,
-                                        radiusAll: 100,
+                                        borderColor: appColorYellow,
+                                        defaultImage: appIcon,
                                         boxFit: BoxFit.cover,
-                                        borderColor: greyText,
-                                        defaultImage: listToShow[i].userCompany
-                                            ?.isGroup == 1 ? groupIcn :
-                                        listToShow[i].userCompany?.isBroadcast ==
-                                            1 ?
-                                        broadcastIcon
-                                            : ICON_profile,
+                                        isApp: true,
+                                      ):CircleAvatar(
+                                        // radius: 45,
+                                        backgroundColor: perpleBg,
+                                        child: Text(getInitials(usern),style: BalooStyles.baloosemiBoldTextStyle(color: perplebr,),),
                                       ),
                                     ),
                                     title:

@@ -228,7 +228,7 @@ class _ChatScreenMobileState extends State<ChatScreenMobile> {
         onTap: () => FocusScope.of(context).unfocus(),
         child: Container(
           decoration:const BoxDecoration(
-            image: DecorationImage(image: AssetImage("assets/images/bglight.jpg"),fit: BoxFit.cover)
+            image: DecorationImage(image: AssetImage(darkbg),fit: BoxFit.cover,opacity: .5)
           ),
           child: SafeArea(
             child: WillPopScope(
@@ -239,7 +239,7 @@ class _ChatScreenMobileState extends State<ChatScreenMobile> {
               },
               child: Container(
                 decoration:const BoxDecoration(
-                    image: DecorationImage(image: AssetImage("assets/images/bglight.jpg"),fit: BoxFit.cover)
+                    image: DecorationImage(image: AssetImage(darkbg),fit: BoxFit.cover,opacity: .5)
                 ),
                 child: SafeArea(
                   child: Scaffold(
@@ -274,7 +274,7 @@ class _ChatScreenMobileState extends State<ChatScreenMobile> {
     return Center(
       child: Container(
         decoration: const BoxDecoration(
-            image: DecorationImage(image: AssetImage("assets/images/bglight.jpg",),fit: BoxFit.cover)
+            image: DecorationImage(image: AssetImage(darkbg,),fit: BoxFit.cover,opacity: .5)
         ),
         constraints: BoxConstraints(maxWidth: _maxChatWidth(Get.context!)),
         child: Padding(
@@ -789,7 +789,7 @@ class _ChatScreenMobileState extends State<ChatScreenMobile> {
                           horizontal:
                           (data.media ?? []).isNotEmpty ? 8 : 15,
                           vertical:
-                          (data.media ?? []).isNotEmpty ? 0 : 10,
+                          isMedia ? 0 : 10,
                         ),
                         margin: sentByMe
                             ? const EdgeInsets.only(
@@ -1563,7 +1563,7 @@ class _ChatScreenMobileState extends State<ChatScreenMobile> {
                 }
                 controller.update();
               },
-              icon:bottonBg(child:  controller.isSearching?  const Icon(
+              icon:GradientContainer(child:  controller.isSearching?  const Icon(
                   CupertinoIcons.clear,color:Colors.black54,)
                   :SvgPicture.asset(searchPng, height: 20, width: 20,color: Colors.black54,)
               )// : SvgPicture.asset(searchPng,height:25,width:25)
@@ -1573,7 +1573,7 @@ class _ChatScreenMobileState extends State<ChatScreenMobile> {
               controller.user?.userCompany?.isBroadcast == 1)
               ? PopupMenuButton<String>(
             color: Colors.white,
-            icon: bottonBg(child: Icon(Icons.more,size: 20,color: Colors.black45,)),
+            icon: GradientContainer(child: Icon(Icons.more_vert,size: 20,color: Colors.black45,)),
             iconColor: Colors.black87,
             onSelected: (value) {
               if (value == 'AddMember') {

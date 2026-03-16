@@ -16,6 +16,7 @@ import 'package:shimmer/shimmer.dart';
 import 'package:url_launcher/url_launcher_string.dart';
 import '../Constants/assets.dart';
 import '../Constants/themes.dart';
+import '../Screens/Chat/api/app_budge_controller.dart';
 import '../Screens/Chat/models/all_media_res_model.dart';
 import '../Screens/Chat/models/message.dart';
 import 'package:dio/dio.dart';
@@ -38,8 +39,6 @@ import 'package:path_provider/path_provider.dart';
 import 'package:AccuChat/utils/web_download/download_factory.dart';
 
 import 'networl_shimmer_image.dart';
-
-
 
 Future<bool> requestStoragePermission() async {
   if (Platform.isAndroid) {
@@ -72,9 +71,10 @@ Future<void> showCompanyErrorDialog() async {
         width: 300,
         height: 300,
         child: AlertDialog(
-          backgroundColor:Colors.white,
+          backgroundColor: Colors.white,
           title: const Text('Access Denied'),
-          content: const Text('You are not a part of this company. Please contact admin for more details.'),
+          content: const Text(
+              'You are not a part of this company. Please contact admin for more details.'),
           actions: [
             TextButton(
               onPressed: () {
@@ -101,22 +101,26 @@ bool looksLikeCode(String text) {
   // multi-line + indentation
   final lines = t.split('\n');
   final multiLine = lines.length >= 3;
-  final indentedLines = lines.where((l) => l.startsWith('  ') || l.startsWith('\t')).length;
+  final indentedLines =
+      lines.where((l) => l.startsWith('  ') || l.startsWith('\t')).length;
 
   // common code tokens
-  final hasTokens = RegExp(r'\b(class|import|return|final|var|const|void|function|def|if|else|for|while|public|private)\b')
+  final hasTokens = RegExp(
+          r'\b(class|import|return|final|var|const|void|function|def|if|else|for|while|public|private)\b')
       .hasMatch(t);
 
   final hasSymbols = RegExp(r'[{};=<>\[\]()]').hasMatch(t);
   final hasArrow = t.contains("=>");
   final hasColonIndent = RegExp(r':\s*$').hasMatch(lines.last);
 
-  return (multiLine && (indentedLines >= 1 || hasSymbols)) || hasTokens || hasArrow || hasColonIndent;
+  return (multiLine && (indentedLines >= 1 || hasSymbols)) ||
+      hasTokens ||
+      hasArrow ||
+      hasColonIndent;
 }
 
-
 Future<void> openAcceptInviteDialog() async {
-  final c=  Get.put(AcceptInviteController());
+  final c = Get.put(AcceptInviteController());
 
   try {
     await Get.dialog(
@@ -127,7 +131,7 @@ Future<void> openAcceptInviteDialog() async {
           borderRadius: BorderRadius.circular(12),
         ),
         child: SizedBox(
-          width: kIsWeb ? 450: Get.width * .9,
+          width: kIsWeb ? 450 : Get.width * .9,
           height: Get.height * 0.6,
           child: const AcceptInvitationScreen(),
         ),
@@ -142,7 +146,7 @@ Future<void> openAcceptInviteDialog() async {
 }
 
 Future<void> openCreateCompanyDialog(bool isHome) async {
-  final c=  Get.put(CreateCompanyController(isHome: isHome));
+  final c = Get.put(CreateCompanyController(isHome: isHome));
 
   try {
     await Get.dialog(
@@ -153,7 +157,7 @@ Future<void> openCreateCompanyDialog(bool isHome) async {
           borderRadius: BorderRadius.circular(12),
         ),
         child: SizedBox(
-          width: kIsWeb ? 600: Get.width * .9,
+          width: kIsWeb ? 600 : Get.width * .9,
           height: Get.height * 0.95,
           child: const CreateCompanyScreen(),
         ),
@@ -167,7 +171,6 @@ Future<void> openCreateCompanyDialog(bool isHome) async {
   }
 }
 
-
 Future<void> saveImageToDownloads(String imageUrl) async {
   try {
     final granted = await requestStoragePermission();
@@ -177,15 +180,17 @@ Future<void> saveImageToDownloads(String imageUrl) async {
       return;
     }
 
-    final saveDir = Directory('/storage/emulated/0/Pictures/AccuChat'); // or DCIM
+    final saveDir =
+        Directory('/storage/emulated/0/Pictures/AccuChat'); // or DCIM
     if (!await saveDir.exists()) {
       await saveDir.create(recursive: true);
     }
 
-    final filePath = '${saveDir.path}/accu_image_${DateTime.now().millisecondsSinceEpoch}.jpg';
+    final filePath =
+        '${saveDir.path}/accu_image_${DateTime.now().millisecondsSinceEpoch}.jpg';
 
-
-    final String fileName = 'accu_image_${DateTime.now().millisecondsSinceEpoch}.jpg';
+    final String fileName =
+        'accu_image_${DateTime.now().millisecondsSinceEpoch}.jpg';
     final response = await Dio().download(
       imageUrl,
       filePath,
@@ -196,9 +201,9 @@ Future<void> saveImageToDownloads(String imageUrl) async {
       // ✅ Trigger media scan
       await MediaScanner.loadMedia(path: filePath);
 
-      toast( "✅ Saved to Gallery");
+      toast("✅ Saved to Gallery");
     } else {
-      toast( "❌ Failed to download image");
+      toast("❌ Failed to download image");
     }
 
     /*if (response.statusCode == 200) {
@@ -207,11 +212,8 @@ Future<void> saveImageToDownloads(String imageUrl) async {
     } else {
       toast('❌ Failed to download image');
     }*/
-  } catch (e) {
-
-  }
+  } catch (e) {}
 }
-
 
 Widget hGap(double width) {
   return SizedBox(width: width);
@@ -229,13 +231,9 @@ Widget divider({Color? color, thikness}) {
   );
 }
 
- String getFileNameFromUrl(String url) {
-  return (url)
-      .split('/')
-      .last
-      .replaceAll(RegExp(r'^DOC_\d+_'), '');
+String getFileNameFromUrl(String url) {
+  return (url).split('/').last.replaceAll(RegExp(r'^DOC_\d+_'), '');
 }
-
 
 // Future<void> saveImageToGallery(String imageUrl) async {
 //   // Step 1: Request storage permission
@@ -271,7 +269,6 @@ Widget divider({Color? color, thikness}) {
 //
 // }
 
-
 String formatDate(String date) {
   if (date == '') {
     return "";
@@ -287,6 +284,7 @@ String parseTimestamp(dynamic value) {
   if (value is String) return value;
   return '0';
 }
+
 BoxDecoration containerDecoration() {
   return BoxDecoration(
       borderRadius: BorderRadius.circular(12),
@@ -311,7 +309,6 @@ LinearGradient homeLinearGradient = const LinearGradient(
       Colors.white60,
       Colors.white,
       Colors.white,
-
     ],
     begin: Alignment.topLeft,
     end: Alignment.bottomCenter,
@@ -381,42 +378,102 @@ Widget statusTile(title,
   );
 }
 
-Widget goToWidget(title,color){
+Widget goToWidget(title, color, {count}) {
   return CustomContainer(
-      vPadding: 3,
-      hPadding: 5,
+      vPadding: 0,
+      hPadding: 10,
       elevation: 8,
-      color:whiteselected,
+      color: whiteselected,
       sColor: Colors.grey.shade300,
       childWidget: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
-          CircleContainer(setSize: 6,colorIS: color,),
+        // CircleContainer(
+        //     setSize: 10,
+        //     colorIS: color,
+        //   ),
+          Text(
+            title,
+            style: BalooStyles.baloonormalTextStyle(size: 12),
+          ),
           hGap(2),
-          Text(title,style: BalooStyles.baloonormalTextStyle(size: 12),),
+         isTaskMode? _budgeWidget():Container(
+             padding: const EdgeInsets.all(4),
+             decoration: BoxDecoration(
+                 color: greenside.withOpacity(.1),
+                 shape: BoxShape.circle
+
+             ),
+             child: Icon(Icons.notifications_none_outlined,color: greenside,size: 18,)),
         ],
       ));
 }
 
-Widget getAppLogo({Color? color,height}) {
+_budgeWidget(){
+  return Obx(() {
+    final unread = AppBadgeController.to.chatUnread.value;
+
+    return Stack(
+      clipBehavior: Clip.none,
+      children: [
+       Container(
+           padding: const EdgeInsets.all(4),
+           decoration: BoxDecoration(
+               color: greenside.withOpacity(.1),
+               shape: BoxShape.circle
+
+           ),
+           child: Icon(Icons.notifications_none_outlined,color: greenside,size: 18,)),
+       if (unread > 0)
+          Positioned(
+            right: -6,
+            top: -9,
+            child: Container(
+              padding: const EdgeInsets.all(3),
+              decoration: BoxDecoration(
+                color: greenside,
+                shape: BoxShape.circle
+
+              ),
+              constraints: const BoxConstraints(
+                minWidth: 15,
+                minHeight: 15,
+              ),
+              child: Text(
+                unread > 99 ? "99+" : unread.toString(),
+                style: const TextStyle(
+                  color: Colors.white,
+                  fontSize: 10,
+                ),
+                textAlign: TextAlign.center,
+              ),
+            ),
+          )
+      ],
+    );
+  });
+}
+
+Widget getAppLogo({Color? color, height}) {
   // return SvgPicture.asset(
   return Image.asset(
-   appIcon,
+    appIcon,
     width: 110,
     height: 55,
   );
 }
+
 bool isTaskTimeExceeded(TaskDetails task) {
   if (task.estimatedTime.isEmpty) return false;
   DateTime now = DateTime.now();
 
-  final estimatedDateTime = DateTime.fromMillisecondsSinceEpoch(int.parse(task.estimatedTime));
+  final estimatedDateTime =
+      DateTime.fromMillisecondsSinceEpoch(int.parse(task.estimatedTime));
   if (estimatedDateTime == null) return false;
 
-  return DateTime(now.year,now.month,now.day,now.hour,now.minute
-  ).isAfter(estimatedDateTime);
+  return DateTime(now.year, now.month, now.day, now.hour, now.minute)
+      .isAfter(estimatedDateTime);
 }
-
 
 /// Estimate label between createdOn and deadlineOn.
 /// - If same calendar day: "Xh Ym"
@@ -450,16 +507,15 @@ String estimateLabel({
   }
 }
 
-
-String formatTaskTime(String timestamp,sentTime) {
+String formatTaskTime(String timestamp, sentTime) {
   var dateString;
   final sent = DateTime.fromMillisecondsSinceEpoch(int.parse(sentTime));
   dateString = "${sent.day} ${monthName(sent.month)}";
   if (timestamp.isEmpty) return "";
-  if (timestamp=='0') return "• $dateString";
+  if (timestamp == '0') return "• $dateString";
 
-
-  final targetTime = DateTime.fromMillisecondsSinceEpoch(int.tryParse(timestamp) ?? 0);
+  final targetTime =
+      DateTime.fromMillisecondsSinceEpoch(int.tryParse(timestamp) ?? 0);
   final now = DateTime.now();
   final duration = targetTime.difference(sent);
   final remainingDuration = targetTime.difference(now);
@@ -471,23 +527,34 @@ String formatTaskTime(String timestamp,sentTime) {
   final mins = duration.inMinutes.remainder(60);
   final minsR = duration.inMinutes.remainder(60);
 
-
-
   dateString = "${targetTime.day} ${monthName(targetTime.month)}";
   final remaining = "${targetTime.day} ${monthName(targetTime.month)}";
-  if(timestamp=="0"){
+  if (timestamp == "0") {
     return "• $dateString";
-  }else{
+  } else {
     return "$hrs hrs $mins mins • $dateString";
   }
 }
+
 String monthName(int month) {
   const months = [
-    '', 'Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun',
-    'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'
+    '',
+    'Jan',
+    'Feb',
+    'Mar',
+    'Apr',
+    'May',
+    'Jun',
+    'Jul',
+    'Aug',
+    'Sep',
+    'Oct',
+    'Nov',
+    'Dec'
   ];
   return months[month];
 }
+
 String extractFileName(String fullName) {
   final parts = fullName.split('_');
   if (parts.length >= 3) {
@@ -497,12 +564,12 @@ String extractFileName(String fullName) {
   return fullName; // fallback
 }
 
-
 String extractFileNameFromUrl(String url) {
   try {
     // Extract the last segment after the last `/`
     Uri uri = Uri.parse(url);
-    String path = uri.path; // e.g., /v0/b/.../o/media%2Ftasks%2FDOC_1749_name.pdf
+    String path =
+        uri.path; // e.g., /v0/b/.../o/media%2Ftasks%2FDOC_1749_name.pdf
     String lastSegment = path.split('/').last; // media%2Ftasks%2FDOC_...
 
     // Decode URL-encoded parts like %2F to /
@@ -534,7 +601,6 @@ Color getTaskStatusColor(String? status) {
   }
 }
 
-
 String convertUtcToIndianTime(String utcTimeString) {
   // Parse UTC string
   DateTime utcTime = DateTime.parse(utcTimeString);
@@ -545,7 +611,6 @@ String convertUtcToIndianTime(String utcTimeString) {
   // Format like "9:00 AM"
   return DateFormat.jm().format(indianTime);
 }
-
 
 bool isTaskExpired(String startTime, String estimate) {
   final start = DateTime.parse(startTime);
@@ -559,7 +624,8 @@ bool isTaskExpired(String startTime, String estimate) {
 bool isDownloadOnlyFile(String url) {
   final fileName = url.split('/').last.split('?').first.toLowerCase();
   final ext = fileName.contains('.') ? fileName.split('.').last : '';
-  return ['html', 'js', 'php','css','jsx','HTML', 'JS', 'PHP','CSS','JSX'].contains(ext);
+  return ['html', 'js', 'php', 'css', 'jsx', 'HTML', 'JS', 'PHP', 'CSS', 'JSX']
+      .contains(ext);
 }
 
 Future<void> openDocumentFromUrl(String url) async {
@@ -569,13 +635,12 @@ Future<void> openDocumentFromUrl(String url) async {
     final fileName = url.split('/').last.split('?').first;
     final lowerUrl = url.toLowerCase();
 
-    final shouldDownloadOnly =
-        lowerUrl.endsWith('.html') ||
-            lowerUrl.endsWith('.js') ||
-            lowerUrl.endsWith('.php') ||
-            lowerUrl.contains('.html?') ||
-            lowerUrl.contains('.js?') ||
-            lowerUrl.contains('.php?');
+    final shouldDownloadOnly = lowerUrl.endsWith('.html') ||
+        lowerUrl.endsWith('.js') ||
+        lowerUrl.endsWith('.php') ||
+        lowerUrl.contains('.html?') ||
+        lowerUrl.contains('.js?') ||
+        lowerUrl.contains('.php?');
 
     if (kIsWeb) {
       customLoader.hide();
@@ -636,7 +701,6 @@ Future<void> openDocumentFromUrl(String url) async {
 }
 */
 
-
 /*Future<void> saveImageWithGallerySaver(String imageUrl) async {
   final status = await requestStoragePermission();
   if (!status) {
@@ -657,41 +721,67 @@ bool isDoc(Items m) {
   if (code == 'DOC') return true;
   final ext = (m.fileName ?? '').toLowerCase();
   return ext.endsWith('.pdf') ||
-      ext.endsWith('.doc') || ext.endsWith('.docx') ||
-      ext.endsWith('.xls') || ext.endsWith('.xlsx') ||
-      ext.endsWith('.ppt') || ext.endsWith('.pptx') ||
-      ext.endsWith('.php') || ext.endsWith('.css') ||
-      ext.endsWith('.html') || ext.endsWith('.js') ||
-      ext.endsWith('.csv') || ext.endsWith('.txt');
+      ext.endsWith('.doc') ||
+      ext.endsWith('.docx') ||
+      ext.endsWith('.xls') ||
+      ext.endsWith('.xlsx') ||
+      ext.endsWith('.ppt') ||
+      ext.endsWith('.pptx') ||
+      ext.endsWith('.php') ||
+      ext.endsWith('.css') ||
+      ext.endsWith('.html') ||
+      ext.endsWith('.js') ||
+      ext.endsWith('.csv') ||
+      ext.endsWith('.txt');
 }
 
 bool isImageOrVideo(Items m) {
   final code = (m.mediaType?.code ?? '').toUpperCase();
-  if (code == 'IMG' || code == 'IMAGE' || code == 'PHOTO' || code == 'VID' || code == 'VIDEO') return true;
+  if (code == 'IMG' ||
+      code == 'IMAGE' ||
+      code == 'PHOTO' ||
+      code == 'VID' ||
+      code == 'VIDEO') return true;
   final ext = (m.fileName ?? '').toLowerCase();
-  return ext.endsWith('.jpg') || ext.endsWith('.jpeg') ||
-      ext.endsWith('.png') || ext.endsWith('.gif') ||
-      ext.endsWith('.webp') || ext.endsWith('.mp4') ||
-      ext.endsWith('.mov') || ext.endsWith('.m4v') || ext.endsWith('.avi');
+  return ext.endsWith('.jpg') ||
+      ext.endsWith('.jpeg') ||
+      ext.endsWith('.png') ||
+      ext.endsWith('.gif') ||
+      ext.endsWith('.webp') ||
+      ext.endsWith('.mp4') ||
+      ext.endsWith('.mov') ||
+      ext.endsWith('.m4v') ||
+      ext.endsWith('.avi');
 }
 
 bool isDocument(String orignalMsg) {
   final ext = (orignalMsg ?? '').toLowerCase();
   return ext.endsWith('.pdf') ||
-      ext.endsWith('.doc') || ext.endsWith('.docx') ||
-      ext.endsWith('.xls') || ext.endsWith('.xlsx') ||
-      ext.endsWith('.ppt') || ext.endsWith('.pptx') ||
-      ext.endsWith('.php') || ext.endsWith('.css') ||
-      ext.endsWith('.html') || ext.endsWith('.js') ||
-      ext.endsWith('.csv') || ext.endsWith('.txt');
+      ext.endsWith('.doc') ||
+      ext.endsWith('.docx') ||
+      ext.endsWith('.xls') ||
+      ext.endsWith('.xlsx') ||
+      ext.endsWith('.ppt') ||
+      ext.endsWith('.pptx') ||
+      ext.endsWith('.php') ||
+      ext.endsWith('.css') ||
+      ext.endsWith('.html') ||
+      ext.endsWith('.js') ||
+      ext.endsWith('.csv') ||
+      ext.endsWith('.txt');
 }
 
 bool isImageVideo(String orignalMsg) {
   final ext = (orignalMsg ?? '').toLowerCase();
-  return ext.endsWith('.jpg') || ext.endsWith('.jpeg') ||
-      ext.endsWith('.png') || ext.endsWith('.gif') ||
-      ext.endsWith('.webp') || ext.endsWith('.mp4') ||
-      ext.endsWith('.mov') || ext.endsWith('.m4v') || ext.endsWith('.avi');
+  return ext.endsWith('.jpg') ||
+      ext.endsWith('.jpeg') ||
+      ext.endsWith('.png') ||
+      ext.endsWith('.gif') ||
+      ext.endsWith('.webp') ||
+      ext.endsWith('.mp4') ||
+      ext.endsWith('.mov') ||
+      ext.endsWith('.m4v') ||
+      ext.endsWith('.avi');
 }
 
 String buildFileUrl(String path) {
@@ -700,9 +790,9 @@ String buildFileUrl(String path) {
 }
 
 Future<bool?> showPastedImagePreviewDialog(
-    XFile file, {
-      Uint8List? webBytes,
-    }) {
+  XFile file, {
+  Uint8List? webBytes,
+}) {
   final captionController = TextEditingController();
   final dialogFocusNode = FocusNode();
 
@@ -720,9 +810,8 @@ Future<bool?> showPastedImagePreviewDialog(
 
           if (event.logicalKey == LogicalKeyboardKey.enter) {
             final keys = HardwareKeyboard.instance.logicalKeysPressed;
-            final shiftPressed =
-                keys.contains(LogicalKeyboardKey.shiftLeft) ||
-                    keys.contains(LogicalKeyboardKey.shiftRight);
+            final shiftPressed = keys.contains(LogicalKeyboardKey.shiftLeft) ||
+                keys.contains(LogicalKeyboardKey.shiftRight);
 
             if (shiftPressed) return KeyEventResult.ignored;
 
@@ -770,9 +859,7 @@ Future<bool?> showPastedImagePreviewDialog(
                       ],
                     ),
                   ),
-
                   const Divider(height: 1),
-
                   Expanded(
                     child: SingleChildScrollView(
                       padding: const EdgeInsets.all(14),
@@ -786,7 +873,8 @@ Future<bool?> showPastedImagePreviewDialog(
                               child: Container(
                                 color: Colors.black12,
                                 alignment: Alignment.center,
-                                child: _buildPreviewImage(file, webBytes: webBytes),
+                                child: _buildPreviewImage(file,
+                                    webBytes: webBytes),
                               ),
                             ),
                           ),
@@ -795,9 +883,7 @@ Future<bool?> showPastedImagePreviewDialog(
                       ),
                     ),
                   ),
-
                   const Divider(height: 1),
-
                   Padding(
                     padding: const EdgeInsets.all(12),
                     child: Row(
@@ -946,8 +1032,7 @@ Widget _buildPreviewImage(XFile file, {Uint8List? webBytes}) {
       return Image.memory(
         webBytes,
         fit: BoxFit.contain,
-        errorBuilder: (_, __, ___) =>
-        const Text("Couldn’t load preview"),
+        errorBuilder: (_, __, ___) => const Text("Couldn’t load preview"),
       );
     }
 
@@ -965,8 +1050,7 @@ Widget _buildPreviewImage(XFile file, {Uint8List? webBytes}) {
         return Image.memory(
           snapshot.data!,
           fit: BoxFit.contain,
-          errorBuilder: (_, __, ___) =>
-          const Text("Couldn’t load preview"),
+          errorBuilder: (_, __, ___) => const Text("Couldn’t load preview"),
         );
       },
     );
@@ -1056,7 +1140,7 @@ Widget _buildPreviewImage(XFile file, {Uint8List? webBytes}) {
                           ),
                         ),
 
-                        *//*  const SizedBox(height: 12),
+                        */ /*  const SizedBox(height: 12),
 
                           // Caption (optional)
                           TextField(
@@ -1072,7 +1156,7 @@ Widget _buildPreviewImage(XFile file, {Uint8List? webBytes}) {
                               ),
                             ),
                           ),
-*//*
+*/ /*
                         const SizedBox(height: 14),
                       ],
                     ),
@@ -1126,47 +1210,45 @@ String getInitials(String name) {
   }
 }
 
-Widget bottonBg({required Widget child,double padding=8.0}){
+Widget GradientContainer({
+  required Widget child,
+  double padding = 8.0,
+  double radius = 100.0,
+  Color? color1,
+  Color? color2,
+}) {
   return Container(
-      padding: EdgeInsets.all(padding),
-  decoration:BoxDecoration(
-  gradient: LinearGradient(colors: [
-  gallwhite,
-  perpleBg,
-  ]),
-  boxShadow: [BoxShadow(color:perpleBg,blurRadius: 8)],
-  borderRadius: BorderRadius.circular(100),
-  ),
-    child: child
-    ,
+    padding: EdgeInsets.all(padding),
+    decoration: BoxDecoration(
+      gradient: LinearGradient(colors: [
+      color1??  gallwhite,
+        color2?? perpleBg,
+      ]),
+      boxShadow: [BoxShadow(color: perpleBg, blurRadius: 8)],
+      borderRadius: BorderRadius.circular(radius),
+    ),
+    child: child,
   );
 }
 
-Widget IconButtonWidget(image,{bool isIcon =false}){
+Widget IconButtonWidget(image, {bool isIcon = false}) {
   return Container(
     padding: const EdgeInsets.all(5),
     margin: const EdgeInsets.all(5),
     decoration: BoxDecoration(
       borderRadius: BorderRadius.circular(8),
-      border: Border.all(color:perplebr,),
+      border: Border.all(
+        color: perplebr,
+      ),
       color: perpleBg.withOpacity(.5),
     ),
     // child:!isIcon? Image.asset(
-    child:!isIcon? SvgPicture.asset(
-      image,
-      height: 20,
-      color: perplebr,
-    ):Icon(image,size: 20),
+    child: !isIcon
+        ? SvgPicture.asset(
+            image,
+            height: 20,
+            color: perplebr,
+          )
+        : Icon(image, size: 20),
   );
 }
-
-
-
-
-
-
-
-
-
-
-

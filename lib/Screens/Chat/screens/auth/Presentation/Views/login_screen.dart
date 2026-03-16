@@ -14,7 +14,8 @@ import '../../../../../../utils/common_textfield.dart';
 import '../../../../../../utils/helper_widget.dart';
 import '../../../../../Settings/Presentation/Views/settings_screen.dart';
 import '../../../../../Settings/Presentation/Views/static_page.dart';
-
+// /uploads/chats/chats_9262504b-646d-46e0-8732-64d5f1fd49ca.xlsx
+// org_file_name: Consultant_Excel_20260313_161438.xlsx
 class LoginScreenG extends GetView<LoginGController> {
    LoginScreenG({super.key});
   final _formKey = GlobalKey<FormState>();
@@ -22,44 +23,54 @@ class LoginScreenG extends GetView<LoginGController> {
   Widget build(BuildContext context) {
 
     return Scaffold(
-      appBar: AppBar(      scrolledUnderElevation: 0,
-        surfaceTintColor: Colors.white,
-        automaticallyImplyLeading: false,
-        title: const Text('Welcome to AccuChat'),
-      ),
-
       body: GetBuilder<LoginGController>(
         builder: (controller) {
-          return SafeArea(
-            child: LayoutBuilder(
-              builder: (context, constraints) {
-                final isWide = constraints.maxWidth > 600;
-                return Center(
-                  child: ConstrainedBox(
-                    constraints: BoxConstraints(
-                      maxWidth: isWide ? 500 : double.infinity,
-                    ),
-                    child: SingleChildScrollView(
-                        child: Form(
-                          key: _formKey,
-                          child: Column(
-                                                mainAxisAlignment: MainAxisAlignment.center,
-                                                crossAxisAlignment: CrossAxisAlignment.center,
-                                                children: [
-                                                  Image.asset(
-                                                  // SvgPicture.asset(
-                            appIcon,
-                            width: isWide ? Get.width * .1 : Get.width * .3,
-                            height: isWide ? Get.width * .1 : Get.width * .3,
-                          ),
-                          Text(
-                            "Login with phone or email address!",
-                            style: BalooStyles.baloonormalTextStyle(
-                                weight: FontWeight.w500),
-                            textAlign: TextAlign.center,
-                          ),
-                          vGap(30),
-                          CustomTextField(
+          return LayoutBuilder(
+            builder: (context, constraints) {
+              final isWide = constraints.maxWidth > 600;
+              return Container(
+                width: Get.width,
+                height: Get.height,
+                decoration: const BoxDecoration(
+                  image: DecorationImage(image: AssetImage(darkbg),fit: BoxFit.cover,opacity: 5),
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.white,
+                      blurRadius: 15
+                    )
+                  ]
+                ),
+
+                child: ConstrainedBox(
+                  constraints: BoxConstraints(
+                    maxWidth: isWide ? 500 : double.infinity,
+                  ),
+                  child: SingleChildScrollView(
+                      child: Form(
+                        key: _formKey,
+                        child: Column(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          crossAxisAlignment: CrossAxisAlignment.center,
+                          children: [
+                            vGap(30),
+                            Text('Welcome to AccuChat',style: BalooStyles.balooboldTitleTextStyle(),),
+                            vGap(20),
+                            Image.asset(
+                            // SvgPicture.asset(
+                          appIcon,
+                          width: isWide ? Get.width * .1 : Get.width * .3,
+                          height: isWide ? Get.width * .1 : Get.width * .3,
+                        ),
+                        Text(
+                          "Login with phone or email address!",
+                          style: BalooStyles.baloonormalTextStyle(
+                              weight: FontWeight.w500),
+                          textAlign: TextAlign.center,
+                        ),
+                        vGap(30),
+                        SizedBox(
+                          width: 500,
+                          child: CustomTextField(
                             hintText: "Email or Phone".tr,
                             controller: controller.phoneController,
                             textInputType: TextInputType.emailAddress,
@@ -140,48 +151,51 @@ class LoginScreenG extends GetView<LoginGController> {
                               controller.onTextChanged(v);
                             } ,
                           ),
-                          vGap(40),
-                          dynamicButton(
-                            name: "Send OTP",
-                            onTap: () {
-                              if(_formKey.currentState!.validate()){
-                                FocusScope.of(Get.context!).unfocus();
-                                controller.hitAPIToSendOtp();
-                              }
-                            },
-                            isShowText: true,
-                            isShowIconText: false,
-                            gradient: buttonGradient,
-                            leanIcon: 'assets/images/google.png',
-                          ),
-                          /*vGap(35),
-                            Row(
-                              children: [
-                                Expanded(
-                                  child: dynamicButton(
-                                    name: "Login with Google",
-                                    onTap: () => controller.handleGoogleBtnClick(),
-                                    isShowText: true,
-                                    isShowIconText: true,
-                                    gradient: buttonGradient,
-                                    leanIcon: 'assets/images/google.png',
-                                  ),
-                                ),
-                              ],
-                            ).marginSymmetric(horizontal: 20),*/
-                          vGap(20),
+                        ),
+                        vGap(40),
+                        dynamicButton(
+                          name: "Send OTP",
+                          onTap: () {
+                            if(_formKey.currentState!.validate()){
+                              FocusScope.of(Get.context!).unfocus();
+                              controller.hitAPIToSendOtp();
+                            }
+                          },
+                          isShowText: true,
+                          isShowIconText: false,
+                          gradient: buttonGradient,
+                          leanIcon: 'assets/images/google.png',
+                        ),
+                        /*vGap(35),
                           Row(
+                            children: [
+                              Expanded(
+                                child: dynamicButton(
+                                  name: "Login with Google",
+                                  onTap: () => controller.handleGoogleBtnClick(),
+                                  isShowText: true,
+                                  isShowIconText: true,
+                                  gradient: buttonGradient,
+                                  leanIcon: 'assets/images/google.png',
+                                ),
+                              ),
+                            ],
+                          ).marginSymmetric(horizontal: 20),*/
+                        vGap(20),
+                            SizedBox(
+                              width: 500,
+                          child: Row(
                             children: [
                               Flexible(child: _policyText()),
                             ],
                           ).marginSymmetric(vertical: 35, horizontal: 20),
-                                                ],
-                                              ).paddingSymmetric(vertical: 5, horizontal: 15),
-                        )),
-                  ),
-                );
-              },
-            ),
+                        ),
+                                              ],
+                                            ).paddingSymmetric(vertical: 5, horizontal: 15),
+                      )),
+                ),
+              );
+            },
           );
         },
       ),
@@ -331,6 +345,7 @@ class LoginScreenG extends GetView<LoginGController> {
           );
         }
       ),*/
+
     );
   }
 

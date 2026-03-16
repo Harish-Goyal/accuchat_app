@@ -23,6 +23,10 @@ class ViewProfileScreen extends GetView<ViewProfileController> {
   Widget build(BuildContext context) {
     return GetBuilder<ViewProfileController>(builder: (controller) {
       final about = controller.user?.about?.trim();
+      final usern = (controller.user?.userCompany?.displayName != null)
+          ? controller.user?.userCompany?.displayName ?? ''
+          :controller.user?.userName!=null?controller.user?.userName ?? '':controller.user?.phone ?? '';
+
       return GestureDetector(
         onTap: () => FocusScope.of(context).unfocus(),
         child: Scaffold(
@@ -88,7 +92,8 @@ class ViewProfileScreen extends GetView<ViewProfileController> {
                                   context: context,
                                   builder: (_) =>
                                       ProfileDialog(user: controller.user)),
-                      child: CustomCacheNetworkImage(
+                      child:
+                      controller.user?.userImage!=null? CustomCacheNetworkImage(
                         "${ApiEnd.baseUrlMedia}${controller.user?.userImage ?? ''}",
                         height: 100,
                         width: 100,
@@ -96,7 +101,12 @@ class ViewProfileScreen extends GetView<ViewProfileController> {
                         boxFit: BoxFit.cover,
                         defaultImage: ICON_profile,
                         borderColor: greyText,
+                      ):CircleAvatar(
+                        // radius: 45,
+                        backgroundColor: perpleBg,
+                        child: Text(getInitials(usern),style: BalooStyles.baloosemiBoldTextStyle(color: perplebr,),),
                       ),
+
                     ),
                     vGap(10),
                     Text(

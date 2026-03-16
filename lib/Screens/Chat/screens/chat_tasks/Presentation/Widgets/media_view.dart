@@ -121,7 +121,7 @@ class ChatMessageMedia extends StatelessWidget {
     final vids   = vm.where((e) => e.type == ChatMediaType.VID).toList();
     final auds   = vm.where((e) => e.type == ChatMediaType.AUD).toList();
     return Column(
-      crossAxisAlignment: CrossAxisAlignment.stretch,
+      // crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
 
 
@@ -138,8 +138,17 @@ class ChatMessageMedia extends StatelessWidget {
             ),
                 child: ClipRRect(
                           borderRadius: BorderRadius.circular(15),
-                  child: Image.network(
+                  child:RepaintBoundary(
+                    child: Image(
+                      image: NetworkImage(images[0].url),
+                      key: ValueKey(images[0].url),
+                      fit: BoxFit.cover,
+                      gaplessPlayback: true,
+                      errorBuilder: (_, __, ___) => const Icon(Icons.broken_image),
+                    ),
+                  ) /*Image.network(
                             images[0].url,
+                    key: ValueKey(chat.chatId),
                             fit: BoxFit.cover,
                             gaplessPlayback: true,
                             errorBuilder: (_, __, ___) => const Icon(Icons.broken_image),
@@ -147,7 +156,7 @@ class ChatMessageMedia extends StatelessWidget {
                   if (progress == null) return child;
                   return const Center(child: CircularProgressIndicator(strokeWidth: 2));
                             },
-                          ),
+                          ),*/
                 ),
               ),
             ): _ImagesGrid(
@@ -282,7 +291,7 @@ class _ImagesGrid extends StatelessWidget {
                   defaultImage: defaultGallery,
                   borderColor: greyText,
                   assetPadding: 0,
-                ).paddingOnly(bottom: 0,top: 2),
+                ).paddingOnly(bottom: 0,top: 0),
               ),
             ),
           )

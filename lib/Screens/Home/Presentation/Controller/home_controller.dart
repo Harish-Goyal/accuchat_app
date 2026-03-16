@@ -108,6 +108,8 @@ class DashboardController extends GetxController with WidgetsBindingObserver {
 
   List<Widget> screens = [];
 
+  bool isExpanded =true;
+
  final SidebarXController sidebarXController =
  SidebarXController(selectedIndex: 0, extended: true);
 

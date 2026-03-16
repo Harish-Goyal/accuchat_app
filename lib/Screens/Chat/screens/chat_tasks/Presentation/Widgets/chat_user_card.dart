@@ -96,7 +96,7 @@ class _ChatUserCardState extends State<ChatUserCard>
             homec.selectedChat.value?.userId == widget.user?.userId;
         final usern = (widget.user?.userCompany?.displayName != null)
             ? widget.user?.userCompany?.displayName ?? ''
-            : widget.user?.userName ?? '';
+            :widget.user?.userName!=null?widget.user?.userName ?? '':widget.user?.phone ?? '';
         bool isRegistered=false;
         return Material(
           color: Colors.transparent,
@@ -244,7 +244,8 @@ class _ChatUserCardState extends State<ChatUserCard>
                 ),
                 child: ListTile(
                   hoverColor: perplebr,
-                  contentPadding: const EdgeInsets.symmetric(horizontal: 10),
+                  dense: true,
+                  contentPadding: const EdgeInsets.symmetric(horizontal: 10,vertical: 3),
                   leading: InkWell(
                     borderRadius: BorderRadius.circular(100),
                     onTap: () {
@@ -255,8 +256,8 @@ class _ChatUserCardState extends State<ChatUserCard>
                     child:widget.user?.userImage !=null? CustomCacheNetworkImage(
                       radiusAll: 100,
                       "${ApiEnd.baseUrlMedia}${widget.user?.userImage ?? ''}",
-                      height:45,
-                      width: 45,
+                      height:40,
+                      width: 40,
                       boxFit: BoxFit.cover,
                       borderColor: greyText,
                       defaultImage: widget.user?.userCompany?.isGroup == 1

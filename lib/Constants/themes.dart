@@ -35,8 +35,10 @@ class AppTheme {
   static Color get green =>
       isLightMode ? const Color(0x2C5403FF) : const Color(0x2C5403FF);
 
+  // static Color get appColor =>
+  //     isLightMode ?  Color(0xFF08c189): Color(0xFF08c189);
   static Color get appColor =>
-      isLightMode ?  Color(0xFF08c189): Color(0xFF08c189);
+      isLightMode ?  Color(0xFF38BBBD): Color(0xFF38BBBD);
 
   static Color get backgroundColor =>
       isLightMode ? const Color(0xFFFFFFFF) : const Color(0xFFFFFFFF);

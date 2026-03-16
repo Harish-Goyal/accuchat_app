@@ -48,7 +48,8 @@ class HomeScreen extends GetView<DashboardController> {
                                   children: [
                                     SizedBox(
                                       width: mq.height * .06,
-                                      child: CustomCacheNetworkImage(
+                                      child:
+                                      CustomCacheNetworkImage(
                                         "${ApiEnd.baseUrlMedia}${controller.userData.userImage??''}",
                                         defaultImage: ICON_profile,
                                         radiusAll: mq.height * .25,

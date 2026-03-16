@@ -106,7 +106,7 @@ class TaskScreenMobile extends GetView<TaskController> {
         onTap: () => FocusScope.of(context).unfocus(),
         child: Container(
           decoration:const BoxDecoration(
-              image: DecorationImage(image: AssetImage("assets/images/bglight.jpg"),fit: BoxFit.cover)
+              image: DecorationImage(image: AssetImage(darkbg),fit: BoxFit.cover,opacity: .5)
           ),
           child: SafeArea(
             child: WillPopScope(
@@ -116,7 +116,7 @@ class TaskScreenMobile extends GetView<TaskController> {
               },
               child: Container(
                 decoration:const BoxDecoration(
-                    image: DecorationImage(image: AssetImage("assets/images/bglight.jpg"),fit: BoxFit.cover)
+                    image: DecorationImage(image: AssetImage(darkbg),fit: BoxFit.cover,opacity: .5)
                 ),
                 child: SafeArea(
                   child: Scaffold(
@@ -139,7 +139,7 @@ class TaskScreenMobile extends GetView<TaskController> {
       child: Center(
         child: Container(
           decoration: BoxDecoration(
-              image: DecorationImage(image: AssetImage("assets/images/bglight.jpg",),fit: BoxFit.cover)
+              image: DecorationImage(image: AssetImage("assets/images/bglight.jpg",),fit: BoxFit.cover,opacity: .3)
           ),
           constraints:
           BoxConstraints(maxWidth: _maxChatWidth(Get.context!)),
@@ -996,7 +996,7 @@ class TaskScreenMobile extends GetView<TaskController> {
                 }
                 controller.update();
               },
-              icon:bottonBg(child:  controller.isSearching?  const Icon(
+              icon:GradientContainer(child:  controller.isSearching?  const Icon(
                   CupertinoIcons.clear,color:Colors.black54)
                   // : Image.asset(searchPng,height:20,width:20)
                   : SvgPicture.asset(searchPng,height:20,width:20,color: Colors.black45,))
@@ -1024,7 +1024,7 @@ class TaskScreenMobile extends GetView<TaskController> {
 
               return PopupMenuButton<dynamic>(
                 color: Colors.white,
-                icon: bottonBg(child: Icon(
+                icon: GradientContainer(child: Icon(
                       Icons.filter_alt_outlined,
                       color: Colors.black45,
                       size: 20,

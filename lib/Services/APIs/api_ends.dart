@@ -1,11 +1,11 @@
 class ApiEnd {
-  // static const String baseUrl = "http://192.168.1.30:3001/";
-  // static const String baseUrlMedia = "http://192.168.1.30:3001";
+  // static const String baseUrl = "http://192.168.1.66:3001/";
+  // static const String baseUrlMedia = "http://192.168.1.66:3001";
   static const String baseUrl = "https://api.accuchat.in/";
   static const String baseUrlMedia = "https://api.accuchat.in";
   // static const String baseUrl = "https://www.api.accuchat.in:3001/";
   // static const String baseUrlMedia = "https://www.api.accuchat.in:3001";
-
+// 2546586532
   // static const String authKEy = "rEgAnAmTrOppUsHcEtIgId";
   static const String loginEnd = "api/user_login";
   static const String signupEnd = "api/auth/signup";

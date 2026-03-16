@@ -41,16 +41,19 @@ class AcceptInvitationScreen extends GetView<AcceptInviteController> {
                     SizedBox(
                         width:50,
                         child:
-
-                        CustomCacheNetworkImage(
+                        invites.company?.logo !=null? CustomCacheNetworkImage(
                           "${ApiEnd.baseUrlMedia}${invites.company?.logo ?? ''}",
                           height: 50,
                           width: 50,
-
                           boxFit: BoxFit.cover,
                           radiusAll: 100,
                           borderColor: greyText,
-                        )),
+                        ):CircleAvatar(
+                          // radius: 45,
+                          backgroundColor: Colors.white,
+                          child: Text(getInitials(invites.company?.companyName??''),style: BalooStyles.baloosemiBoldTextStyle(color: greenside,size: 20),),
+                        ),
+                       ),
                     hGap(10),
                     Expanded(
                       child: Column(

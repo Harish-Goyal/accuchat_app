@@ -90,6 +90,10 @@ class ChatsHomeScreen extends GetView<ChatHomeController> {
   }
 
   AppBar _appBarWidget(w,conxt) {
+    final usern = (APIs.me.userCompany?.displayName != null)
+        ? APIs.me?.userCompany?.displayName ?? ''
+        : APIs.me?.userName ?? '';
+    final companyN = controller.myCompany?.companyName ?? '';
     return AppBar(
       automaticallyImplyLeading: false,
       backgroundColor: recentBg,
@@ -106,11 +110,16 @@ class ChatsHomeScreen extends GetView<ChatHomeController> {
         child: Row(
           mainAxisSize: MainAxisSize.min,
           children: [
-          bottonBg(
-            padding: 0,
-              child: SizedBox(
-                width: 40,
-                child: CustomCacheNetworkImage(
+            Container(
+              width: 40,
+              decoration: BoxDecoration(
+                color: Colors.white,
+                  shape: BoxShape.circle,boxShadow: [
+                    BoxShadow(color: greenside.withOpacity(.5),blurRadius: 5)
+              ]
+
+              ),
+                child:controller.myCompany?.logo!=null? CustomCacheNetworkImage(
                   "${ApiEnd.baseUrlMedia}${controller.myCompany?.logo ?? ''}",
                   radiusAll: 100,
                   height: 40,
@@ -119,9 +128,13 @@ class ChatsHomeScreen extends GetView<ChatHomeController> {
                   defaultImage: appIcon,
                   // boxFit: BoxFit.cover,
                   isApp: true,
-                ),
+                ):CircleAvatar(
+                // radius: 45,
+                backgroundColor: Colors.white,
+                child: Text(getInitials(companyN),style: BalooStyles.baloosemiBoldTextStyle(color: greenside,size: 20),),
+              ),
               ).paddingAll(3),
-            ),
+
             Expanded(
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.end,
@@ -183,9 +196,16 @@ class ChatsHomeScreen extends GetView<ChatHomeController> {
                 },
                 child: Row(
                   children: [
-                    SizedBox(
+                    Container(
                       width: 40,
-                      child: CustomCacheNetworkImage(
+                      decoration: BoxDecoration(
+                          color: Colors.white,
+                          shape: BoxShape.circle,boxShadow: [
+                        BoxShadow(color: greenside.withOpacity(.5),blurRadius: 5)
+                      ]
+
+                      ),
+                      child:controller.myCompany?.logo!=null? CustomCacheNetworkImage(
                         "${ApiEnd.baseUrlMedia}${controller.myCompany?.logo ?? ''}",
                         radiusAll: 100,
                         height: 40,
@@ -194,6 +214,10 @@ class ChatsHomeScreen extends GetView<ChatHomeController> {
                         defaultImage: appIcon,
                         boxFit: BoxFit.cover,
                         isApp: true,
+                      ):CircleAvatar(
+                        // radius: 45,
+                        backgroundColor: Colors.white,
+                        child: Text(getInitials(companyN),style: BalooStyles.baloosemiBoldTextStyle(color: greenside,size: 20),),
                       ),
                     ).paddingAll(3),
                     Expanded(
@@ -241,11 +265,14 @@ class ChatsHomeScreen extends GetView<ChatHomeController> {
                   }
                 },
                 // icon: Image.asset(
-                icon:bottonBg(child: SvgPicture.asset(
+                icon:GradientContainer(
+                  color1:  greenside.withOpacity(.95),
+                  color2:  greenside.withOpacity(.5),
+                  child: SvgPicture.asset(
                     addNewChatPng,
                     height: 20,
                     width: 20,
-                    color: Colors.black45,
+                    color: Colors.white,
                     fit: BoxFit.contain,
                   ),
                 ))
@@ -269,11 +296,13 @@ class ChatsHomeScreen extends GetView<ChatHomeController> {
 
 
               },
-              icon:bottonBg(
+              icon:GradientContainer(
+                  color1:  greenside.withOpacity(.95),
+                  color2:  greenside.withOpacity(.5),
                 child: controller.isSearching.value
-                    ? const Icon(CupertinoIcons.clear,color:Colors.black54)
+                    ? const Icon(CupertinoIcons.clear,color:Colors.white)
                 // :Image.asset(searchPng, height: 25, width: 25));
-                    :SvgPicture.asset(searchPng, height: 20, width: 20,color: Colors.black45,)),
+                    :SvgPicture.asset(searchPng, height: 20, width: 20,color: Colors.white,)),
               );
         }),
         PopupMenuButton<String>(
@@ -349,8 +378,40 @@ class ChatsHomeScreen extends GetView<ChatHomeController> {
             ),
           ],
           color: Colors.white,
-          icon: bottonBg(child: Icon(Icons.more_vert,size: 20,color: Colors.black45,)),
+          icon: GradientContainer(
+              color1:  greenside.withOpacity(.95),
+              color2:  greenside.withOpacity(.5),
+              child: const Icon(Icons.more_vert,size: 20,color:Colors.white,)),
         ).marginOnly(right: 10),
+
+        kIsWeb && w >600 ? InkWell(
+          onTap: (){
+            Get.find<DashboardController>().updateIndex(4);
+          },
+          child: GradientContainer(
+            padding: 3,
+            radius: 15,
+            color1:  greenside.withOpacity(.95),
+            color2:  greenside.withOpacity(.5),
+            child: Row(
+              children: [
+                APIs.me.userImage!=null? CustomCacheNetworkImage(
+                    "${ApiEnd.baseUrlMedia}${APIs.me.userImage}",
+                  radiusAll: 100,
+                  height: 27,
+                  width: 27,
+                ):CircleAvatar(
+                  radius: 14,
+                  backgroundColor: Colors.white,
+                  child: Text(getInitials(usern),style: BalooStyles.baloosemiBoldTextStyle(color: Colors.black45),),
+                ),
+                hGap(5),
+
+                SvgPicture.asset(userSetting,color: Colors.white,height: 20,width: 20,)
+              ],
+            ).paddingSymmetric(horizontal: 5),
+          ).marginOnly(right: 12),
+        ):const SizedBox()
       ],
     );
   }
@@ -468,8 +529,42 @@ class ChatsHomeScreen extends GetView<ChatHomeController> {
                       width:w < 700? 250:320, child: _recentChatsList(controller, false, w)),
                   Expanded(
                     child: selected == null
-                        ? const Center(
-                            child: Text("Select a chat to start messaging"))
+                        ? Stack(
+                      alignment: Alignment.centerLeft,
+                          children: [
+                            Image.asset(emptyChatsBg,fit: BoxFit.cover,height: Get.height,),
+                            Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: [
+                                Text("Welcome to,",style: BalooStyles.baloomediumTextStyle(size: 18),),
+                                vGap(6),
+                                Text("Accuchat",style: BalooStyles.balooboldTextStyle(size: 35),),
+                                vGap(12),
+                                Text("Search or Select a chat to start messaging",style: BalooStyles.baloonormalTextStyle(size: 15),),
+                                vGap(6),
+                                Text("with your Teammates or Clients",style: BalooStyles.baloonormalTextStyle(size: 15),),
+                                vGap(20),
+                                InkWell(
+                                  onTap:() async {
+                                    final user = await openAllUserDialog();
+                                    if (user != null) {
+                                      _goToScreen(user, w);
+                                    }
+                                  } ,
+                                  child: GradientContainer(
+                                    radius: 30,
+                                    color1: greenside,
+                                    color2: greenside.withOpacity(.6),
+                                    child: Text('Click to Start new Chat 👋',
+                                        style: BalooStyles.baloosemiBoldTextStyle(color: Colors.white)),
+                                  ),
+                                )
+                              ],
+                            ).paddingOnly(left: 20,bottom: 60)
+
+                          ],
+                        )
                         : ChatScreen(
                       key: ValueKey(selected.userCompany?.userCompanyId ?? selected.userId),
                             user: selected,

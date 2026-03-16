@@ -29,7 +29,7 @@ class CustomCacheNetworkImage extends StatelessWidget {
   String? defaultImage;
   CustomCacheNetworkImage(
       this.imageurl, {
-        Key? key,
+        super.key,
         this.withBaseUrl,
         this.height,
         this.isApp = false,
@@ -48,7 +48,7 @@ class CustomCacheNetworkImage extends StatelessWidget {
         this.memCacheWidth,
         this.borderWidth,
         this.defaultImage,
-      }) : super(key: key);
+      });
 
   @override
   Widget build(BuildContext context) {
@@ -79,6 +79,7 @@ class CustomCacheNetworkImage extends StatelessWidget {
           fit: boxFit ?? BoxFit.contain ,
           width: width,
           filterQuality: FilterQuality.low,
+          useOldImageOnUrlChange: true,
           height: height,
           // memCacheHeight: memCacheHeight ?? 500,
           // memCacheWidth: memCacheWidth ?? 500,

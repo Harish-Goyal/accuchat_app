@@ -379,8 +379,8 @@ class _ProfileAvatar extends StatelessWidget {
                     _showBottomSheet();
                   }
                 }, onRemove: () {
-                  toast("Under Development");
-                  // controller.hitAPIToRemoveUserPic();
+                  // toast("Under Development");
+                  controller.hitAPIToRemoveUserPic();
               }
               );
 
@@ -436,7 +436,7 @@ class _ProfileAvatar extends StatelessWidget {
     }
 
     // NETWORK IMAGE (DEFAULT)
-    return CustomCacheNetworkImage(
+    return  CustomCacheNetworkImage(
       "${ApiEnd.baseUrlMedia}${controller.profileImg}",
       height: size,
       width: size,

@@ -88,7 +88,8 @@ class ShareSelectChatPage extends GetView<ChatHomeController> {
             children: [
               SizedBox(
                 width: 40,
-                child: CustomCacheNetworkImage(
+                child:
+                controller.myCompany?.logo!=null? CustomCacheNetworkImage(
                   "${ApiEnd.baseUrlMedia}${controller.myCompany?.logo ?? ''}",
                   radiusAll: 100,
                   height: 40,
@@ -97,7 +98,12 @@ class ShareSelectChatPage extends GetView<ChatHomeController> {
                   defaultImage: appIcon,
                   boxFit: BoxFit.cover,
                   isApp: true,
+                ):CircleAvatar(
+                  // radius: 45,
+                  backgroundColor: Colors.white,
+                  child: Text(getInitials(controller.myCompany?.companyName ?? ''),style: BalooStyles.baloosemiBoldTextStyle(color: greenside,size: 20),),
                 ),
+
               ).paddingAll(3),
               Expanded(
                 child: Column(

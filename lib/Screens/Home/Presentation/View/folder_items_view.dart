@@ -386,9 +386,18 @@ class _MediaCard extends StatelessWidget {
                     width: double.infinity,
                     child: isImage
                         ?thumbUrl.endsWith('gif')?  ClipRRect(
-                      borderRadius: BorderRadius.circular(12),child: Image.network(thumbUrl,fit: BoxFit.cover,errorBuilder: (context, error, stackTrace) {
-                      return const Icon(Icons.broken_image);
-                    },)):CustomCacheNetworkImage(
+                      borderRadius: BorderRadius.circular(12),child:
+                    RepaintBoundary(
+                      child: Image(
+                        image: NetworkImage(thumbUrl),
+                        key:ValueKey(thumbUrl),
+                        fit: BoxFit.cover,
+                        gaplessPlayback: true,
+                        errorBuilder: (_, __, ___) => const Icon(Icons.broken_image),
+                      ),
+                    )
+
+                    ):CustomCacheNetworkImage(
                       thumbUrl,
                       height: thumbHeight,
                       width: double.infinity,

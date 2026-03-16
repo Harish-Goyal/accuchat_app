@@ -67,20 +67,27 @@ class TaskHomeScreen extends GetView<TaskHomeController> {
                               },
                               child: Row(
                                 children: [
-                                  bottonBg(
-                                    padding: 0,
-                                    child: SizedBox(
+                                  Container(
+                                    width: 40,
+                                    decoration: BoxDecoration(
+                                        color: Colors.white,
+                                        shape: BoxShape.circle,boxShadow: [
+                                      BoxShadow(color: greenside.withOpacity(.5),blurRadius: 5)
+                                    ]
+                                    ),
+                                    child: controller.myCompany?.logo!=null? CustomCacheNetworkImage(
+                                      "${ApiEnd.baseUrlMedia}${controller.myCompany?.logo ?? ''}",
+                                      radiusAll: 100,
+                                      height: 40,
                                       width: 40,
-                                      child: CustomCacheNetworkImage(
-                                        "${ApiEnd.baseUrlMedia}${controller.myCompany?.logo ?? ''}",
-                                        radiusAll: 100,
-                                        height: 40,
-                                        width: 40,
-                                        borderColor: appColorYellow,
-                                        defaultImage: appIcon,
-                                        boxFit: BoxFit.cover,
-                                        isApp: true,
-                                      ),
+                                      borderColor: appColorYellow,
+                                      defaultImage: appIcon,
+                                      boxFit: BoxFit.cover,
+                                      isApp: true,
+                                    ):CircleAvatar(
+                                      // radius: 45,
+                                      backgroundColor: Colors.white,
+                                      child: Text(getInitials(controller.myCompany?.companyName??''),style: BalooStyles.baloosemiBoldTextStyle(color: greenside,size: 20),),
                                     ).paddingAll(3),
                                   ),
                                   Expanded(
@@ -154,20 +161,28 @@ class TaskHomeScreen extends GetView<TaskHomeController> {
                                         },
                                       child: Row(
                                         children: [
-                                      bottonBg(
-                                        padding: 0,
-                                            child: SizedBox(
+                                          Container(
+                                            width: 40,
+                                            decoration: BoxDecoration(
+                                                color: Colors.white,
+                                                shape: BoxShape.circle,boxShadow: [
+                                              BoxShadow(color: greenside.withOpacity(.5),blurRadius: 5)
+                                            ]
+
+                                            ),
+                                            child: controller.myCompany?.logo!=null? CustomCacheNetworkImage(
+                                              "${ApiEnd.baseUrlMedia}${controller.myCompany?.logo ?? ''}",
+                                              radiusAll: 100,
+                                              height: 40,
                                               width: 40,
-                                              child: CustomCacheNetworkImage(
-                                                "${ApiEnd.baseUrlMedia}${controller.myCompany?.logo ?? ''}",
-                                                radiusAll: 100,
-                                                height: 40,
-                                                width: 40,
-                                                borderColor: appColorYellow,
-                                                defaultImage: appIcon,
-                                                boxFit: BoxFit.cover,
-                                                isApp: true,
-                                              ),
+                                              borderColor: appColorYellow,
+                                              defaultImage: appIcon,
+                                              boxFit: BoxFit.cover,
+                                              isApp: true,
+                                            ):CircleAvatar(
+                                              // radius: 45,
+                                              backgroundColor: Colors.white,
+                                              child: Text(getInitials(controller.myCompany?.companyName ?? ''),style: BalooStyles.baloosemiBoldTextStyle(color: greenside,size: 20),),
                                             ).paddingAll(3),
                                           ),
                                           Expanded(
@@ -291,9 +306,11 @@ class TaskHomeScreen extends GetView<TaskHomeController> {
                                   }
                                 },
                                 // icon:Image.asset(addNewChatPng,
-                                icon:bottonBg(
+                                icon:GradientContainer(
+                                  color1:  greenside.withOpacity(.95),
+                                  color2:  greenside.withOpacity(.5),
                                   child: SvgPicture.asset(addNewChatPng,
-                                      height: 20, width: 20,color: Colors.black45,),
+                                      height: 20, width: 20,color: Colors.white,),
                                 ))
                             : const SizedBox(),
                         hGap(10),
@@ -318,12 +335,15 @@ class TaskHomeScreen extends GetView<TaskHomeController> {
                                       }
                                       // controller.update();
                                     },
-                                    icon:bottonBg(child: controller.isSearching.value
+                                    icon:GradientContainer(
+                                        color1:  greenside.withOpacity(.95),
+                                        color2:  greenside.withOpacity(.5),
+                                        child: controller.isSearching.value
                                         ? const Icon(
-                                        CupertinoIcons.clear,color:Colors.black54)
+                                        CupertinoIcons.clear,color:Colors.white)
                                         // :Image.asset(searchPng,
                                         :SvgPicture.asset(searchPng,
-                                            height: 20, width: 20,color: Colors.black45,)));
+                                            height: 20, width: 20,color:Colors.white,)));
                               })
                         /*Obx(() {
                                   return IconButton(

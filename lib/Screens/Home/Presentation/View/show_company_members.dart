@@ -143,6 +143,10 @@ class CompanyMembers extends GetView<CompanyMemberController> {
                       final memData = controller.filteredList[index];
                       final bool isWide = MediaQuery.of(context).size.width >=
                           900;
+
+                      final usern = (memData.userCompany?.displayName != null)
+                          ? memData.userCompany?.displayName ?? ''
+                          :memData.userName!=null?memData.userName ?? '':memData.phone ?? '';
                       return SwipeTo(
                         key: ValueKey(memData.userId),
                         iconOnLeftSwipe: Icons.delete_outline,
@@ -193,14 +197,18 @@ class CompanyMembers extends GetView<CompanyMemberController> {
                                           appColorGreen.withOpacity(.1),
                                       child: SizedBox(
                                         width: 60,
-                                        child: CustomCacheNetworkImage(
+                                        child:     memData.userImage!=null? CustomCacheNetworkImage(
+                                          "${ApiEnd.baseUrlMedia}${memData.userImage ?? ''}",
                                           radiusAll: 100,
                                           width: 60,
                                           height: 60,
                                           boxFit: BoxFit.cover,
                                           defaultImage: ICON_profile,
                                           borderColor: greyText,
-                                          "${ApiEnd.baseUrlMedia}${memData.userImage ?? ''}",
+                                        ):CircleAvatar(
+                                          // radius: 45,
+                                          backgroundColor: perpleBg,
+                                          child: Text(getInitials(usern),style: BalooStyles.baloosemiBoldTextStyle(color: perplebr,),),
                                         ),
                                       ))),
                           title: InkWell(
@@ -300,10 +308,10 @@ class CompanyMembers extends GetView<CompanyMemberController> {
     if(Get.isRegistered<DashboardController>()){
       dcController = Get.find<DashboardController>();
     }
-    dcController?.updateIndex(1);
+    // dcController?.updateIndex(1);
 
-    isTaskMode = true;
-    controller.update();
+    // isTaskMode = true;
+    // controller.update();
 
       if(kIsWeb){
         openTaskScreenDialog(memData);
@@ -369,7 +377,7 @@ class CompanyMembers extends GetView<CompanyMemberController> {
             borderRadius: BorderRadius.circular(12),
           ),
           child: SizedBox(
-            width: kIsWeb ? 550 : Get.width * .9,
+            width: kIsWeb ? 550 : Get.width * .95,
             height: Get.height * 0.95,
             child: TaskScreen(
               key: ValueKey(memData.userCompany?.userCompanyId),

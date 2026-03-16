@@ -106,6 +106,8 @@ class HProfileController extends GetxController {
         .then((value) async {
       toast(value.message);
       customLoader.hide();
+      imageCache.clear();
+      imageCache.clearLiveImages();
       hitAPIToDeletePushToken();
       // logoutLocal();
       update();

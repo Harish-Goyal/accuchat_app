@@ -9,6 +9,7 @@ import 'package:flutter_svg/svg.dart';
 import 'package:get/get.dart';
 import '../../../../../../Constants/assets.dart';
 import '../../../../../../main.dart';
+import '../../../../../../utils/helper_widget.dart';
 import '../../../../../../utils/networl_shimmer_image.dart';
 import '../../../../api/apis.dart';
 import '../Controllers/add_group_mem_controller.dart';
@@ -57,6 +58,7 @@ class AddGroupMembersScreen extends GetView<AddGroupMemController> {
 
 
   _mainBody(){
+
     return controller.isLoading
         ? const IndicatorLoading()
         : controller.filteredList.isEmpty
@@ -76,6 +78,9 @@ class AddGroupMembersScreen extends GetView<AddGroupMemController> {
             final user = controller.filteredList[index];
             final isSelected = controller.selectedUserIds
                 .contains(user.userCompany?.userCompanyId);
+            final usern = (user.userCompany?.displayName != null)
+                ? user.userCompany?.displayName ?? ''
+                :user.userName!=null?user.userName ?? '':user.phone ?? '';
             final isMe = APIs.me.userId == user.userId;
             return Card(
               elevation: 1,
@@ -140,14 +145,19 @@ class AddGroupMembersScreen extends GetView<AddGroupMemController> {
                   // *********************
                   secondary: SizedBox(
                     width: mq.height * .055,
-                    child: CustomCacheNetworkImage(
-                      radiusAll: 100,
+                    child:user.userImage!=null? CustomCacheNetworkImage(
                       "${ApiEnd.baseUrlMedia}${user.userImage ?? ""}",
+                      radiusAll: 100,
                       height: mq.height * .055,
                       width: mq.height * .055,
-                      boxFit: BoxFit.cover,
-                      borderColor: greyText,
+                      borderColor: appColorYellow,
                       defaultImage: ICON_profile,
+                      boxFit: BoxFit.cover,
+
+                    ):CircleAvatar(
+                      // radius: 45,
+                      backgroundColor: perpleBg,
+                      child: Text(getInitials(usern),style: BalooStyles.baloosemiBoldTextStyle(color: perplebr),),
                     ),
                   ),
                 ),

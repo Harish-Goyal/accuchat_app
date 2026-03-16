@@ -16,9 +16,14 @@ import 'package:flutter_snake_navigationbar/flutter_snake_navigationbar.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:get/get.dart';
 import 'package:sidebarx/sidebarx.dart';
+import '../../../../Constants/colors.dart' as AppTheme;
+import '../../../../Services/APIs/api_ends.dart';
 import '../../../../main.dart';
 import '../../../../utils/chat_presence.dart';
+import '../../../../utils/circleContainer.dart';
 import '../../../../utils/custom_flashbar.dart';
+import '../../../../utils/helper_widget.dart';
+import '../../../../utils/networl_shimmer_image.dart';
 import '../../../../utils/register_image.dart';
 import '../../../Chat/api/apis.dart';
 
@@ -43,7 +48,8 @@ class AccuChatDashboard extends StatelessWidget {
                   SizedBox(
                     width:kIsWeb? 140:Get.width,
                       height: Get.height,
-                      child: Image.asset("assets/images/bglight.jpg",fit: BoxFit.cover,)),
+                      child: Opacity(
+                          opacity: 0.5,child: Image.asset("assets/images/bglight.jpg",fit: BoxFit.cover))),
                   Row(
                     mainAxisSize: MainAxisSize.min,
                     children: [
@@ -82,119 +88,224 @@ class AccuChatDashboard extends StatelessWidget {
 
 
       ),
-      child: SidebarX(
-        controller: controller.sidebarXController,
-        animationDuration: const Duration(milliseconds: 200),
-        theme: SidebarXTheme(
-          margin: const EdgeInsets.all(0),
-          decoration: BoxDecoration(
-            color: perplebr.withOpacity(.1),
-            borderRadius: BorderRadius.circular(2),
-          ),
-          hoverColor: perpleBg,
-          hoverTextStyle: BalooStyles.baloosemiBoldTextStyle(),
-          textStyle: BalooStyles.baloomediumTextStyle(color: Colors.black87,),
-          selectedTextStyle: BalooStyles.baloomediumTextStyle(color: Colors.white),
-          iconTheme: const IconThemeData(color: Colors.black45, size: 20),
-          selectedIconTheme: const IconThemeData(color: Colors.white, size: 20),
-          itemDecoration: BoxDecoration(
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          controller.isExpanded?  InkWell(
             borderRadius: BorderRadius.circular(12),
-          ),
-          selectedItemDecoration: BoxDecoration(
-            // color: appColorGreen,
-            gradient: LinearGradient(colors: [
-              perpleBg,
-              lightGre
-            ]),
-            borderRadius: BorderRadius.circular(12),
-          ),
+            onTap: (){
+              controller.sidebarXController.setExtended(false);
+              controller.isExpanded= false;
+              controller.update();
+            },
+            child: SizedBox(
+              width: 140,
+              child: GradientContainer(
+                radius: 12,
+                color1:  greenside.withOpacity(.95),
+                color2:  greenside.withOpacity(.5),
+                padding: 6,
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                   SizedBox(
+                        width: 30,
+                        child:
+                        controller.myCompany?.logo!=null? CustomCacheNetworkImage(
+                          "${ApiEnd.baseUrlMedia}${controller.myCompany?.logo ?? ''}",
+                          radiusAll: 100,
+                          height: 30,
+                          width: 30,
+                          borderColor: appColorYellow,
+                          defaultImage: appIcon,
+                          boxFit: BoxFit.cover,
+                          isApp: true,
+                        ):CircleAvatar(
+                          // radius: 45,
+                          backgroundColor: Colors.white,
+                          child: Text(getInitials(controller.myCompany?.companyName ?? ''),style: BalooStyles.baloosemiBoldTextStyle(color: greenside,size: 20),),
+                        ),
 
+                      ).paddingAll(1),
 
-        ),
-        extendedTheme: const SidebarXTheme(width: 140),
-        items: [
-          SidebarXItem(
-            label: 'Chats',
-            // iconBuilder: (selected, hovered) =>Image.asset(
-            iconBuilder: (selected, hovered) => selected ? SvgPicture.asset(
-              chatHomewhite,
-              height: 20,
-              // color: selected ? Colors.white : Colors.grey,
-            ).paddingSymmetric(horizontal: 5):SvgPicture.asset(
-              chatHome,
-              height: 20,
-              color: appColorGreen,
-              // color: selected ? Colors.white : Colors.grey,
-            ).paddingSymmetric(horizontal: 5),
-            onTap: () => _handleSidebarTap(controller, 0,context),
-          ),
-          SidebarXItem(
-            label: 'Tasks',
-            iconBuilder: (selected, hovered) =>
-                // Image.asset(
-            selected ?    SvgPicture.asset(
-                tasksHomewhite,
-                height: 20,
-              ).paddingSymmetric(horizontal: 5):SvgPicture.asset(
-                tasksHome,
-                height: 20,
-              color: Colors.blueAccent,
-              ).paddingSymmetric(horizontal: 5),
-            onTap: () => _handleSidebarTap(controller, 1,context),
-          ),
-          SidebarXItem(
-            label: 'Gallery',
-            iconBuilder: (selected, hovered) => selected ? SvgPicture.asset(
-            // iconBuilder: (selected, hovered) => SvgPicture.asset(
-              galleryIconwhite,
-              height: 20,
-            ).paddingSymmetric(horizontal: 5) :
-            SvgPicture.asset(
-            // iconBuilder: (selected, hovered) => SvgPicture.asset(
-              galleryIcon,
-              height: 20,
-              color: perplebr,
-            ).paddingSymmetric(horizontal: 5),
-            onTap: () => _handleSidebarTap(controller, 2,context),
-          ),
-          SidebarXItem(
-            label: 'Companies',
-            iconBuilder: (selected, hovered) => Obx(() {
-              return Stack(
-                clipBehavior: Clip.none,
-                children: [
-                  // Image.asset(
-                  SvgPicture.asset(
-                    connectedAppIcon,
-                    height: 20,
-                    color: selected ? Colors.white : appColorYellow,
-                  ).paddingSymmetric(horizontal: 5),
-                  controller.newCompanyChat.value
-                      ? Positioned(
-                    top: -5,
-                    right: -10,
-                    child: BottomNavBudge(
-                      budgeCount:
-                      "${Get.find<ChatHomeController>().selectedChat.value?.pendingCount ?? ''}",
+                    Expanded(
+                      child: Column(
+                        mainAxisAlignment: MainAxisAlignment.end,
+                        mainAxisSize: MainAxisSize.min,
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            'Accuchat',
+                            style: BalooStyles.balooboldTitleTextStyle(
+                                color: Colors.white, size: 15),
+                          ).paddingOnly(left: 3, top: 4),
+                          Text(
+                            (controller.myCompany?.companyName ?? ''),
+                            style: BalooStyles.baloonormalTextStyle(
+                              color: Colors.white,
+                              size: 12
+                            ),
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                          ).paddingOnly(left: 3),
+                        ],
+                      ),
                     ),
-                  )
-                      : const SizedBox(),
-                ],
-              );
-            }),
-            onTap: () => _handleSidebarTap(controller, 3,context),
-          ),
-        ],
+                  ],
+                ),
+              ).paddingSymmetric(horizontal: 4,vertical: 12),
+            ),
+          ):
+    InkWell(
+      borderRadius: BorderRadius.circular(100),
+      onTap: (){
+        controller.sidebarXController.setExtended(true);
+        controller.isExpanded= true;
+        controller.update();
+      },
+      child: GradientContainer(
+        radius: 12,
+        color1:  greenside.withOpacity(.95),
+        color2:  greenside.withOpacity(.5),
+        padding: 6,
+        child:
 
-        footerItems: [
-          SidebarXItem(
-            label: 'Settings',
-            // iconWidget: Image.asset(
-            iconWidget: SvgPicture.asset(
-              settingPng,
-              height: 20,
-            ).paddingSymmetric(horizontal: 5),
-            onTap: () => _handleSidebarTap(controller, 4,context),
+
+
+        controller.myCompany?.logo!=null? CustomCacheNetworkImage(
+          "${ApiEnd.baseUrlMedia}${controller.myCompany?.logo ?? ''}",
+          radiusAll: 100,
+          height: 30,
+          width: 30,
+          borderColor: appColorYellow,
+          defaultImage: appIcon,
+          boxFit: BoxFit.cover,
+          isApp: true,
+        ):CircleAvatar(
+          // radius: 45,
+          backgroundColor: Colors.white,
+          child: Text(getInitials(controller.myCompany?.companyName ?? ''),style: BalooStyles.baloosemiBoldTextStyle(color: greenside,size: 20),),
+        ),
+      ).paddingSymmetric(horizontal: 4,vertical: 12)
+    ),
+          Expanded(
+            child: SidebarX(
+              controller: controller.sidebarXController,
+              showToggleButton: false,
+              animationDuration: const Duration(milliseconds: 200),
+              theme: SidebarXTheme(
+                margin: const EdgeInsets.all(0),
+                decoration: BoxDecoration(
+                  color: perplebr.withOpacity(.1),
+                  borderRadius: BorderRadius.circular(2),
+                ),
+                hoverColor: perpleBg,
+                hoverTextStyle: BalooStyles.baloosemiBoldTextStyle(),
+                textStyle: BalooStyles.baloomediumTextStyle(color: Colors.black87,),
+                selectedTextStyle: BalooStyles.baloomediumTextStyle(color: Colors.white),
+                iconTheme: const IconThemeData(color: Colors.black45, size: 20),
+                selectedIconTheme: const IconThemeData(color: Colors.white, size: 20),
+                itemDecoration: BoxDecoration(
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                selectedItemDecoration: BoxDecoration(
+                  // color: appColorGreen,
+                  gradient: LinearGradient(colors: [
+                    greenside,
+                    greenside.withOpacity(.5)
+                  ]),
+                  borderRadius: BorderRadius.circular(12),
+                ),
+
+
+              ),
+              extendedTheme: const SidebarXTheme(width: 140),
+              items: [
+                SidebarXItem(
+                  label: 'Chats',
+                  // iconBuilder: (selected, hovered) =>Image.asset(
+                  iconBuilder: (selected, hovered) => selected ? SvgPicture.asset(
+                    chatHomewhite,
+                    height: 20,
+                    // color: selected ? Colors.white : Colors.grey,
+                  ).paddingSymmetric(horizontal: 5):SvgPicture.asset(
+                    chatHome,
+                    height: 20,
+                    color: appColorGreen,
+                    // color: selected ? Colors.white : Colors.grey,
+                  ).paddingSymmetric(horizontal: 5),
+                  onTap: () => _handleSidebarTap(controller, 0,context),
+                ),
+                SidebarXItem(
+                  label: 'Tasks',
+                  iconBuilder: (selected, hovered) =>
+                      // Image.asset(
+                  selected ?    SvgPicture.asset(
+                      tasksHomewhite,
+                      height: 20,
+                    ).paddingSymmetric(horizontal: 5):SvgPicture.asset(
+                      tasksHome,
+                      height: 20,
+                    color: Colors.blueAccent,
+                    ).paddingSymmetric(horizontal: 5),
+                  onTap: () => _handleSidebarTap(controller, 1,context),
+                ),
+                SidebarXItem(
+                  label: 'Gallery',
+                  iconBuilder: (selected, hovered) => selected ? SvgPicture.asset(
+                  // iconBuilder: (selected, hovered) => SvgPicture.asset(
+                    galleryIconwhite,
+                    height: 20,
+                  ).paddingSymmetric(horizontal: 5) :
+                  SvgPicture.asset(
+                  // iconBuilder: (selected, hovered) => SvgPicture.asset(
+                    galleryIcon,
+                    height: 20,
+                    color: perplebr,
+                  ).paddingSymmetric(horizontal: 5),
+                  onTap: () => _handleSidebarTap(controller, 2,context),
+                ),
+                SidebarXItem(
+                  label: 'Companies',
+                  iconBuilder: (selected, hovered) => Obx(() {
+                    return Stack(
+                      clipBehavior: Clip.none,
+                      children: [
+                        // Image.asset(
+                        SvgPicture.asset(
+                          connectedAppIcon,
+                          height: 20,
+                          color: selected ? Colors.white : appColorYellow,
+                        ).paddingSymmetric(horizontal: 5),
+                        controller.newCompanyChat.value
+                            ? Positioned(
+                          top: -5,
+                          right: -10,
+                          child: BottomNavBudge(
+                            budgeCount:
+                            "${Get.find<ChatHomeController>().selectedChat.value?.pendingCount ?? ''}",
+                          ),
+                        )
+                            : const SizedBox(),
+                      ],
+                    );
+                  }),
+                  onTap: () => _handleSidebarTap(controller, 3,context),
+                ),
+              ],
+
+              footerItems: [
+                SidebarXItem(
+                  label: 'Settings',
+                  // iconWidget: Image.asset(
+                  iconWidget: SvgPicture.asset(
+                    settingPng,
+                    height: 20,
+                  ).paddingSymmetric(horizontal: 5),
+                  onTap: () => _handleSidebarTap(controller, 4,context),
+                ),
+              ],
+            ),
           ),
         ],
       ),
@@ -361,6 +472,8 @@ class AccuChatDashboard extends StatelessWidget {
   }*/
 
   Future<void> _handleSidebarTap(DashboardController controller, int index,context) async {
+    imageCache.clear();
+    imageCache.clearLiveImages();
     await controller.getCompany();
     if (isCompanySwitched) {
       toast( "Your Company has been change please wait for reload");
@@ -868,15 +981,15 @@ class AccuChatDashboard extends StatelessWidget {
       child: SnakeNavigationBar.gradient(
           behaviour: SnakeBarBehaviour.floating,
           backgroundGradient: LinearGradient(colors: [
-            perpleBg,
-            lightGre
+            greenside,
+            greenside.withOpacity(.8)
           ]),
           snakeShape: SnakeShape.circle,
           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
           padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
           snakeViewGradient: LinearGradient(colors: [
-            perpleBg,
-            lightGre
+            greenside.withOpacity(.95),
+            greenside.withOpacity(.5)
           ]),
           selectedItemGradient:
               const LinearGradient(colors: [Colors.white, Colors.white]),

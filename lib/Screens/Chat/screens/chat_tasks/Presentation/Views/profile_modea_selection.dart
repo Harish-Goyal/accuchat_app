@@ -227,6 +227,10 @@ class ProfileMediaSectionGetXGroup extends StatelessWidget {
                                     final member = controller.members[index];
                                     final isAdmin = member.isAdmin == 1 ? true : false;
                                     final me = APIs.me;
+
+                                    final usern = (member.userCompany?.displayName != null)
+                                        ? member.userCompany?.displayName ?? ''
+                                        : member.userName ?? '';
                                     final bool isSelf =
                                         member.userId == me?.userId;
                                     final int? creatorUserId =
@@ -281,7 +285,8 @@ class ProfileMediaSectionGetXGroup extends StatelessWidget {
                                               vertical: 0, horizontal: 12),
                                           leading: SizedBox(
                                             width: 50,
-                                            child: CustomCacheNetworkImage(
+                                            child:
+                                            member.userImage!=null? CustomCacheNetworkImage(
                                               "${ApiEnd.baseUrlMedia}${member.userImage ?? ''}",
                                               radiusAll: 100,
                                               height: 50,
@@ -289,6 +294,10 @@ class ProfileMediaSectionGetXGroup extends StatelessWidget {
                                               defaultImage: ICON_profile,
                                               borderColor: greyColor,
                                               boxFit: BoxFit.cover,
+                                            ):CircleAvatar(
+                                              // radius: 45,
+                                              backgroundColor: perpleBg,
+                                              child: Text(getInitials(usern),style: BalooStyles.baloosemiBoldTextStyle(color: perplebr,),),
                                             ),
                                           ),
 

@@ -461,15 +461,15 @@ class _ChatScreenState extends State<ChatScreen> {
   AppBar _appBarWidget(ctx) {
     return AppBar(
       backgroundColor: recentBg,
-      elevation: 1,
+      elevation: 10,
       scrolledUnderElevation: 0,
       surfaceTintColor:recentBg,
-      shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(
-          bottom: Radius.circular(30),
-          top: Radius.circular(30),
-        ),
-      ),
+      // shape: const RoundedRectangleBorder(
+      //   borderRadius: BorderRadius.vertical(
+      //     bottom: Radius.circular(12),
+      //     top: Radius.circular(12),
+      //   ),
+      // ),
       automaticallyImplyLeading: false,
       flexibleSpace: MediaQuery(
 
@@ -488,9 +488,11 @@ class _ChatScreenState extends State<ChatScreen> {
         behavior: const _NoGlowScrollBehavior(),
         child: Center(
           child: Container(
+            width: Get.width,
+            margin: EdgeInsets.only(right: 8),
             decoration: const BoxDecoration(
-              image: DecorationImage(image: AssetImage("assets/images/bglight.jpg",),fit: BoxFit.cover)
-              ,  borderRadius: BorderRadius.only(topLeft: Radius.circular(12),topRight: Radius.circular(12),)
+              image: DecorationImage(image: AssetImage(darkbg,),fit: BoxFit.cover,opacity: .5)
+              ,  borderRadius: BorderRadius.only(topLeft: Radius.circular(8),topRight: Radius.circular(8),)
             ),
             constraints: BoxConstraints(maxWidth: _maxChatWidth(context)),
             
@@ -528,7 +530,7 @@ class _ChatScreenState extends State<ChatScreen> {
                     padding: const EdgeInsets.all(2),
                     decoration: BoxDecoration(
                       borderRadius: BorderRadius.circular(15),
-                      color: Colors.white.withOpacity(.4)
+                      color: Colors.white.withOpacity(.8)
                     ),
                     child: _buildDropOnInputOnly(
                       child: _chatInput(context),
@@ -1043,7 +1045,7 @@ class _ChatScreenState extends State<ChatScreen> {
           Expanded(child: divider(color: perpleBg)),
         ],
       ),
-    );
+    ).marginSymmetric(vertical: 15);
   }
 
   bool isHoved = false;
@@ -1165,10 +1167,12 @@ final isMedia = (data.media??[]).isNotEmpty;
                                           : whiteselected),
                                   boxShadow:sentByMe? [BoxShadow(
                                       color: perplebr,
-                                      offset: const Offset(5, 5)
+                                      offset: const Offset(2, 2),
+                                    blurRadius: 2
                                   )]:[BoxShadow(
                                       color: Colors.grey.shade300,
-                                      offset: const Offset(-5, 5)
+                                      offset: const Offset(-2, 2),
+                                      blurRadius: 2
                                   )],
                                   borderRadius: sentByMe
                                       ? BorderRadius.only(
@@ -1618,10 +1622,12 @@ final isMedia = (data.media??[]).isNotEmpty;
     }
 
     return Container(
-
+      margin: const EdgeInsets.only(right: 8),
+      padding: const EdgeInsets.all(0),
       decoration: BoxDecoration(
-          color: whiteselected,
-        borderRadius: BorderRadius.circular(50)
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(12),
+          boxShadow: [BoxShadow(color: Colors.grey.shade300,blurRadius: 10)]
       ),
       child: Row(
         children: [
@@ -1868,7 +1874,7 @@ final isMedia = (data.media??[]).isNotEmpty;
                     }
                     controller.update();
                   },
-                  icon:bottonBg(child: controller.isSearching
+                  icon:GradientContainer(child: controller.isSearching
                       ? const Icon(CupertinoIcons.clear,color:Colors.black54)
                       // : Image.asset(searchPng, height: 25, width: 25))
                       : SvgPicture.asset(searchPng, height: 20, width: 20,color:Colors.black54)))
@@ -1881,7 +1887,7 @@ final isMedia = (data.media??[]).isNotEmpty;
                   ? PopupMenuButton<String>(
                       color: Colors.white,
                       iconColor: Colors.black87,
-                      icon: bottonBg(child:const Icon(Icons.more_vert,color:Colors.black54)),
+                      icon: GradientContainer(child:const Icon(Icons.more_vert,color:Colors.black54)),
                       onSelected: (value) async {
                         if (value == 'AddMember') {
                           if (kIsWeb) {
