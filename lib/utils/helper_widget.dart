@@ -404,7 +404,7 @@ Widget goToWidget(title, color, {count}) {
                  shape: BoxShape.circle
 
              ),
-             child: Icon(Icons.notifications_none,color: greenside,size: 18,)),
+             child: SvgPicture.asset(bellSvg,color: greenside,height: 15,)),
         ],
       ));
 }
@@ -423,7 +423,7 @@ _budgeWidget(){
                shape: BoxShape.circle
 
            ),
-           child: Icon(Icons.notifications_none_outlined,color: greenside,size: 18,)),
+           child:SvgPicture.asset(bellSvg,color: greenside,height: 15,)),
        if (unread > 0)
           Positioned(
             right: -6,

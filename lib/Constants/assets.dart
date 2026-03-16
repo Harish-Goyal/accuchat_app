@@ -72,6 +72,7 @@ const darkbg="assets/images/bglight.jpg";
 // const folderpng="assets/icons/SvgIcons/blue_folder.svg";
 const folderpng="assets/icons/SvgIcons/folder.svg";
 const chatHomewhite="assets/icons/SvgIcons/chatsvgappwhite.svg";
+const bellSvg="assets/icons/SvgIcons/notificationbell.svg";
 const emptyRecentPng="assets/icons/SvgIcons/empty_chats.svg";
 const tasksHome="assets/icons/SvgIcons/task-black.svg";
 const tasksHomewhite="assets/icons/SvgIcons/task_white.svg";

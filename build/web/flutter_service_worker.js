@@ -3,9 +3,9 @@ const MANIFEST = 'flutter-app-manifest';
 const TEMP = 'flutter-temp-cache';
 const CACHE_NAME = 'flutter-app-cache';
 
-const RESOURCES = {"assets/AssetManifest.bin": "71b8b6d72e41881a2740fc4bda3938e6",
-"assets/AssetManifest.bin.json": "9b37c0145c92d34e0ed2dd4f216f20a7",
-"assets/AssetManifest.json": "ae65291d8c5a1b13191b12d3e6ed6d57",
+const RESOURCES = {"assets/AssetManifest.bin": "b5a598b1ec96fc31ed562cb9c28a32c4",
+"assets/AssetManifest.bin.json": "ea93a61ba183009a1975ba841516b633",
+"assets/AssetManifest.json": "7d10e0fc0b12508fb288cb4c72322c30",
 "assets/assets/appstore.png": "6115b0265186dcfec064e6529c3a1bce",
 "assets/assets/icons/add_image.png": "fadd33f06d24f495ad2f48b18e9d019f",
 "assets/assets/icons/appIconC.png": "0f1bd86862483855a9093d9752f100ba",
@@ -30,6 +30,7 @@ const RESOURCES = {"assets/AssetManifest.bin": "71b8b6d72e41881a2740fc4bda3938e6
 "assets/assets/icons/SvgIcons/groupsvg.svg": "74798200c3c46782d6c864f703a51c83",
 "assets/assets/icons/SvgIcons/logo_transprent.svg": "4aa7decbb464c74793181e783b5cdad4",
 "assets/assets/icons/SvgIcons/micsvg.svg": "c8312ea3875246147bd8cd2af0b8deae",
+"assets/assets/icons/SvgIcons/notificationbell.svg": "90da8037115bf9514e1a73715c11c940",
 "assets/assets/icons/SvgIcons/openfoldersvg.svg": "341ae82222c4460ae0b9d891160a7e7d",
 "assets/assets/icons/SvgIcons/pausesvg.svg": "5db4a8f3c1d52a528367c822e810e4d8",
 "assets/assets/icons/SvgIcons/refeshsvg.svg": "26a6e1f0fd8c8f0dba9801a908f6646d",
@@ -621,7 +622,7 @@ const RESOURCES = {"assets/AssetManifest.bin": "71b8b6d72e41881a2740fc4bda3938e6
 "icons/Icon-maskable-512.png": "0104a8a0bdca52cd3ee63781dcd2deb7",
 "index.html": "eca41fd53cd286b8c9c8d3ba20044eaf",
 "/": "eca41fd53cd286b8c9c8d3ba20044eaf",
-"main.dart.js": "c8cdda3cb09d0f4e3be4831ddd2c4b3a",
+"main.dart.js": "d64f249d9b5a463b012cf2b9dfecfa3e",
 "manifest.json": "9cbba53907fa21f47602ffbcb6f80bed",
 "version.json": "0af01196d05d5cf8f9687f1fd67a3dd7"};
 // The application shell files that are downloaded before a service worker can
