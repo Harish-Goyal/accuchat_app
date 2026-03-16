@@ -111,19 +111,9 @@ class AccuChatDashboard extends StatelessWidget {
                    SizedBox(
                         width: 30,
                         child:
-                        controller.myCompany?.logo!=null? CustomCacheNetworkImage(
-                          "${ApiEnd.baseUrlMedia}${controller.myCompany?.logo ?? ''}",
-                          radiusAll: 100,
-                          height: 30,
-                          width: 30,
-                          borderColor: appColorYellow,
-                          defaultImage: appIcon,
-                          boxFit: BoxFit.cover,
-                          isApp: true,
-                        ):CircleAvatar(
-                          // radius: 45,
-                          backgroundColor: Colors.white,
-                          child: Text(getInitials(controller.myCompany?.companyName ?? ''),style: BalooStyles.baloosemiBoldTextStyle(color: greenside,size: 20),),
+                      ClipRRect(
+                          borderRadius: BorderRadius.circular(100),
+                          child: Image.asset("assets/appstore.png"),
                         ),
 
                       ).paddingAll(1),
@@ -172,19 +162,14 @@ class AccuChatDashboard extends StatelessWidget {
 
 
 
-        controller.myCompany?.logo!=null? CustomCacheNetworkImage(
-          "${ApiEnd.baseUrlMedia}${controller.myCompany?.logo ?? ''}",
-          radiusAll: 100,
-          height: 30,
+        SizedBox(
           width: 30,
-          borderColor: appColorYellow,
-          defaultImage: appIcon,
-          boxFit: BoxFit.cover,
-          isApp: true,
-        ):CircleAvatar(
-          // radius: 45,
-          backgroundColor: Colors.white,
-          child: Text(getInitials(controller.myCompany?.companyName ?? ''),style: BalooStyles.baloosemiBoldTextStyle(color: greenside,size: 20),),
+          child:
+          ClipRRect(
+            borderRadius: BorderRadius.circular(100),
+            child: Image.asset("assets/appstore.png"),
+          ),
+
         ),
       ).paddingSymmetric(horizontal: 4,vertical: 12)
     ),

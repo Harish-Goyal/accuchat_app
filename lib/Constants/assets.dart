@@ -111,8 +111,8 @@ const addCamera="assets/icons/camera.png";
 
 
 const String emptyTask = "assets/icons/empty_task.png";
-const String calendarPng = "assets/images/calendar.png";
-const String categoryPng = "assets/images/category.png";
+// const String calendarPng = "assets/images/calendar.png";
+// const String categoryPng = "assets/images/category.png";
 const String pinnedPng = "assets/images/pin.png";
 const String descriptionPng = "assets/images/description.png";
 const String loginPng = "assets/images/login_icon.png";

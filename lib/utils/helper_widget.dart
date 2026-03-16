@@ -404,7 +404,7 @@ Widget goToWidget(title, color, {count}) {
                  shape: BoxShape.circle
 
              ),
-             child: Icon(Icons.notifications_none_outlined,color: greenside,size: 18,)),
+             child: Icon(Icons.notifications_none,color: greenside,size: 18,)),
         ],
       ));
 }

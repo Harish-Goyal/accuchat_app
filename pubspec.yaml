@@ -156,6 +156,7 @@ flutter:
     - assets/icons/setting_icon/
     - assets/icons/SvgIcons/
     - assets/sounds/
+    - assets/
     - assets/service-account.json
   # An image asset can refer to one or more resolution-specific "variants", see
   # https://flutter.dev/to/resolution-aware-images
