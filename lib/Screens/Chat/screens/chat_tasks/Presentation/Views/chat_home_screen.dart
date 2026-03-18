@@ -22,6 +22,7 @@ import '../../../../../../utils/custom_dialogue.dart';
 import '../../../../../../utils/custom_flashbar.dart';
 import '../../../../../../utils/gradient_button.dart';
 import '../../../../../../utils/helper_widget.dart';
+import '../../../../../../utils/hover_glass_effect_widget.dart';
 import '../../../../../../utils/networl_shimmer_image.dart';
 import '../../../../../../utils/product_shimmer_widget.dart';
 import '../../../../../../utils/text_style.dart';
@@ -110,30 +111,38 @@ class ChatsHomeScreen extends GetView<ChatHomeController> {
         child: Row(
           mainAxisSize: MainAxisSize.min,
           children: [
-            Container(
-              width: 40,
-              decoration: BoxDecoration(
-                color: Colors.white,
-                  shape: BoxShape.circle,boxShadow: [
-                    BoxShadow(color: greenside.withOpacity(.5),blurRadius: 5)
-              ]
+            HoverGlassEffect(
+              margin: const EdgeInsets.symmetric(horizontal: 0, vertical: 0),
+              padding: const EdgeInsets.symmetric(horizontal: 0, vertical: 0),
+              borderRadius: 100,
+              hoverScale: 1.1,
+              normalBlur: 2,
+              hoverBlur: 10,
+              child: Container(
+                width: 40,
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                    shape: BoxShape.circle,boxShadow: [
+                      BoxShadow(color: greenside.withOpacity(.5),blurRadius: 5)
+                ]
 
-              ),
-                child:controller.myCompany?.logo!=null? CustomCacheNetworkImage(
-                  "${ApiEnd.baseUrlMedia}${controller.myCompany?.logo ?? ''}",
-                  radiusAll: 100,
-                  height: 40,
-                  width: 40,
-                  borderColor: perplebr,
-                  defaultImage: appIcon,
-                  // boxFit: BoxFit.cover,
-                  isApp: true,
-                ):CircleAvatar(
-                // radius: 45,
-                backgroundColor: Colors.white,
-                child: Text(getInitials(companyN),style: BalooStyles.baloosemiBoldTextStyle(color: greenside,size: 20),),
-              ),
-              ).paddingAll(3),
+                ),
+                  child:controller.myCompany?.logo!=null? CustomCacheNetworkImage(
+                    "${ApiEnd.baseUrlMedia}${controller.myCompany?.logo ?? ''}",
+                    radiusAll: 100,
+                    height: 40,
+                    width: 40,
+                    borderColor: perplebr,
+                    defaultImage: appIcon,
+                    // boxFit: BoxFit.cover,
+                    isApp: true,
+                  ):CircleAvatar(
+                  // radius: 45,
+                  backgroundColor: Colors.white,
+                  child: Text(getInitials(companyN),style: BalooStyles.baloosemiBoldTextStyle(color: greenside,size: 20),),
+                ),
+                ).paddingAll(3),
+            ),
 
             Expanded(
               child: Column(
@@ -257,30 +266,45 @@ class ChatsHomeScreen extends GetView<ChatHomeController> {
       }),
       actions: [
         kIsWeb && w >600
-            ? IconButton(
-                onPressed: () async {
+            ? InkWell(
+                onTap: () async {
                   final user = await openAllUserDialog();
                   if (user != null) {
                     _goToScreen(user,w);
                   }
                 },
+            borderRadius: BorderRadius.circular(100),
                 // icon: Image.asset(
-                icon:GradientContainer(
-                  color1:  greenside.withOpacity(.95),
-                  color2:  greenside.withOpacity(.5),
+                child:HoverGlassEffect(
+                  margin: const EdgeInsets.symmetric(horizontal: 2, vertical: 2),
+                  padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 7),
+                  borderRadius: 100,
+                  hoverScale: 1.08,
+                  normalBlur: 0,
+                  hoverBlur: 4,
+                  gradient:  LinearGradient(colors: [
+                    greenside.withOpacity(.95),
+                    greenside.withOpacity(.5),
+                 ]),
+                  hoverGradient:  LinearGradient(colors: [
+                    greenside.withOpacity(.95),
+                    greenside.withOpacity(.5),
+                 ]),
                   child: SvgPicture.asset(
-                    addNewChatPng,
-                    height: 20,
-                    width: 20,
-                    color: Colors.white,
-                    fit: BoxFit.contain,
-                  ),
+                      addNewChatPng,
+                      height: 20,
+                      width: 20,
+                      color: Colors.white,
+                      fit: BoxFit.contain,
+                    ),
+
                 ))
             : const SizedBox(),
     kIsWeb && w >600 ?const SizedBox(): hGap(10),
        kIsWeb && w > 600?const SizedBox(): Obx(() {
-          return IconButton(
-              onPressed: () {
+          return InkWell(
+            borderRadius: BorderRadius.circular(100),
+              onTap: () {
                 controller.isSearching.value = !controller.isSearching.value;
                 controller.isSearching.refresh();
                 if(controller.isSearching.value){
@@ -293,16 +317,27 @@ class ChatsHomeScreen extends GetView<ChatHomeController> {
                   controller.seacrhCon.clear();
                   controller.searchtetxtFocus.unfocus();
                 }
-
-
               },
-              icon:GradientContainer(
-                  color1:  greenside.withOpacity(.95),
-                  color2:  greenside.withOpacity(.5),
+              child:HoverGlassEffect(
+                margin: const EdgeInsets.symmetric(horizontal: 2, vertical: 2),
+                padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 7),
+                borderRadius: 100,
+                hoverScale: 1.08,
+                normalBlur: 0,
+                hoverBlur: 4,
+                gradient:  LinearGradient(colors: [
+                  greenside.withOpacity(.95),
+                  greenside.withOpacity(.5),
+                ]),
+                hoverGradient:  LinearGradient(colors: [
+                  greenside.withOpacity(.95),
+                  greenside.withOpacity(.5),
+                ]),
                 child: controller.isSearching.value
-                    ? const Icon(CupertinoIcons.clear,color:Colors.white)
-                // :Image.asset(searchPng, height: 25, width: 25));
-                    :SvgPicture.asset(searchPng, height: 20, width: 20,color: Colors.white,)),
+                      ? const Icon(CupertinoIcons.clear,color:Colors.white)
+                  // :Image.asset(searchPng, height: 25, width: 25));
+                      :SvgPicture.asset(searchPng, height: 20, width: 20,color: Colors.white,),
+              ),
               );
         }),
         PopupMenuButton<String>(

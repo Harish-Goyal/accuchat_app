@@ -50,19 +50,12 @@ class DashboardController extends GetxController with WidgetsBindingObserver {
   RxBool newCompanyChat =false.obs;
   RxBool newTask =false.obs;
 
-  // void updateIndex(int index) {
-  //   print("Updating index to: $index");
-  //   currentIndex = index;
-  //   update();
-  // }
 
   bool _inited = false;
 
-  // --- add: simple skeleton widgets to avoid white frame before nav loads
   List<Widget> get _fallbackScreens => [
    const ChatHomeShimmer(itemCount: 12),
    const ChatHomeShimmer(itemCount: 12),
-  //
   ];
 
 

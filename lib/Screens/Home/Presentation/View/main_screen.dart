@@ -23,6 +23,7 @@ import '../../../../utils/chat_presence.dart';
 import '../../../../utils/circleContainer.dart';
 import '../../../../utils/custom_flashbar.dart';
 import '../../../../utils/helper_widget.dart';
+import '../../../../utils/hover_glass_effect_widget.dart';
 import '../../../../utils/networl_shimmer_image.dart';
 import '../../../../utils/register_image.dart';
 import '../../../Chat/api/apis.dart';
@@ -100,48 +101,69 @@ class AccuChatDashboard extends StatelessWidget {
             },
             child: SizedBox(
               width: 140,
+              child: HoverGlassEffect(
+              margin: const EdgeInsets.symmetric(horizontal: 0, vertical: 0),
+              padding: const EdgeInsets.symmetric(horizontal: 0, vertical: 0),
+              borderRadius: 12,
+              hoverScale: 1.015,
+              normalBlur: 3,
+              hoverBlur: 10,
+              borderColor: greenside.withOpacity(.1),
+              hoverBorderColor:greenside.withOpacity(.55)
+              ,
               child: GradientContainer(
-                radius: 12,
-                color1:  greenside.withOpacity(.95),
-                color2:  greenside.withOpacity(.5),
-                padding: 6,
-                child: Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                   SizedBox(
-                        width: 30,
-                        child:
-                      ClipRRect(
-                          borderRadius: BorderRadius.circular(100),
-                          child: Image.asset("assets/appstore.png"),
-                        ),
-
-                      ).paddingAll(1),
-
-                    Expanded(
-                      child: Column(
-                        mainAxisAlignment: MainAxisAlignment.end,
-                        mainAxisSize: MainAxisSize.min,
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            'Accuchat',
-                            style: BalooStyles.balooboldTitleTextStyle(
-                                color: Colors.white, size: 15),
-                          ).paddingOnly(left: 3, top: 4),
-                          Text(
-                            (controller.myCompany?.companyName ?? ''),
-                            style: BalooStyles.baloonormalTextStyle(
-                              color: Colors.white,
-                              size: 12
+                  radius: 12,
+                  color1:  greenside.withOpacity(.95),
+                  color2:  greenside.withOpacity(.5),
+                  padding: 6,
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                     SizedBox(
+                          width: 30,
+                          child:
+                          Container(
+                            decoration:  BoxDecoration(
+                                boxShadow: [
+                                  BoxShadow(
+                                      color: Colors.white.withOpacity(.3),
+                                      blurRadius: 5
+                                  )
+                                ],
+                              shape: BoxShape.circle
                             ),
-                            maxLines: 1,
-                            overflow: TextOverflow.ellipsis,
-                          ).paddingOnly(left: 3),
-                        ],
+                            child: ClipRRect(
+                              borderRadius: BorderRadius.circular(100),
+                                child: SvgPicture.asset(appIconSvg)),
+                          ),
+
+                        ).paddingAll(1),
+
+                      Expanded(
+                        child: Column(
+                          mainAxisAlignment: MainAxisAlignment.end,
+                          mainAxisSize: MainAxisSize.min,
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              'Accuchat',
+                              style: BalooStyles.balooboldTextStyle(
+                                  color: Colors.white, size: 15),
+                            ).paddingOnly(left: 3, top: 1),
+                            Text(
+                              (controller.myCompany?.companyName ?? ''),
+                              style: BalooStyles.baloonormalTextStyle(
+                                color: Colors.white,
+                                size: 12
+                              ),
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                            ).paddingOnly(left: 3),
+                          ],
+                        ),
                       ),
-                    ),
-                  ],
+                    ],
+                  ),
                 ),
               ).paddingSymmetric(horizontal: 4,vertical: 12),
             ),
@@ -184,7 +206,7 @@ class AccuChatDashboard extends StatelessWidget {
                   color: perplebr.withOpacity(.1),
                   borderRadius: BorderRadius.circular(2),
                 ),
-                hoverColor: perpleBg,
+                hoverColor: greenside.withOpacity(.2),
                 hoverTextStyle: BalooStyles.baloosemiBoldTextStyle(),
                 textStyle: BalooStyles.baloomediumTextStyle(color: Colors.black87,),
                 selectedTextStyle: BalooStyles.baloomediumTextStyle(color: Colors.white),
@@ -194,15 +216,12 @@ class AccuChatDashboard extends StatelessWidget {
                   borderRadius: BorderRadius.circular(12),
                 ),
                 selectedItemDecoration: BoxDecoration(
-                  // color: appColorGreen,
                   gradient: LinearGradient(colors: [
                     greenside,
                     greenside.withOpacity(.5)
                   ]),
                   borderRadius: BorderRadius.circular(12),
                 ),
-
-
               ),
               extendedTheme: const SidebarXTheme(width: 140),
               items: [

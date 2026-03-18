@@ -21,6 +21,7 @@ import '../../../../../../utils/networl_shimmer_image.dart';
 import '../../../../../../utils/shares_pref_web.dart';
 import '../../../../../../utils/text_style.dart';
 import '../../../../../Home/Presentation/Controller/company_service.dart';
+import '../../../../../Home/Presentation/View/company_card.dart';
 import '../../../../../Home/Presentation/View/home_screen.dart';
 import '../../../../api/apis.dart';
 import '../../../../api/session_alive.dart';
@@ -82,145 +83,22 @@ class LandingPage extends GetView<LandingScreenController> {
                                 itemCount: controller.joinedCompaniesList.length,
                                 itemBuilder: (context, i) {
                                   final company = controller.joinedCompaniesList[i];
-                                  return ChatCard(
-                                      iconWidget: SizedBox(
-                                        width: 50,
-                                        child:
-                                        company.logo !=null? CustomCacheNetworkImage(
-                                          "${ApiEnd.baseUrlMedia}${company.logo ?? ''}",
-                                          radiusAll: 100,
-                                          width: 50,
-                                          height: 50,
-                                          borderColor: appColorYellow,
-                                          defaultImage: appIcon,
-                                          boxFit: BoxFit.cover,
-                                          isApp: true,
-                                        ):CircleAvatar(
-                                          // radius: 45,
-                                          backgroundColor: Colors.white,
-                                          child: Text(getInitials(company.companyName?? ''),style: BalooStyles.baloosemiBoldTextStyle(color: greenside,size: 20),),
-                                        ),
-
-                                      ),
-                                      title: (company.companyName ?? ''),
-                                      subtitle: 'Tap to enter this company',
-
-                                      onTap: () async {
-
-                                        customLoader.show();
-                                        if(Get.isRegistered<CompanyService>()) {
-                                          final svc = CompanyService.to;
-                                          await svc.select(company!);
-                                        }else{
-                                          await StorageService.init();
-                                          await HiveBoot.init();
-                                          await HiveBoot.openBoxOnce<CompanyData>(selectedCompanyBox);
-                                          // await Get.putAsync<CompanyService>(
-                                          //       () async => await CompanyService().init(),
-                                          //   permanent: true,
-                                          // );
-                                          await Get.putAsync<CompanyService>(
-                                                () async => await CompanyService().init(),
-                                            permanent: true,
-                                          );
-                                          final svc = CompanyService.to;
-                                          await svc.select(company!);
-                                        }
-
-                                        Get.putAsync<Session>(() async {
-                                          final s = Session(Get.find<AuthApiServiceImpl>(), Get.find<AppStorage>());
-
-                                          CompanyData? selCompany;
-                                          try {
-                                            final svc = CompanyService.to;
-                                            // OPTIONAL: if you add a `Future<void> ready` in CompanyService, await it here:
-                                            selCompany = svc.selected; // may be null on clean install
-                                          } catch (_) {}
-                                          // company may not exist yet on fresh install:
-                                          await s.initSafe(companyId: selCompany?.companyId??0);
-                                          return s;
-                                        }, permanent: true);
-
-                                        // if(!Get.isRegistered<CompanyService>()) {
-                                        //   await StorageService.init();
-                                        //   await HiveBoot.init();
-                                        //   await HiveBoot.openBoxOnce<CompanyData>(selectedCompanyBox);
-                                        //   await Get.putAsync<CompanyService>(
-                                        //         () async => await CompanyService().init(),
-                                        //     permanent: true,
-                                        //   );
-                                        // }
-
-                                        StorageService.setLoggedIn(true);
-                                        customLoader.hide();
-                                        if(!kIsWeb){
-                                          FirebaseCrashlytics.instance.setUserIdentifier(APIs.me.userId.toString());
-                                          FirebaseCrashlytics.instance.setCustomKey('companyId', company.companyId.toString() ?? '');
-                                          FirebaseCrashlytics.instance.setCustomKey('app', 'AccuChat'); // optional
-
-                                        }
-
-                                        Get.offAllNamed(AppRoutes.home);
-
-                                      },
-                                    subtitleTap: ()async {
-
-                                      customLoader.show();
-                                      if(Get.isRegistered<CompanyService>()) {
-                                        final svc = CompanyService.to;
-                                        await svc.select(company!);
-                                      }else{
-                                        await StorageService.init();
-                                        await HiveBoot.init();
-                                        await HiveBoot.openBoxOnce<CompanyData>(selectedCompanyBox);
-                                        // await Get.putAsync<CompanyService>(
-                                        //       () async => await CompanyService().init(),
-                                        //   permanent: true,
-                                        // );
-                                        await Get.putAsync<CompanyService>(
-                                              () async => await CompanyService().init(),
-                                          permanent: true,
-                                        );
-                                        final svc = CompanyService.to;
-                                        await svc.select(company!);
-                                      }
-                                      Get.putAsync<Session>(() async {
-                                        final s = Session(Get.find<AuthApiServiceImpl>(), Get.find<AppStorage>());
-
-                                        CompanyData? selCompany;
-                                        try {
-                                          final svc = CompanyService.to;
-                                          // OPTIONAL: if you add a `Future<void> ready` in CompanyService, await it here:
-                                          selCompany = svc.selected; // may be null on clean install
-                                        } catch (_) {}
-                                        // company may not exist yet on fresh install:
-                                        await s.initSafe(companyId: selCompany?.companyId??0);
-                                        return s;
-                                      }, permanent: true);
-
-                                      // if(!Get.isRegistered<CompanyService>()) {
-                                      //   await StorageService.init();
-                                      //   await HiveBoot.init();
-                                      //   await HiveBoot.openBoxOnce<CompanyData>(selectedCompanyBox);
-                                      //   await Get.putAsync<CompanyService>(
-                                      //         () async => await CompanyService().init(),
-                                      //     permanent: true,
-                                      //   );
-                                      // }
-
-                                      StorageService.setLoggedIn(true);
-                                      customLoader.hide();
-                                      if(!kIsWeb){
-                                        FirebaseCrashlytics.instance.setUserIdentifier(APIs.me.userId.toString());
-                                        FirebaseCrashlytics.instance.setCustomKey('companyId', company.companyId.toString() ?? '');
-                                        FirebaseCrashlytics.instance.setCustomKey('app', 'AccuChat'); // optional
-
-                                      }
-                                      Get.offAllNamed(AppRoutes.home);
-
-                                    },
-
+                                  return  Align(
+                                    alignment: Alignment.center,
+                                    child: SizedBox(
+                                        width: kIsWeb ? 420 : double.infinity,
+                                        child: CompanyCardModern(companyData: company, isLanding: true,)),
                                   );
+
+
+
+
+
+
+
+
+
+
                                 },
                               )
                             else
@@ -228,7 +106,7 @@ class LandingPage extends GetView<LandingScreenController> {
                                 padding: const EdgeInsets.symmetric(vertical: 10),
                                 child: Center(
                                   child: SizedBox(
-                                    width: Get.width * .7,
+                                    width: Get.width * .5,
                                     child: Text(
                                       "You are not connected to any company! You can create or join company.",
                                       textAlign: TextAlign.center,
@@ -240,61 +118,60 @@ class LandingPage extends GetView<LandingScreenController> {
 
                             vGap(40),
 
-                            Row(
-                              children: [
-                                Expanded(
-                                  child: dynamicButton(
-                                    name: "Create Company",
-                                    onTap: () {
-                                     /* if (APIs.me.selectedCompany?.allowedCompany == 0) {
-                                        toast("You are not allowed to create company more than 1! Contact Organization!");
-                                      } else {
-                                        Get.toNamed(AppRoutes.createCompanyRoute, arguments: {'isHome': false});
-                                      }*/
-                                      if(kIsWeb){
-                                        openCreateCompanyDialog(false);
-                                        // Get.toNamed(
-                                        //   "${AppRoutes.create_company}?isHome=${0}",
-                                        // );
-                                      }else {
-                                        Get.toNamed(
-                                            AppRoutes.create_company,
-                                            arguments: {'isHome': '0'});
-                                      }
-                                    },
-                                    isShowText: true,
-                                    isShowIconText: false,
-                                    gradient: buttonGradient,
-                                    leanIcon: 'assets/images/google.png',
+                            SizedBox(
+                              width:500,
+                              child: Row(
+                                children: [
+                                  Expanded(
+                                    child: dynamicButton(
+                                      name: "Create Company",
+                                      onTap: () {
+                                       /* if (APIs.me.selectedCompany?.allowedCompany == 0) {
+                                          toast("You are not allowed to create company more than 1! Contact Organization!");
+                                        } else {
+                                          Get.toNamed(AppRoutes.createCompanyRoute, arguments: {'isHome': false});
+                                        }*/
+                                        if(kIsWeb){
+                                          openCreateCompanyDialog(false);
+                                          // Get.toNamed(
+                                          //   "${AppRoutes.create_company}?isHome=${0}",
+                                          // );
+                                        }else {
+                                          Get.toNamed(
+                                              AppRoutes.create_company,
+                                              arguments: {'isHome': '0'});
+                                        }
+                                      },
+                                      isShowText: true,
+                                      isShowIconText: false,
+                                      gradient: buttonGradient,
+                                      leanIcon: 'assets/images/google.png',
+                                    ),
                                   ),
-                                ),
-                              ],
-                            ),
-                            vGap(20),
-                            Row(
-                              children: [
-                                Expanded(
-                                  child: dynamicButton(
-                                    name: "Join Company",
-                                    onTap: () async {
-                                     /* await APIs.handleJoinCompany(
-                                        context: context,
-                                        emailOrPhone: APIs.me.phone == 'null'
-                                            ? APIs.me.email
-                                            : APIs.me.phone,
-                                      );*/
-                                      //TODO
+                                  hGap(12),
+                                  Expanded(
+                                    child: dynamicButton(
+                                      name: "Join Company",
+                                      onTap: () async {
+                                        /* await APIs.handleJoinCompany(
+                                          context: context,
+                                          emailOrPhone: APIs.me.phone == 'null'
+                                              ? APIs.me.email
+                                              : APIs.me.phone,
+                                        );*/
+                                        //TODO
 
-                                      var mob = StorageService.getMobile();
-                                      controller.hitAPIToGetPendingInvites(mob,context);
-                                    },
-                                    isShowText: true,
-                                    isShowIconText: false,
-                                    gradient: buttonGradient,
-                                    leanIcon: 'assets/images/google.png',
+                                        var mob = StorageService.getMobile();
+                                        controller.hitAPIToGetPendingInvites(mob,context);
+                                      },
+                                      isShowText: true,
+                                      isShowIconText: false,
+                                      gradient: buttonGradient,
+                                      leanIcon: 'assets/images/google.png',
+                                    ),
                                   ),
-                                ),
-                              ],
+                                ],
+                              ),
                             ),
                             vGap(40),
                           ],
@@ -443,208 +320,7 @@ class LandingPage extends GetView<LandingScreenController> {
       ),
 
 
-      /*Stack(
-            children: [
-          //app logo
-          AnimatedPositioned(
-              top: mq.height * .00,
-              right: _isAnimate ? mq.width * .25 : -mq.width * .5,
-              width: mq.width * .5,
-              duration: const Duration(seconds: 1),
-              child: Column(
-                children: [
-                  vGap(15),
-                  Text('Welcome to AccuChat',style: BalooStyles.balooboldTextStyle(size: 16),),
 
-                  Image.asset(
-                    appIcon,
-                    width: 100,
-                  ),
-
-                ],
-              )),
-
-          //google login button
-
-          Positioned(
-            bottom: mq.height * .01,
-            left: mq.width * .05,
-            width: mq.width * .9,
-            height: mq.height * .6,
-            child: Column(
-              children: [
-                FutureBuilder<List<CompanyModel>>(
-                  future: APIs.fetchJoinedCompanies(),
-                  builder: (context, snapshot) {
-                    if (!snapshot.hasData) return SizedBox();
-                    final company = snapshot.data!;
-                    return company.isNotEmpty? Column(
-                      children: [
-                        Column(
-                          children: [
-                            ...company.map((company) =>
-                            ChatCard(
-                                iconWidget: SizedBox(
-                                  width: 50,
-                                  child: CustomCacheNetworkImage(
-                                      radiusAll: 100,
-                                      company.logoUrl ?? ''),
-                                ),
-                                title: company.name??'',
-                                subtitle:
-                                'Tap to enter this company',
-                                onTap: () async{
-                                  print('tapper');
-                                  customLoader.show();
-
-                                  final userDoc = FirebaseFirestore
-                                      .instance
-                                      .collection('users')
-                                      .doc(APIs.me.id);
-                                  await userDoc.update({
-                                    // 'company': FieldValue.arrayUnion([company.toJson()]),
-                                    'selectedCompany':
-                                    company.toJson(),
-                                  });
-
-
-                                  APIs.me.selectedCompany =
-                                      company;
-
-                                  if(APIs.me.selectedCompany?.adminUserId==APIs.me.id){
-                                    await userDoc.update({
-                                      'role': 'admin',
-                                    });
-                                  }else{
-                                    await userDoc.update({
-                                      'role': 'member',
-                                    });
-                                  }
-                                  customLoader.hide();
-                                  setState(() {});
-                                  await APIs.getSelfInfo();
-                                  Get.offAllNamed(AppRoutes.home);
-                                  */
-      /* Navigator.pushReplacement(
-                                        context,
-                                        MaterialPageRoute(
-                                            builder: (_) => AccuChatDashboard()));*//*
-                                },)
-                            ),
-
-                            vGap(10),
-
-                          ],
-                        ),
-                      ],
-                    ):Column(
-                      crossAxisAlignment: CrossAxisAlignment.center,
-                      children: [
-                        vGap(10),
-
-                        Center(child: SizedBox(
-                            width: Get.width*.7,
-                            child:  Text("You are not connected to any company! You can create or join company",textAlign: TextAlign.center,
-                            style: BalooStyles.balooregularTextStyle(),))),
-                      ],
-                    );
-                  },
-                )
-              ],
-            ),
-          ),
-
-          Positioned(
-            bottom: mq.height * .01,
-            left: mq.width * .05,
-            width: mq.width * .9,
-            height: mq.height * .13,
-            child:
-                Column(
-                      crossAxisAlignment: CrossAxisAlignment.center,
-                      children: [
-                        Row(
-                          children: [
-                            Expanded(
-                              child: dynamicButton(
-                                  name: "Create Company",
-                                  onTap: () {
-                                      if(APIs.me.selectedCompany?.allowedCompany==0)
-                                      {
-                                        toast("You are not allowed to create company more than 1! Contact Organization!");
-                                      }
-                                    else{
-                                      Get.to(() =>  CreateCompanyScreen(isHome: false,));
-                                    }
-                                  },
-                                  isShowText: true,
-                                  isShowIconText: false,
-                                  gradient: buttonGradient,
-                                  leanIcon: 'assets/images/google.png'),
-                            ),
-                          ],
-                        ).marginSymmetric(horizontal: Get.height * .03),
-                        vGap(20),
-                        Row(
-                          children: [
-                            Expanded(
-                              child: dynamicButton(
-                                  name: "Join Company",
-                                  onTap: () async{
-                                    // Get.to(() => JoinCompanyScreen(
-                                    //   type: 'join',
-
-                                    // ));
-                                    await APIs.handleJoinCompany(context:context, emailOrPhone:APIs.me.phone=='null'?APIs.me.email:APIs.me.phone);
-
-                                  },
-                                  isShowText: true,
-                                  isShowIconText: false,
-                                  gradient: buttonGradient,
-                                  leanIcon: 'assets/images/google.png'),
-                            ),
-                          ],
-                        ).marginSymmetric(horizontal: Get.height * .03),
-
-
-
-
-              ],
-            ),
-          ),
-        ]),*/
-      /* body: Padding(
-          padding: const EdgeInsets.all(24.0),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              const Spacer(),
-              Image.asset(
-                'assets/images/company_illustration.png',
-                height: 200,
-              ),
-              const SizedBox(height: 40),
-              ElevatedButton(
-                onPressed: () => Navigator.pushNamed(context, '/createCompany'),
-                child: const Text('Create a Company'),
-                style: ElevatedButton.styleFrom(
-                  padding: const EdgeInsets.symmetric(vertical: 16),
-                  textStyle: const TextStyle(fontSize: 18),
-                ),
-              ),
-              const SizedBox(height: 16),
-              OutlinedButton(
-                onPressed: () => Navigator.pushNamed(context, '/joinCompany'),
-                child: const Text('Join a Company'),
-                style: OutlinedButton.styleFrom(
-                  padding: const EdgeInsets.symmetric(vertical: 16),
-                  textStyle: const TextStyle(fontSize: 18),
-                ),
-              ),
-              const Spacer(),
-            ],
-          ),
-        ),*/
     );
   }
 
@@ -653,10 +329,7 @@ class LandingPage extends GetView<LandingScreenController> {
 
 }
 Future<void> showResponsiveLogoutDialog(ctx) async {
-  // final ctx = Get.context!;
   final size = MediaQuery.of(ctx).size;
-
-  // Responsive width breakpoints (desktop / tablet / large phone / phone)
   double targetWidth;
   if (size.width >= 1280) {
     targetWidth = size.width * 0.25; // desktop
@@ -667,7 +340,7 @@ Future<void> showResponsiveLogoutDialog(ctx) async {
   } else {
     targetWidth = size.width * 0.85; // phones / small windows
   }
-  // Keep width within reasonable min/max
+
   targetWidth = targetWidth.clamp(360.0, 560.0);
 
   final maxHeight = size.height * 0.90;

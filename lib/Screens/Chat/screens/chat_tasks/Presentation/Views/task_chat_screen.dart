@@ -183,29 +183,27 @@ class _TaskScreenState extends State<TaskScreen> {
   Widget _mainBody() {
     return ScrollConfiguration(
       behavior: const _NoGlowScrollBehavior(),
-      child: Center(
-        child: Container(
-          width: Get.width,
-          margin: const EdgeInsets.only(right: 8),
-          decoration: const BoxDecoration(
-              image: DecorationImage(image: AssetImage(darkbg),fit: BoxFit.cover,opacity: .5)
-              ,  borderRadius: BorderRadius.only(topLeft: Radius.circular(12),topRight: Radius.circular(12),)
-          ),
-          constraints: BoxConstraints(maxWidth: _maxChatWidth(Get.context!)),
-          child: Padding(
-            padding: _shellHPadding(Get.context!),
-            child: Column(
-              children: [
-                Expanded(child: RepaintBoundary(child: chatMessageBuilder())),
-        Container(
-          constraints: const BoxConstraints(minHeight: 65),
-          padding: const EdgeInsets.all(0),
-          decoration: BoxDecoration(
-              borderRadius: BorderRadius.circular(15),
-              color: Colors.white.withOpacity(.8)
-          ),child: _chatInput()),
-              ],
-            ),
+      child: Container(
+        width: Get.width,
+        margin: const EdgeInsets.only(right: 8),
+        decoration: const BoxDecoration(
+            image: DecorationImage(image: AssetImage(darkbg),fit: BoxFit.cover,opacity: .5)
+            ,  borderRadius: BorderRadius.only(topLeft: Radius.circular(12),topRight: Radius.circular(12),)
+        ),
+        constraints: BoxConstraints(maxWidth: _maxChatWidth(Get.context!)),
+        child: Padding(
+          padding: _shellHPadding(Get.context!),
+          child: Column(
+            children: [
+              Expanded(child: RepaintBoundary(child: chatMessageBuilder())),
+      Container(
+        constraints: const BoxConstraints(minHeight: 65),
+        padding: const EdgeInsets.all(0),
+        decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(15),
+            color: Colors.white.withOpacity(.8)
+        ),child: _chatInput()),
+            ],
           ),
         ),
       ),
@@ -340,54 +338,50 @@ class _TaskScreenState extends State<TaskScreen> {
                                 height: 20,
                               ))).paddingOnly(left: 10)
                       : const SizedBox(),
-                  Align(
-                    alignment:
-                        sentByMe ? Alignment.centerRight : Alignment.centerLeft,
-                    child: ConstrainedBox(
-                      constraints: BoxConstraints(
-                          maxWidth: Get.width * (kIsWeb ? 0.36 : 0.6)),
-                      child: InkWell(
-                        borderRadius: sentByMe
-                            ? const BorderRadius.only(
-                                topLeft: Radius.circular(30),
-                                topRight: Radius.circular(30),
-                                bottomLeft: Radius.circular(30))
-                            : const BorderRadius.only(
-                                topLeft: Radius.circular(30),
-                                topRight: Radius.circular(30),
-                                bottomRight: Radius.circular(30)),
-                        onDoubleTap: () {
-                          SystemChannels.textInput
-                              .invokeMethod('TextInput.hide');
-                          _showBottomSheet(sentByMe, element, data: data);
-                        },
-                        child: Container(
-                          padding: const EdgeInsets.symmetric(
-                            horizontal: 15,
-                            vertical: 15,
-                          ),
-                          margin: sentByMe
-                              ? const EdgeInsets.only(left: 15, top: 0)
-                              : const EdgeInsets.only(right: 15, top: 0),
-                          decoration: BoxDecoration(
-                              color:
-                                  getTaskStatusColor(data.currentStatus?.name)
-                                      .withOpacity(.1),
-                              border: Border.all(
-                                  color: getTaskStatusColor(
-                                      data.currentStatus?.name)),
-                              borderRadius: sentByMe
-                                  ? const BorderRadius.only(
-                                      topLeft: Radius.circular(30),
-                                      topRight: Radius.circular(30),
-                                      bottomLeft: Radius.circular(30))
-                                  : const BorderRadius.only(
-                                      topLeft: Radius.circular(30),
-                                      topRight: Radius.circular(30),
-                                      bottomRight: Radius.circular(30))),
-                          child: _taskCard(message: data, element: element),
-                        ).marginOnly(left: (0), top: 8),
-                      ),
+                  ConstrainedBox(
+                    constraints: BoxConstraints(
+                        maxWidth: Get.width * (kIsWeb ? 0.36 : 0.6)),
+                    child: InkWell(
+                      borderRadius: sentByMe
+                          ? const BorderRadius.only(
+                              topLeft: Radius.circular(30),
+                              topRight: Radius.circular(30),
+                              bottomLeft: Radius.circular(30))
+                          : const BorderRadius.only(
+                              topLeft: Radius.circular(30),
+                              topRight: Radius.circular(30),
+                              bottomRight: Radius.circular(30)),
+                      onDoubleTap: () {
+                        SystemChannels.textInput
+                            .invokeMethod('TextInput.hide');
+                        _showBottomSheet(sentByMe, element, data: data);
+                      },
+                      child: Container(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 15,
+                          vertical: 15,
+                        ),
+                        margin: sentByMe
+                            ? const EdgeInsets.only(left: 15, top: 0)
+                            : const EdgeInsets.only(right: 15, top: 0),
+                        decoration: BoxDecoration(
+                            color:
+                                getTaskStatusColor(data.currentStatus?.name)
+                                    .withOpacity(.1),
+                            border: Border.all(
+                                color: getTaskStatusColor(
+                                    data.currentStatus?.name)),
+                            borderRadius: sentByMe
+                                ? const BorderRadius.only(
+                                    topLeft: Radius.circular(30),
+                                    topRight: Radius.circular(30),
+                                    bottomLeft: Radius.circular(30))
+                                : const BorderRadius.only(
+                                    topLeft: Radius.circular(30),
+                                    topRight: Radius.circular(30),
+                                    bottomRight: Radius.circular(30))),
+                        child: _taskCard(message: data, element: element),
+                      ).marginOnly(left: (0), top: 8),
                     ),
                   ),
                   (!sentByMe)
@@ -613,38 +607,35 @@ class _TaskScreenState extends State<TaskScreen> {
           ),
         ),
         vGap(5),
-        ConstrainedBox(
-          constraints:
-              BoxConstraints(maxWidth: Get.width * (kIsWeb ? 0.3 : 0.5)),
-          child: Row(mainAxisSize: MainAxisSize.min, children: [
-            Flexible(
-              child: DefaultSelectionStyle(
-                selectionColor: appColorPerple.withOpacity(0.3),
-                cursorColor: appColorPerple,
-                mouseCursor: SystemMouseCursors.text,
-                child: SelectableLinkify(
-                  text: message.details ?? '',
-                  enableInteractiveSelection: true,
-                  showCursor: true,
-                  onOpen: (link) {
-                    launchUrl(Uri.parse(link.url),
-                        mode: LaunchMode.externalApplication);
-                  },
-                  style: BalooStyles.baloonormalTextStyle(
-                    color: Colors.black87,
-                    size: 14,
-                  ),
-                  linkStyle: BalooStyles.baloonormalTextStyle(
-                    color: Colors.blue,
-                  ),
-                  linkifiers: const [
-                    UrlLinkifier(),
-                  ],
+        Row(
+            mainAxisSize: MainAxisSize.min, children: [
+          Flexible(
+            child: DefaultSelectionStyle(
+              selectionColor: appColorPerple.withOpacity(0.3),
+              cursorColor: appColorPerple,
+              mouseCursor: SystemMouseCursors.text,
+              child: SelectableLinkify(
+                text: message.details ?? '',
+                enableInteractiveSelection: true,
+                showCursor: true,
+                onOpen: (link) {
+                  launchUrl(Uri.parse(link.url),
+                      mode: LaunchMode.externalApplication);
+                },
+                style: BalooStyles.baloonormalTextStyle(
+                  color: Colors.black87,
+                  size: 14,
                 ),
+                linkStyle: BalooStyles.baloonormalTextStyle(
+                  color: Colors.blue,
+                ),
+                linkifiers: const [
+                  UrlLinkifier(),
+                ],
               ),
-            )
-          ]),
-        ),
+            ),
+          )
+        ]),
         if ((message.deadline ?? '').isNotEmpty) ...[
           vGap(10),
           Text(
@@ -656,13 +647,13 @@ class _TaskScreenState extends State<TaskScreen> {
           mainAxisSize: MainAxisSize.min,
           // mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
-            Flexible(
+            (message.media) != null? Flexible(
               child: Container(
-                child: (message.media) != null
-                    ? buildTaskAttachments(message.media)
-                    : const SizedBox(),
+                child:
+                    buildTaskAttachments(message.media)
+
               ),
-            ),
+            ): const SizedBox(),
             InkWell(
               borderRadius: BorderRadius.circular(30),
               onTap: () {
@@ -698,6 +689,7 @@ class _TaskScreenState extends State<TaskScreen> {
         ),
         vGap(8),
         Row(
+          mainAxisSize: MainAxisSize.min,
           children: [
             Flexible(
                 child: taskMemberRichText(

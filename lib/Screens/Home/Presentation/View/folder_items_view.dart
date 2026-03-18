@@ -13,6 +13,7 @@ import '../../../../Constants/assets.dart';
 import '../../../../Constants/colors.dart';
 import '../../../../utils/confirmation_dialog.dart';
 import '../../../../utils/custom_container.dart';
+import '../../../../utils/hover_glass_effect_widget.dart';
 import '../../../../utils/loading_indicator.dart';
 import '../../../../utils/networl_shimmer_image.dart';
 import '../../../../utils/share_helper.dart';
@@ -95,43 +96,54 @@ class FolderItemsScreen extends GetView<GalleryItemController> {
                           .map((e) => "${ApiEnd.baseUrlMedia}${e.filePath!}")
                           .toList();
 
-                      return _MediaCard(
-                        thumbHeight: thumbHeight,
-                        title: title,
-                        keywords: kw,
-                        thumbUrl: thumbUrl,
-                        isImage: isImage,
-                        fileName: fileName,
-                        isSelected: isSelected,
-                        createdOnText: _prettyDate(it.createdOn),
-                        docIcon: _fileIcon(fileName),
-                        onTap: () {
-                          if(isDocument(it.filePath??'')){
-                            openDocumentFromUrl("${ApiEnd.baseUrlMedia}${it.filePath!}");
-                          }else{
-                            Get.to(
-                                  () => GalleryViewerPage(
-                                onReply: () {},
+                      return HoverGlassEffect(
+                        margin: const EdgeInsets.symmetric(horizontal: 0, vertical: 0),
+                        padding: const EdgeInsets.symmetric(horizontal: 0, vertical: 0),
+                        borderRadius: 12,
+                        hoverScale: 1.015,
+                        normalBlur: 3,
+                        hoverBlur: 10,
+                        // borderColor: greenside.withOpacity(.1),
+                        // hoverBorderColor:greenside.withOpacity(.55)
 
-                              ),
-                              binding: BindingsBuilder(() {
-                                Get.put(GalleryViewerController(
-                                    urls: filePaths,
-                                    index: i,
-                                    chathis: null));
-                              }),
-                              fullscreenDialog: true,
-                              transition: Transition.fadeIn,
-                            );
-                          }
+                        child: _MediaCard(
+                          thumbHeight: thumbHeight,
+                          title: title,
+                          keywords: kw,
+                          thumbUrl: thumbUrl,
+                          isImage: isImage,
+                          fileName: fileName,
+                          isSelected: isSelected,
+                          createdOnText: _prettyDate(it.createdOn),
+                          docIcon: _fileIcon(fileName),
+                          onTap: () {
+                            if(isDocument(it.filePath??'')){
+                              openDocumentFromUrl("${ApiEnd.baseUrlMedia}${it.filePath!}");
+                            }else{
+                              Get.to(
+                                    () => GalleryViewerPage(
+                                  onReply: () {},
 
-                        },
-                        onRename: () => _openRenameDialog(context, it,controller),
-                        onDelete: () => _openDeleteConfirm(context, it,controller),
-                        onShare: () {
-                          // c.shareMedia(it);
-                        }, onSharew: ()=>
-                        _onShareWhatsapp(thumbUrl),
+                                ),
+                                binding: BindingsBuilder(() {
+                                  Get.put(GalleryViewerController(
+                                      urls: filePaths,
+                                      index: i,
+                                      chathis: null));
+                                }),
+                                fullscreenDialog: true,
+                                transition: Transition.fadeIn,
+                              );
+                            }
+
+                          },
+                          onRename: () => _openRenameDialog(context, it,controller),
+                          onDelete: () => _openDeleteConfirm(context, it,controller),
+                          onShare: () {
+                            // c.shareMedia(it);
+                          }, onSharew: ()=>
+                          _onShareWhatsapp(thumbUrl),
+                        ),
                       );
                     },
                   );
@@ -375,7 +387,7 @@ class _MediaCard extends StatelessWidget {
           borderRadius: BorderRadius.circular(14),
           onTap: onTap,
           child: Padding(
-            padding: const EdgeInsets.all(10),
+            padding: const EdgeInsets.all(8),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
@@ -410,7 +422,7 @@ class _MediaCard extends StatelessWidget {
                   ),
                 ),
 
-                const SizedBox(height: 10),
+                const SizedBox(height: 5),
 
                 // Title + menu
                 Row(

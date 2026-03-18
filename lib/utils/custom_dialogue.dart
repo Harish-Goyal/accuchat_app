@@ -45,7 +45,7 @@ class CustomDialogue extends StatelessWidget {
                   borderRadius: BorderRadius.circular(100),
                   child: Container(
                     padding: const EdgeInsets.all(4),
-                    margin: const EdgeInsets.all(4),
+                    margin: const EdgeInsets.all(2),
                     decoration: BoxDecoration(
                         color: AppTheme.appColor.withOpacity(.1),
                         shape: BoxShape.circle,
@@ -65,7 +65,6 @@ class CustomDialogue extends StatelessWidget {
                   mainAxisSize: MainAxisSize.min,
                   children: [
                     isShowAppIcon!? getAppLogo():const SizedBox(),
-                    isShowAppIcon!?   vGap(10):vGap(0),
                     Text(
                       title,
                       style: BalooStyles.baloosemiBoldTextStyle(size: 18),
@@ -81,9 +80,10 @@ class CustomDialogue extends StatelessWidget {
             child: Column(
               mainAxisSize: MainAxisSize.min,
               crossAxisAlignment: CrossAxisAlignment.center,
+              mainAxisAlignment: MainAxisAlignment.start,
               children: [
                 content,
-                isShowAppIcon!?vGap(20):vGap(0),
+                isShowAppIcon!?vGap(15):vGap(0),
                 isShowActions!?    Row(
                   children: [
                     Expanded(

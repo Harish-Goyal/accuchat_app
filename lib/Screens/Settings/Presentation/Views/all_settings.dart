@@ -15,6 +15,7 @@ import 'package:AccuChat/utils/text_style.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:flutter/foundation.dart' show kIsWeb;
+import '../../../../utils/hover_glass_effect_widget.dart';
 import '../../../../utils/networl_shimmer_image.dart';
 import '../../../Chat/screens/auth/Presentation/Views/landing_screen.dart';
 import '../Controllers/all_settings_controller.dart';
@@ -106,69 +107,81 @@ class AllSettingsScreen extends GetView<AllSettingsController> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          GradientContainer(
-            radius: 12,
-            padding: 8,
+          HoverGlassEffect(
+            // margin: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
+            padding: const EdgeInsets.symmetric(horizontal: 0, vertical: 0),
+            borderRadius: 12,
+            hoverScale: 1.015,
+            normalBlur: 1,
+            hoverBlur: 10,
+            /*hoverGradient: LinearGradient(colors: [
+              gallwhite,
+              perpleBg,
+                ]),*/
+            gradient: LinearGradient(colors: [
+              gallwhite,
+              perpleBg,
+            ]),
             child: InkWell(
-              borderRadius: BorderRadius.circular(12),
-              onTap: (){
-                if(kIsWeb && Get.width>600){
-                  openProfileDialog();
-                }else{
-                  Get.toNamed(AppRoutes.h_profile);
-                }
-              },
-              child: Row(
-                  crossAxisAlignment: CrossAxisAlignment.center,
-                  children: [
-                    CustomCacheNetworkImage(
-                      "${ApiEnd.baseUrlMedia}${APIs.me.userImage??''}",
-                      height: isWide ? 100 : 80,
-                      width: isWide ? 100 : 80,
-                      boxFit: BoxFit.cover,
-                      defaultImage: ICON_profile,
-                      radiusAll: 100,
-                      borderColor: Colors.black54,
-                    ),
-                    hGap(isWide ? 14 : 10),
-                    Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Row(
-                            mainAxisSize: MainAxisSize.min,
-                            children: [
-                              CircleContainer(colorIS: Colors.greenAccent,setSize: 6,),
-                              hGap(5),
-                              Text(
-                                APIs.me.userName!=null?APIs.me.userName??'':APIs.me.userCompany?.displayName??'',
-                                style: BalooStyles.baloosemiBoldTextStyle(),
-                                overflow: TextOverflow.ellipsis,
-                                maxLines: 1,
-                              ),
-                            ],
-                          ),
-                          vGap(4),
-            
-                          Text(
-                            APIs.me.phone??'',
-                            style: BalooStyles.balooregularTextStyle(),
-                            overflow: TextOverflow.ellipsis,
-                            maxLines: 1,
-                          ).paddingOnly(bottom: 4),
-                          Text(
-                            APIs.me.about??'',
-                            style: BalooStyles.balooregularTextStyle(size: 13,color: greyText),
-                            overflow: TextOverflow.ellipsis,
-            
-                            maxLines: 2,
-                          ).paddingOnly(bottom: 4),
-                        ],
+                borderRadius: BorderRadius.circular(12),
+                onTap: (){
+                  if(kIsWeb && Get.width>600){
+                    openProfileDialog();
+                  }else{
+                    Get.toNamed(AppRoutes.h_profile);
+                  }
+                },
+                child: Row(
+                    crossAxisAlignment: CrossAxisAlignment.center,
+                    children: [
+                      CustomCacheNetworkImage(
+                        "${ApiEnd.baseUrlMedia}${APIs.me.userImage??''}",
+                        height: isWide ? 100 : 80,
+                        width: isWide ? 100 : 80,
+                        boxFit: BoxFit.cover,
+                        defaultImage: ICON_profile,
+                        radiusAll: 100,
+                        borderColor: Colors.black54,
                       ),
-                    ),
-                  ],
-                ),
-            ),
+                      hGap(isWide ? 14 : 10),
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Row(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                CircleContainer(colorIS: Colors.greenAccent,setSize: 6,),
+                                hGap(5),
+                                Text(
+                                  APIs.me.userName!=null?APIs.me.userName??'':APIs.me.userCompany?.displayName??'',
+                                  style: BalooStyles.baloosemiBoldTextStyle(),
+                                  overflow: TextOverflow.ellipsis,
+                                  maxLines: 1,
+                                ),
+                              ],
+                            ),
+                            vGap(4),
+
+                            Text(
+                              APIs.me.phone??'',
+                              style: BalooStyles.balooregularTextStyle(),
+                              overflow: TextOverflow.ellipsis,
+                              maxLines: 1,
+                            ).paddingOnly(bottom: 4),
+                            Text(
+                              APIs.me.about??'',
+                              style: BalooStyles.balooregularTextStyle(size: 13,color: greyText),
+                              overflow: TextOverflow.ellipsis,
+
+                              maxLines: 2,
+                            ).paddingOnly(bottom: 4),
+                          ],
+                        ),
+                      ),
+                    ],
+                  ),
+              ),
           ).marginSymmetric(horizontal: 12,vertical: 8),
           controller.isLoading?const Padding(
             padding: EdgeInsets.symmetric(horizontal: 15.0,vertical: 8),
@@ -270,28 +283,39 @@ class AllSettingsScreen extends GetView<AllSettingsController> {
       {required IconData icon,
         required String title,
         required VoidCallback onTap}) {
-    return GradientContainer(
-      color1: whiteselected,
-      color2: gallwhite,
-      radius: 12,
+    return HoverGlassEffect(
+      // margin: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+      padding: const EdgeInsets.symmetric(horizontal: 0, vertical: 4),
+      borderRadius: 12,
+      hoverScale: 1.015,
+      normalBlur: 2,
+      hoverBlur: 10,
+      /*hoverGradient: LinearGradient(colors: [
+        gallwhite,
+        perpleBg,
+      ]),*/ gradient: LinearGradient(colors: [
+      whiteselected,
+      gallwhite,
+      ]),
+      onTap: onTap,
       child: ListTile(
-        dense: true,
-          leading: Icon(
-          icon,
-          size: 18,
+        enabled: false,
+          dense: true,
+            leading: Icon(
+            icon,
+            size: 18,
+          ),
+          title: Text(
+            title,
+            style: BalooStyles.baloonormalTextStyle(),
+          ),
+          trailing: const Icon(
+            Icons.arrow_forward_ios,
+            size: 15,
+            color: Colors.grey,
+          ),
+          visualDensity: kIsWeb ? const VisualDensity(vertical: -1) : VisualDensity.standard,
         ),
-        title: Text(
-          title,
-          style: BalooStyles.baloonormalTextStyle(),
-        ),
-        trailing: const Icon(
-          Icons.arrow_forward_ios,
-          size: 15,
-          color: Colors.grey,
-        ),
-        onTap: onTap,
-        visualDensity: kIsWeb ? const VisualDensity(vertical: -1) : VisualDensity.standard,
-      ),
     ).marginSymmetric(horizontal: 12,vertical: 4);
   }
 }

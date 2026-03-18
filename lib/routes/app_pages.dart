@@ -1,5 +1,3 @@
-import 'package:AccuChat/Screens/Authentication/Binding/binding.dart';
-import 'package:AccuChat/Screens/Authentication/Presentation/view/change_password.dart';
 import 'package:AccuChat/Screens/Chat/screens/auth/Bindings/auths_bindings.dart';
 import 'package:AccuChat/Screens/Chat/screens/auth/Presentation/Views/accept_invite_screen.dart';
 import 'package:AccuChat/Screens/Chat/screens/auth/Presentation/Views/create_company_screen.dart';
@@ -76,11 +74,7 @@ class AppPages {
       page: () => const CreateCompanyScreen(),
       bindings: [CreateCompanyBinding()],
     ),
-    GetPage(
-      name: AppRoutes.changePassword,
-      page: () => ChangePasswordScreen(),
-      bindings: [ChangePassBinding()],
-    ),
+
     GetPage(
       name: AppRoutes.connected_com,
       page: () => CompaniesScreen(),

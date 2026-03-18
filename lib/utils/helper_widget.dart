@@ -38,7 +38,12 @@ import 'package:path_provider/path_provider.dart';
 
 import 'package:AccuChat/utils/web_download/download_factory.dart';
 
+import 'hover_glass_effect_widget.dart';
 import 'networl_shimmer_image.dart';
+
+
+
+
 
 Future<bool> requestStoragePermission() async {
   if (Platform.isAndroid) {
@@ -60,7 +65,7 @@ Future<bool> requestStoragePermission() async {
       return storagePermission.isGranted;
     }
   } else {
-    return true; // iOS not needed for saving to gallery
+    return true;
   }
 }
 
@@ -90,6 +95,257 @@ Future<void> showCompanyErrorDialog() async {
     barrierDismissible: false,
   );
 }
+
+//
+// Widget companyCard(){
+//   return Align(
+//     alignment: Alignment.centerLeft,
+//     child: ConstrainedBox(
+//       constraints: const BoxConstraints(
+//         maxWidth: kIsWeb ? 500 : double.infinity,
+//       ),
+//       child: Stack(
+//         clipBehavior: Clip.none,
+//         children: [
+//           // 🔥 MAIN CARD
+//           InkWell(
+//             borderRadius: BorderRadius.circular(14),
+//             onTap: () => _onTapCompany(companyData),
+//             child: Container(
+//               margin: const EdgeInsets.only(bottom: 12),
+//               padding: const EdgeInsets.all(12),
+//               decoration: BoxDecoration(
+//                 color: companyData.companyId ==
+//                     controller.selCompany?.companyId
+//                     ? Colors.white
+//                     : Colors.grey.shade100,
+//                 borderRadius: BorderRadius.circular(14),
+//                 border: Border.all(
+//                   color: companyData.companyId ==
+//                       controller.selCompany?.companyId
+//                       ? appColorPerple.withOpacity(.2)
+//                       : Colors.grey.shade200,
+//                 ),
+//                 boxShadow: [
+//                   BoxShadow(
+//                     color: Colors.black.withOpacity(.04),
+//                     blurRadius: 6,
+//                     offset: const Offset(0, 3),
+//                   ),
+//                 ],
+//               ),
+//
+//               // 🔥 CONTENT
+//               child: Row(
+//                 crossAxisAlignment: CrossAxisAlignment.start,
+//                 children: [
+//                   // 🟣 LOGO / AVATAR
+//                   Container(
+//                     decoration: BoxDecoration(
+//                       shape: BoxShape.circle,
+//                       border: Border.all(color: greyText),
+//                     ),
+//                     child: companyData.logo != null
+//                         ? CustomCacheNetworkImage(
+//                       "${ApiEnd.baseUrlMedia}${companyData.logo ?? ''}",
+//                       radiusAll: 100,
+//                       height: 45,
+//                       width: 45,
+//                       borderColor: appColorYellow,
+//                       defaultImage: appIcon,
+//                       boxFit: BoxFit.cover,
+//                       isApp: true,
+//                     )
+//                         : CircleAvatar(
+//                       backgroundColor: Colors.white,
+//                       radius: 22,
+//                       child: Text(
+//                         getInitials(companyData.companyName ?? ''),
+//                         style: BalooStyles.baloosemiBoldTextStyle(
+//                             color: greenside, size: 18),
+//                       ),
+//                     ),
+//                   ),
+//
+//                   const SizedBox(width: 10),
+//
+//                   // 🔥 TEXT CONTENT
+//                   Expanded(
+//                     child: Column(
+//                       crossAxisAlignment: CrossAxisAlignment.start,
+//                       children: [
+//                         // NAME + STATUS
+//                         Row(
+//                           children: [
+//                             if (companyData.companyId ==
+//                                 controller.selCompany?.companyId)
+//                               CircleContainer(
+//                                 setSize: 6,
+//                                 colorIS: Colors.greenAccent,
+//                               ).paddingOnly(right: 4),
+//
+//                             Expanded(
+//                               child: Text(
+//                                 companyData.companyName ?? '',
+//                                 style: BalooStyles.baloosemiBoldTextStyle(),
+//                                 maxLines: 1,
+//                                 overflow: TextOverflow.ellipsis,
+//                               ),
+//                             ),
+//                           ],
+//                         ),
+//
+//                         vGap(4),
+//
+//                         // CREATOR
+//                         Text(
+//                           "Creator: ${companyData.createdBy == APIs.me.userId ? APIs.me.phone : (companyData.companyName ?? '')}",
+//                           style:
+//                           BalooStyles.baloonormalTextStyle(size: 13),
+//                           maxLines: 1,
+//                           overflow: TextOverflow.ellipsis,
+//                         ),
+//
+//                         vGap(4),
+//
+//                         // MEMBERS
+//                         GestureDetector(
+//                           onTap: () => _onSubtitleTap(companyData),
+//                           child: Text(
+//                             'Members: ${companyData.members?.length ?? 0}',
+//                             style: BalooStyles.baloonormalTextStyle(
+//                                 size: 13, color: Colors.blue),
+//                           ),
+//                         ),
+//                       ],
+//                     ),
+//                   ),
+//                 ],
+//               ),
+//             ),
+//           ),
+//
+//           // 🔥 TOP RIGHT MENU
+//           Positioned(
+//             top: 8,
+//             right: 5,
+//             child: Builder(
+//               builder: (context) {
+//                 final bool isSelected =
+//                     companyData.companyId ==
+//                         controller.selCompany?.companyId;
+//                 final bool isCreator =
+//                     companyData.createdBy == APIs.me?.userId;
+//
+//                 if (!isSelected) return const SizedBox();
+//
+//                 return PopupMenuButton<String>(
+//                   color: Colors.white,
+//                   icon: const Icon(Icons.more_vert,
+//                       color: Colors.black87),
+//                   onSelected: (value) => controller.companyNavigation(
+//                       value, companyData, () async {
+//                     if (kIsWeb) {
+//                       await openMemberDialog(companyData);
+//                     } else {
+//                       await Get.toNamed(
+//                         AppRoutes.company_members,
+//                         arguments: {
+//                           'companyId': companyData.companyId ?? 0,
+//                           'companyName':
+//                           companyData.companyName ?? '',
+//                         },
+//                       );
+//                     }
+//                   }),
+//                   itemBuilder: (context) {
+//                     final items = <PopupMenuEntry<String>>[];
+//
+//                     if (isCreator) {
+//                       items.addAll([
+//                         const PopupMenuItem(
+//                           value: 'Invite',
+//                           child: Row(children: [
+//                             Icon(Icons.person_add_alt, size: 15),
+//                             SizedBox(width: 4),
+//                             Text('Invite Member'),
+//                           ]),
+//                         ),
+//                         const PopupMenuItem(
+//                           value: 'Pending',
+//                           child: Row(children: [
+//                             Icon(Icons.pending_outlined, size: 15),
+//                             SizedBox(width: 4),
+//                             Text('Pending Invites'),
+//                           ]),
+//                         ),
+//                         const PopupMenuItem(
+//                           value: 'Update',
+//                           child: Row(children: [
+//                             Icon(Icons.edit_outlined, size: 15),
+//                             SizedBox(width: 4),
+//                             Text('Update Company'),
+//                           ]),
+//                         ),
+//                         PopupMenuItem(
+//                           value: 'Delete',
+//                           child: Row(children: [
+//                             Icon(Icons.delete_outline,
+//                                 size: 15,
+//                                 color: AppTheme.redErrorColor),
+//                             const SizedBox(width: 4),
+//                             const Text('Delete Company'),
+//                           ]),
+//                         ),
+//                       ]);
+//                     }
+//
+//                     items.add(const PopupMenuItem(
+//                       value: 'All',
+//                       child: Row(children: [
+//                         Icon(Icons.people, size: 15),
+//                         SizedBox(width: 4),
+//                         Text('All Members'),
+//                       ]),
+//                     ));
+//
+//                     return items;
+//                   },
+//                 );
+//               },
+//             ),
+//           ),
+//
+//           // 🔥 BADGE (Creator / Joined)
+//           Positioned(
+//             top: -18,
+//             right: 10,
+//             child: Container(
+//               padding: const EdgeInsets.all(6),
+//               decoration: BoxDecoration(
+//                 borderRadius: BorderRadius.circular(30),
+//                 color: companyData.createdBy == APIs.me.userId
+//                     ? appColorGreen.withOpacity(.1)
+//                     : appColorYellow.withOpacity(.1),
+//               ),
+//               child: Text(
+//                 companyData.createdBy == APIs.me.userId
+//                     ? "Creator"
+//                     : "Joined",
+//                 style: BalooStyles.baloosemiBoldTextStyle(
+//                   color: companyData.createdBy == APIs.me.userId
+//                       ? appColorGreen
+//                       : appColorYellow,
+//                   size: 12,
+//                 ),
+//               ),
+//             ),
+//           ),
+//         ],
+//       ),
+//     ),
+//   );
+// }
 
 bool looksLikeCode(String text) {
   final t = text.trim();
@@ -379,40 +635,46 @@ Widget statusTile(title,
 }
 
 Widget goToWidget(title, color, {count}) {
-  return CustomContainer(
-      vPadding: 0,
-      hPadding: 10,
-      elevation: 8,
-      color: whiteselected,
-      sColor: Colors.grey.shade300,
-      childWidget: Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-        // CircleContainer(
-        //     setSize: 10,
-        //     colorIS: color,
-        //   ),
-          Text(
-            title,
-            style: BalooStyles.baloonormalTextStyle(size: 12),
-          ),
-          hGap(2),
-         isTaskMode? _budgeWidget():Container(
-             padding: const EdgeInsets.all(4),
-             decoration: BoxDecoration(
-                 color: greenside.withOpacity(.1),
-                 shape: BoxShape.circle
+  return HoverGlassEffect(
+    margin: const EdgeInsets.symmetric(horizontal: 0, vertical: 0),
+    padding: const EdgeInsets.symmetric(horizontal: 3, vertical: 0),
+    borderRadius: 40,
+    hoverScale: 1.015,
+    normalBlur: 3,
+    hoverBlur: 10,
+    borderColor: greenside.withOpacity(.1),
+    hoverBorderColor:greenside.withOpacity(.55)
+        ,
+    child: CustomContainer(
+        vPadding: 0,
+        hPadding: 10,
+        elevation: 0,
+        color: whiteselected,
+        sColor: Colors.grey.shade300,
+        childWidget: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Text(
+              title,
+              style: BalooStyles.baloonormalTextStyle(size: 12),
+            ),
+            hGap(2),
+           isTaskMode? _budgeWidget():Container(
+               padding: const EdgeInsets.all(4),
+               decoration: BoxDecoration(
+                   color: greenside.withOpacity(.1),
+                   shape: BoxShape.circle
 
-             ),
-             child: SvgPicture.asset(bellSvg,color: greenside,height: 15,)),
-        ],
-      ));
+               ),
+               child: SvgPicture.asset(bellSvg,color: greenside,height: 15,)),
+          ],
+        )),
+  );
 }
 
 _budgeWidget(){
   return Obx(() {
     final unread = AppBadgeController.to.chatUnread.value;
-
     return Stack(
       clipBehavior: Clip.none,
       children: [
@@ -558,28 +820,23 @@ String monthName(int month) {
 String extractFileName(String fullName) {
   final parts = fullName.split('_');
   if (parts.length >= 3) {
-    // Join everything after 'DOC' and timestamp
     return parts.sublist(2).join('_');
   }
-  return fullName; // fallback
+  return fullName;
 }
 
 String extractFileNameFromUrl(String url) {
   try {
-    // Extract the last segment after the last `/`
     Uri uri = Uri.parse(url);
     String path =
-        uri.path; // e.g., /v0/b/.../o/media%2Ftasks%2FDOC_1749_name.pdf
-    String lastSegment = path.split('/').last; // media%2Ftasks%2FDOC_...
+        uri.path;
+    String lastSegment = path.split('/').last;
 
-    // Decode URL-encoded parts like %2F to /
-    String decoded = Uri.decodeComponent(lastSegment); // media/tasks/DOC_...
+    String decoded = Uri.decodeComponent(lastSegment);
 
-    // Extract just the file name
     final segments = decoded.split('/');
     return segments.isNotEmpty ? segments.last : decoded;
   } catch (e) {
-    // debugPrint("⚠️ Failed to extract file name: $e");
     return "Unknown File";
   }
 }

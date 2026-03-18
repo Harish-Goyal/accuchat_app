@@ -11,6 +11,7 @@ import 'package:flutter_svg/svg.dart';
 import 'package:get/get.dart';
 import '../../../../../../Constants/colors.dart';
 import '../../../../../../utils/helper_widget.dart';
+import '../../../../../../utils/hover_glass_effect_widget.dart';
 import '../../../../api/apis.dart';
 import '../../../auth/models/get_uesr_Res_model.dart';
 
@@ -52,20 +53,6 @@ class AllUserScreen extends GetView<AllUserController> {
                   margin:
                       const EdgeInsets.symmetric(vertical: 6, horizontal: 10),
                   padding: const EdgeInsets.symmetric(vertical: 4),
-                  decoration: BoxDecoration(
-                    color: Colors.white,
-                    borderRadius: BorderRadius.circular(12),
-                    boxShadow: kIsWeb
-                        ? [
-                            BoxShadow(
-                              color: Colors.black.withOpacity(0.05),
-                              blurRadius: 10,
-                              spreadRadius: 2,
-                              offset: const Offset(0, 3),
-                            )
-                          ]
-                        : [], // mobile keeps simple, no shadow
-                  ),
                   child: _listViewWidget(),
                 ),
               ),
@@ -101,56 +88,68 @@ class AllUserScreen extends GetView<AllUserController> {
             final usern = (memData?.userCompany?.displayName != null)
                 ? memData?.userCompany?.displayName ?? ''
                 : memData?.userName ?? '';
-            return ListTile(
-              leading: SizedBox(
-                width: 45,
-                child:controller.filteredList[i].userImage!=null? CustomCacheNetworkImage(
-                  "${ApiEnd.baseUrlMedia}${controller.filteredList[i].userImage ?? ''}",
-                  height: 45,
+            return HoverGlassEffect(
+              margin: const EdgeInsets.symmetric(horizontal: 0, vertical: 2),
+              padding: const EdgeInsets.symmetric(horizontal: 0, vertical: 0),
+              borderRadius: 12,
+              hoverScale: 1.015,
+              normalBlur: 3,
+              hoverBlur: 10,
+              gradient:  LinearGradient(colors: [
+                gallwhite,
+                perpleBg.withOpacity(.2),
+              ]),
+              child: ListTile(
+                leading: SizedBox(
                   width: 45,
-                  radiusAll: 100,
-                  borderColor: greyText,
-                  boxFit: BoxFit.cover,
-                  defaultImage: ICON_profile,
-                ):CircleAvatar(
-                  // radius: 45,
-                  backgroundColor: perpleBg,
-                  child: Text(getInitials(usern),style: BalooStyles.baloosemiBoldTextStyle(color: perplebr),),
-                ),
-              ),
-              title: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    memData.userId == APIs.me.userId
-                        ? "Me"
-                        : memData.userCompany?.displayName != null
-                            ? memData.userCompany?.displayName ?? ''
-                            : memData.userName != null
-                                ? memData.userName ?? ''
-                                : memData.phone ?? '',
-                    style: BalooStyles.baloosemiBoldTextStyle(),
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
+                  child:controller.filteredList[i].userImage!=null? CustomCacheNetworkImage(
+                    "${ApiEnd.baseUrlMedia}${controller.filteredList[i].userImage ?? ''}",
+                    height: 45,
+                    width: 45,
+                    radiusAll: 100,
+                    borderColor: greyText,
+                    boxFit: BoxFit.cover,
+                    defaultImage: ICON_profile,
+                  ):CircleAvatar(
+                    // radius: 45,
+                    backgroundColor: perpleBg,
+                    child: Text(getInitials(usern),style: BalooStyles.baloosemiBoldTextStyle(color: perplebr),),
                   ),
-                  vGap(4),
-                  memData.userName != null ||
-                          memData.userCompany?.displayName != null
-                      ? Text(
-                          memData.phone != null
-                              ? memData.phone ?? ''
-                              : memData.email ?? '',
-                          style: BalooStyles.balooregularTextStyle(
-                              color: greyText),
-                          maxLines: 1,
-                          overflow: TextOverflow.ellipsis,
-                        )
-                      : const SizedBox(),
-                ],
+                ),
+                title: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      memData.userId == APIs.me.userId
+                          ? "Me"
+                          : memData.userCompany?.displayName != null
+                              ? memData.userCompany?.displayName ?? ''
+                              : memData.userName != null
+                                  ? memData.userName ?? ''
+                                  : memData.phone ?? '',
+                      style: BalooStyles.baloosemiBoldTextStyle(),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                    vGap(4),
+                    memData.userName != null ||
+                            memData.userCompany?.displayName != null
+                        ? Text(
+                            memData.phone != null
+                                ? memData.phone ?? ''
+                                : memData.email ?? '',
+                            style: BalooStyles.balooregularTextStyle(
+                                color: greyText),
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                          )
+                        : const SizedBox(),
+                  ],
+                ),
+                onTap: () {
+                  selectUser(controller.filteredList[i]);
+                },
               ),
-              onTap: () {
-                selectUser(controller.filteredList[i]);
-              },
             );
           }),
     );
@@ -297,22 +296,23 @@ class AllUserScreen extends GetView<AllUserController> {
       }),
       actions: [
         Obx(() {
-          return IconButton(
-              onPressed: () {
-                controller.isSearching.value = !controller.isSearching.value;
-                controller.isSearching.refresh();
-
-                if (!controller.isSearching.value) {
-                  controller.searchText = '';
-                  controller.onSearch('');
-                  controller.searchController.clear();
-                }
-                // controller.update();
-              },
-              icon: controller.isSearching.value
-                  ? const Icon(CupertinoIcons.clear_circled_solid)
-                  // : Image.asset(searchPng, height: 25, width: 25));
-                  : SvgPicture.asset(searchPng, height: 25, width: 25));
+          return GradientContainer(
+            color1: perplebr,
+            color2: Colors.white.withOpacity(.4),
+            child: InkWell(
+                onTap: () {
+                  controller.isSearching.value = !controller.isSearching.value;
+                  controller.isSearching.refresh();
+                  if (!controller.isSearching.value) {
+                    controller.searchText = '';
+                    controller.onSearch('');
+                    controller.searchController.clear();
+                  }
+                },
+                child: controller.isSearching.value
+                    ? const Icon(CupertinoIcons.clear_circled_solid)
+                    : SvgPicture.asset(searchPng, height: 20, width: 20,color: Colors.white,)),
+          ).marginOnly(right: 20);
         }),
       ],
     );

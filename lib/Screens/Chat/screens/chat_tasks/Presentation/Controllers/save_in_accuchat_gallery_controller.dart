@@ -111,6 +111,9 @@ class SaveToGalleryController extends GetxController {
       update();
     } finally {
       isPageLoading = false;
+      if(folderList?.length==1){
+        selectFolder(folderList?[0].userGalleryId ?? 0);
+      }
       update();
     }
   }

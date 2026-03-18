@@ -36,6 +36,7 @@
 
 // const settingPng="assets/icons/setting_icon/setting.png";
 const String appIcon = "assets/icons/chat_logo_transparent.png";
+const String appIconSvg = "assets/icons/SvgIcons/app_icon_tp.svg";
 const String emptyChatsBg = "assets/images/empty_bg.jpg";
 // const String addNewChatPng = "assets/icons/comment.png";
 // const String searchPng = "assets/icons/search.png";
@@ -68,6 +69,7 @@ const forwardIcon="assets/icons/SvgIcons/forwardsvg.svg";
 const chatHome="assets/icons/SvgIcons/chatsvgapp.svg";
 const appbarBG="assets/images/appbarbg.jpg";
 const darkbg="assets/images/bglight.jpg";
+const loginbg="assets/images/login_bg.jpg";
 // const folderpng="assets/images/folder.png";
 // const folderpng="assets/icons/SvgIcons/blue_folder.svg";
 const folderpng="assets/icons/SvgIcons/folder.svg";

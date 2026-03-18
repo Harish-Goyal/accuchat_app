@@ -17,6 +17,7 @@ import 'package:get/get.dart';
 import '../../../../Services/APIs/api_ends.dart';
 import '../../../../utils/circleContainer.dart';
 import '../../../../utils/confirmation_dialog.dart';
+import '../../../../utils/hover_glass_effect_widget.dart';
 import '../../../../utils/networl_shimmer_image.dart';
 import '../../../../utils/show_upload_option_galeery.dart';
 import '../../../Chat/models/gallery_node.dart';
@@ -77,51 +78,67 @@ class GalleryTab extends GetView<GalleryController> {
                                   //     onCrumbTap: (v){},
                                   //   ),
                                   // ),
-                                  IconButton(
-                                      onPressed: () async {
+                                  InkWell(
+                                      onTap: () async {
                                         final name = await showCreateFolderDialog();
                                         if (name != null) {
                                           toast( "Created  $name");
                                         }
                                       },
-                                      icon: CustomContainer(
-                                          color: perplebr,
-                                          brcolor: Colors.white,
-                                          sColor: perplebr,
-                                          elevation: 10,
-                                          vPadding: 4,
-                                          radius: 30,
-                                          hPadding: 20,
-                                          childWidget: Row(
-                                            children: [
-                                              const Icon(Icons.add,
-                                                  size: 20,
-                                                  color: Colors.white),
-                                              hGap(3),
-                                              Text("Create new folder",style: BalooStyles.baloonormalTextStyle(color: Colors.white),)
-                                            ],
-                                          ))),
-                                  IconButton(
-                                      onPressed: () {
+                                      child:HoverGlassEffect(
+                                        margin: const EdgeInsets.symmetric(horizontal: 0, vertical: 0),
+                                        padding: const EdgeInsets.symmetric(horizontal: 0, vertical: 0),
+                                        borderRadius: 12,
+                                        hoverScale: 1.05,
+                                        normalBlur: 3,
+                                        hoverBlur: 10,
+                                        child: CustomContainer(
+                                            color: perplebr,
+                                            brcolor: Colors.white,
+                                            sColor: perplebr,
+                                            elevation: 10,
+                                            vPadding: 4,
+                                            radius: 30,
+                                            hPadding: 20,
+                                            childWidget: Row(
+                                              children: [
+                                                const Icon(Icons.add,
+                                                    size: 20,
+                                                    color: Colors.white),
+                                                hGap(3),
+                                                Text("Create new folder",style: BalooStyles.baloonormalTextStyle(color: Colors.white),)
+                                              ],
+                                            )),
+                                      )),
+                                  InkWell(
+                                      onTap: () {
                                         showUploadOptions(context);
                                       },
-                                      icon: CustomContainer(
-                                          color: perplebr,
-                                          brcolor: Colors.white,
-                                          sColor: perplebr,
-                                          elevation: 10,
-                                          vPadding: 4,
-                                          radius: 30,
-                                          hPadding: 20,
+                                      child:HoverGlassEffect(
+                                        margin: const EdgeInsets.symmetric(horizontal: 0, vertical: 0),
+                                        padding: const EdgeInsets.symmetric(horizontal: 0, vertical: 0),
+                                        borderRadius: 12,
+                                        hoverScale: 1.05,
+                                        normalBlur: 3,
+                                        hoverBlur: 10,
+                                        child: CustomContainer(
+                                            color: perplebr,
+                                            brcolor: Colors.white,
+                                            sColor: perplebr,
+                                            elevation: 10,
+                                            vPadding: 4,
+                                            radius: 30,
+                                            hPadding: 20,
 
-                                          childWidget: Row(
-                                            children: [
-                                              SvgPicture.asset(uploadsvg,
-                                                  color: Colors.white,height: 20,) ,
-                                              hGap(3),
-                                              Text("Upload",style: BalooStyles.baloonormalTextStyle(color: Colors.white),)
-                                            ],
-                                          )))
+                                            childWidget: Row(
+                                              children: [
+                                                SvgPicture.asset(uploadsvg,
+                                                    color: Colors.white,height: 20,) ,
+                                                hGap(3),
+                                                Text("Upload",style: BalooStyles.baloonormalTextStyle(color: Colors.white),)
+                                              ],
+                                            )),
+                                      ))
                                 ],
                               ).marginSymmetric(horizontal: 10),
 
@@ -670,9 +687,9 @@ class _GalleryGrid extends StatelessWidget {
                 physics: const AlwaysScrollableScrollPhysics(),
                 gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
                   crossAxisCount:(kIsWeb&&Get.width>600)? cross:3,
-                  crossAxisSpacing: 2,
-                  mainAxisSpacing: 2,
-                  childAspectRatio: (kIsWeb && Get.width>600)?1:1,
+                  crossAxisSpacing: 8,
+                  mainAxisSpacing: 8,
+                  childAspectRatio: (kIsWeb && Get.width>600)?0.93:1,
                 ),
                 itemCount: items.length,
                 itemBuilder: (_, i) {
@@ -746,121 +763,149 @@ class _GalleryTile extends StatelessWidget {
     return InkWell(
       onTap: onTap,
       borderRadius: BorderRadius.circular(12),
-      child: Container(
-        margin: const EdgeInsets.symmetric(horizontal: 4,vertical: 4),
-        decoration:BoxDecoration(
-          gradient: LinearGradient(colors: [
-            gallwhite,
-            whiteselected,
-          ]),
-
-          boxShadow: [ BoxShadow(color:perplebr.withOpacity(.5),blurRadius: 10)],
-          borderRadius: BorderRadius.circular(12),
+      child: HoverGlassEffect(
+        margin: const EdgeInsets.symmetric(horizontal: 0, vertical: 0),
+        padding: const EdgeInsets.symmetric(horizontal: 0, vertical: 0),
+        borderRadius: 12,
+        hoverScale: 1.04,
+        normalBlur: 3,
+        hoverBlur: 5,
+        borderColor: Colors.white.withOpacity(.1),
+        hoverBorderColor: Colors.grey.withOpacity(.3),
+        hoverGradient: RadialGradient(
+          center: const Alignment(-0.3, -0.3),
+          radius: 1.2,
+          colors: [
+            Colors.white.withOpacity(0.1),
+            Colors.white.withOpacity(0.2),
+          ],
         ),
-        child: Stack(
-          clipBehavior: Clip.none,
-          alignment: Alignment.center,
-          children: [
-            Column(
-              crossAxisAlignment: CrossAxisAlignment.center,
-              mainAxisSize: MainAxisSize.min,
+        gradient:  LinearGradient(
+          colors: [
+          gallwhite,
+          whiteselected,
+        ]
+        ),
+        // hoverShadow: [ BoxShadow(color:perplebr.withOpacity(.5),blurRadius: 10)],
+        // borderColor: greenside.withOpacity(.1),
+        // hoverBorderColor:greenside.withOpacity(.55)
 
-              children: [
-                SizedBox(
-                  height: 75,
-                    child: preview),
+        child: Container(
+          margin: const EdgeInsets.symmetric(horizontal: 4,vertical: 4),
+          // decoration:BoxDecoration(
+          //   gradient: LinearGradient(colors: [
+          //     gallwhite,
+          //     whiteselected,
+          //   ]),
+          //
+          //   boxShadow: [ BoxShadow(color:perplebr.withOpacity(.5),blurRadius: 10)],
+          //   borderRadius: BorderRadius.circular(12),
+          // ),
+          child: Stack(
+            clipBehavior: Clip.none,
+            alignment: Alignment.center,
+            children: [
+              Column(
+                crossAxisAlignment: CrossAxisAlignment.center,
+                mainAxisSize: MainAxisSize.min,
 
-                // Obx(() {
-                // final isRenaming = controller.renamingId.value == node.id; // ✅ node must have unique id
-                // if (!isRenaming) {
-                /* return */
-                Text(
-                  folder.folderName ?? '',
-                  maxLines: 2,
-                  overflow: TextOverflow.ellipsis,
-                  textAlign: TextAlign.center,
-                  style: BalooStyles.balooregularTextStyle(),
-                )
+                children: [
+                  SizedBox(
+                    height: 75,
+                      child: preview),
 
-              ],
-            ),
+                  // Obx(() {
+                  // final isRenaming = controller.renamingId.value == node.id; // ✅ node must have unique id
+                  // if (!isRenaming) {
+                  /* return */
+                  Text(
+                    folder.folderName ?? '',
+                    maxLines: 2,
+                    overflow: TextOverflow.ellipsis,
+                    textAlign: TextAlign.center,
+                    style: BalooStyles.balooregularTextStyle(),
+                  )
 
-            Positioned(
-              top: 4,
-              right: 0,
-              child: Material(
-                color: Colors.transparent,
-                child: SizedBox(
-                  height: 34,
-                  width: 34,
-                  child: PopupMenuButton<FolderMenuAction>(
-                    tooltip: "More",
-                    padding: EdgeInsets.zero,
-                    position: PopupMenuPosition.under,
-                    borderRadius: BorderRadius.circular(8),
-                    color: Colors.white,
-                    onSelected: (action) {
-                      switch (action) {
-                        case FolderMenuAction.rename:
-                          toast("Under Development!");
-                          break;
-                        case FolderMenuAction.delete:
-                          showResponsiveConfirmationDialog(
-                              onConfirm: () {
-                                controller.hitApiToDeleteFolder(folder.userGalleryId);
-                              },
-                              title: "Confirm Delete",
-                              subtitle:
-                                  "Delete ${folder.folderName} (Permanently Deleted)");
-                          break;
-                        case FolderMenuAction.share:
-                          controller.handleOnShareWithinAccuchat(context: context);
-                          break;
-                        case FolderMenuAction.sharew:
-                          toast("Under Development!");
-                          break;
-                      }
-                    },
-                    itemBuilder: (context) => const [
-                      PopupMenuItem(
-                        value: FolderMenuAction.rename,
-                        child: Text("Rename"),
+                ],
+              ),
+
+              Positioned(
+                top: 4,
+                right: 0,
+                child: Material(
+                  color: Colors.transparent,
+                  child: SizedBox(
+                    height: 34,
+                    width: 34,
+                    child: PopupMenuButton<FolderMenuAction>(
+                      tooltip: "More",
+                      padding: EdgeInsets.zero,
+                      position: PopupMenuPosition.under,
+                      borderRadius: BorderRadius.circular(8),
+                      color: Colors.white,
+                      onSelected: (action) {
+                        switch (action) {
+                          case FolderMenuAction.rename:
+                            toast("Under Development!");
+                            break;
+                          case FolderMenuAction.delete:
+                            showResponsiveConfirmationDialog(
+                                onConfirm: () {
+                                  controller.hitApiToDeleteFolder(folder.userGalleryId);
+                                },
+                                title: "Confirm Delete",
+                                subtitle:
+                                    "Delete ${folder.folderName} (Permanently Deleted)");
+                            break;
+                          case FolderMenuAction.share:
+                            controller.handleOnShareWithinAccuchat(context: context);
+                            break;
+                          case FolderMenuAction.sharew:
+                            toast("Under Development!");
+                            break;
+                        }
+                      },
+                      itemBuilder: (context) => const [
+                        PopupMenuItem(
+                          value: FolderMenuAction.rename,
+                          child: Text("Rename"),
+                        ),
+                        PopupMenuItem(
+                          value: FolderMenuAction.share,
+                          child: Text("Share"),
+                        ),
+                        PopupMenuDivider(),
+                        PopupMenuItem(
+                          value: FolderMenuAction.delete,
+                          child: Text("Delete"),
+                        ),
+                      ],
+                      child: InkWell(
+                        // important: tap on menu should NOT open folder
+                        onTap: null,
+                        borderRadius: BorderRadius.circular(100),
+                        child: Container(
+                            padding: const EdgeInsets.all(4),
+                            margin: const EdgeInsets.all(4),
+                            decoration: BoxDecoration(
+                                color: Colors.white,
+                                shape: BoxShape.circle,
+                                boxShadow: [
+                                  BoxShadow(
+                                      color: Colors.grey.shade200, blurRadius: 10)
+                                ]),
+                            child: const Icon(
+                              Icons.more_vert,
+                              size: 18,
+                              color: Colors.black87,
+                            )),
                       ),
-                      PopupMenuItem(
-                        value: FolderMenuAction.share,
-                        child: Text("Share"),
-                      ),
-                      PopupMenuDivider(),
-                      PopupMenuItem(
-                        value: FolderMenuAction.delete,
-                        child: Text("Delete"),
-                      ),
-                    ],
-                    child: InkWell(
-                      // important: tap on menu should NOT open folder
-                      onTap: null,
-                      borderRadius: BorderRadius.circular(100),
-                      child: Container(
-                          padding: const EdgeInsets.all(4),
-                          margin: const EdgeInsets.all(4),
-                          decoration: BoxDecoration(
-                              color: Colors.white,
-                              shape: BoxShape.circle,
-                              boxShadow: [
-                                BoxShadow(
-                                    color: Colors.grey.shade200, blurRadius: 10)
-                              ]),
-                          child: const Icon(
-                            Icons.more_vert,
-                            size: 18,
-                            color: Colors.black87,
-                          )),
                     ),
                   ),
                 ),
               ),
-            ),
-          ],
+            ],
+          ),
         ),
       ),
     );

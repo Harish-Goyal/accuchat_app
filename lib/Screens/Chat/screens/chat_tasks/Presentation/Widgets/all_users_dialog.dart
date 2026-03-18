@@ -9,6 +9,7 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import '../../../../../../Constants/colors.dart';
 import '../../../../../../utils/helper_widget.dart';
+import '../../../../../../utils/hover_glass_effect_widget.dart';
 import '../../../../../../utils/text_style.dart';
 
 class AllUserScreenDialog extends GetView<AllUserController> {
@@ -105,9 +106,7 @@ class AllUserScreenDialog extends GetView<AllUserController> {
                           return NotificationListener<ScrollNotification>(
                             onNotification: (ScrollNotification n) {
                               if (n is! ScrollEndNotification) return false;
-                  
                               final m = n.metrics;
-                  
                               if (m.extentAfter < 200 &&
                                   !controller.isLoading.value &&
                                   controller.hasMore &&
@@ -123,63 +122,75 @@ class AllUserScreenDialog extends GetView<AllUserController> {
                               itemBuilder: (_, i) {
                                final memData = listToShow[i];
                                final usern = (memData.userCompany?.displayName != null)
-                                   ? memData?.userCompany?.displayName ?? ''
-                                   : memData?.userName ?? '';
+                                   ? memData.userCompany?.displayName ?? ''
+                                   : memData.userName!=null?memData.userName ?? '':memData.phone ?? '';
                                 return
-                                  ListTile(
-                                    leading: SizedBox(
-                                      width: 45,
-                                      child:
-                                      listToShow[i].userImage !=null? CustomCacheNetworkImage(
-                                        "${ApiEnd.baseUrlMedia}${listToShow[i].userImage ?? ''}",
-                                        radiusAll: 100,
-                                        height: 45,
+                                  HoverGlassEffect(
+                                    margin: const EdgeInsets.symmetric(horizontal: 0, vertical: 2),
+                                    padding: const EdgeInsets.symmetric(horizontal: 0, vertical: 0),
+                                    borderRadius: 12,
+                                    hoverScale: 1.015,
+                                    normalBlur: 3,
+                                    hoverBlur: 10,
+                                    gradient:  LinearGradient(colors: [
+                                      gallwhite,
+                                      perpleBg.withOpacity(.2),
+                                    ]),
+                                    child: ListTile(
+                                      leading: SizedBox(
                                         width: 45,
-                                        borderColor: appColorYellow,
-                                        defaultImage: appIcon,
-                                        boxFit: BoxFit.cover,
-                                        isApp: true,
-                                      ):CircleAvatar(
-                                        // radius: 45,
-                                        backgroundColor: perpleBg,
-                                        child: Text(getInitials(usern),style: BalooStyles.baloosemiBoldTextStyle(color: perplebr,),),
-                                      ),
-                                    ),
-                                    title:
-                                    Column(
-                                      crossAxisAlignment: CrossAxisAlignment
-                                          .start,
-                                      children: [
-                                        Text(
-                                          memData.userId ==
-                                              APIs.me?.userId
-                                              ? "Me":   memData
-                                              .userCompany?.displayName != null
-                                              ? memData.userCompany
-                                              ?.displayName ?? ''
-                                              :memData.userName != null ? memData
-                                              .userName ?? '' :
-                                          memData.phone ?? '',
-                                          style: BalooStyles
-                                              .baloosemiBoldTextStyle(),
-                                          maxLines: 1,
-                                          overflow: TextOverflow.ellipsis,
+                                        child:
+                                        listToShow[i].userImage !=null? CustomCacheNetworkImage(
+                                          "${ApiEnd.baseUrlMedia}${listToShow[i].userImage ?? ''}",
+                                          radiusAll: 100,
+                                          height: 45,
+                                          width: 45,
+                                          borderColor: appColorYellow,
+                                          defaultImage: appIcon,
+                                          boxFit: BoxFit.cover,
+                                          isApp: true,
+                                        ):CircleAvatar(
+                                          radius: 35,
+                                          backgroundColor: perpleBg,
+                                          child: Text(getInitials(usern),style: BalooStyles.baloosemiBoldTextStyle(color: perplebr,),),
                                         ),
-                  
-                                        vGap(4),
-                                        memData.userName==null && memData.userCompany?.displayName==null?const SizedBox():  Text(
-                                          memData.phone != null
-                                              ?memData.phone ?? ''
-                                              : memData.email ?? '',
-                                          style: BalooStyles.balooregularTextStyle(),
-                                          maxLines: 1,
-                                          overflow: TextOverflow.ellipsis,
-                                        )
-                                      ],
+                                      ),
+                                      title:
+                                      Column(
+                                        crossAxisAlignment: CrossAxisAlignment
+                                            .start,
+                                        children: [
+                                          Text(
+                                            memData.userId ==
+                                                APIs.me?.userId
+                                                ? "Me":   memData
+                                                .userCompany?.displayName != null
+                                                ? memData.userCompany
+                                                ?.displayName ?? ''
+                                                :memData.userName != null ? memData
+                                                .userName ?? '' :
+                                            memData.phone ?? '',
+                                            style: BalooStyles
+                                                .baloosemiBoldTextStyle(),
+                                            maxLines: 1,
+                                            overflow: TextOverflow.ellipsis,
+                                          ),
+
+                                          vGap(4),
+                                          memData.userName==null && memData.userCompany?.displayName==null?const SizedBox():  Text(
+                                            memData.phone != null
+                                                ?memData.phone ?? ''
+                                                : memData.email ?? '',
+                                            style: BalooStyles.balooregularTextStyle(),
+                                            maxLines: 1,
+                                            overflow: TextOverflow.ellipsis,
+                                          )
+                                        ],
+                                      ),
+                                      onTap: () {
+                                        Navigator.pop(context, listToShow[i]);
+                                      },
                                     ),
-                                    onTap: () {
-                                      Navigator.pop(context, listToShow[i]);
-                                    },
                                   );
                               }),
                           );

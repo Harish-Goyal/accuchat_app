@@ -118,8 +118,6 @@ class VerifyOtpController extends GetxController{
           .then((value) async {
         customLoader.hide();
         otpSent = true;
-        toast( value.message??'');
-
         update();
       }).onError((error, stackTrace) {
         if(!kIsWeb) {

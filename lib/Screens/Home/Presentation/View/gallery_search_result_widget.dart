@@ -3,6 +3,7 @@ import 'package:AccuChat/utils/helper_widget.dart';
 import 'package:AccuChat/utils/text_style.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import '../../../../utils/hover_glass_effect_widget.dart';
 import '../../../../utils/networl_shimmer_image.dart';
 import '../../Models/get_folder_res_model.dart';
 
@@ -29,10 +30,8 @@ class GalleryGlobalSearchResults extends StatelessWidget {
     return LayoutBuilder(
       builder: (context, c) {
         final w = c.maxWidth;
-
         final isGrid = w >= 650; // web/tablet => grid
         final crossAxisCount = _crossAxisForWidth(w);
-
         if (!isGrid) {
           // ✅ Mobile: List
           return ListView.separated(
@@ -50,12 +49,12 @@ class GalleryGlobalSearchResults extends StatelessWidget {
 
         // ✅ Web/Tablet: Grid
         return GridView.builder(
-          padding: const EdgeInsets.all(0),
+          padding: const EdgeInsets.symmetric(horizontal: 15,vertical: 10),
           gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
             crossAxisCount: crossAxisCount,
             crossAxisSpacing: 12,
             mainAxisSpacing: 12,
-            childAspectRatio: 3, // wide cards
+            childAspectRatio: 3.7,
           ),
           itemCount: items.length,
           itemBuilder: (_, i) => GlobalSearchResultTile(
@@ -136,9 +135,27 @@ class GlobalSearchResultTile extends StatelessWidget {
 
     final createdText = _formatDate(parseDate);
 
-    return Material(
-      color: Colors.white,
-      borderRadius: BorderRadius.circular(14),
+    return HoverGlassEffect(
+      // margin: const EdgeInsets.symmetric(horizontal: 2, vertical: 2),
+      // padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 7),
+      borderRadius: 12,
+      hoverScale: 1.05,
+      normalBlur: 0,
+      hoverBlur: 4,
+      borderColor: Colors.white.withOpacity(.1),
+      hoverBorderColor: Colors.grey.withOpacity(.3),
+      gradient:  LinearGradient(colors: [
+        whiteselected,
+        chatcardt.withOpacity(.5),
+      ]),
+      hoverGradient: RadialGradient(
+        center: const Alignment(-0.3, -0.3),
+        radius: 1.2,
+        colors: [
+          Colors.white.withOpacity(0.1),
+          Colors.white.withOpacity(0.05),
+        ],
+      ),
       child: InkWell(
         borderRadius: BorderRadius.circular(14),
         onTap: () {
@@ -148,95 +165,88 @@ class GlobalSearchResultTile extends StatelessWidget {
             onOpenMedia(item);
           }
         },
-        child: Container(
-          padding: const EdgeInsets.symmetric(horizontal: 8,vertical: 8),
-          decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(14),
-            border: Border.all(color: Colors.black12),
-            color: whiteselected,
-            boxShadow:  [
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            _LeadingPreview(
+              item: item,
+              buildFileUrl: buildFileUrl,
+            ),
+            hGap(12),
 
-              BoxShadow(
-                blurRadius: 14,
-                offset: Offset(0, 6),
-                color: perplebr,
-              )
-            ],
-          ),
-          child: Row(
-            children: [
-              _LeadingPreview(
-                item: item,
-                buildFileUrl: buildFileUrl,
-              ),
-              hGap(12),
-
-              // ✅ Title/subtitle
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
+            // ✅ Title/subtitle
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Text(
+                    title,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style:BalooStyles.baloomediumTextStyle(),
+                  ),
+                  vGap(2),
+                  if ((item.keyWords??'').isNotEmpty)
                     Text(
-                      title,
+                      item.keyWords??'',
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
-                      style:BalooStyles.baloomediumTextStyle(),
+                      style: const TextStyle(fontSize: 12, color: Colors.black54),
                     ),
-                    vGap(4),
-                    Row(
-                      children: [
-                       /* Flexible(child: _Pill(label: subtitle, icon: isFolder ? Icons.folder_rounded : Icons.insert_drive_file_rounded)),
-                        const SizedBox(width: 8),*/
-                        if ((item.folderName ?? "").isNotEmpty && !isFolder)
-                          _Pill(label: item.folderName!, icon: Icons.folder_open_rounded),
-                      ],
-                    ),
-                    if (createdText != null) ...[
-                      vGap(6),
-                      Text(
-                        "Created: $createdText",
-                        style:BalooStyles.baloonormalTextStyle(size: 12,color: greyText) ,
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                      ),
+                  vGap(2),
+                  Row(
+                    children: [
+                     /* Flexible(child: _Pill(label: subtitle, icon: isFolder ? Icons.folder_rounded : Icons.insert_drive_file_rounded)),
+                      const SizedBox(width: 8),*/
+                      if ((item.folderName ?? "").isNotEmpty && !isFolder)
+                        _Pill(label: item.folderName!, icon: Icons.folder_open_rounded),
                     ],
-                  ],
-                ),
-              ),
-              hGap(10),
-              // ✅ Actions
-              Row(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  _IconAction(
-                    icon: isFolder ? Icons.folder_open_rounded : Icons.open_in_new_rounded,
-                    tooltip: isFolder ? "Open folder" : "Open media",
-                    onTap: () {
-                      if (isFolder) {
-                        onOpenFolder(item.folderName ?? "");
-                      } else {
-
-                        onOpenMedia(item);
-                      }
-                    },
-
                   ),
-                 /* if (!isFolder) ...[
-                    const SizedBox(width: 6),
-                    _IconAction(
-                      icon: Icons.share_rounded,
-                      tooltip: "Share",
-                      onTap: () {
-                        // call your share logic here
-                        // e.g. controller.shareMedia(item)
-                      },
+                  if (createdText != null) ...[
+                    vGap(6),
+                    Text(
+                      "Created: $createdText",
+                      style:BalooStyles.baloonormalTextStyle(size: 12,color: greyText) ,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
                     ),
-                  ],*/
+                  ],
                 ],
-              )
-            ],
-          ),
+              ),
+            ),
+            hGap(8),
+            // ✅ Actions
+            Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                _IconAction(
+                  icon: isFolder ? Icons.folder_open_rounded : Icons.open_in_new_rounded,
+                  tooltip: isFolder ? "Open folder" : "Open media",
+                  onTap: () {
+                    if (isFolder) {
+                      onOpenFolder(item.folderName ?? "");
+                    } else {
+
+                      onOpenMedia(item);
+                    }
+                  },
+
+                ),
+               /* if (!isFolder) ...[
+                  const SizedBox(width: 6),
+                  _IconAction(
+                    icon: Icons.share_rounded,
+                    tooltip: "Share",
+                    onTap: () {
+                      // call your share logic here
+                      // e.g. controller.shareMedia(item)
+                    },
+                  ),
+                ],*/
+              ],
+            )
+          ],
         ),
       ),
     );

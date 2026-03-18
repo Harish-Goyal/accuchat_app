@@ -101,7 +101,7 @@ class HomeScreen extends GetView<DashboardController> {
 
                         GetBuilder<AcceptInviteController>(
                             builder: (controller) {
-                              return controller.pendingInvitesList.isEmpty?Center(
+                              return controller.pendingInvitesList.isEmpty?const Center(
                                   child: SizedBox()):
                               SizedBox(
                                 height: Get.height*.2,
@@ -409,7 +409,7 @@ class ChatCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return AnimatedContainer(
-      duration: Duration(milliseconds: 250),
+      duration: const Duration(milliseconds: 250),
       margin: const EdgeInsets.symmetric(vertical: 4),
       padding: const EdgeInsets.all(4),
       decoration: BoxDecoration(
@@ -423,7 +423,7 @@ class ChatCard extends StatelessWidget {
           BoxShadow(
             color: Colors.deepPurple.withOpacity(0.12),
             blurRadius: 12,
-            offset: Offset(0, 4),
+            offset: const Offset(0, 4),
           )
         ]
             : [],
@@ -433,44 +433,68 @@ class ChatCard extends StatelessWidget {
       ),
 
 
-      child: ListTile(
-        horizontalTitleGap: 8,
-
-        // dense: true,
-        minLeadingWidth: 55,
-        minTileHeight: 60,
-
-
-        leading: iconWidget ??
-            Image.asset(
-              leadIcon ?? '',
-              height: 18,
-            ),
-        // trailing: trailWidget??SizedBox(),
-        title: title == ""
-            ? Align(alignment: Alignment.centerLeft, child: trailWidget)
-            : Text(
-                title,
-                style: BalooStyles.baloosemiBoldTextStyle(),
-              ),
-        subtitle: InkWell(
-            onTap: subtitleTap ?? () {},
-            child: Container(
-              padding: const EdgeInsets.symmetric(vertical: 4),
-              width: 100,
-              child: Text(
-                subtitle,
-                style: BalooStyles.baloonormalTextStyle(
-                    underLineNeeded: true,
-                    color: Colors.blueAccent,
-                    deccolor: Colors.blueAccent),
-              ),
-            )),
-        contentPadding: EdgeInsets.zero,
+      child:InkWell(
         onTap: onTap,
+        child: Container(
+          padding: const EdgeInsets.symmetric(vertical: 8,horizontal: 12),
+          child: Row(
+            crossAxisAlignment: CrossAxisAlignment.center,
+            children: [
 
+              /// LEADING
+              SizedBox(
+                width: 60,
+                child: iconWidget ??
+                    Image.asset(
+                      leadIcon ?? '',
+                      height: 18,
+                    ),
+              ),
 
-      ),
+              /// TITLE + SUBTITLE
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+
+                    /// TITLE
+                    title == ""
+                        ? Align(
+                      alignment: Alignment.centerLeft,
+                      child: trailWidget,
+                    )
+                        : Text(
+                      title,
+                      style: BalooStyles.baloosemiBoldTextStyle(),
+                    ),
+
+                    /// SUBTITLE
+                    InkWell(
+                      onTap: subtitleTap ?? () {},
+                      child: Container(
+                        padding: const EdgeInsets.symmetric(vertical: 4),
+                        width: 100,
+                        child: Text(
+                          subtitle,
+                          style: BalooStyles.baloonormalTextStyle(
+                            underLineNeeded: true,
+                            color: Colors.blueAccent,
+                            deccolor: Colors.blueAccent,
+                          ),
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+
+              /// OPTIONAL TRAILING (if you want later)
+              // if (trailWidget != null) trailWidget!,
+            ],
+          ),
+        ),
+      )
     ).marginOnly(bottom: 8, left: 8, right: 8);
   }
 }
