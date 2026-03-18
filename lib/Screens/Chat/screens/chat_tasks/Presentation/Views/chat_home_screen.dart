@@ -424,8 +424,8 @@ class ChatsHomeScreen extends GetView<ChatHomeController> {
             Get.find<DashboardController>().updateIndex(4);
           },
           child: GradientContainer(
-            padding: 3,
             radius: 15,
+            padding: 3,
             color1:  greenside.withOpacity(.95),
             color2:  greenside.withOpacity(.5),
             child: Row(
@@ -433,14 +433,15 @@ class ChatsHomeScreen extends GetView<ChatHomeController> {
                 APIs.me.userImage!=null? CustomCacheNetworkImage(
                     "${ApiEnd.baseUrlMedia}${APIs.me.userImage}",
                   radiusAll: 100,
-                  height: 27,
-                  width: 27,
+                  height: 29,
+                  width: 29,
+                  boxFit: BoxFit.cover,
                 ):CircleAvatar(
                   radius: 14,
                   backgroundColor: Colors.white,
                   child: Text(getInitials(usern),style: BalooStyles.baloosemiBoldTextStyle(color: Colors.black45),),
                 ),
-                hGap(5),
+                hGap(3),
 
                 SvgPicture.asset(userSetting,color: Colors.white,height: 20,width: 20,)
               ],
