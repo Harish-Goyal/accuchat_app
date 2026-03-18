@@ -1,5 +1,6 @@
 import 'package:AccuChat/Constants/assets.dart';
 import 'package:AccuChat/Constants/colors.dart';
+import 'package:AccuChat/Constants/strings.dart';
 import 'package:AccuChat/Extension/text_field_extenstion.dart';
 import 'package:AccuChat/Screens/Chat/screens/auth/Presentation/Controllers/login_controller.dart';
 import 'package:AccuChat/utils/text_style.dart';
@@ -249,18 +250,18 @@ class _LeftBrandPanelOnlyCardsState extends State<_LeftBrandPanelOnlyCards>
           ),
 
           Positioned(
-            top: 180,
-            right: 10,
+            top: 120,
+            right: 0,
             child: _floating(
               phase: 1.2,
               amplitude: 14,
-              child: const _FeatureBubbleCard(
+              child:  _FeatureBubbleCard(
                 icon: Icons.task_alt_rounded,
                 title: "Task Flow",
                 subtitle: "Track work, assign and collaborate",
-                startColor: Color(0xFFE4FBFB),
-                endColor: Color(0xFFD2F3F4),
-                iconColor: greenside,
+                startColor: appColorYellow.withOpacity(.2),
+                endColor:   appColorYellow.withOpacity(.1),
+                iconColor: appColorYellow,
               ),
             ),
           ),
@@ -303,13 +304,13 @@ class _LeftBrandPanelOnlyCardsState extends State<_LeftBrandPanelOnlyCards>
             child: _floating(
               phase: 2.8,
               amplitude: 13,
-              child: const _FeatureBubbleCard(
+              child:  _FeatureBubbleCard(
                 icon: Icons.photo_library_rounded,
                 title: "Gallery Space",
                 subtitle: "Shared media, files and previews",
-                startColor: Color(0xFFF7EDFF),
-                endColor: Color(0xFFEBDFFF),
-                iconColor: perplebr,
+                startColor:  greenside.withOpacity(.2),
+                endColor:  greenside.withOpacity(.1),
+                iconColor: greenside,
               ),
             ),
           ),
@@ -320,13 +321,13 @@ class _LeftBrandPanelOnlyCardsState extends State<_LeftBrandPanelOnlyCards>
             child: _floating(
               phase: 3.4,
               amplitude: 16,
-              child: const _FeatureBubbleCard(
+              child:  _FeatureBubbleCard(
                 icon: Icons.apartment_rounded,
                 title: "Multi Company",
                 subtitle: "Workspaces for teams and companies",
-                startColor: Color(0xFFE8FAFA),
-                endColor: Color(0xFFD3F3F1),
-                iconColor: greenside,
+                startColor: perplebr.withOpacity(.2),
+                endColor:  perplebr.withOpacity(.1),
+                iconColor: perplebr,
               ),
             ),
           ),
@@ -360,11 +361,11 @@ class _LeftBrandPanelOnlyCardsState extends State<_LeftBrandPanelOnlyCards>
           ),
           Positioned(
             right:40,
-            top: 145,
+            top: 85,
             child: _floating(
               phase: 2.9,
               amplitude: 8,
-              child: const _MiniTag(title: "Team Workspace", color: greenside),
+              child:  _MiniTag(title: "Team Workspace", color: appColorYellow),
             ),
           ),
         ],
@@ -1304,8 +1305,8 @@ class _AccuChatAnimatedLightBackgroundState
           size: 280,
           alignment: Alignment.topRight,
           colors: [
-            greenside.withOpacity(.15),
-            greenside.withOpacity(.04),
+            appColorYellow.withOpacity(.2),
+            appColorYellow.withOpacity(.1),
           ],
           dx: 1.4,
           dy: .8,
