@@ -309,7 +309,7 @@ class GroupMembersScreen extends GetView<GrBrMembersController> {
           child: SizedBox(
             width: Get.width * 0.5,
             height: Get.height * 0.95,
-            child: const AddGroupMembersScreen(),
+            child:  AddGroupMembersScreen(),
           ),
         ),
         barrierDismissible: true,

@@ -556,6 +556,7 @@ class TaskThreadScreen extends GetView<TaskThreadController> {
 
   Widget _chatInput() {
     return Container(
+      constraints: BoxConstraints(maxHeight: Get.height*.4,maxWidth: Get.width),
       padding: EdgeInsets.symmetric(
           vertical: mq.height * .01, horizontal: mq.width * .025),
       child: Row(

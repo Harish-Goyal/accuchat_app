@@ -56,116 +56,149 @@ class LandingPage extends GetView<LandingScreenController> {
               builder: (context, constraints) {
                 final isWide = constraints.maxWidth > 600;
                 return Center(
-                  child: ConstrainedBox(
-                    constraints: BoxConstraints(
-                      maxWidth: isWide ? 600 : double.infinity,
+                  child: Container(
+                    padding:  EdgeInsets.symmetric(horizontal:isWide?15: 0, vertical: 10),
+                    margin: const EdgeInsets.symmetric(horizontal: 15),
+                    decoration: BoxDecoration(
+                      borderRadius: BorderRadius.circular(30),
+                      gradient: LinearGradient(colors: [
+                        Colors.black.withOpacity(.01),
+                        Colors.black.withOpacity(.02),
+                      ]),
+                      border: Border.all(
+                        color: Colors.white,
+                        width: 1.2,
+                      ),
+                      boxShadow: [
+                        BoxShadow(
+                          color:greyColor
+                    ,
+                          blurRadius: 24,
+                          offset: const Offset(0, 14),
+                        ),
+                        BoxShadow(
+                          color: Colors.grey.shade200,
+                          blurRadius: 22,
+                          offset: const Offset(0, 8),
+                        ),
+                      ],
                     ),
-                    child: Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: 16),
-                      child: SingleChildScrollView(
-                        child: Column(
-                          children: [
-                            vGap(20),
-                            Text(
-                              'Welcome to AccuChat',
-                              style: BalooStyles.balooboldTextStyle(size: 18),
-                              textAlign: TextAlign.center,
-                            ),
-                            vGap(10),
-                            Image.asset(appIcon, width: 100),
-                            // SvgPicture.asset(appIcon, width: 100),
-                            vGap(20),
+                    child: ConstrainedBox(
+                      constraints: BoxConstraints(
+                        maxWidth: isWide ? 450 : double.infinity,
+                      ),
+                      child: Padding(
+                        padding: const EdgeInsets.symmetric(horizontal: 16),
+                        child: SingleChildScrollView(
+                          child: Column(
+                            children: [
+                              vGap(20),
+                              Text(
+                                'Welcome to AccuChat',
+                                style: BalooStyles.balooboldTextStyle(size: 18),
+                                textAlign: TextAlign.center,
+                              ),
+                              vGap(10),
+                              SvgPicture.asset(appIconSvg, width: 60),
+                              Text(
+                                'Get started by choosing your company, joining an invitation, or creating a new one.!',
+                                style: BalooStyles.baloonormalTextStyle(),
+                                textAlign: TextAlign.center,
+                              ),
+                              // SvgPicture.asset(appIcon, width: 100),
+                              vGap(20),
 
-                            if (controller.joinedCompaniesList.isNotEmpty)
-                              ListView.builder(
-                                shrinkWrap: true,
-                                physics: const NeverScrollableScrollPhysics(),
-                                itemCount: controller.joinedCompaniesList.length,
-                                itemBuilder: (context, i) {
-                                  final company = controller.joinedCompaniesList[i];
-                                  return  Align(
-                                    alignment: Alignment.center,
+                              if (controller.joinedCompaniesList.isNotEmpty)
+                                ListView.builder(
+                                  shrinkWrap: true,
+                                  physics: const NeverScrollableScrollPhysics(),
+                                  itemCount: controller.joinedCompaniesList.length,
+                                  itemBuilder: (context, i) {
+                                    final company = controller.joinedCompaniesList[i];
+                                    return  Align(
+                                      alignment: Alignment.center,
+                                      child: SizedBox(
+                                          width: kIsWeb ? 420 : double.infinity,
+                                          child: CompanyCardModern(companyData: company, isLanding: true,)),
+                                    );
+
+                                  },
+                                )
+                              else
+                                Padding(
+                                  padding: const EdgeInsets.symmetric(vertical: 10),
+                                  child: Center(
                                     child: SizedBox(
-                                        width: kIsWeb ? 420 : double.infinity,
-                                        child: CompanyCardModern(companyData: company, isLanding: true,)),
-                                  );
-
-                                },
-                              )
-                            else
-                              Padding(
-                                padding: const EdgeInsets.symmetric(vertical: 10),
-                                child: Center(
-                                  child: SizedBox(
-                                    width: Get.width * .5,
-                                    child: Text(
-                                      "You are not connected to any company! You can create or join company.",
-                                      textAlign: TextAlign.center,
-                                      style: BalooStyles.balooregularTextStyle(),
+                                      width: Get.width * .5,
+                                      child: Text(
+                                        "You are not connected to any company! You can create or join company.",
+                                        textAlign: TextAlign.center,
+                                        style: BalooStyles.balooregularTextStyle(),
+                                      ),
                                     ),
                                   ),
                                 ),
-                              ),
 
-                            vGap(40),
+                              vGap(40),
 
-                            SizedBox(
-                              width:500,
-                              child: Row(
-                                children: [
-                                  Expanded(
-                                    child: dynamicButton(
-                                      name: "Create Company",
-                                      onTap: () {
-                                       /* if (APIs.me.selectedCompany?.allowedCompany == 0) {
-                                          toast("You are not allowed to create company more than 1! Contact Organization!");
-                                        } else {
-                                          Get.toNamed(AppRoutes.createCompanyRoute, arguments: {'isHome': false});
-                                        }*/
-                                        if(kIsWeb){
-                                          openCreateCompanyDialog(false);
-                                          // Get.toNamed(
-                                          //   "${AppRoutes.create_company}?isHome=${0}",
-                                          // );
-                                        }else {
-                                          Get.toNamed(
-                                              AppRoutes.create_company,
-                                              arguments: {'isHome': '0'});
-                                        }
-                                      },
-                                      isShowText: true,
-                                      isShowIconText: false,
-                                      gradient: buttonGradient,
-                                      leanIcon: 'assets/images/google.png',
+                              SizedBox(
+                                width:500,
+                                child: Row(
+                                  children: [
+                                    Expanded(
+                                      child: dynamicButton(
+                                        name: "Create Company",
+                                        onTap: () {
+                                         /* if (APIs.me.selectedCompany?.allowedCompany == 0) {
+                                            toast("You are not allowed to create company more than 1! Contact Organization!");
+                                          } else {
+                                            Get.toNamed(AppRoutes.createCompanyRoute, arguments: {'isHome': false});
+                                          }*/
+                                          if(kIsWeb){
+                                            openCreateCompanyDialog(false);
+                                            // Get.toNamed(
+                                            //   "${AppRoutes.create_company}?isHome=${0}",
+                                            // );
+                                          }else {
+                                            Get.toNamed(
+                                                AppRoutes.create_company,
+                                                arguments: {'isHome': '0'});
+                                          }
+                                        },
+                                        isShowText: true,
+                                        isShowIconText: false,
+                                        gradient: buttonGradient,
+                                        leanIcon: 'assets/images/google.png',
+                                      ),
                                     ),
-                                  ),
-                                  hGap(12),
-                                  Expanded(
-                                    child: dynamicButton(
-                                      name: "Join Company",
-                                      onTap: () async {
-                                        /* await APIs.handleJoinCompany(
-                                          context: context,
-                                          emailOrPhone: APIs.me.phone == 'null'
-                                              ? APIs.me.email
-                                              : APIs.me.phone,
-                                        );*/
-                                        //TODO
+                                    hGap(12),
+                                    Expanded(
+                                      child: dynamicButton(
+                                        name: "Join Company",
+                                        onTap: () async {
+                                          /* await APIs.handleJoinCompany(
+                                            context: context,
+                                            emailOrPhone: APIs.me.phone == 'null'
+                                                ? APIs.me.email
+                                                : APIs.me.phone,
+                                          );*/
+                                          //TODO
 
-                                        var mob = StorageService.getMobile();
-                                        controller.hitAPIToGetPendingInvites(mob,context);
-                                      },
-                                      isShowText: true,
-                                      isShowIconText: false,
-                                      gradient: buttonGradient,
-                                      leanIcon: 'assets/images/google.png',
+                                          var mob = StorageService.getMobile();
+                                          controller.hitAPIToGetPendingInvites(mob,context);
+                                        },
+                                        isShowText: true,
+                                        isShowIconText: false,
+                                        gradient: buttonGradient,
+                                        leanIcon: 'assets/images/google.png',
+                                      ),
                                     ),
-                                  ),
-                                ],
+                                  ],
+                                ),
                               ),
-                            ),
-                            vGap(40),
-                          ],
+                              vGap(40),
+                            ],
+                          ),
                         ),
                       ),
                     ),

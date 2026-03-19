@@ -575,7 +575,7 @@ class _ChatScreenMobileState extends State<ChatScreenMobile> {
           Expanded(child: divider(color: perpleBg)),
         ],
       ),
-    );
+    ).marginSymmetric(vertical: 15);
   }
 
 /*  Widget groupListView() {
@@ -806,7 +806,7 @@ class _ChatScreenMobileState extends State<ChatScreenMobile> {
                                     ? perpleBg
                                     : whiteselected),
                             boxShadow:sentByMe? [BoxShadow(
-                              color: perplebr,
+                              color: perplebr.withOpacity(.5),
                               offset: Offset(5, 5)
                             )]:[BoxShadow(
                               color: Colors.grey.shade300,
@@ -1381,6 +1381,7 @@ class _ChatScreenMobileState extends State<ChatScreenMobile> {
   // app bar widget
   Widget _appBar() {
     return Container(
+      padding: EdgeInsets.only(left: 15),
     decoration:const BoxDecoration(
     image: DecorationImage(image: AssetImage(appbarBG),fit: BoxFit.cover)
     ),
@@ -1404,7 +1405,7 @@ class _ChatScreenMobileState extends State<ChatScreenMobile> {
                 controller.searchQuery = val;
                 controller.onSearch(val, controller.user!);
               },
-            ).marginSymmetric(vertical: 10),
+            ).marginSymmetric(vertical: 8),
           )
               : Expanded(
             child: InkWell(
@@ -1673,7 +1674,7 @@ class _ChatScreenMobileState extends State<ChatScreenMobile> {
           child: SizedBox(
             width: Get.width * 0.8,
             height: Get.height * 0.75,
-            child: const AddGroupMembersScreen(),
+            child:  AddGroupMembersScreen(),
           ),
         ),
         barrierDismissible: true,
@@ -1820,6 +1821,7 @@ class _ChatScreenMobileState extends State<ChatScreenMobile> {
     }
 
     return Container(
+      constraints: BoxConstraints(maxHeight: Get.height*.7,maxWidth: Get.width),
       padding: const EdgeInsets.symmetric(vertical: 0, horizontal: 5),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.center,
@@ -2077,8 +2079,10 @@ class _ChatScreenMobileState extends State<ChatScreenMobile> {
                         }),
 
                        */
+
   Widget _chatInputMobile(context) {
     return Container(
+      constraints: BoxConstraints(maxHeight: Get.height*.4,maxWidth: Get.width),
       padding: const EdgeInsets.symmetric(
           vertical: 4, horizontal: 12),
       child: Row(
@@ -2093,20 +2097,21 @@ class _ChatScreenMobileState extends State<ChatScreenMobile> {
                     child: Column(
                       children: [
                         Shortcuts(
-                          shortcuts: const <ShortcutActivator, Intent>{
-                            SingleActivator(LogicalKeyboardKey.enter): ActivateIntent(),
-                          },
+                          shortcuts: const <ShortcutActivator, Intent>{},
                           child: Actions(
                             actions: <Type, Action<Intent>>{
                               ActivateIntent: CallbackAction<Intent>(
                                 onInvoke: (intent) {
-                                  if (!kIsWeb) return null;
+                                  if (!kIsWeb) return null; // already handled, but keep safe
+
                                   final keys = HardwareKeyboard.instance.logicalKeysPressed;
-                                  final shiftPressed = keys.contains(LogicalKeyboardKey.shiftLeft) ||
-                                      keys.contains(LogicalKeyboardKey.shiftRight);
-                                  if (shiftPressed) return null;
+                                  final shiftPressed =
+                                      keys.contains(LogicalKeyboardKey.shiftLeft) ||
+                                          keys.contains(LogicalKeyboardKey.shiftRight);
+
+                                  if (shiftPressed) return null; // allow newline
+
                                   _sendMessage();
-                                  // controller.messageParentFocus.requestFocus();
                                   return null;
                                 },
                               ),
@@ -2118,6 +2123,7 @@ class _ChatScreenMobileState extends State<ChatScreenMobile> {
                                 border: Border.all(color: appColorPerple.withOpacity(.2)),
                               ),
                               child: Row(
+                                crossAxisAlignment: CrossAxisAlignment.end,
                                 children: [
                                   Expanded(
                                     child: TextField(
@@ -2140,21 +2146,21 @@ class _ChatScreenMobileState extends State<ChatScreenMobile> {
                                         errorBorder: InputBorder.none,
                                         focusedBorder: InputBorder.none,
                                       ),
-                            
+
                                     ),
                                   ),
-                            
+
                                   if (!isTaskMode)
                                     Obx(() => Visibility(
                                       visible: controller.showUpload.value,
                                       child:InkWell(
                                         onTap: () => showUploadOptions(Get.context!),
                                         child: IconButtonWidget(uploadsvg),
-                            
+
                                       ),
                                     )),
-                            
-                             /*if (!isTaskMode)
+
+                                  /*if (!isTaskMode)
                                     InkWell(
                                       onTap: () async {
                                         openWhatsAppEmojiPicker(
@@ -2167,7 +2173,7 @@ class _ChatScreenMobileState extends State<ChatScreenMobile> {
                                           },
                                           isMobile: false,
                                         );
-                            
+
                                       },
                                       child: IconButtonWidget(emojiPng),
                                     ),*/
@@ -2201,7 +2207,6 @@ class _ChatScreenMobileState extends State<ChatScreenMobile> {
       ),
     );
   }
-
   _sendMessage() {
     if (controller.textController.text.isNotEmpty) {
       final socketc =Get.find<SocketController>();

@@ -94,10 +94,10 @@ class AllUserScreen extends GetView<AllUserController> {
               borderRadius: 12,
               hoverScale: 1.015,
               normalBlur: 3,
-              hoverBlur: 10,
+              hoverBlur: 5,
               gradient:  LinearGradient(colors: [
                 gallwhite,
-                perpleBg.withOpacity(.2),
+                perpleBg.withOpacity(.1),
               ]),
               child: ListTile(
                 leading: SizedBox(
@@ -297,8 +297,8 @@ class AllUserScreen extends GetView<AllUserController> {
       actions: [
         Obx(() {
           return GradientContainer(
-            color1: perplebr,
-            color2: Colors.white.withOpacity(.4),
+            // color1: perplebr,
+            // color2: perplebr.withOpacity(.4),
             child: InkWell(
                 onTap: () {
                   controller.isSearching.value = !controller.isSearching.value;
@@ -311,7 +311,7 @@ class AllUserScreen extends GetView<AllUserController> {
                 },
                 child: controller.isSearching.value
                     ? const Icon(CupertinoIcons.clear_circled_solid)
-                    : SvgPicture.asset(searchPng, height: 20, width: 20,color: Colors.white,)),
+                    : SvgPicture.asset(searchPng, height: 20, width: 20,color: Colors.black45,)),
           ).marginOnly(right: 20);
         }),
       ],

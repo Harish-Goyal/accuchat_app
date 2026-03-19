@@ -29,7 +29,7 @@ class CompaniesController extends GetxController {
   @override
   void onInit() {
     getCompany();
-    // _getMe();
+
     hitAPIToGetCompanies();
     hitAPIToGetPendingInvites();
     hitAPIToGetSentInvites(companyData: selCompany);
@@ -38,7 +38,8 @@ class CompaniesController extends GetxController {
 
   void refreshCompanies() async {
     hitAPIToGetCompanies();
-
+    hitAPIToGetPendingInvites();
+    hitAPIToGetSentInvites(companyData: selCompany);
     update();
     // homeController.update();
   }

@@ -172,13 +172,17 @@ class AddGroupMemController extends GetxController {
           filteredList.assignAll(allUsersList??[]);
           final filteredUsers = allUsersList.where((user) => !membersIds.contains(user.userId)).toList();
           filteredList.value = filteredUsers;
+          if(Get.isRegistered<GrBrMembersController>()){
           Get.find<GrBrMembersController>().hitAPIToGetMembers();
+          }
 
         } else {
           filteredList.addAll(allUsersList??[]);
           final filteredUsers = allUsersList.where((user) => !membersIds.contains(user.userId)).toList();
           filteredList.value = filteredUsers;
-          Get.find<GrBrMembersController>().hitAPIToGetMembers();
+          if(Get.isRegistered<GrBrMembersController>()) {
+            Get.find<GrBrMembersController>().hitAPIToGetMembers();
+          }
         }
 
         page++; // next page
@@ -247,7 +251,6 @@ class AddGroupMemController extends GetxController {
         .addMemberToGrBrApiCall(dataBody: req)
         .then((value) async {
           customLoader.hide();
-          Get.back();
           toast("Member added!");
           // hitAPIToAllGetMember();
           isLoading = true;

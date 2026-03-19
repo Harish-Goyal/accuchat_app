@@ -11,9 +11,13 @@ import 'package:flutter_svg/svg.dart';
 import 'package:get/get.dart';
 import '../../../../Constants/assets.dart';
 import '../../../../Constants/colors.dart';
+import '../../../../Services/APIs/api_ends.dart';
 import '../../../../Services/subscription/billing_service.dart';
 import '../../../../routes/app_routes.dart';
+import '../../../../utils/circleContainer.dart';
+import '../../../../utils/networl_shimmer_image.dart';
 import '../../../../utils/product_shimmer_widget.dart';
+import '../../../../utils/text_style.dart';
 import 'home_screen.dart';
 
 class CompaniesScreen extends GetView<CompaniesController> {
@@ -74,19 +78,83 @@ class CompaniesScreen extends GetView<CompaniesController> {
                             crossAxisAlignment: CrossAxisAlignment.start,
                             mainAxisAlignment: MainAxisAlignment.spaceBetween,
                             children: [
-                              const Flexible(
-                                child: SectionHeader(
-                                  title: 'Companies',
-                                  icon: connectedAppIcon,
+                              Expanded(
+                                flex: 2,
+                                child: Row(
+                                  mainAxisAlignment: MainAxisAlignment.start,
+                                  mainAxisSize: MainAxisSize.min,
+                                  children: [
+                                    Container(
+                                      width: 40,
+                                      // margin: EdgeInsets.only(left: 10),
+                                      decoration: BoxDecoration(
+                                          color: Colors.white,
+                                          shape: BoxShape.circle,boxShadow: [
+                                        BoxShadow(color: greenside.withOpacity(.5),blurRadius: 5)
+                                      ]
+                                      ),
+                                      child: controller.selCompany?.logo!=null? CustomCacheNetworkImage(
+                                        "${ApiEnd.baseUrlMedia}${controller.selCompany?.logo ?? ''}",
+                                        radiusAll: 100,
+                                        height: 40,
+                                        width: 40,
+                                        borderColor: appColorYellow,
+                                        defaultImage: appIcon,
+                                        boxFit: BoxFit.cover,
+                                        isApp: true,
+                                      ):CircleAvatar(
+                                        // radius: 45,
+                                        backgroundColor: Colors.white,
+                                        child: Text(getInitials(controller.selCompany?.companyName ?? ''),style: BalooStyles.baloosemiBoldTextStyle(color: greenside,size: 20),),
+                                      ),
+                                    ).paddingAll(3),
+                                    Expanded(
+                                      child: Column(
+                                        mainAxisAlignment: MainAxisAlignment.end,
+                                        mainAxisSize: MainAxisSize.min,
+                                        crossAxisAlignment: CrossAxisAlignment.start,
+                                        children: [
+                                          Text(
+                                            'Companies',
+                                            style: BalooStyles.baloomediumTextStyle(
+                                                size: 14),
+                                          ).paddingOnly(left: 4, top: 4),
+                                          Row(
+                                            crossAxisAlignment: CrossAxisAlignment.center,
+                                            mainAxisAlignment: MainAxisAlignment.start,
+                                            mainAxisSize: MainAxisSize.min,
+
+                                            children: [
+                                              CircleContainer(colorIS: Colors.greenAccent,setSize: 5.0,),
+                                              Text(
+                                                (controller.selCompany?.companyName ?? ''),
+                                                style: BalooStyles.baloomediumTextStyle(
+                                                  color: appColorYellow,
+                                                ),
+                                                maxLines: 1,
+                                                overflow: TextOverflow.ellipsis,
+                                              ).paddingOnly(left: 4, top: 2),
+                                            ],
+                                          ),
+                                        ],
+                                      ),
+                                    ),
+
+                                  ],
                                 ),
                               ),
+
                               InkWell(
                                 onTap: () async {
                                   controller.refreshCompanies();
                                 },
-                                child: const Icon(
-                                  Icons.refresh,
-                                  color: Colors.black87,
+                                child: GradientContainer(
+                                  color1: greenside.withOpacity(.4),
+                                  color2:greenside ,
+                                  child: const Icon(
+                                    Icons.refresh,
+                                    color: Colors.white,
+                                  ),
                                 ),
                               ).paddingAll(0)
                             ],

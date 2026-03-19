@@ -17,7 +17,8 @@ import '../Controllers/add_group_mem_controller.dart';
 
 class AddGroupMembersScreen extends GetView<AddGroupMemController> {
 
-  const AddGroupMembersScreen({super.key});
+   AddGroupMembersScreen({super.key});
+  AddGroupMemController con = Get.put(AddGroupMemController());
 
   @override
   Widget build(BuildContext context) {
@@ -28,8 +29,8 @@ class AddGroupMembersScreen extends GetView<AddGroupMemController> {
       builder: (controller) {
         return Scaffold(
           backgroundColor: Colors.grey.shade100,
-          appBar: _buildAppBar(),
-          body: _mainBody(),
+          appBar: _buildAppBar(controller),
+          body: _mainBody(controller),
           floatingActionButton: FloatingActionButton.extended(
             onPressed: controller.selectedUserIds.isNotEmpty
                 ? () {
@@ -57,7 +58,7 @@ class AddGroupMembersScreen extends GetView<AddGroupMemController> {
   }
 
 
-  _mainBody(){
+  _mainBody(controller){
 
     return controller.isLoading
         ? const IndicatorLoading()
@@ -168,7 +169,7 @@ class AddGroupMembersScreen extends GetView<AddGroupMemController> {
       )
     );
   }
-  AppBar _buildAppBar(){
+  AppBar _buildAppBar(controller){
     return AppBar(      scrolledUnderElevation: 0,
       surfaceTintColor: Colors.white,
       // automaticallyImplyLeading: false,

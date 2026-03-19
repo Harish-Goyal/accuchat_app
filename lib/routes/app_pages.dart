@@ -130,7 +130,7 @@ class AppPages {
     ),
     GetPage(
       name: AppRoutes.add_group_member,
-      page: () => const AddGroupMembersScreen(),
+      page: () =>  AddGroupMembersScreen(),
       bindings: [AddGroupMemBinding()],
     ),
     GetPage(

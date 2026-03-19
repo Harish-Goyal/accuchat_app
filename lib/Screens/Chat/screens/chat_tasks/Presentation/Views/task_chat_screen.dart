@@ -848,7 +848,7 @@ class _TaskScreenState extends State<TaskScreen> {
                       controller.searchQuery = val;
                       controller.onSearch(val);
                     },
-                  ).marginSymmetric(vertical: 10),
+                  ).marginSymmetric(vertical: 8,horizontal: 15),
                 )
               : Expanded(
                   child: InkWell(

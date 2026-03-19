@@ -134,6 +134,7 @@ class ChatMessageMedia extends StatelessWidget {
           child: ConstrainedBox(
             constraints: BoxConstraints(
               maxWidth: _bubbleMaxWidth(context),
+              minHeight: 100
 
             ),
                 child: ClipRRect(
@@ -280,7 +281,7 @@ class _ImagesGrid extends StatelessWidget {
               child: ConstrainedBox(
                 constraints: BoxConstraints(
                   maxWidth: _bubbleMaxWidth(context),
-
+                  minHeight: 200
                 ),
                 child: CustomCacheNetworkImage(
                   item.url,

@@ -143,7 +143,7 @@ class GalleryTab extends GetView<GalleryController> {
                               ).marginSymmetric(horizontal: 10),
 
                             vGap(8),
-                            (controller.folderList??[]).isNotEmpty ? Expanded(child: _listView()):_listView(),
+                            Expanded(child: _listView()),
                           ],
                         ),
                       );
@@ -186,10 +186,13 @@ class GalleryTab extends GetView<GalleryController> {
               controller.searchResults?.clear();
               controller.update();
             },
-            icon:GradientContainer(child:  controller.isSearchingIcon
+            icon:GradientContainer(
+              color1: greenside,
+                color2: greenside.withOpacity(.4),
+                child:  controller.isSearchingIcon
                 ? const Icon(CupertinoIcons.clear_circled_solid)
             // : Image.asset(searchPng, height: 25, width: 25))
-                : SvgPicture.asset(searchPng, height: 20, width: 20,color: Colors.black45,)))
+                : SvgPicture.asset(searchPng, height: 20, width: 20,color: Colors.white,)))
             .paddingOnly(top: 0, right: 10),
       ],
     );
@@ -228,13 +231,20 @@ class GalleryTab extends GetView<GalleryController> {
           mainAxisAlignment: MainAxisAlignment.start,
           mainAxisSize: MainAxisSize.min,
           children: [
-            SizedBox(
+            Container(
               width: 40,
+              margin: EdgeInsets.only(left: 10),
+              decoration: BoxDecoration(
+                  color: Colors.white,
+                  shape: BoxShape.circle,boxShadow: [
+                BoxShadow(color: greenside.withOpacity(.5),blurRadius: 5)
+              ]
+              ),
               child:  controller.myCompany?.logo!=null? CustomCacheNetworkImage(
                 "${ApiEnd.baseUrlMedia}${controller.myCompany?.logo ?? ''}",
                 radiusAll: 100,
-                height: 30,
-                width: 30,
+                height: 40,
+                width: 40,
                 borderColor: appColorYellow,
                 defaultImage: appIcon,
                 boxFit: BoxFit.cover,
@@ -675,19 +685,20 @@ class _GalleryGrid extends StatelessWidget {
     return LayoutBuilder(
       builder: (context, constraints) {
         final cross = (constraints.maxWidth ~/120).clamp(2, 12);
+        bool isWide = constraints.maxWidth > 600;
         return RefreshIndicator(
             onRefresh: () async => controller.refreshGallery(),
             child: Container(
-              height:kIsWeb &&Get.width>500? Get.height*.65:Get.height*.8,
+              height:isWide ? Get.height*.65:Get.height*.7,
               child: GridView.builder(
                 padding:  const EdgeInsets.symmetric(horizontal: 15, vertical: 12),
                 controller: controller.scrollController,
                 physics: const AlwaysScrollableScrollPhysics(),
                 gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-                  crossAxisCount:(kIsWeb&&Get.width>600)? cross:3,
+                  crossAxisCount:isWide? cross:3,
                   crossAxisSpacing: 8,
                   mainAxisSpacing: 8,
-                  childAspectRatio: (kIsWeb && Get.width>600)?0.9:1,
+                  childAspectRatio: isWide?0.9:.9,
                 ),
                 itemCount: items.length,
                 itemBuilder: (_, i) {

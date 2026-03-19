@@ -7,6 +7,7 @@ import 'package:AccuChat/Screens/Home/Presentation/View/profile_screen.dart';
 import 'package:AccuChat/Screens/Settings/Presentation/Views/static_page.dart';
 import 'package:AccuChat/Services/APIs/api_ends.dart';
 import 'package:AccuChat/routes/app_routes.dart';
+import 'package:AccuChat/utils/backappbar.dart';
 import 'package:AccuChat/utils/circleContainer.dart';
 import 'package:AccuChat/utils/custom_container.dart';
 import 'package:AccuChat/utils/custom_flashbar.dart';
@@ -33,16 +34,14 @@ class AllSettingsScreen extends GetView<AllSettingsController> {
       init: AllSettingsController(),
       builder: (controller) {
         return Scaffold(
-          appBar: AppBar(
-            scrolledUnderElevation: 0,
-            surfaceTintColor: Colors.white,
-            title:  Text('Settings',style: BalooStyles.balooboldTitleTextStyle(),),
-            toolbarHeight: isWide ? 64 : kToolbarHeight,
-          ),
-          body: ConstrainedBox(
+          body: Container(
             constraints: BoxConstraints(
               maxWidth: isWide ? maxContentWidth : double.infinity,
             ),
+            decoration: const BoxDecoration(
+              image: DecorationImage(image: AssetImage(loginbg),fit: BoxFit.cover,opacity:kIsWeb? .5:.1)
+            ),
+            
             child: Padding(
               padding: EdgeInsets.symmetric(horizontal: isWide ? 16 : 0),
               child: _buildContent(context, controller, isWide),
@@ -104,177 +103,181 @@ class AllSettingsScreen extends GetView<AllSettingsController> {
 
   Widget _buildContent(BuildContext context, AllSettingsController controller, bool isWide) {
     return SingleChildScrollView(
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          HoverGlassEffect(
-            // margin: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
-            padding: const EdgeInsets.symmetric(horizontal: 0, vertical: 0),
-            borderRadius: 12,
-            hoverScale: 1.015,
-            normalBlur: 1,
-            hoverBlur: 10,
-            /*hoverGradient: LinearGradient(colors: [
-              gallwhite,
-              perpleBg,
-                ]),*/
-            gradient: LinearGradient(colors: [
-              gallwhite,
-              perpleBg,
-            ]),
-            child: InkWell(
-                borderRadius: BorderRadius.circular(12),
-                onTap: (){
-                  if(kIsWeb && Get.width>600){
-                    openProfileDialog();
-                  }else{
-                    Get.toNamed(AppRoutes.h_profile);
-                  }
-                },
-                child: Row(
-                    crossAxisAlignment: CrossAxisAlignment.center,
-                    children: [
-                      CustomCacheNetworkImage(
-                        "${ApiEnd.baseUrlMedia}${APIs.me.userImage??''}",
-                        height: isWide ? 100 : 80,
-                        width: isWide ? 100 : 80,
-                        boxFit: BoxFit.cover,
-                        defaultImage: ICON_profile,
-                        radiusAll: 100,
-                        borderColor: Colors.black54,
-                      ),
-                      hGap(isWide ? 14 : 10),
-                      Expanded(
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Row(
-                              mainAxisSize: MainAxisSize.min,
-                              children: [
-                                CircleContainer(colorIS: Colors.greenAccent,setSize: 6,),
-                                hGap(5),
-                                Text(
-                                  APIs.me.userName!=null?APIs.me.userName??'':APIs.me.userCompany?.displayName??'',
-                                  style: BalooStyles.baloosemiBoldTextStyle(),
-                                  overflow: TextOverflow.ellipsis,
-                                  maxLines: 1,
-                                ),
-                              ],
-                            ),
-                            vGap(4),
-
-                            Text(
-                              APIs.me.phone??'',
-                              style: BalooStyles.balooregularTextStyle(),
-                              overflow: TextOverflow.ellipsis,
-                              maxLines: 1,
-                            ).paddingOnly(bottom: 4),
-                            Text(
-                              APIs.me.about??'',
-                              style: BalooStyles.balooregularTextStyle(size: 13,color: greyText),
-                              overflow: TextOverflow.ellipsis,
-
-                              maxLines: 2,
-                            ).paddingOnly(bottom: 4),
-                          ],
+      child: SafeArea(
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            backApp(context, "Settings"),
+            vGap(20,),
+            HoverGlassEffect(
+              // margin: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
+              padding: const EdgeInsets.symmetric(horizontal: 0, vertical: 0),
+              borderRadius: 12,
+              hoverScale: 1.015,
+              normalBlur: 1,
+              hoverBlur: 10,
+              /*hoverGradient: LinearGradient(colors: [
+                gallwhite,
+                perpleBg,
+                  ]),*/
+              gradient: LinearGradient(colors: [
+                gallwhite,
+                perpleBg,
+              ]),
+              child: InkWell(
+                  borderRadius: BorderRadius.circular(12),
+                  onTap: (){
+                    if(kIsWeb && Get.width>600){
+                      openProfileDialog();
+                    }else{
+                      Get.toNamed(AppRoutes.h_profile);
+                    }
+                  },
+                  child: Row(
+                      crossAxisAlignment: CrossAxisAlignment.center,
+                      children: [
+                        CustomCacheNetworkImage(
+                          "${ApiEnd.baseUrlMedia}${APIs.me.userImage??''}",
+                          height: isWide ? 100 : 80,
+                          width: isWide ? 100 : 80,
+                          boxFit: BoxFit.cover,
+                          defaultImage: ICON_profile,
+                          radiusAll: 100,
+                          borderColor: Colors.black54,
                         ),
-                      ),
-                    ],
-                  ),
-              ),
-          ).marginSymmetric(horizontal: 12,vertical: 8),
-          controller.isLoading?const Padding(
-            padding: EdgeInsets.symmetric(horizontal: 15.0,vertical: 8),
-            child: Text("Loading..."),
-          ):const SizedBox(),
-         /* ...(controller.settingsItems??[]).map((nav) {
-            return ListTile(
-              leading: Icon(controller.iconForSetting(nav), size: isWide ? 22 : 20),
-              title: Text(nav.navigationItem??'',
-                  style: BalooStyles.baloonormalTextStyle()),
-              trailing: Icon(Icons.arrow_forward_ios, size: isWide ? 16 : 15, color: Colors.grey),
-              onTap: controller.onTapForSetting(nav, controller),
-              // responsive: slightly tighter density on web to fit more items
-              visualDensity: kIsWeb ? const VisualDensity(vertical: -1) : VisualDensity.standard,
-            );
-          }).toList(),*/
-          _buildTile(
-            icon: Icons.person_3_outlined,
-            title: 'Profile',
-            onTap: () {
-              if(kIsWeb && Get.width>600){
-                openProfileDialog();
-              }else{
-                Get.toNamed(AppRoutes.h_profile);
-              }
+                        hGap(isWide ? 14 : 10),
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Row(
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  CircleContainer(colorIS: Colors.greenAccent,setSize: 6,),
+                                  hGap(5),
+                                  Text(
+                                    APIs.me.userName!=null?APIs.me.userName??'':APIs.me.userCompany?.displayName??'',
+                                    style: BalooStyles.baloosemiBoldTextStyle(),
+                                    overflow: TextOverflow.ellipsis,
+                                    maxLines: 1,
+                                  ),
+                                ],
+                              ),
+                              vGap(4),
 
-            },
-          ),  _buildTile(
-            icon: Icons.insert_invitation_outlined,
-            title: 'Invitations',
-            onTap: () {
-              if(kIsWeb){
-                openAcceptInviteDialog();
-              }else{
-                Get.toNamed(AppRoutes.accept_invite);
-              }
-            },
-          ),  _buildTile(
-            icon: Icons.privacy_tip_outlined,
-            title: 'Privacy Policy',
-            onTap: () {
-              if(kIsWeb && Get.width>600){
-                openPvcDialog(controller.pvcContent);
-              }else{
-                Get.to(() => HtmlViewer(
-                  htmlContent: controller.pvcContent,
-                ));
-              }
+                              Text(
+                                APIs.me.phone??'',
+                                style: BalooStyles.balooregularTextStyle(),
+                                overflow: TextOverflow.ellipsis,
+                                maxLines: 1,
+                              ).paddingOnly(bottom: 4),
+                              Text(
+                                APIs.me.about??'',
+                                style: BalooStyles.balooregularTextStyle(size: 13,color: greyText),
+                                overflow: TextOverflow.ellipsis,
 
-
-            },
-          ),
-          _buildTile(
-            icon: Icons.info_outline,
-            title: 'About Us',
-            onTap: () {
-              if(kIsWeb && Get.width>600){
-                openPvcDialog(controller.aboutUsContent);
-              }else{
-                Get.to(() => HtmlViewer(
-                  htmlContent: controller.aboutUsContent,
-                ));
-              }
-
-            },
-          ),
-          controller.myCompany?.createdBy == APIs.me.userId?  _buildTile(
-            icon: Icons.people_outline,
-            title: 'Manage Roles',
-            onTap: () => Get.toNamed(AppRoutes.roles),
-          ):SizedBox(),
-          _buildTile(
-              icon: Icons.support_agent,
-              title: 'Support',
+                                maxLines: 2,
+                              ).paddingOnly(bottom: 4),
+                            ],
+                          ),
+                        ),
+                      ],
+                    ),
+                ),
+            ).marginSymmetric(horizontal: 12,vertical: 8),
+            controller.isLoading?const Padding(
+              padding: EdgeInsets.symmetric(horizontal: 15.0,vertical: 8),
+              child: Text("Loading..."),
+            ):const SizedBox(),
+           /* ...(controller.settingsItems??[]).map((nav) {
+              return ListTile(
+                leading: Icon(controller.iconForSetting(nav), size: isWide ? 22 : 20),
+                title: Text(nav.navigationItem??'',
+                    style: BalooStyles.baloonormalTextStyle()),
+                trailing: Icon(Icons.arrow_forward_ios, size: isWide ? 16 : 15, color: Colors.grey),
+                onTap: controller.onTapForSetting(nav, controller),
+                // responsive: slightly tighter density on web to fit more items
+                visualDensity: kIsWeb ? const VisualDensity(vertical: -1) : VisualDensity.standard,
+              );
+            }).toList(),*/
+            _buildTile(
+              icon: Icons.person_3_outlined,
+              title: 'Profile',
               onTap: () {
-                toast('Under Development!');
-              }),
-          divider().paddingSymmetric(vertical: 12),
-         kIsWeb?const SizedBox(): _buildTile(
-            icon: Icons.settings,
-            title: 'App Settings',
-            onTap: () => controller.openAppSettingsPage(),
-          ),
+                if(kIsWeb && Get.width>600){
+                  openProfileDialog();
+                }else{
+                  Get.toNamed(AppRoutes.h_profile);
+                }
 
-          _buildTile(
-            icon: Icons.logout,
-            title: 'Logout',
-            onTap: () async {
-              await showResponsiveLogoutDialog(context);
-            },
-          ),
-          const SizedBox(height: kIsWeb ? 16 : 0),
-        ],
+              },
+            ),  _buildTile(
+              icon: Icons.insert_invitation_outlined,
+              title: 'Invitations',
+              onTap: () {
+                if(kIsWeb){
+                  openAcceptInviteDialog();
+                }else{
+                  Get.toNamed(AppRoutes.accept_invite);
+                }
+              },
+            ),  _buildTile(
+              icon: Icons.privacy_tip_outlined,
+              title: 'Privacy Policy',
+              onTap: () {
+                if(kIsWeb && Get.width>600){
+                  openPvcDialog(controller.pvcContent);
+                }else{
+                  Get.to(() => HtmlViewer(
+                    htmlContent: controller.pvcContent,
+                  ));
+                }
+
+
+              },
+            ),
+            _buildTile(
+              icon: Icons.info_outline,
+              title: 'About Us',
+              onTap: () {
+                if(kIsWeb && Get.width>600){
+                  openPvcDialog(controller.aboutUsContent);
+                }else{
+                  Get.to(() => HtmlViewer(
+                    htmlContent: controller.aboutUsContent,
+                  ));
+                }
+
+              },
+            ),
+            controller.myCompany?.createdBy == APIs.me.userId?  _buildTile(
+              icon: Icons.people_outline,
+              title: 'Manage Roles',
+              onTap: () => Get.toNamed(AppRoutes.roles),
+            ):const SizedBox(),
+            _buildTile(
+                icon: Icons.support_agent,
+                title: 'Support',
+                onTap: () {
+                  toast('Under Development!');
+                }),
+            divider().paddingSymmetric(vertical: 12),
+           kIsWeb?const SizedBox(): _buildTile(
+              icon: Icons.settings,
+              title: 'App Settings',
+              onTap: () => controller.openAppSettingsPage(),
+            ),
+
+            _buildTile(
+              icon: Icons.logout,
+              title: 'Logout',
+              onTap: () async {
+                await showResponsiveLogoutDialog(context);
+              },
+            ),
+            const SizedBox(height: kIsWeb ? 16 : 0),
+          ],
+        ),
       ),
     );
   }

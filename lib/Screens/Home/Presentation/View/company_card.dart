@@ -97,7 +97,7 @@ class _CompanyCardModernState extends State<CompanyCardModern> {
             colors: isSelected
                 ? [
               Colors.white,
-              perplebr.withOpacity(.03),
+              perpleBg,
             ]
                 : [
               Colors.white,
@@ -240,7 +240,10 @@ class _CompanyCardModernState extends State<CompanyCardModern> {
                 // 🔥 3-dot menu
                 if (controller!=null && (isSelected??true))
                   PopupMenuButton<String>(
-                    icon:  Icon(Icons.more_vert, size: 20,color: perplebr,),
+                    icon:  GradientContainer(
+                      // color2: greenside,
+                      //   color1: greenside.withOpacity(.4),
+                        child: const Icon(Icons.more_vert, size: 20,color: Colors.black54,)),
                     onSelected: (value) =>
                         controller?.companyNavigation(value, companyData, () async {
                           if (kIsWeb) {
@@ -257,7 +260,7 @@ class _CompanyCardModernState extends State<CompanyCardModern> {
                         }),
                     itemBuilder: (context) {
                       final isCreator =
-                          companyData.createdBy == APIs.me?.userId;
+                          companyData.createdBy == APIs.me.userId;
 
                       final items = <PopupMenuEntry<String>>[];
 

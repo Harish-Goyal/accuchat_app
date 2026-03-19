@@ -4,14 +4,19 @@ import 'package:AccuChat/Extension/text_field_extenstion.dart';
 import 'package:AccuChat/Screens/Chat/screens/auth/Presentation/Controllers/login_controller.dart';
 import 'package:AccuChat/utils/text_style.dart';
 import 'package:country_code_picker/country_code_picker.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter_svg/svg.dart';
 import 'package:get/get.dart';
 import '../../../../../../utils/common_textfield.dart';
 
 import 'dart:math' as math;
 import 'dart:ui';
+
+import '../../../../../Settings/Presentation/Views/settings_screen.dart';
+import '../../../../../Settings/Presentation/Views/static_page.dart';
 
 const Color perplebr = Color(0xFFB397F4);
 const Color greenside = Color(0xFF38BBBD);
@@ -78,7 +83,7 @@ class _LoginScreenGState extends State<LoginScreenG>
         builder: (controller) {
           return LayoutBuilder(
             builder: (context, constraints) {
-              final bool isWide = constraints.maxWidth >= 980;
+              final bool isWide = constraints.maxWidth >= 700;
 
               return Stack(
                 children: [
@@ -538,7 +543,7 @@ class _LeftBrandPanelState extends State<_LeftBrandPanel>
                       'Welcome to AccuChat',
                       textAlign: TextAlign.center,
                       style: BalooStyles.balooboldTitleTextStyle(
-                        size: 34,
+                        size:kIsWeb? 34:20,
                         color: const Color(0xFF25283A),
                         height: 1.15,
                       )
@@ -666,7 +671,7 @@ class _LoginFormCardState extends State<_LoginFormCard>
         filter: ImageFilter.blur(sigmaX: 12, sigmaY: 12),
         child: Container(
           width: double.infinity,
-          padding: const EdgeInsets.symmetric(horizontal: 22, vertical: 28),
+          padding: const EdgeInsets.symmetric(horizontal: 15, vertical: 28),
           decoration: BoxDecoration(
             borderRadius: BorderRadius.circular(30),
             color: Colors.white.withOpacity(.72),
@@ -695,8 +700,8 @@ class _LoginFormCardState extends State<_LoginFormCard>
                 Row(
                   children: [
                     Container(
-                      width: 58,
-                      height: 58,
+                      width:63,
+                      height: 63,
                       padding: const EdgeInsets.all(10),
                       decoration: BoxDecoration(
                         borderRadius: BorderRadius.circular(18),
@@ -709,7 +714,7 @@ class _LoginFormCardState extends State<_LoginFormCard>
                           ],
                         ),
                       ),
-                      child: Image.asset(appIcon),
+                      child: SvgPicture.asset(appIconSvg),
                     ),
                     const SizedBox(width: 14),
                     Expanded(
@@ -719,7 +724,7 @@ class _LoginFormCardState extends State<_LoginFormCard>
                           Text(
                             "Welcome to AccuChat",
                             style: BalooStyles.balooboldTitleTextStyle(
-                              size: 24,
+                              size: 20,
                               color: const Color(0xFF222538),
                               height: 1.1,
                             ),
@@ -731,7 +736,7 @@ class _LoginFormCardState extends State<_LoginFormCard>
                               weight: FontWeight.w500,
                               color: const Color(0xFF70768A),
                               size: 13.5,
-                              height: 1.35,
+
                             )
                           ),
                         ],
@@ -929,24 +934,36 @@ class _LoginFormCardState extends State<_LoginFormCard>
           fontSize: 12.4,
           height: 1.55,
         ),
-        children: const [
-          TextSpan(text: "By continuing, you agree to our "),
-          TextSpan(
+        children: [
+          const TextSpan(text: "By continuing, you agree to our "),
+           TextSpan(
             text: "Terms",
+            recognizer: new TapGestureRecognizer()
+              ..onTap = () {
+                Get.to(() => HtmlViewer(
+                  htmlContent: tAndCContent,
+                ));
+              },
             style: TextStyle(
               color: perplebr,
               fontWeight: FontWeight.w700,
             ),
           ),
-          TextSpan(text: " and "),
+          const TextSpan(text: " and "),
           TextSpan(
             text: "Privacy Policy",
-            style: TextStyle(
+            recognizer: new TapGestureRecognizer()
+              ..onTap = () {
+                Get.to(() => HtmlViewer(
+                  htmlContent: pvcContent,
+                ));
+              },
+            style: const TextStyle(
               color: greenside,
               fontWeight: FontWeight.w700,
             ),
           ),
-          TextSpan(text: "."),
+          const TextSpan(text: "."),
         ],
       ),
     );

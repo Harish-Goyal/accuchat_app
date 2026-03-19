@@ -1694,7 +1694,7 @@ final isMedia = (data.media??[]).isNotEmpty;
                       controller.searchQuery = val;
                       controller.onSearch(val,widget.user!);
                     },
-                  ).marginSymmetric(vertical: 10),
+                  ).marginSymmetric(vertical: 8,horizontal: 15),
                 )
               : Expanded(
                   child: InkWell(
@@ -2042,13 +2042,15 @@ final isMedia = (data.media??[]).isNotEmpty;
           child: SizedBox(
             width: Get.width * 0.5,
             height: Get.height * 0.95,
-            child: const AddGroupMembersScreen(),
+            child:  AddGroupMembersScreen(),
           ),
         ),
         barrierDismissible: true,
       );
     } finally {
-
+      if (Get.isRegistered<AddGroupMemController>()) {
+        Get.delete<AddGroupMemController>();
+      }
     }
   }
 

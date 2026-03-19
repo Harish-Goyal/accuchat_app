@@ -855,7 +855,7 @@ class TaskScreenMobile extends GetView<TaskController> {
                 controller.searchQuery = val;
                 controller.onSearch(val);
               },
-            ).marginSymmetric(vertical: 10),
+            ).paddingSymmetric(vertical: 6,horizontal: 10),
           ):  Expanded(
             child: InkWell(
               onTap: () {
