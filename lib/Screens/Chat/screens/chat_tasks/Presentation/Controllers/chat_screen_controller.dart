@@ -21,7 +21,7 @@ import '../../../../../../utils/custom_flashbar.dart';
 import '../../../../../../utils/helper.dart';
 import '../../../../../../utils/helper_widget.dart';
 import '../../../../../../utils/networl_shimmer_image.dart';
-import '../../../../../../utils/register_image.dart';
+
 import '../../../../../Home/Presentation/Controller/company_service.dart';
 import '../../../../../Home/Presentation/Controller/socket_controller.dart';
 import '../../../../api/apis.dart';
@@ -79,11 +79,14 @@ class ChatScreenController extends GetxController {
       Get.find<ChatHomeController>().isOnRecentList.value = false;
     }
 
-    _initImagePaste();
-    if (kIsWeb && !_pasteRegistered) {
-      _pasteRegistered = true;
-      registerImage((XFile image) => _handlePastedImage(image));
-    }
+    // _initImagePaste();
+    // if (kIsWeb && !_pasteRegistered) {
+    //   _pasteRegistered = true;
+    //   registerImage((XFile image) => _handlePastedImage(image));
+    // }
+    // WidgetsBinding.instance.addPostFrameCallback((_) {
+    //   initJs();
+    // });
 
 
     getArguments();
@@ -354,7 +357,7 @@ class ChatScreenController extends GetxController {
 */
 
 
-  bool _pasteRegistered = false;
+
 
 
  @override
@@ -363,42 +366,41 @@ class ChatScreenController extends GetxController {
     super.onReady();
   }
   }
-  
-  _initImagePaste() {
-    if (kIsWeb) {
-      WidgetsBinding.instance.addPostFrameCallback((_) {
-        initJs();
-        final current = FocusManager.instance.primaryFocus;
-        // only request focus if nothing is focused
-        if (current == null) {
-          messageParentFocus.unfocus();
-          if (messageParentFocus.canRequestFocus) {
-            messageParentFocus.requestFocus();
-          }
-        }
-      });
-
-    }
-  }
-
-  Future<void> _handlePastedImage(XFile file) async {
-    final shouldSend = await showPastedImagePreviewDialog(file);
-    if (shouldSend != true) return;
-
-    // User confirmed -> proceed with your current flow
-    images.clear();
-    images.add(file);
-
-    await uploadMediaApiCall(type: ChatMediaType.IMAGE.name);
-    // // same flow as picker
-    // images.clear();
-    // images.add(file);
-    //
-    //
-    // await uploadMediaApiCall(
-    //   type: ChatMediaType.IMAGE.name,
-    // );
-  }
+  // bool _pasteRegistered = false;
+  // _initImagePaste() {
+  //   if (kIsWeb) {
+  //     WidgetsBinding.instance.addPostFrameCallback((_) {
+  //       final current = FocusManager.instance.primaryFocus;
+  //       // only request focus if nothing is focused
+  //       if (current == null) {
+  //         messageParentFocus.unfocus();
+  //         if (messageParentFocus.canRequestFocus) {
+  //           messageParentFocus.requestFocus();
+  //         }
+  //       }
+  //     });
+  //
+  //   }
+  // }
+  //
+  // Future<void> _handlePastedImage(XFile file) async {
+  //   final shouldSend = await showPastedImagePreviewDialog(file);
+  //   if (shouldSend != true) return;
+  //
+  //   // User confirmed -> proceed with your current flow
+  //   images.clear();
+  //   images.add(file);
+  //
+  //   await uploadMediaApiCall(type: ChatMediaType.IMAGE.name);
+  //   // // same flow as picker
+  //   // images.clear();
+  //   // images.add(file);
+  //   //
+  //   //
+  //   // await uploadMediaApiCall(
+  //   //   type: ChatMediaType.IMAGE.name,
+  //   // );
+  // }
 
 
 

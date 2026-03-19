@@ -14,3 +14,7 @@ Future<void> unregisterImage()  async {
 initJs(){
   return initWebPasteListener();
 }
+
+disposeJs(){
+  return disposeWebPasteListener();
+}

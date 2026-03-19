@@ -7,23 +7,38 @@ void initWebPasteListener() {
   print('calling setupImagePasteListener');
   js.context.callMethod('setupImagePasteListener');
 }
+
+void disposeWebPasteListener() {
+  js.context.callMethod('removeImagePasteListener');
+}
+bool _isHandlingPaste = false;
+
 void registerImagePasteHandlerImpl(
     void Function(XFile file) onImagePasted,
     ) {
-  js.context['flutterImagePasteHandler'] = (dynamic data) {
-    final String name = data['name'];
-    final String type = data['type'];
-    final List bytesList = data['bytes'];
+  js.context['flutterImagePasteHandler'] = (dynamic data) async {
+    if (_isHandlingPaste) return;
+    _isHandlingPaste = true;
 
-    final Uint8List bytes = Uint8List.fromList(bytesList.cast<int>());
+    try {
+      final String name = data['name'];
+      final String type = data['type'];
+      final List bytesList = data['bytes'];
 
-    final file = XFile.fromData(
-      bytes,
-      name: name,
-      mimeType: type,
-    );
+      final Uint8List bytes = Uint8List.fromList(bytesList.cast<int>());
 
-    onImagePasted(file);
+      final file = XFile.fromData(
+        bytes,
+        name: name,
+        mimeType: type,
+      );
+
+      onImagePasted(file);
+    } finally {
+      Future.delayed(const Duration(milliseconds: 300), () {
+        _isHandlingPaste = false;
+      });
+    }
   };
 }
 

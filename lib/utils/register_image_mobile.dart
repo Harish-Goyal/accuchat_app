@@ -13,3 +13,6 @@ void unregister(){
 initWebPasteListener(){
 
 }
+
+void disposeWebPasteListener() {
+}

@@ -53,7 +53,7 @@ import 'images_gallery_page.dart';
 import 'dart:typed_data';
 import 'package:cross_file/cross_file.dart';
 import 'package:flutter_dropzone/flutter_dropzone.dart';
-
+import '../../../../../../utils/register_image.dart';
 class _NoGlowScrollBehavior extends ScrollBehavior {
   const _NoGlowScrollBehavior();
   @override
@@ -156,7 +156,7 @@ class _ChatScreenState extends State<ChatScreen> {
     'html', 'php', 'js', 'jsx', 'css'
   ];
 
-
+  bool _pasteRegistered = false;
  String _tag ='';
   @override
   void initState() {
@@ -202,6 +202,51 @@ class _ChatScreenState extends State<ChatScreen> {
 
        controller.user=widget.user;
 
+    _initImagePaste();
+    if (kIsWeb && !_pasteRegistered) {
+      _pasteRegistered = true;
+      registerImage((XFile image) => _handlePastedImage(image));
+    }
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      initJs();
+    });
+
+  }
+
+
+  _initImagePaste() {
+    if (kIsWeb) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        final current = FocusManager.instance.primaryFocus;
+        // only request focus if nothing is focused
+        if (current == null) {
+          controller.messageParentFocus.unfocus();
+          if (controller.messageParentFocus.canRequestFocus) {
+            controller.messageParentFocus.requestFocus();
+          }
+        }
+      });
+
+    }
+  }
+
+  Future<void> _handlePastedImage(XFile file) async {
+    final shouldSend = await showPastedImagePreviewDialog(file);
+    if (shouldSend != true) return;
+
+    // User confirmed -> proceed with your current flow
+    controller.images.clear();
+    controller.images.add(file);
+
+    await controller.uploadMediaApiCall(type: ChatMediaType.IMAGE.name);
+    // // same flow as picker
+    // images.clear();
+    // images.add(file);
+    //
+    //
+    // await uploadMediaApiCall(
+    //   type: ChatMediaType.IMAGE.name,
+    // );
   }
 
 
@@ -210,6 +255,7 @@ class _ChatScreenState extends State<ChatScreen> {
   @override
   void dispose() {
     // speechC.stop(skipOnStopped: true);
+    disposeJs();
     _speechWorker.dispose();
     speechC.onStopped = null;
     _emojiOverlay?.remove();
