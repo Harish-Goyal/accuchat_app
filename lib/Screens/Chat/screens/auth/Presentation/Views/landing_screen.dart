@@ -90,15 +90,6 @@ class LandingPage extends GetView<LandingScreenController> {
                                         child: CompanyCardModern(companyData: company, isLanding: true,)),
                                   );
 
-
-
-
-
-
-
-
-
-
                                 },
                               )
                             else

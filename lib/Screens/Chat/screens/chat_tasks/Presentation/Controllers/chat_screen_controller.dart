@@ -367,6 +367,7 @@ class ChatScreenController extends GetxController {
   _initImagePaste() {
     if (kIsWeb) {
       WidgetsBinding.instance.addPostFrameCallback((_) {
+        initJs();
         final current = FocusManager.instance.primaryFocus;
         // only request focus if nothing is focused
         if (current == null) {
@@ -376,6 +377,7 @@ class ChatScreenController extends GetxController {
           }
         }
       });
+
     }
   }
 

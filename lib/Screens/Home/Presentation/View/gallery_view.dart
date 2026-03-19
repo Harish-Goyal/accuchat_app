@@ -511,12 +511,11 @@ class GalleryTab extends GetView<GalleryController> {
   }
 
   _listView() {
+    final items = controller.searchResults;
     return Container(
       padding: const EdgeInsets.only(right:kIsWeb? 12:3, left:kIsWeb? 12:1,),
       child: controller.isSearching
-          ? Obx(() {
-              final items = controller.searchResults;
-              return GalleryGlobalSearchResults(
+          ? GalleryGlobalSearchResults(
                 items: items ?? [],
                 buildFileUrl: buildFileUrl,
                 onOpenFolder: (folderName) {
@@ -541,8 +540,7 @@ class GalleryTab extends GetView<GalleryController> {
                       Get.lazyPut<GalleryItemController>(() => GalleryItemController(folderData: media), tag: tag);
                     }),);
                 },
-              );
-            })
+              )
           : Obx(() => controller.isLoading.value
               ? const IndicatorLoading()
               :controller.folderList.isNotEmpty? _GalleryGrid(
@@ -689,7 +687,7 @@ class _GalleryGrid extends StatelessWidget {
                   crossAxisCount:(kIsWeb&&Get.width>600)? cross:3,
                   crossAxisSpacing: 8,
                   mainAxisSpacing: 8,
-                  childAspectRatio: (kIsWeb && Get.width>600)?0.93:1,
+                  childAspectRatio: (kIsWeb && Get.width>600)?0.9:1,
                 ),
                 itemCount: items.length,
                 itemBuilder: (_, i) {

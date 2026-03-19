@@ -95,7 +95,7 @@ class _ChatUserCardState extends State<ChatUserCard>
               radius: 1.2,
               colors: [
                 Colors.black.withOpacity(0.07),
-                Colors.black.withOpacity(0.02),
+                Colors.black.withOpacity(0.03),
               ],
             ):isSelected?LinearGradient(colors: [
               perplebr.withOpacity(.2),
@@ -104,15 +104,14 @@ class _ChatUserCardState extends State<ChatUserCard>
               Colors.white.withOpacity(.3),
               Colors.white.withOpacity(.35),
             ]),
-
           ),
 
           child: ClipRRect(
             borderRadius: BorderRadius.circular(14),
             child: BackdropFilter(
               filter: ImageFilter.blur(
-                sigmaX: isHover ? 15 : 6,
-                sigmaY: isHover ? 15 : 6,
+                sigmaX: isHover ? 100 : 6,
+                sigmaY: isHover ? 100 : 6,
               ),
 
               child: InkWell(
@@ -248,8 +247,6 @@ class _ChatUserCardState extends State<ChatUserCard>
                       ),
 
                       const SizedBox(width: 10),
-
-                      /// 🔥 TEXT
                       Expanded(
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
@@ -281,9 +278,7 @@ class _ChatUserCardState extends State<ChatUserCard>
                           ],
                         ),
                       ),
-
                       const SizedBox(width: 8),
-
                       /// 🔥 RIGHT SIDE
                       Column(
                         crossAxisAlignment: CrossAxisAlignment.end,

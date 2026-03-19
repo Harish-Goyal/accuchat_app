@@ -1,6 +1,5 @@
 import 'package:AccuChat/Constants/assets.dart';
 import 'package:AccuChat/Constants/colors.dart';
-import 'package:AccuChat/Constants/strings.dart';
 import 'package:AccuChat/Extension/text_field_extenstion.dart';
 import 'package:AccuChat/Screens/Chat/screens/auth/Presentation/Controllers/login_controller.dart';
 import 'package:AccuChat/utils/text_style.dart';
@@ -8,14 +7,8 @@ import 'package:country_code_picker/country_code_picker.dart';
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:flutter_svg/svg.dart';
 import 'package:get/get.dart';
 import '../../../../../../utils/common_textfield.dart';
-import '../../../../../../utils/helper_widget.dart';
-import '../../../../../Settings/Presentation/Views/settings_screen.dart';
-import '../../../../../Settings/Presentation/Views/static_page.dart';
-// /uploads/chats/chats_9262504b-646d-46e0-8732-64d5f1fd49ca.xlsx
-// org_file_name: Consultant_Excel_20260313_161438.xlsx
 
 import 'dart:math' as math;
 import 'dart:ui';
@@ -42,7 +35,6 @@ class _LoginScreenGState extends State<LoginScreenG>
   @override
   void initState() {
     super.initState();
-
     _cardController = AnimationController(
       vsync: this,
       duration: const Duration(milliseconds: 1000),
@@ -103,11 +95,11 @@ class _LoginScreenGState extends State<LoginScreenG>
                         ),
                         child: ConstrainedBox(
                           constraints: BoxConstraints(
-                            maxWidth: isWide ? 1180 : 680,
+                            maxWidth: isWide ? 980 : 580,
                           ),
                           child: isWide
                               ? ConstrainedBox(
-                            constraints: const BoxConstraints(minHeight: 720),
+                            constraints: const BoxConstraints(minHeight: 580),
                             child: Row(
                               crossAxisAlignment: CrossAxisAlignment.center,
                               children: [
@@ -545,11 +537,11 @@ class _LeftBrandPanelState extends State<_LeftBrandPanel>
                     Text(
                       'Welcome to AccuChat',
                       textAlign: TextAlign.center,
-                      style: BalooStyles.balooboldTitleTextStyle().copyWith(
-                        fontSize: 34,
+                      style: BalooStyles.balooboldTitleTextStyle(
+                        size: 34,
                         color: const Color(0xFF25283A),
                         height: 1.15,
-                      ),
+                      )
                     ),
                     const SizedBox(height: 14),
                     Text(
@@ -557,11 +549,10 @@ class _LeftBrandPanelState extends State<_LeftBrandPanel>
                       textAlign: TextAlign.center,
                       style: BalooStyles.baloonormalTextStyle(
                         weight: FontWeight.w500,
-                      ).copyWith(
                         color: const Color(0xFF6F7487),
                         height: 1.55,
-                        fontSize: 15,
-                      ),
+                        size: 15,
+                      )
                     ),
                     const Wrap(
                       alignment: WrapAlignment.center,
@@ -727,8 +718,8 @@ class _LoginFormCardState extends State<_LoginFormCard>
                         children: [
                           Text(
                             "Welcome to AccuChat",
-                            style: BalooStyles.balooboldTitleTextStyle().copyWith(
-                              fontSize: 24,
+                            style: BalooStyles.balooboldTitleTextStyle(
+                              size: 24,
                               color: const Color(0xFF222538),
                               height: 1.1,
                             ),
@@ -738,11 +729,10 @@ class _LoginFormCardState extends State<_LoginFormCard>
                             "Chats, tasks, gallery and company workspaces",
                             style: BalooStyles.baloonormalTextStyle(
                               weight: FontWeight.w500,
-                            ).copyWith(
                               color: const Color(0xFF70768A),
-                              fontSize: 13.5,
+                              size: 13.5,
                               height: 1.35,
-                            ),
+                            )
                           ),
                         ],
                       ),
@@ -753,19 +743,18 @@ class _LoginFormCardState extends State<_LoginFormCard>
 
                 Text(
                   "Sign in",
-                  style: BalooStyles.balooboldTitleTextStyle().copyWith(
-                    fontSize: 30,
+                  style: BalooStyles.balooboldTitleTextStyle(
+                    size: 30,
                     color: const Color(0xFF222538),
-                  ),
+                  )
                 ),
                 const SizedBox(height: 6),
                 Text(
                   "Access your chats, tasks and company workspaces",
                   style: BalooStyles.baloonormalTextStyle(
                     weight: FontWeight.w500,
-                  ).copyWith(
                     color: const Color(0xFF70768A),
-                    fontSize: 14,
+                    size: 14,
                   ),
                 ),
                 const SizedBox(height: 24),
@@ -909,10 +898,9 @@ class _LoginFormCardState extends State<_LoginFormCard>
                           "Secure OTP access for teams, companies and shared workspaces",
                           style: BalooStyles.baloonormalTextStyle(
                             weight: FontWeight.w500,
-                          ).copyWith(
                             color: const Color(0xFF60657A),
-                            fontSize: 13,
-                          ),
+                            size: 13,
+                          )
                         ),
                       ),
                     ],

@@ -172,7 +172,7 @@ class CreateCompanyController extends GetxController {
           final svc = CompanyService.to;
           await svc.select(companyResponse);
         }
-        customLoader.show();
+
         if(Get.isRegistered<CompanyService>()) {
           final svc = CompanyService.to;
           await svc.select(companyResponse!);
@@ -245,7 +245,7 @@ class CreateCompanyController extends GetxController {
         }
 
       }).onError((error,stackTrace){
-
+        customLoader.hide();
         if(!kIsWeb) {
           FirebaseCrashlytics.instance.recordError(
               error, stackTrace, reason: 'apiCall failed');

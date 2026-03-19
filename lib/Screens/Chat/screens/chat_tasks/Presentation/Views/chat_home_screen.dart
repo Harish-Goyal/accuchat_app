@@ -212,9 +212,8 @@ class ChatsHomeScreen extends GetView<ChatHomeController> {
                           shape: BoxShape.circle,boxShadow: [
                         BoxShadow(color: greenside.withOpacity(.5),blurRadius: 5)
                       ]
-
                       ),
-                      child:controller.myCompany?.logo!=null? CustomCacheNetworkImage(
+                      child:controller.myCompany?.logo!=null && controller.myCompany?.logo!=''? CustomCacheNetworkImage(
                         "${ApiEnd.baseUrlMedia}${controller.myCompany?.logo ?? ''}",
                         radiusAll: 100,
                         height: 40,

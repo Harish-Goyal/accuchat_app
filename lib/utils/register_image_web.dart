@@ -2,6 +2,11 @@ import 'dart:typed_data';
 import 'package:image_picker/image_picker.dart';
 import 'dart:js' as js;
 
+
+void initWebPasteListener() {
+  print('calling setupImagePasteListener');
+  js.context.callMethod('setupImagePasteListener');
+}
 void registerImagePasteHandlerImpl(
     void Function(XFile file) onImagePasted,
     ) {

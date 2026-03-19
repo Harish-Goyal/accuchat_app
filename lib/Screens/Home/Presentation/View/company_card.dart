@@ -214,13 +214,13 @@ class _CompanyCardModernState extends State<CompanyCardModern> {
                       ),
 
                       const SizedBox(height: 4),
-
+                      if(controller!=null)
                       Text(
                         "Creator: ${companyData.createdBy == APIs.me.userId ? APIs.me.phone : (companyData.companyName ?? '')}",
                         style: BalooStyles.baloonormalTextStyle(size: 13),
                         overflow: TextOverflow.ellipsis,
                       ),
-
+                      if(controller!=null)
                       const SizedBox(height: 4),
 
                       GestureDetector(

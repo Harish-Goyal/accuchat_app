@@ -3,6 +3,7 @@ import 'package:AccuChat/utils/helper_widget.dart';
 import 'package:AccuChat/utils/text_style.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:get/get.dart';
 import '../../../../utils/hover_glass_effect_widget.dart';
 import '../../../../utils/networl_shimmer_image.dart';
 import '../../Models/get_folder_res_model.dart';
@@ -54,7 +55,7 @@ class GalleryGlobalSearchResults extends StatelessWidget {
             crossAxisCount: crossAxisCount,
             crossAxisSpacing: 12,
             mainAxisSpacing: 12,
-            childAspectRatio: 3.7,
+            childAspectRatio: 3.5,
           ),
           itemCount: items.length,
           itemBuilder: (_, i) => GlobalSearchResultTile(
@@ -152,8 +153,8 @@ class GlobalSearchResultTile extends StatelessWidget {
         center: const Alignment(-0.3, -0.3),
         radius: 1.2,
         colors: [
-          Colors.white.withOpacity(0.1),
-          Colors.white.withOpacity(0.05),
+          whiteselected,
+          chatcardt.withOpacity(.7),
         ],
       ),
       child: InkWell(
@@ -247,7 +248,7 @@ class GlobalSearchResultTile extends StatelessWidget {
               ],
             )
           ],
-        ),
+        ).paddingAll(4),
       ),
     );
   }

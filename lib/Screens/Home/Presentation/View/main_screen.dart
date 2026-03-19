@@ -612,8 +612,11 @@ class AccuChatDashboard extends StatelessWidget {
       if (Get.isRegistered<GalleryController>()) {
         final homec = Get.find<GalleryController>();
         homec.getCompany();
+        homec?.query ='';
         homec.resetPagination();
+
         homec.hitApiToGetFolder(reset: true);
+
         homec.update();
       } else {
         final homec = Get.put(GalleryController());

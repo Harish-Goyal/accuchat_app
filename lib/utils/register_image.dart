@@ -10,3 +10,7 @@ Future<void> registerImage(Function(XFile file) onImagePasted) async {
 Future<void> unregisterImage()  async {
   return unregister();
 }
+
+initJs(){
+  return initWebPasteListener();
+}

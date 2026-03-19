@@ -141,26 +141,64 @@
 </script>
 
 <script>
-  window.addEventListener("paste", async (event) => {
-    if (!event.clipboardData) return;
+  window.setupImagePasteListener = function () {
+    document.addEventListener('paste', async function (event) {
+      const items = event.clipboardData?.items || [];
+      console.log('PASTE items:', [...items].map(e => e.type));
 
-    for (const item of event.clipboardData.items) {
-      if (item.type.startsWith("image/")) {
-        const blob = item.getAsFile();
-        const arrayBuffer = await blob.arrayBuffer();
-        const bytes = new Uint8Array(arrayBuffer);
+      let imageFile = null;
 
+      for (let i = 0; i < items.length; i++) {
+        const item = items[i];
+        if (item.type && item.type.startsWith('image/')) {
+          imageFile = item.getAsFile();
+          break;
+        }
+      }
+
+      console.log('has image:', !!imageFile);
+
+      if (imageFile) {
+        console.log('image found -> blocking text paste');
+        event.preventDefault();
+        event.stopPropagation();
+
+        const buffer = await imageFile.arrayBuffer();
+        const bytes = Array.from(new Uint8Array(buffer));
         window.flutterImagePasteHandler?.({
-          name: blob.name || "pasted-image.png",
-          type: blob.type,
-          bytes: Array.from(bytes)
+          name: imageFile.name || 'pasted_image.png',
+          type: imageFile.type || 'image/png',
+          bytes: bytes
         });
 
-        event.preventDefault();
+        return false;
       }
-    }
-  });
+
+      console.log('no image -> allow text');
+    }, true);
+  };
 </script>
+<!--<script>-->
+<!--  window.addEventListener("paste", async (event) => {-->
+<!--    if (!event.clipboardData) return;-->
+
+<!--    for (const item of event.clipboardData.items) {-->
+<!--      if (item.type.startsWith("image/")) {-->
+<!--        const blob = item.getAsFile();-->
+<!--        const arrayBuffer = await blob.arrayBuffer();-->
+<!--        const bytes = new Uint8Array(arrayBuffer);-->
+
+<!--        window.flutterImagePasteHandler?.({-->
+<!--          name: blob.name || "pasted-image.png",-->
+<!--          type: blob.type,-->
+<!--          bytes: Array.from(bytes)-->
+<!--        });-->
+
+<!--        event.preventDefault();-->
+<!--      }-->
+<!--    }-->
+<!--  });-->
+<!--</script>-->
 
 <script src="flutter_bootstrap.js" async></script>
 

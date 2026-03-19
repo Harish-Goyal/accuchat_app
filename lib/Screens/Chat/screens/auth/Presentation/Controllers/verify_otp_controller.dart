@@ -52,13 +52,13 @@ class VerifyOtpController extends GetxController{
 
       }
       await StorageService.init();
-       StorageService.setFirstTimeTask(isFirstTimeChat);
-       StorageService.saveToken(value.data?.token);
-       StorageService.saveMobile(emailOrPhone);
-       StorageService.setIsFirstTime(false);
-       await AppStorage().write(LOCALKEY_token, value.data?.token);
-       Get.offAllNamed(AppRoutes.landing_r);
-       await APIs.getFirebaseMessagingToken();
+      StorageService.setFirstTimeTask(isFirstTimeChat);
+      StorageService.saveToken(value.data?.token);
+      StorageService.saveMobile(emailOrPhone);
+      StorageService.setIsFirstTime(false);
+      await AppStorage().write(LOCALKEY_token, value.data?.token);
+      Get.offAllNamed(AppRoutes.landing_r);
+      await APIs.getFirebaseMessagingToken();
 
 
       // openBottomSheet();
