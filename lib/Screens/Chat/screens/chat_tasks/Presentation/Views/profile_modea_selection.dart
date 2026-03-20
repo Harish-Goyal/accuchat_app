@@ -12,6 +12,7 @@ import '../../../../../../utils/common_textfield.dart';
 import '../../../../../../utils/custom_dialogue.dart';
 import '../../../../../../utils/custom_flashbar.dart';
 import '../../../../../../utils/helper_widget.dart';
+import '../../../../../../utils/hover_glass_effect_widget.dart';
 import '../../../../../../utils/networl_shimmer_image.dart';
 import '../../../../../../utils/text_style.dart';
 import '../../../../api/apis.dart';
@@ -49,7 +50,7 @@ class ProfileMediaSectionGetX extends StatelessWidget {
                 Container(
                   padding: const EdgeInsets.symmetric(vertical: 4),
                   decoration: BoxDecoration(
-                    color: Colors.grey.shade200,
+                    color: Colors.grey.shade50,
                     borderRadius: BorderRadius.circular(12),
                   ),
                   child:TabBar(
@@ -86,7 +87,7 @@ class ProfileMediaSectionGetX extends StatelessWidget {
                             .toList(),
                       )),
 
-                      Obx(() => _DocsList(
+                      Obx(() =>_DocsList(
                         baseUrl: ApiEnd.baseUrlMedia,
                         controller: controller,
                         items: controller.profileMediaList
@@ -134,7 +135,7 @@ class ProfileMediaSectionGetXGroup extends StatelessWidget {
                 Container(
                   padding: const EdgeInsets.symmetric(vertical: 4),
                   decoration: BoxDecoration(
-                    color: Colors.grey.shade200,
+                    color: Colors.grey.shade50,
                     borderRadius: BorderRadius.circular(12),
                   ),
                   child:TabBar(
@@ -454,67 +455,78 @@ class _MediaGrid extends StatelessWidget {
         final cols = _columnsForWidth(constraints.maxWidth);
 
         // remove glow + use platform-appropriate physics (bouncing on mobile, clamping on web)
-        return GridView.builder(
-          physics: kIsWeb ? const ClampingScrollPhysics() : const BouncingScrollPhysics(),
-          controller: controller.scrollController,
-          padding: const EdgeInsets.only(bottom: 8, left: 8, right: 8, top: 8),
-          gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-            crossAxisCount: cols,
-            crossAxisSpacing: 8,
-            mainAxisSpacing: 8,
-            childAspectRatio: 1, // keep squares; adjust if you want cards
-          ),
-          itemCount: items.length,
-          itemBuilder: (_, i) {
-            final m = items[i];
-            final url = '$baseUrl${m.fileName ?? ''}';
-            return InkWell(
-              onTap: (){
-                Get.to(
-                      () => GalleryViewerPage(
-                    isChat: true,
-                    onReply: (){
+        return Container(
+         decoration: BoxDecoration(
+           borderRadius: BorderRadius.circular(15),
+           image: DecorationImage(image: AssetImage(appbarBG),fit: BoxFit.cover)
+         ),
+          child: GridView.builder(
+            physics: kIsWeb ? const ClampingScrollPhysics() : const BouncingScrollPhysics(),
+            controller: controller.scrollController,
+            padding: const EdgeInsets.only(bottom: 8, left: 8, right: 8, top: 8),
+            gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+              crossAxisCount: cols,
+              crossAxisSpacing: 8,
+              mainAxisSpacing: 8,
+              childAspectRatio: 1.3 , // keep squares; adjust if you want cards
+            ),
+            itemCount: items.length,
+            itemBuilder: (_, i) {
+              final m = items[i];
+              final url = '$baseUrl${m.fileName ?? ''}';
+              return InkWell(
+                onTap: (){
+                  Get.to(
+                        () => GalleryViewerPage(
+                      isChat: true,
+                      onReply: (){
 
-                      Get.back();
-                      // controller.refIdis = data.chatId;
-                      // controller.userIDSender =
-                      //     data.fromUser?.userId;
-                      // controller.userNameReceiver =
-                      //     data.toUser?.displayName ?? '';
-                      // controller.userNameSender =
-                      //     data.fromUser?.displayName ?? '';
-                      // controller.userIDReceiver =
-                      //     data.toUser?.userId;
-                      // controller.replyToMessage =data;
-                    },),
-                  binding: BindingsBuilder(() {
-                    Get.put(GalleryViewerController(
-                        urls: items.map((v)=>"${ApiEnd.baseUrlMedia}${v.fileName}").toList()
-                        , index: i,
-                        chathis: ChatHisList()));
-                  }),
-                  fullscreenDialog: true,
-                  transition: Transition.fadeIn,
-                );
-              },
-              child: Container(
-                decoration: BoxDecoration(
-                  border: Border.all(color:greyColor, width: 1),
-                  borderRadius: BorderRadius.circular(8),
+                        Get.back();
+                        // controller.refIdis = data.chatId;
+                        // controller.userIDSender =
+                        //     data.fromUser?.userId;
+                        // controller.userNameReceiver =
+                        //     data.toUser?.displayName ?? '';
+                        // controller.userNameSender =
+                        //     data.fromUser?.displayName ?? '';
+                        // controller.userIDReceiver =
+                        //     data.toUser?.userId;
+                        // controller.replyToMessage =data;
+                      },),
+                    binding: BindingsBuilder(() {
+                      Get.put(GalleryViewerController(
+                          urls: items.map((v)=>"${ApiEnd.baseUrlMedia}${v.fileName}").toList()
+                          , index: i,
+                          chathis: ChatHisList()));
+                    }),
+                    fullscreenDialog: true,
+                    transition: Transition.fadeIn,
+                  );
+                },
+                child: HoverGlassEffect(
+                  margin: const EdgeInsets.symmetric(horizontal: 0, vertical: 2),
+                  padding: const EdgeInsets.symmetric(horizontal: 0, vertical: 0),
+                  borderRadius: 12,
+                  hoverScale: 1.015,
+                  normalBlur: 3,
+                  hoverBlur: 10,
+                  gradient:  LinearGradient(colors: [
+                    gallwhite,
+                    perpleBg.withOpacity(.2),
+                  ]),
+                  child: CustomCacheNetworkImage(
+                    url,
+                    height: double.infinity,
+                    width: double.infinity,
+                    borderWidth: 1,
+                    boxFit: BoxFit.cover,
+                    borderColor: greyColor,
+                    radiusAll: 6,
+                  ),
                 ),
-                clipBehavior: Clip.antiAlias,
-                child: CustomCacheNetworkImage(
-                  url,
-                  height: double.infinity,
-                  width: double.infinity,
-                  borderWidth: 1,
-                  boxFit: BoxFit.cover,
-                  borderColor: greyColor,
-                  radiusAll: 6,
-                ),
-              ),
-            );
-          },
+              );
+            },
+          ),
         );
       },
     );
@@ -599,27 +611,46 @@ class _DocsList extends StatelessWidget {
     if (items.isEmpty) {
       return Center(child: Text('No documents found', style: BalooStyles.baloonormalTextStyle()));
     }
-    return ListView.separated(
-      physics: const BouncingScrollPhysics(),
-      itemCount: items.length,
-      controller: controller.scrollController2,
-      separatorBuilder: (_, __) => Divider(color: Colors.grey.shade300, height: 1),
-      itemBuilder: (_, i) {
-        final d = items[i];
-        final url = '$baseUrl${d.fileName ?? ''}';
-        final name = (d.fileName ?? '').split('/').last;
-        final ext = name.split('.').last.toUpperCase();
-        final orgName = d.orgFileName??'';
-        return ListTile(
-          leading: const Icon(Icons.insert_drive_file_outlined),
-          title: Text(orgName, maxLines: 1, overflow: TextOverflow.ellipsis, style: BalooStyles.baloonormalTextStyle()),
-          subtitle: Text((d.mediaType?.name ?? 'Document') + (d.source != null ? ' · ${d.source}' : ''),
-            style: BalooStyles.baloonormalTextStyle(size: 12, color: Colors.black54),
-          ),
-          trailing: const Icon(Icons.open_in_new),
-          onTap: () { openDocumentFromUrl(url);},
-        );
-      },
+    return Container(
+      decoration: BoxDecoration(
+          borderRadius: BorderRadius.circular(15),
+          image: DecorationImage(image: AssetImage(appbarBG),fit: BoxFit.cover)
+      ),
+      child: ListView.separated(
+        physics: const BouncingScrollPhysics(),
+        itemCount: items.length,
+        controller: controller.scrollController2,
+        separatorBuilder: (_, __) => Divider(color: Colors.grey.shade300, height: 1),
+        itemBuilder: (_, i) {
+          final d = items[i];
+          final url = '$baseUrl${d.fileName ?? ''}';
+          final name = (d.fileName ?? '').split('/').last;
+          final ext = name.split('.').last.toUpperCase();
+          final orgName = d.orgFileName??'';
+          return HoverGlassEffect(
+            margin: const EdgeInsets.symmetric(horizontal:kIsWeb ?25:12, vertical: kIsWeb ?4:2),
+            padding: const EdgeInsets.symmetric(horizontal: 0, vertical: 0),
+            borderRadius: 12,
+            hoverScale: 1.015,
+            normalBlur: 3,
+            hoverBlur: 10,
+            gradient:  LinearGradient(colors: [
+              gallwhite,
+              Colors.white.withOpacity(.8),
+            ]),
+            child: ListTile(
+              enabled: false,
+              leading: const Icon(Icons.insert_drive_file_outlined),
+              title: Text(orgName, maxLines: 1, overflow: TextOverflow.ellipsis, style: BalooStyles.baloonormalTextStyle()),
+              subtitle: Text((d.mediaType?.name ?? 'Document') + (d.source != null ? ' · ${d.source}' : ''),
+                style: BalooStyles.baloonormalTextStyle(size: 12, color: Colors.black54),
+              ),
+              trailing: const Icon(Icons.open_in_new),
+              onTap: () { openDocumentFromUrl(url);},
+            ),
+          );
+        },
+      ),
     );
   }
 }

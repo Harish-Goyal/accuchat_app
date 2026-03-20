@@ -76,11 +76,12 @@ class CustomCacheNetworkImage extends StatelessWidget {
         //       : null,
         // ),
         child: CachedNetworkImage(
-          fit: boxFit ?? BoxFit.contain ,
+          fit: boxFit ?? BoxFit.contain,
           width: width,
           filterQuality: FilterQuality.low,
           useOldImageOnUrlChange: true,
           height: height,
+
           // memCacheHeight: memCacheHeight ?? 500,
           // memCacheWidth: memCacheWidth ?? 500,
           placeholder: (_, __) {

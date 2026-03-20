@@ -1470,12 +1470,16 @@ String getInitials(String name) {
 Widget GradientContainer({
   required Widget child,
   double padding = 8.0,
+  double? height,
+  double? width ,
   double radius = 100.0,
   Color? color1,
   Color? color2,
 }) {
   return Container(
     padding: EdgeInsets.all(padding),
+    height: height,
+    width: width,
     decoration: BoxDecoration(
       gradient: LinearGradient(colors: [
       color1??  gallwhite,

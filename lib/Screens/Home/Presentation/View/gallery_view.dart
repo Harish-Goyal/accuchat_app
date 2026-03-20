@@ -249,10 +249,20 @@ class GalleryTab extends GetView<GalleryController> {
                 defaultImage: appIcon,
                 boxFit: BoxFit.cover,
                 isApp: true,
-              ):CircleAvatar(
-                // radius: 45,
-                backgroundColor: Colors.white,
-                child: Text(getInitials(controller.myCompany?.companyName ?? ''),style: BalooStyles.baloosemiBoldTextStyle(color: greenside,size: 20),),
+              ):Container(
+                decoration: BoxDecoration(
+                    color: Colors.white,
+                    shape: BoxShape.circle,boxShadow: [
+                  BoxShadow(color: greenside.withOpacity(.5),blurRadius: 5)
+                ]
+                ),
+
+                child: CircleAvatar(
+                  // radius: 45,
+                  backgroundColor: Colors.white,
+                  
+                  child: Text(getInitials(controller.myCompany?.companyName ?? ''),style: BalooStyles.baloosemiBoldTextStyle(color: greenside,size: 20),),
+                ),
               ),            ).paddingAll(3),
             Expanded(
               child: Column(
@@ -358,8 +368,14 @@ class GalleryTab extends GetView<GalleryController> {
               mainAxisAlignment: MainAxisAlignment.start,
               mainAxisSize: MainAxisSize.min,
               children: [
-                SizedBox(
+                Container(
                   width: 40,
+                  decoration: BoxDecoration(
+                      color: Colors.white,
+                      shape: BoxShape.circle,boxShadow: [
+                    BoxShadow(color: greenside.withOpacity(.5),blurRadius: 5)
+                  ]
+                  ),
                   child: controller.myCompany?.logo!=null? CustomCacheNetworkImage(
                     "${ApiEnd.baseUrlMedia}${controller.myCompany?.logo ?? ''}",
                     radiusAll: 100,
@@ -369,10 +385,18 @@ class GalleryTab extends GetView<GalleryController> {
                     defaultImage: appIcon,
                     boxFit: BoxFit.cover,
                     isApp: true,
-                  ):CircleAvatar(
-                    // radius: 45,
-                    backgroundColor: Colors.white,
-                    child: Text(getInitials(controller.myCompany?.companyName ?? ''),style: BalooStyles.baloosemiBoldTextStyle(color: greenside,size: 20),),
+                  ):Container(
+                    decoration: BoxDecoration(
+                        color: Colors.white,
+                        shape: BoxShape.circle,boxShadow: [
+                      BoxShadow(color: greenside.withOpacity(.5),blurRadius: 5)
+                    ]
+                    ),
+                    child: CircleAvatar(
+                      // radius: 45,
+                      backgroundColor: Colors.white,
+                      child: Text(getInitials(controller.myCompany?.companyName ?? ''),style: BalooStyles.baloosemiBoldTextStyle(color: greenside,size: 20),),
+                    ),
                   ),
                 ).paddingAll(3),
                 Expanded(
@@ -560,7 +584,13 @@ class GalleryTab extends GetView<GalleryController> {
                   controller: controller,
                 ):Center(child: SizedBox(
         height: Get.height*.4,
-          child: DataNotFoundText(height: 150,)))),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              DataNotFoundText(height: 150,),
+              Text("Looks like the folder is empty!",style: BalooStyles.baloosemiBoldTextStyle(),)
+            ],
+          )))),
     );
   }
 }

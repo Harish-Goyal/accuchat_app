@@ -230,13 +230,13 @@ class _LeftBrandPanelOnlyCardsState extends State<_LeftBrandPanelOnlyCards>
         clipBehavior: Clip.none,
         children: [
           Positioned(
-            top: 5,
+            top: 25,
             left: 8,
             child: _floating(
               phase: 0.2,
               amplitude: 10,
               child: const _FeatureBubbleCard(
-                icon: Icons.chat_bubble_rounded,
+                icon: chatHome,
                 title: "Smart Chats",
                 subtitle: "Real-time messaging across teams",
                 startColor: Color(0xFFEDE7FF),
@@ -247,13 +247,13 @@ class _LeftBrandPanelOnlyCardsState extends State<_LeftBrandPanelOnlyCards>
           ),
 
           Positioned(
-            top: 120,
+            top: 140,
             right: 0,
             child: _floating(
               phase: 1.2,
               amplitude: 14,
               child:  _FeatureBubbleCard(
-                icon: Icons.task_alt_rounded,
+                icon: tasksHomewhite,
                 title: "Task Flow",
                 subtitle: "Track work, assign and collaborate",
                 startColor: appColorYellow.withOpacity(.2),
@@ -302,7 +302,7 @@ class _LeftBrandPanelOnlyCardsState extends State<_LeftBrandPanelOnlyCards>
               phase: 2.8,
               amplitude: 13,
               child:  _FeatureBubbleCard(
-                icon: Icons.photo_library_rounded,
+                icon: galleryIconwhite,
                 title: "Gallery Space",
                 subtitle: "Shared media, files and previews",
                 startColor:  greenside.withOpacity(.2),
@@ -319,7 +319,7 @@ class _LeftBrandPanelOnlyCardsState extends State<_LeftBrandPanelOnlyCards>
               phase: 3.4,
               amplitude: 16,
               child:  _FeatureBubbleCard(
-                icon: Icons.apartment_rounded,
+                icon: connectedAppIcon,
                 title: "Multi Company",
                 subtitle: "Workspaces for teams and companies",
                 startColor: perplebr.withOpacity(.2),
@@ -331,7 +331,7 @@ class _LeftBrandPanelOnlyCardsState extends State<_LeftBrandPanelOnlyCards>
 
           Positioned(
             right: 20,
-            bottom: 150,
+            bottom: 170,
             child: _floating(
               phase: 1.7,
               amplitude: 8,
@@ -349,7 +349,7 @@ class _LeftBrandPanelOnlyCardsState extends State<_LeftBrandPanelOnlyCards>
           ),
           Positioned(
             right: 330,
-            top: -25,
+            top: -40,
             child: _floating(
               phase: 2.5,
               amplitude: 8,
@@ -358,7 +358,7 @@ class _LeftBrandPanelOnlyCardsState extends State<_LeftBrandPanelOnlyCards>
           ),
           Positioned(
             right:40,
-            top: 85,
+            top: 65,
             child: _floating(
               phase: 2.9,
               amplitude: 8,
@@ -428,13 +428,13 @@ class _LeftBrandPanelState extends State<_LeftBrandPanel>
               clipBehavior: Clip.none,
               children: [
                 Positioned(
-                  top: 20,
+                  top: 80,
                   left: 10,
                   child: _floatingCard(
                     phase: 0.2,
                     amplitude: 10,
                     child: const _FeatureBubbleCard(
-                      icon: Icons.chat_bubble_rounded,
+                      icon:chatHome,
                       title: "Smart Chats",
                       subtitle: "Real-time messaging across teams",
                       startColor: Color(0xFFEDE7FF),
@@ -444,14 +444,14 @@ class _LeftBrandPanelState extends State<_LeftBrandPanel>
                   ),
                 ),
                 Positioned(
-                  top: 170,
+                  top: 190,
                   right: 0,
                   child: _floatingCard(
                     phase: 1.1,
                     amplitude: 14,
                     child: const _FeatureBubbleCard(
 
-                      icon: Icons.task_alt_rounded,
+                      icon: tasksHomewhite,
                       title: "Task Flow",
                       subtitle: "Track work, assign and collaborate",
                       startColor: Color(0xFFE4FBFB),
@@ -468,7 +468,7 @@ class _LeftBrandPanelState extends State<_LeftBrandPanel>
                     amplitude: 12,
                     child: const _FeatureBubbleCard(
 
-                      icon: Icons.photo_library_rounded,
+                      icon: galleryIconwhite,
                       title: "Gallery Space",
                       subtitle: "Shared media, files and previews",
                       startColor: Color(0xFFF7EDFF),
@@ -483,9 +483,9 @@ class _LeftBrandPanelState extends State<_LeftBrandPanel>
                   child: _floatingCard(
                     phase: 3.1,
                     amplitude: 16,
-                    child: const _FeatureBubbleCard(
+                    child:  _FeatureBubbleCard(
 
-                      icon: Icons.apartment_rounded,
+                      icon: connectedAppIcon,
                       title: "Multi Company",
                       subtitle: "Workspaces for teams and companies",
                       startColor: Color(0xFFE8FAFA),
@@ -1088,7 +1088,7 @@ class _ModernInputField extends StatelessWidget {
 }
 
 class _FeatureBubbleCard extends StatelessWidget {
-  final IconData icon;
+  final String icon;
   final String title;
   final String subtitle;
   final Color startColor;
@@ -1133,11 +1133,12 @@ class _FeatureBubbleCard extends StatelessWidget {
           Container(
             width: 44,
             height: 44,
+            padding: EdgeInsets.all(8),
             decoration: BoxDecoration(
               borderRadius: BorderRadius.circular(14),
               color: Colors.white.withOpacity(.9),
             ),
-            child: Icon(icon, color: iconColor, size: 22),
+            child: SvgPicture.asset(icon, color: iconColor, height: 15,width: 15,),
           ),
           const SizedBox(width: 12),
           Expanded(

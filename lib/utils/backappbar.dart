@@ -1,4 +1,5 @@
 import 'package:AccuChat/Constants/themes.dart';
+import 'package:AccuChat/Screens/Chat/screens/auth/Presentation/Views/login_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
@@ -47,16 +48,15 @@ Widget backApp(context,title, {size}){
     mainAxisAlignment: MainAxisAlignment.start,
     children: [
       InkWell(
-          child: Container(
-            padding: const EdgeInsets.all(10),
-            decoration: BoxDecoration(
-              shape: BoxShape.circle, color: AppTheme.appColor.withOpacity(0.2),
-
-            ),
+        radius:100,
+          child: GradientContainer(
+            padding: 10,
+            color1: greenside,
+            color2: greenside.withOpacity(.4),
 
             child:  Icon(
               Icons.arrow_back,
-              color:Colors.black,
+              color:Colors.white,
               size: 16,
             ),
           ),
