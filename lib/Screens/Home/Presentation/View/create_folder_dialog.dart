@@ -1,5 +1,6 @@
 import 'package:AccuChat/Extension/text_field_extenstion.dart';
 import 'package:AccuChat/Screens/Home/Presentation/Controller/gallery_controller.dart';
+import 'package:AccuChat/utils/gradient_button.dart';
 import 'package:AccuChat/utils/helper_widget.dart';
 import 'package:AccuChat/utils/text_style.dart';
 import 'package:flutter/material.dart';
@@ -90,21 +91,16 @@ Future<String?> showCreateFolderDialog() async {
                             ),
                             const SizedBox(width: 10),
                             Expanded(
-                              child: ElevatedButton(
-                                onPressed: controller.isSaving.value
+                              child: GradientButton(
+                                vPadding: 8,
+                                onTap: controller.isSaving.value
                                     ? null
                                     : (){
                                   if(_folderKey.currentState!.validate()){
                                     controller.hitApiToCreateFolder();
                                   }
                                 },
-                                child: controller.isSaving.value
-                                    ? const SizedBox(
-                                  height: 18,
-                                  width: 18,
-                                  child: CircularProgressIndicator(strokeWidth: 2),
-                                )
-                                    : const Text("Create"),
+                                name: "Create",
                               ),
                             ),
                           ],

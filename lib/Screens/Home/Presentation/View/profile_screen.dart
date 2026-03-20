@@ -4,6 +4,7 @@ import 'package:AccuChat/Constants/colors.dart';
 import 'package:AccuChat/Extension/text_field_extenstion.dart';
 import 'package:AccuChat/Screens/Home/Presentation/Controller/profile_controller.dart';
 import 'package:AccuChat/Services/APIs/api_ends.dart';
+import 'package:AccuChat/utils/backappbar.dart';
 import 'package:AccuChat/utils/custom_flashbar.dart';
 import 'package:AccuChat/utils/gradient_button.dart';
 import 'package:AccuChat/utils/loading_indicator.dart';
@@ -22,7 +23,6 @@ import '../../../../utils/text_style.dart';
 import '../../../Chat/screens/auth/Presentation/Views/landing_screen.dart';
 import '../../../Chat/screens/chat_tasks/Presentation/Widgets/profile_zoom.dart';
 import '../Controller/home_controller.dart';
-import '../../../Settings/Presentation/Views/settings_screen.dart';
 import '../../../../main.dart';
 
 class ProfileScreen extends GetView<HProfileController> {
@@ -64,22 +64,29 @@ class ProfileScreen extends GetView<HProfileController> {
             backgroundColor: Colors.white,
             foregroundColor: Colors.white,
             shadowColor: Colors.white,
+            leadingWidth: 60,
+            leading: backApp(context, ""),
             title: Text(
               'Profile',
               style: BalooStyles.balooboldTitleTextStyle(),
             ),
             actions: [
-              IconButton(
-                onPressed: () async {
+              InkWell(
+                borderRadius: BorderRadius.circular(100),
+                onTap: () async {
                   await showResponsiveLogoutDialog(context);
                 },
-                icon: Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Text("Logout",style: BalooStyles.baloosemiBoldTextStyle(),),
-                    hGap(5),
-                    const Icon(Icons.logout,size: 16,),
-                  ],
+                child: GradientContainer(
+                  color1: greenside,
+                  color2: greenside.withOpacity(.6),
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Text("Logout",style: BalooStyles.baloosemiBoldTextStyle(color: Colors.white),),
+                      hGap(5),
+                      const Icon(Icons.logout,size: 16,color:Colors.white),
+                    ],
+                  ).paddingSymmetric(horizontal: 8),
                 ),
               ).marginSymmetric(horizontal: 15),
             ],

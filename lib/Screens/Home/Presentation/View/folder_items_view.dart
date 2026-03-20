@@ -2,6 +2,7 @@ import 'package:AccuChat/Screens/Home/Models/get_folder_res_model.dart';
 import 'package:AccuChat/Screens/Home/Presentation/Controller/home_controller.dart';
 import 'package:AccuChat/Services/APIs/api_ends.dart';
 import 'package:AccuChat/routes/app_routes.dart';
+import 'package:AccuChat/utils/backappbar.dart';
 import 'package:AccuChat/utils/common_textfield.dart';
 import 'package:AccuChat/utils/helper_widget.dart';
 import 'package:flutter/cupertino.dart';
@@ -62,90 +63,98 @@ class FolderItemsScreen extends GetView<GalleryItemController> {
                   // ✅ Tile height = thumb + text area (fixed) -> no overflow
                   final tileHeight = thumbHeight + (w < 520 ? 108 : 116);
 
-                  return GridView.builder(
-                  controller:   controller.scrollControllerItem,
-                    padding: EdgeInsets.symmetric(
-                      horizontal: w >= 900 ? 14 : 10,
-                      vertical: 12,
+                  return Container(
+                    padding: const EdgeInsets.all(12),
+                    margin: const EdgeInsets.symmetric(horizontal: 12),
+                    decoration: BoxDecoration(
+                        borderRadius: BorderRadius.circular(15),
+                        image: const DecorationImage(image: AssetImage(appbarBG),fit: BoxFit.cover)
                     ),
-                    gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-                      crossAxisCount: crossAxisCount,
-                      crossAxisSpacing: 14,
-                      mainAxisSpacing: 14,
-                      mainAxisExtent: tileHeight, // ✅ overflow FIX
+                    child: GridView.builder(
+                    controller:   controller.scrollControllerItem,
+                      padding: EdgeInsets.symmetric(
+                        horizontal: w >= 900 ? 14 : 10,
+                        vertical: 12,
+                      ),
+                      gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+                        crossAxisCount: crossAxisCount,
+                        crossAxisSpacing: 14,
+                        mainAxisSpacing: 14,
+                        mainAxisExtent: tileHeight, // ✅ overflow FIX
+                      ),
+                      itemCount: items.length,
+                      itemBuilder: (_, i) {
+                        bool isSelected = folderData?.userGalleryId == items[i].userGalleryId;
+                        if (i == items.length) {
+                          return const IndicatorLoading();
+                        }
+                        final it = items[i];
+
+                        final fileName = (it.fileName ?? "").trim();
+                        final title = ((it.title ?? "").trim().isEmpty)
+                            ? fileName
+                            : (it.title ?? "").trim();
+                        final kw = (it.keyWords ?? "").trim();
+
+                        final thumbUrl = "${ApiEnd.baseUrlMedia}${it.filePath}";
+                        final isImage = _isImage(it.mediaTypeId ?? 0, fileName);
+                        final List<String> filePaths =
+                        controller.filterFolderItems
+                            .where((e) => e.filePath != null)
+                            .map((e) => "${ApiEnd.baseUrlMedia}${e.filePath!}")
+                            .toList();
+
+                        return HoverGlassEffect(
+                          margin: const EdgeInsets.symmetric(horizontal: 0, vertical: 0),
+                          padding: const EdgeInsets.symmetric(horizontal: 0, vertical: 0),
+                          borderRadius: 12,
+                          hoverScale: 1.04,
+                          normalBlur: 3,
+                          hoverBlur: 10,
+                          // borderColor: greenside.withOpacity(.1),
+                          // hoverBorderColor:greenside.withOpacity(.55)
+
+                          child: _MediaCard(
+                            thumbHeight: thumbHeight,
+                            title: title,
+                            keywords: kw,
+                            thumbUrl: thumbUrl,
+                            isImage: isImage,
+                            fileName: fileName,
+                            isSelected: isSelected,
+                            createdOnText: _prettyDate(it.createdOn),
+                            docIcon: _fileIcon(fileName),
+                            onTap: () {
+                              if(isDocument(it.filePath??'')){
+                                openDocumentFromUrl("${ApiEnd.baseUrlMedia}${it.filePath!}");
+                              }else{
+                                Get.to(
+                                      () => GalleryViewerPage(
+                                    onReply: () {},
+
+                                  ),
+                                  binding: BindingsBuilder(() {
+                                    Get.put(GalleryViewerController(
+                                        urls: filePaths,
+                                        index: i,
+                                        chathis: null));
+                                  }),
+                                  fullscreenDialog: true,
+                                  transition: Transition.fadeIn,
+                                );
+                              }
+
+                            },
+                            onRename: () => _openRenameDialog(context, it,controller),
+                            onDelete: () => _openDeleteConfirm(context, it,controller),
+                            onShare: () {
+                              // c.shareMedia(it);
+                            }, onSharew: ()=>
+                            _onShareWhatsapp(thumbUrl),
+                          ),
+                        );
+                      },
                     ),
-                    itemCount: items.length,
-                    itemBuilder: (_, i) {
-                      bool isSelected = folderData?.userGalleryId == items[i].userGalleryId;
-                      if (i == items.length) {
-                        return const IndicatorLoading();
-                      }
-                      final it = items[i];
-
-                      final fileName = (it.fileName ?? "").trim();
-                      final title = ((it.title ?? "").trim().isEmpty)
-                          ? fileName
-                          : (it.title ?? "").trim();
-                      final kw = (it.keyWords ?? "").trim();
-
-                      final thumbUrl = "${ApiEnd.baseUrlMedia}${it.filePath}";
-                      final isImage = _isImage(it.mediaTypeId ?? 0, fileName);
-                      final List<String> filePaths =
-                      controller.filterFolderItems
-                          .where((e) => e.filePath != null)
-                          .map((e) => "${ApiEnd.baseUrlMedia}${e.filePath!}")
-                          .toList();
-
-                      return HoverGlassEffect(
-                        margin: const EdgeInsets.symmetric(horizontal: 0, vertical: 0),
-                        padding: const EdgeInsets.symmetric(horizontal: 0, vertical: 0),
-                        borderRadius: 12,
-                        hoverScale: 1.015,
-                        normalBlur: 3,
-                        hoverBlur: 10,
-                        // borderColor: greenside.withOpacity(.1),
-                        // hoverBorderColor:greenside.withOpacity(.55)
-
-                        child: _MediaCard(
-                          thumbHeight: thumbHeight,
-                          title: title,
-                          keywords: kw,
-                          thumbUrl: thumbUrl,
-                          isImage: isImage,
-                          fileName: fileName,
-                          isSelected: isSelected,
-                          createdOnText: _prettyDate(it.createdOn),
-                          docIcon: _fileIcon(fileName),
-                          onTap: () {
-                            if(isDocument(it.filePath??'')){
-                              openDocumentFromUrl("${ApiEnd.baseUrlMedia}${it.filePath!}");
-                            }else{
-                              Get.to(
-                                    () => GalleryViewerPage(
-                                  onReply: () {},
-
-                                ),
-                                binding: BindingsBuilder(() {
-                                  Get.put(GalleryViewerController(
-                                      urls: filePaths,
-                                      index: i,
-                                      chathis: null));
-                                }),
-                                fullscreenDialog: true,
-                                transition: Transition.fadeIn,
-                              );
-                            }
-
-                          },
-                          onRename: () => _openRenameDialog(context, it,controller),
-                          onDelete: () => _openDeleteConfirm(context, it,controller),
-                          onShare: () {
-                            // c.shareMedia(it);
-                          }, onSharew: ()=>
-                          _onShareWhatsapp(thumbUrl),
-                        ),
-                      );
-                    },
                   );
                 },
               );
@@ -156,15 +165,17 @@ class FolderItemsScreen extends GetView<GalleryItemController> {
   }
 
   AppBar _searchBarWidget(context,GalleryItemController c) {
-    return AppBar(      scrolledUnderElevation: 0,
+    return AppBar(
+      scrolledUnderElevation: 0,
       surfaceTintColor: Colors.white,
-      leading: IconButton(onPressed: (){
+      leading: backApp(context, '',onTap: (){
         Get.toNamed(AppRoutes.home);
         Get.find<DashboardController>().updateIndex(2);
-      }, icon: const Icon(Icons.arrow_back,color: Colors.black87,)),
+      }),
+      leadingWidth: 60,
       title:
           Obx(()=>
-              c.isSearchingIconItem.value?TextField(
+              c.isSearchingIconItem.value && !kIsWeb?TextField(
                     controller: c.itemSearchCtrl,
                     cursorColor: appColorGreen,
                     decoration: const InputDecoration(
@@ -185,6 +196,7 @@ class FolderItemsScreen extends GetView<GalleryItemController> {
           :  SectionHeader(
         title: folderData?.folderName??'',
         icon: openfolderPng,
+                coloricon: greenside,
               )
       ),
 
@@ -193,7 +205,62 @@ class FolderItemsScreen extends GetView<GalleryItemController> {
           Row(
             mainAxisSize: MainAxisSize.min,
             children: [
-              IconButton(
+              Container(
+                width: Get.width*.3,
+                padding: const EdgeInsets.all(0),
+                decoration:BoxDecoration(
+                  gradient: LinearGradient(colors: [
+                    gallwhite,
+                    perpleBg,
+                  ]),
+                  border: Border.all(color: Colors.white),
+                  boxShadow: [BoxShadow(color:perpleBg,blurRadius: 8)],
+                  borderRadius: BorderRadius.circular(40),
+                ),
+                child: TextField(
+                  controller: c.itemSearchCtrl,
+                  cursorColor: perpleBg,
+                  textAlignVertical: TextAlignVertical.center,
+                  maxLines: 1,
+
+                  decoration:  InputDecoration(
+                    enabledBorder:InputBorder.none,
+                    disabledBorder:  InputBorder.none,
+                    focusedBorder:  InputBorder.none,
+                    border: InputBorder.none,
+                    isDense: true,
+                    hintText: 'Search folders, media by name ,keywords or user ...',
+                    contentPadding:
+                    const EdgeInsets.symmetric(vertical: 12, horizontal: 10),
+                    constraints: const BoxConstraints(maxHeight: 45),
+                    prefixIcon: InkWell(
+                        onTap: () {
+                          c.isSearchingIconItem.value = !c.isSearchingIconItem.value;
+                          c.isSearchingIconItem.refresh();
+                          // c.resetPagination();
+                          if (!c.isSearchingIconItem.value) {
+                            c.itemQuery.value = '';
+                            c.onSearchItem('',folderData);
+                            c.itemSearchCtrl.clear();
+                          }
+                        },
+                        child:c.isSearchingIconItem.value
+                            ? const Icon(CupertinoIcons.clear,color: Colors.black45,)
+                        // : Image.asset(searchPng, height: 25, width: 25))
+                            : SvgPicture.asset(searchPng, height: 20, width: 20,color: Colors.black45,)).paddingOnly(left: 6)
+                    ,prefixIconConstraints: const BoxConstraints(maxHeight: 20),
+                  ),
+
+                  autofocus: false,
+                  style: const TextStyle(fontSize: 13, letterSpacing: 0.5),
+                  onChanged: (val) {
+                    c.resetPagination();
+                    c.itemQuery.value = val;
+                    c.onSearchItem(c.itemQuery.value,folderData);
+                  },
+                ).marginSymmetric(vertical: 0),
+              ),
+              c.isSearchingIconItem.value && !kIsWeb?     IconButton(
                   onPressed: () {
                     c.isSearchingIconItem.value = !c.isSearchingIconItem.value;
                     c.isSearchingIconItem.refresh();
@@ -217,8 +284,11 @@ class FolderItemsScreen extends GetView<GalleryItemController> {
 
 
                   )
-                  .paddingOnly(top: 0, right: 0),
-              c.isSearchingIconItem.value?const SizedBox():  IconButton(
+                  .paddingOnly(top: 0, right: 0) :const SizedBox(),
+              c.isSearchingIconItem.value?const SizedBox():
+
+
+              IconButton(
                   onPressed: () {
                     showUploadOptions(context,folder:folderData );
                   },

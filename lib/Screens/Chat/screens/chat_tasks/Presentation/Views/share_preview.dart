@@ -429,9 +429,10 @@ class _SharePreviewPageState extends State<SharePreviewPage> {
 
       }
       messageController.clear();
-      Get.until((route) => route.isFirst);
+
       // APIs.updateTypingStatus(false);
     }
+    Get.until((route) => route.isFirst);
     }catch (e) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text('Send failed: $e')),

@@ -13,6 +13,7 @@ import 'package:intl/intl.dart';
 import '../../../../../../Services/APIs/api_ends.dart';
 import '../../../../../../main.dart';
 import '../../../../../../routes/app_routes.dart';
+import '../../../../../../utils/hover_glass_effect_widget.dart';
 import '../../../../helper/my_date_util.dart';
 import '../Widgets/profile_zoom.dart';
 import '../dialogs/profile_dialog.dart';
@@ -62,18 +63,25 @@ class ViewProfileScreen extends GetView<ViewProfileController> {
             body: Container(
               height: Get.height,
               width: Get.width,
-              padding: const EdgeInsets.symmetric(horizontal: 20,vertical: 10),
+              padding: const EdgeInsets.symmetric(horizontal: 20,vertical: 0),
               decoration: BoxDecoration(
                 image: DecorationImage(image: AssetImage(darkbg),fit: BoxFit.cover)
               ),
               child: SingleChildScrollView(
                 child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
+                  // crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    backApp(context, controller.user?.userCompany?.displayName !=null?
-                    controller.user?.userCompany?.displayName ??''
-                        :controller.user?.userName!=null? controller.user?.userName??'':
-                    controller.user?.phone ?? ''),
+                    vGap(10),
+                    Row(
+                      children: [
+                        Expanded(
+                          child: backApp(context, controller.user?.userCompany?.displayName !=null?
+                          controller.user?.userCompany?.displayName ??''
+                              :controller.user?.userName!=null? controller.user?.userName??'':
+                          controller.user?.phone ?? ''),
+                        ),
+                      ],
+                    ),
                     vGap(12),
 
                     Stack(
@@ -83,7 +91,7 @@ class ViewProfileScreen extends GetView<ViewProfileController> {
                         Center(
                           child: GradientContainer(
                             radius: 20,
-                            width: Get.width*.7,
+                            width: 800,
                             padding: 15,
 
                             child: Column(
@@ -134,46 +142,53 @@ class ViewProfileScreen extends GetView<ViewProfileController> {
 
                         Positioned(
                           top: -45,
-                          child: InkWell(
-                            borderRadius: BorderRadius.circular(100),
-                            onTap: () => controller.user?.userId == APIs.me.userId
-                                ? Get.toNamed(AppRoutes.h_profile)
-                                : controller.user?.userImage != null
-                                ? Get.to(() => ProfileZoom(
-                                imagePath:
+                          child: HoverGlassEffect(
+                            borderRadius: 100,
+                            hoverScale: 1.04,
+                            normalBlur: 3,
+                            hoverBlur: 10,
+                            child: InkWell(
+                              borderRadius: BorderRadius.circular(100),
+                              onTap: () => controller.user?.userId == APIs.me.userId
+                                  ? Get.toNamed(AppRoutes.h_profile)
+                                  : controller.user?.userImage != null
+                                  ? Get.to(() => ProfileZoom(
+                                  imagePath:
+                                  "${ApiEnd.baseUrlMedia}${controller.user?.userImage ?? ''}",
+                                  heroTag: "DetailedProfile"))
+                                  : showDialog(
+                                  context: context,
+                                  builder: (_) =>
+                                      ProfileDialog(user: controller.user)),
+                              child:
+                              controller.user?.userImage!=null? CustomCacheNetworkImage(
                                 "${ApiEnd.baseUrlMedia}${controller.user?.userImage ?? ''}",
-                                heroTag: "DetailedProfile"))
-                                : showDialog(
-                                context: context,
-                                builder: (_) =>
-                                    ProfileDialog(user: controller.user)),
-                            child:
-                            controller.user?.userImage!=null? CustomCacheNetworkImage(
-                              "${ApiEnd.baseUrlMedia}${controller.user?.userImage ?? ''}",
-                              height: 80,
-                              width: 80,
-                              radiusAll: 100,
-                              boxFit: BoxFit.cover,
-                              defaultImage: ICON_profile,
-                              borderColor: Colors.white,
-                              borderWidth: 2,
-                            ):GradientContainer(
-                              radius: 100,
-                              height: 80,
-                              width: 80,
-                              padding: 0,
-                              // color1: greenside.withOpacity(.2),
-                              // color2: greenside.withOpacity(.2),
-                              child: Center(child: Text(getInitials(usern),style: BalooStyles.baloosemiBoldTextStyle(color: perplebr,size: 50),)),
-                            ),
+                                height: 80,
+                                width: 80,
+                                radiusAll: 100,
+                                boxFit: BoxFit.cover,
+                                defaultImage: ICON_profile,
+                                borderColor: Colors.white,
+                                borderWidth: 2,
+                              ):GradientContainer(
+                                radius: 100,
+                                height: 80,
+                                width: 80,
+                                padding: 0,
+                                // color1: greenside.withOpacity(.2),
+                                // color2: greenside.withOpacity(.2),
+                                child: Center(child: Text(getInitials(usern),style: BalooStyles.baloosemiBoldTextStyle(color: perplebr,size: 50),)),
+                              ),
 
+                            ),
                           ),
                         ),
                       ],
                     ),
 
                     vGap(8),
-                    const ProfileMediaSectionGetX(baseUrl: ApiEnd.baseUrlMedia),
+                SizedBox(
+                  width: 900,child: const ProfileMediaSectionGetX(baseUrl: ApiEnd.baseUrlMedia)),
                   ],
                 ),
               ),

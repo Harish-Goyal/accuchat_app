@@ -41,12 +41,23 @@ class LandingPage extends GetView<LandingScreenController> {
             automaticallyImplyLeading: false,
             actions: [
               InkWell(
-                  onTap: ()async {
-                    showResponsiveLogoutDialog(context);
-                  },
-                  child: Container(
-                      padding: const EdgeInsets.all(10),
-                      child: const Icon(Icons.logout)))
+                borderRadius: BorderRadius.circular(100),
+                onTap: () async {
+                  await showResponsiveLogoutDialog(context);
+                },
+                child: GradientContainer(
+                  color1: greenside,
+                  color2: greenside.withOpacity(.6),
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Text("Logout",style: BalooStyles.baloosemiBoldTextStyle(color: Colors.white),),
+                      hGap(5),
+                      const Icon(Icons.logout,size: 16,color:Colors.white),
+                    ],
+                  ).paddingSymmetric(horizontal: 8),
+                ),
+              ).marginSymmetric(horizontal: 15),
             ],
           ),
         // body

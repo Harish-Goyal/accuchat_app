@@ -35,6 +35,7 @@ import '../../../../../../Constants/assets.dart';
 import '../../../../../../Constants/colors.dart';
 import '../../../../../../utils/custom_flashbar.dart';
 import '../../../../../../utils/emogi_checker.dart';
+import '../../../../../../utils/gradient_button.dart';
 import '../../../../../../utils/product_shimmer_widget.dart';
 import '../../../../../../utils/share_helper.dart';
 import '../../../../../../utils/text_style.dart';
@@ -2513,48 +2514,62 @@ final isMedia = (data.media??[]).isNotEmpty;
           ],
         ),
         actions: [
-          TextButton(
-            onPressed: () async {
-              //IMAGES (multiple)
-              final images = await controller.pickWebImages(maxFiles: 10);
-              if (images.isNotEmpty) {
-                controller.images.addAll(images);
-                controller.uploadMediaApiCall(type: ChatMediaType.IMAGE.name);
-              }
-              Navigator.of(ctx).pop();
-            },
-            child: const Row(
-              mainAxisSize: MainAxisSize.min,
+          Container(
+            width: 500,
+            child: Row(
               children: [
-                Icon(Icons.photo),
-                SizedBox(width: 8),
-                Text('Select Images')
+                Expanded(child: GradientButton(
+                    vPadding: 7,
+                    onTap: () async {
+            final images = await controller.pickWebImages(maxFiles: 10);
+            if (images.isNotEmpty) {
+              controller.images.addAll(images);
+              controller.uploadMediaApiCall(type: ChatMediaType.IMAGE.name);
+            }
+            Navigator.of(ctx).pop();
+                    },
+                    textWidget:  Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Icon(Icons.photo,color: Colors.white,size: 15,),
+              SizedBox(width: 4),
+              Text('Select Images',style: BalooStyles.baloosemiBoldTextStyle(color: Colors.white),)
+            ],
+                    ), name: '',
+                  )),
+                hGap(10),
+                Expanded(child: GradientButton(
+                  vPadding: 7,
+                  onTap: () async {
+                    final docs = await _pickWebDocs();
+                    if (docs.isNotEmpty) {
+                      // see helper you’ll paste into your controller below
+                      await controller.receivePickedDocuments(docs);
+                    }
+                    Navigator.of(ctx).pop();
+                  },
+                  textWidget:  Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Icon(Icons.picture_as_pdf,color: Colors.white,size: 15,),
+                      SizedBox(width: 4),
+                      Text('Select Documents',style: BalooStyles.baloosemiBoldTextStyle(color: Colors.white),)
+                    ],
+                  ), name: '',
+                )),
+                hGap(10),
+                GradientButton(
+                  width: 100,
+                  vPadding: 8,
+                  onTap: () async {
+                    Navigator.of(ctx).pop();
+                  },
+                  name: 'Cancel',
+                ),
               ],
             ),
           ),
-          TextButton(
-            onPressed: () async {
-              // DOCUMENTS (pdf/office/etc.)
-              final docs = await _pickWebDocs();
-              if (docs.isNotEmpty) {
-                // see helper you’ll paste into your controller below
-                await controller.receivePickedDocuments(docs);
-              }
-              Navigator.of(ctx).pop();
-            },
-            child: const Row(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Icon(Icons.picture_as_pdf),
-                SizedBox(width: 8),
-                Text('Select Documents')
-              ],
-            ),
-          ),
-          TextButton(
-            onPressed: () => Navigator.of(ctx).pop(),
-            child: const Text('Cancel'),
-          ),
+
         ],
       ),
     );

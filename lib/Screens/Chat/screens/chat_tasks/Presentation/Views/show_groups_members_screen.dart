@@ -5,6 +5,7 @@ import 'package:AccuChat/Extension/text_field_extenstion.dart';
 import 'package:AccuChat/Screens/Chat/screens/chat_tasks/Presentation/Controllers/members_gr_br_controller.dart';
 import 'package:AccuChat/Screens/Chat/screens/chat_tasks/Presentation/Views/profile_modea_selection.dart';
 import 'package:AccuChat/Services/APIs/api_ends.dart';
+import 'package:AccuChat/utils/backappbar.dart';
 import 'package:AccuChat/utils/confirmation_dialog.dart';
 import 'package:AccuChat/utils/helper_widget.dart';
 import 'package:AccuChat/utils/networl_shimmer_image.dart';
@@ -32,15 +33,21 @@ class GroupMembersScreen extends GetView<GrBrMembersController> {
     return GetBuilder<GrBrMembersController>(
       builder: (controller) {
         return Scaffold(
-          appBar:_appBarWidget(),
-          body: _mainBody(),
+          // appBar:_appBarWidget(),
+          body: _mainBody(context),
         );
       },
     );
   }
 
-  _mainBody(){
-    return Center(
+  _mainBody(context){
+    return Container(
+      height: Get.height,
+      width: Get.width,
+      padding: const EdgeInsets.symmetric(horizontal: 20,vertical: 0),
+      decoration: const BoxDecoration(
+          image: DecorationImage(image: AssetImage(darkbg),fit: BoxFit.cover)
+      ),
       child: ConstrainedBox(
         constraints: const BoxConstraints(
           maxWidth: kIsWeb ? 750 : double.infinity,
@@ -48,23 +55,103 @@ class GroupMembersScreen extends GetView<GrBrMembersController> {
         child: SingleChildScrollView(
           child: Column(
             children: [
-               Container(
-                 padding: const EdgeInsets.all(8),
-                 decoration: BoxDecoration(
-                   border: Border.all(color:Colors.grey),
-                   shape: BoxShape.circle
-                 ),
-                 child: CircleAvatar(
-                  radius: 35,
-                  
-                  backgroundColor: Colors.white,
-                   // child: Image.asset(controller.groupOrBr?.userCompany?.isGroup==1?
-                   child: SvgPicture.asset(controller.groupOrBr?.userCompany?.isGroup==1?
-                   groupIcn: broadcastIcon),
-                               ),
-               ),
-              vGap(15),
-              const ProfileMediaSectionGetXGroup(baseUrl: ApiEnd.baseUrlMedia),
+              vGap(10),
+              Row(
+                children: [
+                  Expanded(
+                    child: backApp(context, controller.groupOrBr?.userCompany?.isGroup == 1
+                        ? 'Group Members'
+                        : "Broadcast Members"),
+                  ),
+
+                  if (controller.groupOrBr?.createdBy ==
+                      APIs.me?.userCompany?.userCompanyId)
+                    SizedBox(
+                      width: 60,
+                      child: PopupMenuButton<String>(
+                        color: Colors.white,
+                        icon:kIsWeb? Container(
+                          padding: const EdgeInsets.all(8),
+                          decoration: BoxDecoration(
+                              shape: BoxShape.circle,
+                              color: appColorGreen
+                          ),
+                          child: const Icon(Icons.more_vert,
+                              color: Colors.white, size: 18),
+                        ):const Icon(Icons.more_vert,
+                            color: Colors.black, size: 18),
+                        onSelected: (value) {
+                          if (value == 'delete') {
+                            showResponsiveConfirmationDialog(onConfirm:  () async {
+                              controller.hitAPIToDeleteGrBr(
+                                isGroup: controller.groupOrBr?.userCompany?.isGroup == 1
+                                    ? true
+                                    : false,
+
+                              );
+                            },title: controller.groupOrBr?.userCompany?.isGroup == 1
+                                ? 'Delete Group'
+                                : "Delete Broadcast", subtitle: controller.groupOrBr?.userCompany?.isGroup == 1
+                                ? 'Delete Group ${controller.groupOrBr?.userName}'
+                                : "Delete Broadcast ${controller.groupOrBr?.userName}");
+
+                          } else if (value == 'add') {
+                            if (kIsWeb) {
+                              openAllUserDialog(controller.groupOrBr);
+                              // Get.toNamed(
+                              //   "${AppRoutes.add_group_member}?groupChatId=${controller.groupOrBr?.userId.toString()}",
+                              // );
+                            } else {
+                              Get.toNamed(
+                                AppRoutes.add_group_member,
+                                arguments: {'groupChat': controller.groupOrBr},
+                              );
+                            }
+                          }
+                        },
+                        itemBuilder: (context) => [
+                          PopupMenuItem(
+                            value: 'delete',
+                            child: Row(
+                              children: [
+                                const Icon(Icons.delete_outline,
+                                    color: Colors.black87, size: 18),
+                                hGap(5),
+                                Text('Delete',
+                                    style: BalooStyles.baloonormalTextStyle()),
+                              ],
+                            ),
+                          ),
+                          PopupMenuItem(
+                            value: 'add',
+                            child: Row(
+                              children: [
+                                const Icon(Icons.person_add_outlined,
+                                    color: Colors.black87, size: 18),
+                                hGap(5),
+                                Text('Add Member',
+                                    style: BalooStyles.baloonormalTextStyle()),
+                              ],
+                            ),
+                          ),
+                        ],
+                      ).marginOnly(right: 10),
+                    )
+                ],
+              ),
+               GradientContainer(
+                radius: 100,
+                 height: 100,
+                 width: 100,
+
+                 // child: Image.asset(controller.groupOrBr?.userCompany?.isGroup==1?
+                 child: SvgPicture.asset(controller.groupOrBr?.userCompany?.isGroup==1?
+                 groupIcn: broadcastIcon),
+                             ),
+              vGap(8),
+              SizedBox(
+                width: 800,
+                  child: const ProfileMediaSectionGetXGroup(baseUrl: ApiEnd.baseUrlMedia)),
               // CustomTextField(
               //   hintText: controller.groupOrBr?.userCompany?.isGroup == 1
               //       ? "Group Name"
@@ -335,76 +422,7 @@ class GroupMembersScreen extends GetView<GrBrMembersController> {
         style: BalooStyles.balooboldTitleTextStyle(),
       ),
       actions: [
-        if (controller.groupOrBr?.createdBy ==
-            APIs.me?.userCompany?.userCompanyId)
-          PopupMenuButton<String>(
-            color: Colors.white,
-            icon:kIsWeb? Container(
-              padding: const EdgeInsets.all(8),
-              decoration: BoxDecoration(
-                shape: BoxShape.circle,
-                color: appColorGreen
-              ),
-              child: const Icon(Icons.more_vert,
-                  color: Colors.white, size: 18),
-            ):const Icon(Icons.more_vert,
-                color: Colors.black, size: 18),
-            onSelected: (value) {
-              if (value == 'delete') {
-                showResponsiveConfirmationDialog(onConfirm:  () async {
-                  controller.hitAPIToDeleteGrBr(
-                    isGroup: controller.groupOrBr?.userCompany?.isGroup == 1
-                        ? true
-                        : false,
-                    
-                  );
-                },title: controller.groupOrBr?.userCompany?.isGroup == 1
-                    ? 'Delete Group'
-                    : "Delete Broadcast", subtitle: controller.groupOrBr?.userCompany?.isGroup == 1
-                    ? 'Delete Group ${controller.groupOrBr?.userName}'
-                    : "Delete Broadcast ${controller.groupOrBr?.userName}");
 
-              } else if (value == 'add') {
-                if (kIsWeb) {
-                  openAllUserDialog(controller.groupOrBr);
-                  // Get.toNamed(
-                  //   "${AppRoutes.add_group_member}?groupChatId=${controller.groupOrBr?.userId.toString()}",
-                  // );
-                } else {
-                  Get.toNamed(
-                    AppRoutes.add_group_member,
-                    arguments: {'groupChat': controller.groupOrBr},
-                  );
-                }
-              }
-            },
-            itemBuilder: (context) => [
-              PopupMenuItem(
-                value: 'delete',
-                child: Row(
-                  children: [
-                    const Icon(Icons.delete_outline,
-                        color: Colors.black87, size: 18),
-                    hGap(5),
-                    Text('Delete',
-                        style: BalooStyles.baloonormalTextStyle()),
-                  ],
-                ),
-              ),
-              PopupMenuItem(
-                value: 'add',
-                child: Row(
-                  children: [
-                    const Icon(Icons.person_add_outlined,
-                        color: Colors.black87, size: 18),
-                    hGap(5),
-                    Text('Add Member',
-                        style: BalooStyles.baloonormalTextStyle()),
-                  ],
-                ),
-              ),
-            ],
-          ).marginOnly(right: 10)
       ],
     );
   }

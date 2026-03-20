@@ -73,7 +73,7 @@ class AddGroupMembersScreen extends GetView<AddGroupMemController> {
       child: ConstrainedBox(
         constraints: const BoxConstraints(maxWidth: 650),
         child: ListView.builder(
-          padding: const EdgeInsets.all(16),
+          padding: const EdgeInsets.all(8),
           itemCount: controller.filteredList.length,
           itemBuilder: (context, index) {
             final user = controller.filteredList[index];
@@ -85,7 +85,7 @@ class AddGroupMembersScreen extends GetView<AddGroupMemController> {
             final isMe = APIs.me.userId == user.userId;
             return Card(
               elevation: 1,
-              margin: const EdgeInsets.only(bottom: 12),
+              margin: const EdgeInsets.only(bottom: 8),
               color: Colors.white,
               shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(14)),
@@ -145,16 +145,15 @@ class AddGroupMembersScreen extends GetView<AddGroupMemController> {
                   // AVATAR
                   // *********************
                   secondary: SizedBox(
-                    width: mq.height * .055,
+                    width: 40,
                     child:user.userImage!=null? CustomCacheNetworkImage(
                       "${ApiEnd.baseUrlMedia}${user.userImage ?? ""}",
                       radiusAll: 100,
-                      height: mq.height * .055,
-                      width: mq.height * .055,
-                      borderColor: appColorYellow,
+                      height: 40,
+                      width: 40,
+                      borderColor: greenside,
                       defaultImage: ICON_profile,
                       boxFit: BoxFit.cover,
-
                     ):CircleAvatar(
                       // radius: 45,
                       backgroundColor: perpleBg,

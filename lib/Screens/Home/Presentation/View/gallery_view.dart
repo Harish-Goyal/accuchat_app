@@ -110,6 +110,7 @@ class GalleryTab extends GetView<GalleryController> {
                                               ],
                                             )),
                                       )),
+                                  hGap(12),
                                   InkWell(
                                       onTap: () {
                                         showUploadOptions(context);
@@ -233,7 +234,7 @@ class GalleryTab extends GetView<GalleryController> {
           children: [
             Container(
               width: 40,
-              margin: EdgeInsets.only(left: 10),
+              margin: const EdgeInsets.only(left: 10),
               decoration: BoxDecoration(
                   color: Colors.white,
                   shape: BoxShape.circle,boxShadow: [
@@ -523,22 +524,38 @@ class GalleryTab extends GetView<GalleryController> {
           // )]
         ),
         tabs: [
-          const Row(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Icon(Icons.folder, size: 16),
-              SizedBox(width: 6),
-              Text('Folders'),
-            ],
-          ).paddingSymmetric(horizontal: 15, vertical: 3),
-          const Row(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Icon(Icons.folder_shared_outlined, size: 16),
-              SizedBox(width: 6),
-              Text('Shared'),
-            ],
-          ).paddingSymmetric(horizontal: 15, vertical: 3),
+          const HoverGlassEffect(
+            margin: EdgeInsets.symmetric(horizontal: 0, vertical: 0),
+            padding: EdgeInsets.symmetric(horizontal: 0, vertical: 0),
+            borderRadius: 12,
+            hoverScale: 1.04,
+            normalBlur: 3,
+            hoverBlur: 10,
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Icon(Icons.folder, size: 16),
+                SizedBox(width: 6),
+                Text('Folders'),
+              ],
+            ),
+          ).paddingSymmetric(horizontal: 14),
+    const HoverGlassEffect(
+    margin: EdgeInsets.symmetric(horizontal: 0, vertical: 0),
+    padding: EdgeInsets.symmetric(horizontal: 0, vertical: 0),
+    borderRadius: 12,
+    hoverScale: 1.04,
+    normalBlur: 3,
+    hoverBlur: 10,
+    child: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Icon(Icons.folder_shared_outlined, size: 16),
+                SizedBox(width: 6),
+                Text('Shared'),
+              ],
+            ),
+          ).paddingSymmetric(horizontal: 14),
         ],
       ),
     );

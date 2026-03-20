@@ -1,5 +1,6 @@
 import 'package:AccuChat/Screens/Home/Models/get_folder_res_model.dart';
 import 'package:AccuChat/Screens/Home/Presentation/Controller/gallery_controller.dart';
+import 'package:AccuChat/utils/helper_widget.dart';
 import 'package:AccuChat/utils/text_style.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
@@ -9,6 +10,7 @@ import '../Screens/Chat/screens/auth/models/get_uesr_Res_model.dart';
 import '../Screens/Chat/screens/chat_tasks/Presentation/Controllers/save_in_accuchat_gallery_controller.dart';
 import '../Screens/Chat/screens/chat_tasks/Presentation/dialogs/save_in_gallery_dialog.dart';
 import '../Screens/Home/Models/pickes_file_item.dart';
+import 'gradient_button.dart';
 
 void showUploadOptions(BuildContext context, {FolderData? folder}) {
   if (kIsWeb) {
@@ -168,100 +170,116 @@ Future<void> showUploadOptionsWeb(BuildContext context,FolderData? folderdata) a
         ],
       ),
       actions: [
-        TextButton(
-          onPressed: () async {
-            Get.back();
-            final galle = Get.find<GalleryController>();
-            final images = await galle.pickWebImages(maxFiles: 10);
-            if (images.isNotEmpty) {
-              final saveC = Get.isRegistered<SaveToGalleryController>()
-                  ? Get.find<SaveToGalleryController>()
-                  : Get.put(SaveToGalleryController());
 
-              folderdata!=null?null: await saveC.hitApiToGetFolder();
+        Container(
+          width: 500,
+          child: Row(
+            children: [
+              Expanded(child: GradientButton(
+                vPadding: 7,
+                onTap: () async {
+                  Get.back();
+                  final galle = Get.find<GalleryController>();
+                  final images = await galle.pickWebImages(maxFiles: 10);
+                  if (images.isNotEmpty) {
+                    final saveC = Get.isRegistered<SaveToGalleryController>()
+                        ? Get.find<SaveToGalleryController>()
+                        : Get.put(SaveToGalleryController());
 
-              galle.images.addAll(images);
-              final picked = await Future.wait(
-                images.map((f) async {
-                  final bytes = await f.readAsBytes();
-                  return PickedFileItem(
+                    folderdata!=null?null: await saveC.hitApiToGetFolder();
+
+                    galle.images.addAll(images);
+                    final picked = await Future.wait(
+                      images.map((f) async {
+                        final bytes = await f.readAsBytes();
+                        return PickedFileItem(
+                          name: f.name,
+                          byte: bytes,
+                          kind: PickedKind.image,
+                          url: '',
+                        );
+                      }),
+                    );
+                    await  showDialog(
+                        context: context,
+                        builder: (_) => SaveToCustomFolderDialog(
+                          user: UserDataAPI(),
+                          filesImages: picked,
+                          isImage: true,
+                          multi:true,
+                          isFromChat: false, isDirect: folderdata!=null?false:true, folderData: folderdata,
+                        ));
+                    // controller.images.addAll(images);
+                    // controller.uploadMediaApiCall(type: ChatMediaType.IMAGE.name);
+                  }
+                },
+                textWidget:  Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    const Icon(Icons.photo,color: Colors.white,size: 15,),
+                    const SizedBox(width: 4),
+                    Text('Select Images',style: BalooStyles.baloosemiBoldTextStyle(color: Colors.white),)
+                  ],
+                ), name: '',
+              )),
+              hGap(10),
+              Expanded(child: GradientButton(
+                vPadding: 7,
+                onTap: () async {
+                  Get.back();
+                  final galle = Get.find<GalleryController>();
+                  final docs = await galle.pickWebDocs();
+
+                  final picked = docs
+                      .map((f) => PickedFileItem(
                     name: f.name,
-                    byte: bytes,
-                    kind: PickedKind.image,
+                    byte: f.bytes!,
+                    kind: PickedKind.document,
                     url: '',
-                  );
-                }),
-              );
-             await  showDialog(
-                  context: context,
-                  builder: (_) => SaveToCustomFolderDialog(
-                    user: UserDataAPI(),
-                    filesImages: picked,
-                    isImage: true,
-                    multi:true,
-                    isFromChat: false, isDirect: folderdata!=null?false:true, folderData: folderdata,
-                  ));
-              // controller.images.addAll(images);
-              // controller.uploadMediaApiCall(type: ChatMediaType.IMAGE.name);
-            }
-          },
-          child: const Row(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Icon(Icons.photo),
-              SizedBox(width: 8),
-              Text('Select Images')
+                  ))
+                      .toList();
+                  final saveC = Get.isRegistered<SaveToGalleryController>()
+                      ? Get.find<SaveToGalleryController>()
+                      : Get.put(SaveToGalleryController());
+                  await saveC.hitApiToGetFolder();
+                  if (docs.isNotEmpty) {
+                    // Navigator.of(ctx).pop();
+
+                    await showDialog(
+                        context: context,
+                        builder: (_) => SaveToCustomFolderDialog(
+                          user: UserDataAPI(),
+                          filesImages: picked,
+                          isImage: false,
+                          isFromChat: false,
+                          multi:true,
+                          isDirect: folderdata!=null?false:true, folderData: folderdata,
+                        ));
+                    // see helper you’ll paste into your controller below
+                    // await controller.receivePickedDocuments(docs);
+                  }
+                },
+                textWidget:  Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    const Icon(Icons.picture_as_pdf,color: Colors.white,size: 15,),
+                    const SizedBox(width: 4),
+                    Text('Select Documents',style: BalooStyles.baloosemiBoldTextStyle(color: Colors.white),)
+                  ],
+                ), name: '',
+              )),
+              hGap(10),
+              GradientButton(
+                width: 100,
+                vPadding: 8,
+                onTap: () async {
+                  Navigator.of(ctx).pop();
+                },
+                name: 'Cancel',
+              ),
             ],
           ),
-        ),
-        TextButton(
-          onPressed: () async {
-            Get.back();
-            final galle = Get.find<GalleryController>();
-            final docs = await galle.pickWebDocs();
-
-            final picked = docs
-                .map((f) => PickedFileItem(
-              name: f.name,
-              byte: f.bytes!,
-              kind: PickedKind.document,
-              url: '',
-            ))
-                .toList();
-            final saveC = Get.isRegistered<SaveToGalleryController>()
-                ? Get.find<SaveToGalleryController>()
-                : Get.put(SaveToGalleryController());
-            await saveC.hitApiToGetFolder();
-            if (docs.isNotEmpty) {
-              // Navigator.of(ctx).pop();
-
-             await showDialog(
-                  context: context,
-                  builder: (_) => SaveToCustomFolderDialog(
-                    user: UserDataAPI(),
-                    filesImages: picked,
-                    isImage: false,
-                    isFromChat: false,
-                    multi:true,
-                    isDirect: folderdata!=null?false:true, folderData: folderdata,
-                  ));
-              // see helper you’ll paste into your controller below
-              // await controller.receivePickedDocuments(docs);
-            }
-          },
-          child: const Row(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Icon(Icons.picture_as_pdf),
-              SizedBox(width: 8),
-              Text('Select Documents')
-            ],
-          ),
-        ),
-        TextButton(
-          onPressed: () => Navigator.of(ctx).pop(),
-          child: const Text('Cancel'),
-        ),
+        )
       ],
     ),
   );

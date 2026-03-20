@@ -42,9 +42,9 @@ AppBar backAppBar({bool? centertitle,title,tilteWidget,context,Function()? onTap
 }
 
 
-Widget backApp(context,title, {size}){
+Widget backApp(context,title, {size,Function()? onTap}){
   return Row(
-    // mainAxisSize: MainAxisSize.min,
+    mainAxisSize: MainAxisSize.min,
     mainAxisAlignment: MainAxisAlignment.start,
     children: [
       InkWell(
@@ -60,15 +60,15 @@ Widget backApp(context,title, {size}){
               size: 16,
             ),
           ),
-          onTap: () {
+          onTap:onTap ?? () {
             Get.focusScope!.unfocus();
             Get.back();
           }),
-      hGap(10),
-      Text(
+      title!=''? hGap(10):SizedBox(),
+      title!=''? Text(
         title ?? "",
         style:BalooStyles.balooboldTitleTextStyle(color: Colors.black,size: size??18.0)
-      )
+      ):SizedBox()
     ],
-  ).marginSymmetric(horizontal: 15);
+  ).marginSymmetric(horizontal: 12);
 }

@@ -89,23 +89,27 @@ class CompanyMembers extends GetView<CompanyMemberController> {
       }),
       actions: [
         Obx(() {
-          return IconButton(
-                  onPressed: () {
-                    controller.isSearching.value =
-                        !controller.isSearching.value;
-                    controller.isSearching.refresh();
-
-                    if (!controller.isSearching.value) {
-                      controller.searchText = '';
-                      controller.onSearch('');
-                      controller.searchController.clear();
-                    }
-                  },
-                  icon: controller.isSearching.value
-                      ? const Icon(CupertinoIcons.clear_circled_solid)
-                      // : Image.asset(searchPng, height: 25, width: 25))
-                      : SvgPicture.asset(searchPng, height: 25, width: 25))
-              .paddingOnly(right: 8);
+          return GradientContainer(
+            color1: greenside,
+            color2: greenside.withOpacity(.6),
+            child: InkWell(
+                    onTap: () {
+                      controller.isSearching.value =
+                          !controller.isSearching.value;
+                      controller.isSearching.refresh();
+            
+                      if (!controller.isSearching.value) {
+                        controller.searchText = '';
+                        controller.onSearch('');
+                        controller.searchController.clear();
+                      }
+                    },
+                    child: controller.isSearching.value
+                        ? const Icon(CupertinoIcons.clear_circled_solid)
+                        // : Image.asset(searchPng, height: 25, width: 25))
+                        : SvgPicture.asset(searchPng, height: 20, width: 20,color: Colors.white,))
+                ,
+          ).paddingOnly(right: 8);
         }),
       ],
     );

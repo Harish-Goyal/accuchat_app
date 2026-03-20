@@ -90,5 +90,5 @@ const COLOR_pinkM = MaterialColor(
 
  LinearGradient buttonGradient = LinearGradient(colors: [
 greenside,
-   greenside.withOpacity(.7),
+   greenside.withOpacity(.6),
 ]);
